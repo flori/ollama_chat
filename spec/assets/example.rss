@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example News Feed</title>
+    <link>https://example.com</link>
+    <description>A sample news feed.</description>
+
+    <!-- Item 1 -->
+    <item>
+      <title>New Study Shows Benefits of Meditation</title>
+      <link>https://example.com/article/meditation-benefits</link>
+      <pubDate>Mon, 01 Jan 2024 12:00:00 GMT</pubDate>
+      <description>A new study has found that regular meditation can have numerous physical and mental health benefits.</description>
+    </item>
+
+    <!-- Item 2 -->
+    <item>
+      <title>Local Business Opens New Location</title>
+      <link>https://example.com/article/local-business-new-location</link>
+      <pubDate>Tue, 02 Jan 2024 10:00:00 GMT</pubDate>
+      <description>A local business has opened a new location in the area.</description>
+    </item>
+
+  </channel>
+</rss>

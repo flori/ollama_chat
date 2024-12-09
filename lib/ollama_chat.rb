@@ -1,0 +1,20 @@
+module OllamaChat
+end
+
+require 'ollama'
+require 'documentrix'
+require 'ollama_chat/version'
+require 'ollama_chat/utils'
+require 'ollama_chat/message_type'
+require 'ollama_chat/ollama_chat_config'
+require 'ollama_chat/follow_chat'
+require 'ollama_chat/switches'
+require 'ollama_chat/message_list'
+require 'ollama_chat/model_handling'
+require 'ollama_chat/parsing'
+require 'ollama_chat/source_fetching'
+require 'ollama_chat/dialog'
+require 'ollama_chat/information'
+require 'ollama_chat/clipboard'
+require 'ollama_chat/document_cache'
+require 'ollama_chat/chat'

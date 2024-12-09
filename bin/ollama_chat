@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'ollama_chat'
+
+exit OllamaChat::Chat.new.start.to_i
