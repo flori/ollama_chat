@@ -51,6 +51,16 @@ module OllamaChat::Switches
 
   attr_reader :markdown
 
+  attr_reader :stream
+
+  attr_reader :voice
+
+  attr_reader :embedding
+
+  attr_reader :embedding_enabled
+
+  attr_reader :embedding_paused
+
   attr_reader :location
 
   def setup_switches(config)

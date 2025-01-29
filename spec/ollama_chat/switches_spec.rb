@@ -18,7 +18,6 @@ RSpec.describe OllamaChat::Switches do
         double(test?: false)
       end
 
-
       it 'can be switched on' do
         expect {
           switch.set(true)

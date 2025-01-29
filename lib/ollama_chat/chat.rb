@@ -41,7 +41,7 @@ class OllamaChat::Chat
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
     model_system     = pull_model_unless_present(@model, @model_options)
-    @embedding_enabled.set(config.embedding.enabled && !@opts[?E])
+    embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @messages        = OllamaChat::MessageList.new(self)
     if @opts[?c]
       @messages.load_conversation(@opts[?c])
@@ -96,19 +96,19 @@ class OllamaChat::Chat
       when %r(^/paste$)
         content = paste_from_input
       when %r(^/markdown$)
-        @markdown.toggle
+        markdown.toggle
         next
       when %r(^/stream$)
-        @stream.toggle
+        stream.toggle
         next
       when %r(^/location$)
-        @location.toggle
+        location.toggle
         next
       when %r(^/voice(?:\s+(change))?$)
         if $1 == 'change'
           change_voice
         else
-          @voice.toggle
+          voice.toggle
         end
         next
       when %r(^/list(?:\s+(\d*))?$)
@@ -192,8 +192,8 @@ class OllamaChat::Chat
         parse_content = false
         content       = summarize($2, words: $1) or next
       when %r(^/embedding$)
-        @embedding_paused.toggle(show: false)
-        @embedding.show
+        embedding_paused.toggle(show: false)
+        embedding.show
         next
       when %r(^/embed\s+(.+))
         parse_content = false
@@ -287,7 +287,7 @@ class OllamaChat::Chat
                         [ content, Documentrix::Utils::Tags.new ]
                       end
 
-      if @embedding.on? && content
+      if embedding.on? && content
         records = @documents.find_where(
           content.downcase,
           tags:,
@@ -304,18 +304,18 @@ class OllamaChat::Chat
       @messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)
       @images.clear
       handler = OllamaChat::FollowChat.new(
+        chat:     self,
         messages: @messages,
-        markdown: @markdown.on?,
-        voice:    (@current_voice if @voice.on?)
+        voice:    (@current_voice if voice.on?)
       )
       ollama.chat(
         model: @model,
         messages: @messages,
         options: @model_options,
-        stream: @stream.on?,
+        stream: stream.on?,
         &handler
       )
-      if @embedding.on? && !records.empty?
+      if embedding.on? && !records.empty?
         STDOUT.puts "", records.map { |record|
           link = if record.source =~ %r(\Ahttps?://)
                    record.source
@@ -335,7 +335,7 @@ class OllamaChat::Chat
   private
 
   def setup_documents
-    if @embedding.on?
+    if embedding.on?
       @embedding_model         = config.embedding.model.name
       @embedding_model_options = Ollama::Options[config.embedding.model.options]
       pull_model_unless_present(@embedding_model, @embedding_model_options)

@@ -7,8 +7,12 @@ RSpec.describe OllamaChat::FollowChat do
     ]
   end
 
+  let :chat do
+    double('Chat', markdown: double(on?: false))
+  end
+
   let :follow_chat do
-    described_class.new(messages:, output:)
+    described_class.new(chat:, messages:, output:)
   end
 
   let :output do

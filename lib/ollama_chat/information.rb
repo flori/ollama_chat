@@ -42,9 +42,9 @@ module OllamaChat::Information
       collection_stats
     end
     STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
-    @markdown.show
-    @stream.show
-    @location.show
+    markdown.show
+    stream.show
+    location.show
     STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
     if @voice.on?
       STDOUT.puts "Using voice #{bold{@current_voice}} to speak."

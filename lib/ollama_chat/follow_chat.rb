@@ -4,10 +4,10 @@ class OllamaChat::FollowChat
   include Term::ANSIColor
   include OllamaChat::MessageType
 
-  def initialize(messages:, markdown: false, voice: nil, output: STDOUT)
+  def initialize(chat:, messages:, voice: nil, output: STDOUT)
     super(output:)
+    @chat        = chat
     @output.sync = true
-    @markdown    = markdown
     @say         = voice ? Handlers::Say.new(voice:) : NOP
     @messages    = messages
     @user        = nil
@@ -20,13 +20,13 @@ class OllamaChat::FollowChat
         @messages << Message.new(role: 'assistant', content: '')
         @user = message_type(@messages.last.images) + " " +
           bold { color(111) { 'assistant:' } }
-        @output.puts @user unless @markdown
+        @output.puts @user unless @chat.markdown.on?
       end
       if content = response.message&.content
         content = content.gsub(%r(<think>), "💭\n").gsub(%r(</think>), "\n💬")
       end
       @messages.last.content << content
-      if @markdown and content = @messages.last.content.full?
+      if @chat.markdown.on? and content = @messages.last.content.full?
         markdown_content = Kramdown::ANSI.parse(content)
         @output.print clear_screen, move_home, @user, ?\n, markdown_content
       else
