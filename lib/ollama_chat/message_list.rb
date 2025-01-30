@@ -128,10 +128,10 @@ class OllamaChat::MessageList
       n = n.to_i.clamp(1, Float::INFINITY)
       r = @messages.pop(2 * n)
       m = r.size / 2
-      STDOUT.puts "Popped the last #{m} exchanges."
+      STDOUT.puts "Dropped the last #{m} exchanges."
       m
     else
-      STDOUT.puts "No more exchanges you can pop."
+      STDOUT.puts "No more exchanges you can drop."
       0
     end
   end
