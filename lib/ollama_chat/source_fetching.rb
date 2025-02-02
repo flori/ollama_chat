@@ -145,8 +145,7 @@ module OllamaChat::SourceFetching
     if l = @messages.at_location.full?
       query += " #{l}"
     end
-    n = n.to_i
-    n < 1 and n = 1
+    n = n.to_i.clamp(1..)
     query = URI.encode_uri_component(query)
     url = "https://www.duckduckgo.com/html/?q=#{query}"
     OllamaChat::Utils::Fetcher.get(url, debug: config.debug) do |tmp|
