@@ -340,7 +340,7 @@ class OllamaChat::Chat
       @embedding_model_options = Ollama::Options[config.embedding.model.options]
       pull_model_unless_present(@embedding_model, @embedding_model_options)
       collection = @opts[?C] || config.embedding.collection
-      documents = Documentrix::Documents.new(
+      @documents = Documentrix::Documents.new(
         ollama:,
         model:             @embedding_model,
         model_options:     config.embedding.model.options,
@@ -352,14 +352,14 @@ class OllamaChat::Chat
       )
 
       document_list = @opts[?D].to_a
-      add_documents_from_argv(documents, document_list)
-      documents
+      add_documents_from_argv(document_list)
+      @documents
     else
       Tins::NULL
     end
   end
 
-  def add_documents_from_argv(documents, document_list)
+  def add_documents_from_argv(document_list)
     if document_list.any?(&:empty?)
       STDOUT.puts "Clearing collection #{bold{documents.collection}}."
       documents.clear

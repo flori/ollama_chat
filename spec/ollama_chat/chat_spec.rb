@@ -48,7 +48,7 @@ RSpec.describe OllamaChat::Chat do
 
       it 'Adds documents passed to app via -D option' do
         expect_any_instance_of(OllamaChat::Chat).to receive(:add_documents_from_argv).
-          with(kind_of(Documentrix::Documents), [ asset('example.html') ])
+          with([ asset('example.html') ])
         chat
       end
     end
