@@ -182,14 +182,23 @@ class OllamaChat::MessageList
   # messages in the list.
   def to_ary
     location = at_location.full?
-    @messages.map do |message|
+    add_system = !!location
+    result = @messages.map do |message|
       if message.role == 'system' && location
+        add_system = false
         content = message.content + "\n\n#{location}"
         Ollama::Message.new(role: message.role, content:)
       else
         message
       end
     end
+    if add_system
+      prompt = @chat.config.system_prompts.assistant?
+      content = [ prompt, location ].compact * "\n\n"
+      message = Ollama::Message.new(role: 'system', content:)
+      result.unshift message
+    end
+    result
   end
 
   # The at_location method returns the location/time/units information as a

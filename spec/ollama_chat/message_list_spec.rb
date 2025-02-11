@@ -11,6 +11,9 @@ RSpec.describe OllamaChat::MessageList do
       ),
       prompts: double(
         location: 'You are at %{location_name} (%{location_decimal_degrees}), on %{localtime}, preferring %{units}'
+      ),
+      system_prompts: double(
+        assistant?: 'You are a helpful assistant.'
       )
     )
   end
@@ -121,6 +124,19 @@ RSpec.describe OllamaChat::MessageList do
     expect(first.content).to match(
       %r(You are at Berlin \(52.514127, 13.475211\), on))
   end
+
+  it 'can be converted int an Ollama::Message array with location without a system prompt' do
+    expect(chat).to receive(:location).and_return(double(on?: true))
+    list = described_class.new(chat).tap do |list|
+      list <<  Ollama::Message.new(role: 'user', content: 'hello')
+      list << Ollama::Message.new(role: 'assistant', content: 'world')
+    end
+    first = list.to_ary.first
+    expect(first.role).to eq 'system'
+    expect(first.content).to match(
+      %r(You are a helpful assistant.\n\nYou are at Berlin \(52.514127, 13.475211\), on))
+  end
+
 
   it 'can display messages with images' do
     expect(list.message_type([])).to eq ?📨
