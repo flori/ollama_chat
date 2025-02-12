@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
-# stub: ollama_chat 0.0.1 ruby lib
+# stub: ollama_chat 0.0.2 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "ollama_chat".freeze
-  s.version = "0.0.1".freeze
+  s.version = "0.0.2".freeze
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Florian Frank".freeze]
-  s.date = "2025-02-11"
+  s.date = "2025-02-12"
   s.description = "The app provides a command-line interface (CLI) to an Ollama AI model,\nallowing users to engage in text-based conversations and generate\nhuman-like responses. Users can import data from local files or web pages,\nwhich are then processed through three different modes: fully importing the\ncontent into the conversation context, summarizing the information for\nconcise reference, or storing it in an embedding vector database for later\nretrieval based on the conversation.\n".freeze
   s.email = "flori@ping.de".freeze
   s.executables = ["ollama_chat".freeze]
