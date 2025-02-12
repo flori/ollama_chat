@@ -1,5 +1,19 @@
 # Changes
 
+## 2025-02-11 v0.0.2
+
+* Improved handling of location in MessageList class:
+  * Use assistant system prompt (`assistant_system_prompt`) for adding location
+    to message list, if no system prompt was defined.
+  * Updated spec to cover new behavior.
+* Simplified configuration defaults to be stored in `default_config.yml`:
+  - Replaced `DEFAULT_CONFIG` hash with a single line of code that reads from
+    `default_config.yml`
+  - Created new file `default_config.yml` in the same directory, containing the
+    old `DEFAULT_CONFIG` hash values
+  - Updated `initialize` method to use the new `default_config.yml` file if no
+    filename is provided
+
 ## 2025-02-02 v0.0.1
 
 * Renamed `documents` variable to `@documents` in `OllamaChat::Chat`
