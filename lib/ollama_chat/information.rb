@@ -113,6 +113,6 @@ module OllamaChat::Information
   end
 
   def server_version
-    ollama.version.version
+    @server_version ||= ollama.version.version
   end
 end

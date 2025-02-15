@@ -5,13 +5,7 @@ RSpec.describe OllamaChat::ModelHandling do
     OllamaChat::Chat.new
   end
 
-  before do
-    stub_request(:get, %r(/api/tags\z)).
-      to_return(status: 200, body: asset_json('api_tags.json'))
-    stub_request(:post, %r(/api/show\z)).
-      to_return(status: 200, body: asset_json('api_show.json'))
-    chat
-  end
+  connect_to_ollama_server
 
   it 'can check if model_present?' do
     expect(chat.ollama).to receive(:show).and_raise Ollama::Errors::NotFoundError

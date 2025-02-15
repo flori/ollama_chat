@@ -5,15 +5,7 @@ RSpec.describe OllamaChat::Information do
     OllamaChat::Chat.new
   end
 
-  before do
-    stub_request(:get, %r(/api/tags\z)).
-      to_return(status: 200, body: asset_json('api_tags.json'))
-    stub_request(:post, %r(/api/show\z)).
-      to_return(status: 200, body: asset_json('api_show.json'))
-    stub_request(:get, %r(/api/version\z)).
-      to_return(status: 200, body: asset_json('api_version.json'))
-    chat
-  end
+  connect_to_ollama_server
 
   describe ::OllamaChat::Information::UserAgent do
     it 'has progname' do

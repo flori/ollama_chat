@@ -37,6 +37,7 @@ class OllamaChat::Chat
       debug:      config.debug,
       user_agent:
     )
+    server_version
     @document_policy = config.document_policy
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
