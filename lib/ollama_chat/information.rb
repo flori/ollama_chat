@@ -28,6 +28,7 @@ module OllamaChat::Information
   end
 
   def info
+    STDOUT.puts "Connected to ollama server version: #{bold(server_version)}"
     STDOUT.puts "Current model is #{bold{@model}}."
     if @model_options.present?
       STDOUT.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
@@ -109,5 +110,9 @@ module OllamaChat::Information
   def version
     STDOUT.puts "%s %s" % [ progname, OllamaChat::VERSION ]
     0
+  end
+
+  def server_version
+    ollama.version.version
   end
 end
