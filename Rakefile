@@ -30,7 +30,7 @@ GemHadar do
   executables << 'ollama_chat'
 
   dependency             'excon',                 '~> 1.0'
-  dependency             'ollama-ruby',           '~> 0.14'
+  dependency             'ollama-ruby',           '~> 0.15'
   dependency             'documentrix',           '~> 0.0'
   dependency             'rss',                   '~> 0.3'
   dependency             'term-ansicolor',        '~> 1.11'
