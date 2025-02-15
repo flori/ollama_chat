@@ -10,6 +10,8 @@ RSpec.describe OllamaChat::Information do
       to_return(status: 200, body: asset_json('api_tags.json'))
     stub_request(:post, %r(/api/show\z)).
       to_return(status: 200, body: asset_json('api_show.json'))
+    stub_request(:get, %r(/api/version\z)).
+      to_return(status: 200, body: asset_json('api_version.json'))
     chat
   end
 
@@ -29,6 +31,7 @@ RSpec.describe OllamaChat::Information do
   end
 
   it 'can show info' do
+    expect(STDOUT).to receive(:puts).with(/Connected to ollama server version/)
     expect(STDOUT).to receive(:puts).with(/Current model is/)
     expect(STDOUT).to receive(:puts).at_least(1)
     expect(chat.info).to be_nil
