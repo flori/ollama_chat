@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe OllamaChat::Chat do
   let :argv do
-    []
+    %w[ -C test ]
   end
 
   let :chat do
@@ -38,7 +38,7 @@ RSpec.describe OllamaChat::Chat do
   describe Documentrix::Documents do
     context 'with documents' do
       let :argv do
-        %w[ -D ] << asset('example.html')
+        %w[ -C test -D ] << asset('example.html')
       end
 
       it 'Adds documents passed to app via -D option' do
@@ -61,7 +61,7 @@ RSpec.describe OllamaChat::Chat do
     it 'can display collection_stats' do
       chat
       expect(STDOUT).to receive(:puts).with(
-        "Current Collection\n  Name: \e[1mdefault\e[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags: \n"
+        "Current Collection\n  Name: \e[1mtest\e[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags: \n"
       )
       expect(chat.collection_stats).to be_nil
     end
