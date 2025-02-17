@@ -392,7 +392,7 @@ class OllamaChat::Chat
       Documentrix::Documents::RedisCache.new(
         prefix: 'Expiring-',
         url:,
-        ex:     config.redis.expiring.ex,
+        ex:     config.redis.expiring.ex?.to_i,
       )
     end
   end
