@@ -22,6 +22,7 @@ module OllamaChat::SourceFetching
       links.add(source.to_s)
       OllamaChat::Utils::Fetcher.get(
         source,
+        headers:      config.request_headers?.to_h,
         cache:        @cache,
         debug:        config.debug,
         http_options: http_options(OllamaChat::Utils::Fetcher.normalize_url(source))
@@ -148,7 +149,11 @@ module OllamaChat::SourceFetching
     n = n.to_i.clamp(1..)
     query = URI.encode_uri_component(query)
     url = "https://www.duckduckgo.com/html/?q=#{query}"
-    OllamaChat::Utils::Fetcher.get(url, debug: config.debug) do |tmp|
+    OllamaChat::Utils::Fetcher.get(
+      url,
+      headers: config.request_headers?.to_h,
+      debug:   config.debug
+    ) do |tmp|
       result = []
       doc = Nokogiri::HTML(tmp)
       doc.css('.results_links').each do |link|

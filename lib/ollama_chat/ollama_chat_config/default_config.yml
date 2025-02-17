@@ -56,5 +56,7 @@ redis:
     url: <%= ENV.fetch('REDIS_EXPIRING_URL', 'null') %>
     ex: 86400
 debug: <%= ENV['OLLAMA_CHAT_DEBUG'].to_i == 1 ? true : false %>
+request_headers:
+  Accept: 'text/*,application/*,image/*'
 ssl_no_verify: []
 copy: pbcopy

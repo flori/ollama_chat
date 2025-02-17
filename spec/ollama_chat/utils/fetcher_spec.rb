@@ -33,6 +33,21 @@ RSpec.describe OllamaChat::Utils::Fetcher do
     end
   end
 
+  it 'can #get with headers' do
+    stub_request(:get, url).
+      with(headers: { 'Accept' => 'text/html' } | fetcher.headers).
+      to_return(
+        status: 200,
+        body: 'world',
+        headers: { 'Content-Type' => 'text/plain' },
+      )
+    fetcher.get(url, headers: { 'Accept' => 'text/html' }) do |tmp|
+      expect(tmp).to be_a Tempfile
+      expect(tmp.read).to eq 'world'
+      expect(tmp.content_type).to eq 'text/plain'
+    end
+  end
+
   it 'can #get without ssl peer verification' do
     fetcher = described_class.new(
       http_options: { ssl_verify_peer: false }

@@ -20,14 +20,14 @@ class OllamaChat::Utils::Fetcher
 
   class RetryWithoutStreaming < StandardError; end
 
-  def self.get(url, **options, &block)
+  def self.get(url, headers: {}, **options, &block)
     cache = options.delete(:cache) and
       cache = OllamaChat::Utils::CacheFetcher.new(cache)
     if result = cache&.get(url, &block)
       infobar.puts "Getting #{url.to_s.inspect} from cache."
       return result
     else
-      new(**options).send(:get, url) do |tmp|
+      new(**options).send(:get, url, headers:) do |tmp|
         result = block.(tmp)
         if cache && !tmp.is_a?(StringIO)
           tmp.rewind
@@ -91,7 +91,9 @@ class OllamaChat::Utils::Fetcher
     Excon.new(url, options.merge(@http_options))
   end
 
-  def get(url, &block)
+  def get(url, headers: {}, &block)
+    headers |= self.headers
+    headers = headers.transform_keys(&:to_s)
     response = nil
     Tempfile.open do |tmp|
       infobar.label = 'Getting'
