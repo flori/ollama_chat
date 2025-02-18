@@ -28,6 +28,7 @@ module OllamaChat::Information
   end
 
   def info
+    STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
     STDOUT.puts "Connected to ollama server version: #{bold(server_version)}"
     STDOUT.puts "Current model is #{bold{@model}}."
     if @model_options.present?

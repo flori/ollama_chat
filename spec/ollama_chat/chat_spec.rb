@@ -71,6 +71,7 @@ RSpec.describe OllamaChat::Chat do
       expect(STDOUT).to receive(:puts).
         with(
           /
+            Running\ ollama_chat\ version|
             Connected\ to\ ollama\ server|
             Current\ model|
             Options|
