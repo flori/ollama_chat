@@ -2,8 +2,10 @@
 .AppleDouble
 .bundle
 .yardoc
+/config/searxng/*
 Gemfile.lock
 corpus
 coverage
 pkg
 tags
+/config/searxng/*
