@@ -1,5 +1,20 @@
 # Changes
 
+## 2025-02-21 v0.0.4
+
+* Added support for web searching with SearXNG:
+  + Added `ollama_chat/web_searching.rb` module which includes a generic
+    `search_web` method that uses the selected search engine.
+  + Updated `ollama_chat/default_config.yml` to include configuration options
+    for web searching with all engines.
+  + Updated `ollama_chat/chat.rb` to use the new `web_searching` module and
+    updated the `search_web` method to return results from either engine.
+  + Added specs in `spec/ollama_chat/web_searching_spec.rb` to test the new functionality.
+* Added ollama chat version display to information module and spec:
+  + Added `STDOUT.puts` for displaying ollama chat version in `lib/ollama_chat/information.rb`
+  + Updated test in `spec/ollama_chat/chat_spec.rb` to include new output string
+* Update chat document redis cache expiration time default to 0.
+
 ## 2025-02-17 v0.0.3
 
 * Support setting of request headers:
