@@ -36,13 +36,4 @@ RSpec.describe OllamaChat::SourceFetching do
       'This source was now embedded: ./spec/assets/example.html'
     )
   end
-
-  it 'can search web' do
-    stub_request(:get, "https://www.duckduckgo.com/html/?q=foo").
-      with(headers: { 'Host'=>'www.duckduckgo.com' }).
-      to_return(status: 200, body: asset_content('duckduckgo.html'), headers: {})
-    expect(chat.search_web('foo').first.to_s).to eq(
-      'https://en.wikipedia.org/wiki/Foo_Fighters'
-    )
-  end
 end

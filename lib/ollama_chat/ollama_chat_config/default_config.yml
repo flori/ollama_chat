@@ -60,3 +60,10 @@ request_headers:
   Accept: 'text/*,application/*,image/*'
 ssl_no_verify: []
 copy: pbcopy
+web_search:
+  use: duckduckgo
+  engines:
+    duckduckgo:
+      url: 'https://www.duckduckgo.com/html/?q=%{query}'
+    searxng:
+      url: 'http://localhost:8088/search?q=%{query}&format=json'

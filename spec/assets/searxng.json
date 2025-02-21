@@ -1,0 +1,111 @@
+{
+  "query": "foo",
+  "number_of_results": 0,
+  "results": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Foo_Fighters",
+      "title": "Foo Fighters - Wikipedia",
+      "content": "The Foo Fighters are an American rock band formed in Seattle in 1994. Initially founded as a one-man project by former Nirvana drummer Dave Grohl, the band comprises vocalist/guitarist Grohl, bassist Nate Mendel, guitarist Pat Smear, guitarist Chris Shiflett, keyboardist Rami Jaffee and drummer Josh Freese.Guitarist Franz Stahl and drummers William Goldsmith and Taylor Hawkins are former ...",
+      "publishedDate": null,
+      "thumbnail": null,
+      "engine": "brave",
+      "template": "default.html",
+      "parsed_url": [
+        "https",
+        "en.wikipedia.org",
+        "/wiki/Foo_Fighters",
+        "",
+        "",
+        ""
+      ],
+      "engines": [
+        "startpage",
+        "brave",
+        "google",
+        "duckduckgo"
+      ],
+      "positions": [
+        2,
+        1,
+        2,
+        1
+      ],
+      "score": 12.0,
+      "category": "general"
+    },
+    {
+      "url": "https://www.foofighters.com",
+      "title": "Home - Foo Fighters",
+      "content": "Official website of Foo Fighters",
+      "publishedDate": "2023-04-19T00:00:00",
+      "thumbnail": null,
+      "engine": "brave",
+      "template": "default.html",
+      "parsed_url": [
+        "https",
+        "www.foofighters.com",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "engines": [
+        "startpage",
+        "brave",
+        "google",
+        "duckduckgo"
+      ],
+      "positions": [
+        1,
+        2,
+        7,
+        2
+      ],
+      "score": 8.571428571428571,
+      "category": "general"
+    },
+    {
+      "url": "https://www.dictionary.com/e/tech-science/foo/",
+      "title": "foo | Meaning & Origin | Dictionary.com",
+      "content": "\"Foo was here\" was a popular piece of graffiti drawn by Australian soldiers in WWII, and possibly even WWI, that depicts a little man poking his head and large nose over the wall à la Kilroy. While the origins of this foo are unclear, it appears to be unrelated to Holman's foo.",
+      "publishedDate": "2022-07-04T00:00:00",
+      "thumbnail": "",
+      "engine": "brave",
+      "template": "default.html",
+      "parsed_url": [
+        "https",
+        "www.dictionary.com",
+        "/e/tech-science/foo/",
+        "",
+        "",
+        ""
+      ],
+      "engines": [
+        "brave",
+        "duckduckgo"
+      ],
+      "positions": [
+        13,
+        1
+      ],
+      "score": 2.1538461538461537,
+      "category": "general"
+    }
+  ],
+  "suggestions": [
+    "foo fighters - everlong",
+    "Foo meaning",
+    "Foo Fighters WW2",
+    "Foo Fighters - Learn to Fly",
+    "foo fighters - the colour and the shape",
+    "Foo Fighters tour 2024",
+    "Foo programming",
+    "Foo word"
+  ],
+  "unresponsive_engines": [
+    [
+      "qwant",
+      "Suspended: CAPTCHA"
+    ]
+  ]
+}

@@ -141,37 +141,4 @@ module OllamaChat::SourceFetching
       summarize(source)
     end
   end
-
-  def search_web(query, n = nil)
-    if l = @messages.at_location.full?
-      query += " #{l}"
-    end
-    n = n.to_i.clamp(1..)
-    query = URI.encode_uri_component(query)
-    url = "https://www.duckduckgo.com/html/?q=#{query}"
-    OllamaChat::Utils::Fetcher.get(
-      url,
-      headers: config.request_headers?.to_h,
-      debug:   config.debug
-    ) do |tmp|
-      result = []
-      doc = Nokogiri::HTML(tmp)
-      doc.css('.results_links').each do |link|
-        if n > 0
-          url = link.css('.result__a').first&.[]('href')
-          url.sub!(%r(\A(//duckduckgo\.com)?/l/\?uddg=), '')
-          url.sub!(%r(&rut=.*), '')
-          url = URI.decode_uri_component(url)
-          url = URI.parse(url)
-          url.host =~ /duckduckgo\.com/ and next
-          links.add(url.to_s)
-          result << url
-          n -= 1
-        else
-          break
-        end
-      end
-      result
-    end
-  end
 end

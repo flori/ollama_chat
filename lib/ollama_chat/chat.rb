@@ -19,6 +19,7 @@ class OllamaChat::Chat
   include OllamaChat::ModelHandling
   include OllamaChat::Parsing
   include OllamaChat::SourceFetching
+  include OllamaChat::WebSearching
   include OllamaChat::Dialog
   include OllamaChat::Information
   include OllamaChat::Clipboard
@@ -201,7 +202,7 @@ class OllamaChat::Chat
         content       = embed($1) or next
       when %r(^/web\s+(?:(\d+)\s+)?(.+))
         parse_content   = false
-        urls            = search_web($2, $1.to_i)
+        urls            = search_web($2, $1.to_i) or next
         urls.each do |url|
           fetch_source(url) { |url_io| embed_source(url_io, url) }
         end

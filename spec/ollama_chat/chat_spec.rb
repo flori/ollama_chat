@@ -81,7 +81,8 @@ RSpec.describe OllamaChat::Chat do
             output\ content|
             Streaming|
             Location|
-            Document\ policy
+            Document\ policy|
+            Currently\ selected\ search\ engine
           /x
         ).at_least(1)
       expect(chat.info).to be_nil

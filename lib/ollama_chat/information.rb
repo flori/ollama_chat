@@ -48,6 +48,7 @@ module OllamaChat::Information
     stream.show
     location.show
     STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
+    STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
     if @voice.on?
       STDOUT.puts "Using voice #{bold{@current_voice}} to speak."
     end
