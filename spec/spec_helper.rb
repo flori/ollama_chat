@@ -14,6 +14,8 @@ require 'webmock/rspec'
 WebMock.disable_net_connect!
 require 'ollama_chat'
 
+ComplexConfig::Provider.deep_freeze = false
+
 def asset(name)
   File.join(__dir__, 'assets', name)
 end
