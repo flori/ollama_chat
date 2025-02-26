@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Florian Frank".freeze]
-  s.date = "2025-02-21"
+  s.date = "2025-02-26"
   s.description = "The app provides a command-line interface (CLI) to an Ollama AI model,\nallowing users to engage in text-based conversations and generate\nhuman-like responses. Users can import data from local files or web pages,\nwhich are then processed through three different modes: fully importing the\ncontent into the conversation context, summarizing the information for\nconcise reference, or storing it in an embedding vector database for later\nretrieval based on the conversation.\n".freeze
   s.email = "flori@ping.de".freeze
   s.executables = ["ollama_chat".freeze]
@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
 
   s.specification_version = 4
 
-  s.add_development_dependency(%q<gem_hadar>.freeze, ["~> 1.19".freeze])
+  s.add_development_dependency(%q<gem_hadar>.freeze, ["~> 1.20".freeze])
   s.add_development_dependency(%q<all_images>.freeze, ["~> 0.6".freeze])
   s.add_development_dependency(%q<rspec>.freeze, ["~> 3.2".freeze])
   s.add_development_dependency(%q<kramdown>.freeze, ["~> 2.0".freeze])
