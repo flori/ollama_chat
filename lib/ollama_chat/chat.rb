@@ -46,14 +46,14 @@ class OllamaChat::Chat
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @messages        = OllamaChat::MessageList.new(self)
     if @opts[?c]
-      @messages.load_conversation(@opts[?c])
+      messages.load_conversation(@opts[?c])
     else
       default = config.system_prompts.default? || model_system
       if @opts[?s] =~ /\A\?/
         change_system_prompt(default, system: @opts[?s])
       else
         system = OllamaChat::Utils::FileArgument.get_file_argument(@opts[?s], default:)
-        system.present? and @messages.set_system_prompt(system)
+        system.present? and messages.set_system_prompt(system)
       end
     end
     @documents     = setup_documents
@@ -65,6 +65,8 @@ class OllamaChat::Chat
   attr_reader :ollama
 
   attr_reader :documents
+
+  attr_reader :messages
 
   def links
     @links ||= Set.new
@@ -84,8 +86,17 @@ class OllamaChat::Chat
 
   def start
     info
+    if messages.size > 1
+      messages.list_conversation(2)
+    end
     STDOUT.puts "\nType /help to display the chat help."
 
+    interact_with_user
+  end
+
+  private
+
+  def interact_with_user
     loop do
       parse_content = true
       input_prompt = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
@@ -115,15 +126,15 @@ class OllamaChat::Chat
         next
       when %r(^/list(?:\s+(\d*))?$)
         last = 2 * $1.to_i if $1
-        @messages.list_conversation(last)
+        messages.list_conversation(last)
         next
       when %r(^/clear$)
-        @messages.clear
+        messages.clear
         STDOUT.puts "Cleared messages."
         next
       when %r(^/clobber$)
         if ask?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /\Ay/i
-          @messages.clear
+          messages.clear
           @documents.clear
           links.clear
           STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
@@ -132,8 +143,8 @@ class OllamaChat::Chat
         end
         next
       when %r(^/drop(?:\s+(\d*))?$)
-        @messages.drop($1)
-        @messages.list_conversation(2)
+        messages.drop($1)
+        messages.list_conversation(2)
         next
       when %r(^/model$)
         @model = choose_model('', @model)
@@ -143,9 +154,9 @@ class OllamaChat::Chat
         info
         next
       when %r(^/regenerate$)
-        if content = @messages.second_last&.content
+        if content = messages.second_last&.content
           content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
-          @messages.drop(2)
+          messages.drop(2)
         else
           STDOUT.puts "Not enough messages in this conversation."
           redo
@@ -212,7 +223,7 @@ class OllamaChat::Chat
           map { |u, s| "%s as \n:%s" % [ u, s ] } * "\n\n"
         content = config.prompts.web % { query:, results: }
       when %r(^/save\s+(.+)$)
-        @messages.save_conversation($1)
+        messages.save_conversation($1)
         STDOUT.puts "Saved conversation to #$1."
         next
       when %r(^/links(?:\s+(clear))?$)
@@ -252,7 +263,10 @@ class OllamaChat::Chat
         end
         next
       when %r(^/load\s+(.+)$)
-        @messages.load_conversation($1)
+        messages.load_conversation($1)
+        if messages.size > 1
+          messages.list_conversation(2)
+        end
         STDOUT.puts "Loaded conversation from #$1."
         next
       when %r(^/config$)
@@ -303,16 +317,16 @@ class OllamaChat::Chat
         end
       end
 
-      @messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)
+      messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)
       @images.clear
       handler = OllamaChat::FollowChat.new(
         chat:     self,
-        messages: @messages,
+        messages:,
         voice:    (@current_voice if voice.on?)
       )
       ollama.chat(
         model: @model,
-        messages: @messages,
+        messages:,
         options: @model_options,
         stream: stream.on?,
         &handler
@@ -326,15 +340,13 @@ class OllamaChat::Chat
                  end
           [ link, record.tags.first ]
         }.uniq.map { |l, t| hyperlink(l, t) }.join(' ')
-        config.debug and jj @messages.to_ary
+        config.debug and jj messages.to_ary
       end
     rescue Interrupt
       STDOUT.puts "Type /quit to quit."
     end
     0
   end
-
-  private
 
   def setup_documents
     if embedding.on?
