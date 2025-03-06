@@ -342,6 +342,8 @@ class OllamaChat::Chat
         }.uniq.map { |l, t| hyperlink(l, t) }.join(' ')
         config.debug and jj messages.to_ary
       end
+    rescue Ollama::Errors::TimeoutError
+      STDOUT.puts "#{bold('Error')}: Currently lost connection to ollama server and cannot send command."
     rescue Interrupt
       STDOUT.puts "Type /quit to quit."
     end
