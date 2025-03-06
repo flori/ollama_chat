@@ -52,7 +52,7 @@ class OllamaChat::FollowChat
       prompt_eval_rate:     bold { "%.2f c/s" % (response.prompt_eval_count.to_i / prompt_eval_duration) } + color(111),
       total_duration:       Tins::Duration.new(response.total_duration / 1e9),
       load_duration:        Tins::Duration.new(response.load_duration / 1e9),
-    }.map { _1 * '=' } * ' '
+    }.map { _1 * ?= } * ' '
     '📊 ' + color(111) {
       Kramdown::ANSI::Width.wrap(stats_text, percentage: 90).gsub(/(?<!\A)^/, '   ')
     }
