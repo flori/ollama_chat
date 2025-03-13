@@ -21,7 +21,7 @@ prompts:
     Answer the the query %{query} using these sources and summaries:
 
     %{results}
-  location: You are at %{location_name} (%{location_decimal_degrees}), on %{localtime}, preferring %{units}
+  location: You are at %{location_name}, %{location_decimal_degrees}, on %{localtime}, preferring %{units}
 system_prompts:
   default: <%= ENV.fetch('OLLAMA_CHAT_SYSTEM', 'null') %>
   assistant: You are a helpful assistant.
