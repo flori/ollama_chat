@@ -360,6 +360,7 @@ class OllamaChat::Chat
         ollama:,
         model:             @embedding_model,
         model_options:     config.embedding.model.options,
+        embedding_length:  config.embedding.model.embedding_length,
         database_filename: config.embedding.database_filename || @ollama_chat_config.database_path,
         collection:        ,
         cache:             configure_cache,
