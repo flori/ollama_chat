@@ -66,4 +66,4 @@ web_search:
     duckduckgo:
       url: 'https://www.duckduckgo.com/html/?q=%{query}'
     searxng:
-      url: 'http://localhost:8088/search?q=%{query}&format=json'
+      url: <%= ENV.fetch('OLLAMA_SEARXNG_URL', 'http://localhost:8088/search?q=%{query}&language=en&format=json') %>
