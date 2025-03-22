@@ -1,5 +1,20 @@
 # Changes
 
+## 2025-03-22 v0.0.5
+
+* Updated default config to use environment variable for Searxng URL:
+  * Changed `url` field in `searxng` section of `default_config.yml`.
+  * Replaced hardcoded URL with expression that fetches value from `OLLAMA_SEARXNG_URL` environment variable.
+* Handle Ollama server disconnection:
+  * Added error handling for `Ollama::Errors::TimeoutError`.
+  * Print error message when connection is lost.
+* Output last exchange of a loaded conversation:
+  * Add attribute reader to `messages` in `lib/ollama_chat/chat.rb`.
+  * Replace `@messages` with `messages` in method calls throughout the class.
+  * Update conversation listing, clearing, dropping, saving, loading methods.
+  * Refactor interaction with user logic.
+  * Update tests in `spec/ollama_chat/chat_spec.rb`.
+
 ## 2025-02-21 v0.0.4
 
 * Added support for web searching with SearXNG:
