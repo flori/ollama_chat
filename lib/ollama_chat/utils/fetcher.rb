@@ -59,9 +59,12 @@ class OllamaChat::Utils::Fetcher
 
   def self.execute(command, &block)
     Tempfile.open do |tmp|
-      IO.popen(command) do |command|
-        until command.eof?
-          tmp.write command.read(1 << 14)
+      unless command =~ /2>&1/
+        command += ' 2>&1'
+      end
+      IO.popen(command) do |io|
+        until io.eof?
+          tmp.write io.read(1 << 14)
         end
         tmp.rewind
         tmp.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
