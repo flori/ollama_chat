@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Florian Frank".freeze]
-  s.date = "2025-03-22"
+  s.date = "2025-04-14"
   s.description = "The app provides a command-line interface (CLI) to an Ollama AI model,\nallowing users to engage in text-based conversations and generate\nhuman-like responses. Users can import data from local files or web pages,\nwhich are then processed through three different modes: fully importing the\ncontent into the conversation context, summarizing the information for\nconcise reference, or storing it in an embedding vector database for later\nretrieval based on the conversation.\n".freeze
   s.email = "flori@ping.de".freeze
   s.executables = ["ollama_chat".freeze]
@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<debug>.freeze, [">= 0".freeze])
   s.add_development_dependency(%q<simplecov>.freeze, [">= 0".freeze])
   s.add_runtime_dependency(%q<excon>.freeze, ["~> 1.0".freeze])
-  s.add_runtime_dependency(%q<ollama-ruby>.freeze, ["~> 0.15".freeze])
+  s.add_runtime_dependency(%q<ollama-ruby>.freeze, ["~> 1.0".freeze])
   s.add_runtime_dependency(%q<documentrix>.freeze, ["~> 0.0".freeze])
   s.add_runtime_dependency(%q<rss>.freeze, ["~> 0.3".freeze])
   s.add_runtime_dependency(%q<term-ansicolor>.freeze, ["~> 1.11".freeze])

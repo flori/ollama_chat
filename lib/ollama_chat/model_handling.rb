@@ -1,13 +1,13 @@
 module OllamaChat::ModelHandling
   def model_present?(model)
-    ollama.show(name: model) { return _1.system.to_s }
+    ollama.show(model:) { return _1.system.to_s }
   rescue Ollama::Errors::NotFoundError
     false
   end
 
   def pull_model_from_remote(model)
     STDOUT.puts "Model #{bold{model}} not found locally, attempting to pull it from remote now…"
-    ollama.pull(name: model)
+    ollama.pull(model:)
   end
 
   def pull_model_unless_present(model, options)
