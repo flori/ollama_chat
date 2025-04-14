@@ -1,5 +1,15 @@
 # Changes
 
+## 2025-04-15 v0.0.6
+
+* Updated Rakefile to use `ollama-ruby` version **1.0**.
+* Modified `model_present?` method in `lib/ollama_chat/model_handling.rb` to use `ollama.show(model:)`.
+* Changed `pull_model_from_remote` method in `lib/ollama_chat/model_handling.rb` to use `ollama.pull(model:).
+* Updated `ollama_chat.gemspec` to use `ollama-ruby` version **1.0** and updated date to **2025-04-14**.
+* Attempt to capture stderr as well by redirecting stderr to stdout for
+  commands that output to it always or in the error case.
+* Updated development dependencies in `ollama_chat.gemspec`.
+
 ## 2025-03-22 v0.0.5
 
 * Updated default config to use environment variable for Searxng URL:
