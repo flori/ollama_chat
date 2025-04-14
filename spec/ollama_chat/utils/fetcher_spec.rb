@@ -113,9 +113,9 @@ RSpec.describe OllamaChat::Utils::Fetcher do
   end
 
   it 'can .execute' do
-    described_class.execute('echo -n hello world') do |file|
+    described_class.execute('echo hello world') do |file|
       expect(file).to be_a Tempfile
-      expect(file.read).to eq 'hello world'
+      expect(file.read).to eq "hello world\n"
       expect(file.content_type).to eq 'text/plain'
     end
   end
