@@ -212,6 +212,7 @@ EOT
           Pathname.pwd.join('spec/assets/example.html').to_s
         )
         content, = chat.parse_content(c, [])
+        expect(content).to eq c
       end
 
       it 'can be summarizing' do
