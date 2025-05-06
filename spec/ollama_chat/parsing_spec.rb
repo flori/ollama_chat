@@ -3,7 +3,9 @@ require 'pathname'
 
 RSpec.describe OllamaChat::Parsing do
   let :chat do
-    OllamaChat::Chat.new
+    OllamaChat::Chat.new.tap do |chat|
+      chat.document_policy = 'importing'
+    end
   end
 
   connect_to_ollama_server
