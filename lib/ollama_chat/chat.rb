@@ -26,6 +26,7 @@ class OllamaChat::Chat
   include OllamaChat::Information
   include OllamaChat::Clipboard
   include OllamaChat::MessageType
+  include OllamaChat::History
 
   def initialize(argv: ARGV.dup)
     @opts               = go 'f:u:m:s:c:C:D:MEVh', argv
@@ -429,27 +430,5 @@ class OllamaChat::Chat
         ex:     config.redis.expiring.ex?.to_i,
       )
     end
-  end
-
-  def chat_history_filename
-    File.expand_path(config.chat_history_filename)
-  end
-
-  def init_chat_history
-    if File.exist?(chat_history_filename)
-      File.open(chat_history_filename, ?r) do |history|
-        history_data = JSON.load(history)
-        clear_history
-        Readline::HISTORY.push(*history_data)
-      end
-    end
-  end
-
-  def save_history
-    File.secure_write(chat_history_filename, JSON.dump(Readline::HISTORY))
-  end
-
-  def clear_history
-    Readline::HISTORY.clear
   end
 end
