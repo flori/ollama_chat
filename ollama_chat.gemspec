@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Florian Frank".freeze]
-  s.date = "2025-04-14"
+  s.date = "1980-01-02"
   s.description = "The app provides a command-line interface (CLI) to an Ollama AI model,\nallowing users to engage in text-based conversations and generate\nhuman-like responses. Users can import data from local files or web pages,\nwhich are then processed through three different modes: fully importing the\ncontent into the conversation context, summarizing the information for\nconcise reference, or storing it in an embedding vector database for later\nretrieval based on the conversation.\n".freeze
   s.email = "flori@ping.de".freeze
   s.executables = ["ollama_chat".freeze]
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--title".freeze, "OllamaChat - A command-line interface (CLI) for interacting with an Ollama AI model.".freeze, "--main".freeze, "README.md".freeze]
   s.required_ruby_version = Gem::Requirement.new("~> 3.1".freeze)
-  s.rubygems_version = "3.6.2".freeze
+  s.rubygems_version = "3.6.7".freeze
   s.summary = "A command-line interface (CLI) for interacting with an Ollama AI model.".freeze
   s.test_files = ["spec/assets/example.rb".freeze, "spec/ollama_chat/chat_spec.rb".freeze, "spec/ollama_chat/clipboard_spec.rb".freeze, "spec/ollama_chat/follow_chat_spec.rb".freeze, "spec/ollama_chat/information_spec.rb".freeze, "spec/ollama_chat/message_list_spec.rb".freeze, "spec/ollama_chat/model_handling_spec.rb".freeze, "spec/ollama_chat/parsing_spec.rb".freeze, "spec/ollama_chat/source_fetching_spec.rb".freeze, "spec/ollama_chat/switches_spec.rb".freeze, "spec/ollama_chat/utils/cache_fetcher_spec.rb".freeze, "spec/ollama_chat/utils/fetcher_spec.rb".freeze, "spec/ollama_chat/utils/file_argument_spec.rb".freeze, "spec/ollama_chat/web_searching_spec.rb".freeze, "spec/spec_helper.rb".freeze]
 
