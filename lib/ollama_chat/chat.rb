@@ -131,9 +131,19 @@ class OllamaChat::Chat
         last = 2 * $1.to_i if $1
         messages.list_conversation(last)
         next
-      when %r(^/clear$)
-        messages.clear
-        STDOUT.puts "Cleared messages."
+      when %r(^/clear(?:\s+(messages|links|history))?$)
+        what = $1.nil? ? 'messages' : $1
+        case what
+        when 'messages'
+          messages.clear
+          STDOUT.puts "Cleared messages."
+        when 'links'
+          links.clear
+          STDOUT.puts "Cleared links."
+        when 'history'
+          clear_history
+          STDOUT.puts "Cleared history."
+        end
         next
       when %r(^/clobber$)
         if ask?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /\Ay/i

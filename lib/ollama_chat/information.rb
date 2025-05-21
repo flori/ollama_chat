@@ -65,7 +65,7 @@ module OllamaChat::Information
       /location                       toggle location submission
       /voice( change)                 toggle voice output or change the voice
       /list [n]                       list the last n / all conversation exchanges
-      /clear                          clear the whole conversation
+      /clear( messages|links|history) clear the all messages, links, or the chat history (defaults to messages)
       /clobber                        clear the conversation, links, and collection
       /drop [n]                       drop the last n exchanges, defaults to 1
       /model                          change the model
