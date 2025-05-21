@@ -12,6 +12,7 @@ require 'rss'
 require 'pdf/reader'
 require 'csv'
 require 'xdg'
+require 'socket'
 
 class OllamaChat::Chat
   include Tins::GO
@@ -27,6 +28,7 @@ class OllamaChat::Chat
   include OllamaChat::Clipboard
   include OllamaChat::MessageType
   include OllamaChat::History
+  include OllamaChat::ServerSocket
 
   def initialize(argv: ARGV.dup)
     @opts               = go 'f:u:m:s:c:C:D:MEVh', argv
@@ -64,6 +66,7 @@ class OllamaChat::Chat
     @current_voice = config.voice.default
     @images        = []
     init_chat_history
+    init_server_socket
   end
 
   attr_reader :ollama
@@ -104,7 +107,17 @@ class OllamaChat::Chat
     loop do
       parse_content = true
       input_prompt = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
-      content = Reline.readline(input_prompt, true)&.chomp
+
+      begin
+        content = Reline.readline(input_prompt, true)&.chomp
+      rescue Interrupt
+        if message = server_socket_message
+          self.server_socket_message = nil
+          content = message['content']
+        else
+          raise
+        end
+      end
 
       case content
       when %r(^/copy$)
