@@ -15,6 +15,33 @@ RSpec.describe OllamaChat::Chat do
     expect(chat).to be_a described_class
   end
 
+  describe 'chat history' do
+    it 'derives chat_history_filename' do
+      expect(chat.send(:chat_history_filename)).to_not be_nil
+    end
+
+    it 'can save chat history' do
+      expect(File).to receive(:secure_write).with(
+        chat.send(:chat_history_filename),
+        kind_of(String)
+      )
+      chat.send(:save_history)
+    end
+
+    it 'can initialize chat history' do
+      expect(File).to receive(:exist?).with(chat.send(:chat_history_filename)).
+        and_return true
+      expect(File).to receive(:open).with(chat.send(:chat_history_filename), ?r)
+      chat.send(:init_chat_history)
+    end
+
+    it 'can clear history' do
+      chat
+      expect(Readline::HISTORY).to receive(:clear)
+      chat.send(:clear_history)
+    end
+  end
+
   context 'loading conversations' do
     let :argv do
       %w[ -C test -c ] << asset('conversation.json')

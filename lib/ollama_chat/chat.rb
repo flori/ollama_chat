@@ -1,4 +1,6 @@
 require 'tins'
+require 'tins/secure_write'
+require 'json'
 require 'term/ansicolor'
 require 'reline'
 require 'reverse_markdown'
@@ -60,6 +62,7 @@ class OllamaChat::Chat
     @cache         = setup_cache
     @current_voice = config.voice.default
     @images        = []
+    init_chat_history
   end
 
   attr_reader :ollama
@@ -137,6 +140,7 @@ class OllamaChat::Chat
           messages.clear
           @documents.clear
           links.clear
+          clear_history
           STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
         else
           STDOUT.puts 'Cancelled.'
@@ -348,7 +352,11 @@ class OllamaChat::Chat
       STDOUT.puts "Type /quit to quit."
     end
     0
+  ensure
+    save_history
   end
+
+  private
 
   def setup_documents
     if embedding.on?
@@ -411,5 +419,27 @@ class OllamaChat::Chat
         ex:     config.redis.expiring.ex?.to_i,
       )
     end
+  end
+
+  def chat_history_filename
+    File.expand_path(ENV.fetch('OLLAMA_CHAT_HISTORY', '~/.ollama_chat_history'))
+  end
+
+  def init_chat_history
+    if File.exist?(chat_history_filename)
+      File.open(chat_history_filename, ?r) do |history|
+        history_data = JSON.load(history)
+        clear_history
+        Readline::HISTORY.push(*history_data)
+      end
+    end
+  end
+
+  def save_history
+    File.secure_write(chat_history_filename, JSON.dump(Readline::HISTORY))
+  end
+
+  def clear_history
+    Readline::HISTORY.clear
   end
 end
