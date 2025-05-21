@@ -432,7 +432,7 @@ class OllamaChat::Chat
   end
 
   def chat_history_filename
-    File.expand_path(ENV.fetch('OLLAMA_CHAT_HISTORY', '~/.ollama_chat_history'))
+    File.expand_path(config.chat_history_filename)
   end
 
   def init_chat_history
