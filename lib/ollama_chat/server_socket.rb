@@ -32,6 +32,7 @@ module OllamaChat::ServerSocket
           sock.close
         end
       end
+    rescue Errno::ENOENT
     end
   end
 end
