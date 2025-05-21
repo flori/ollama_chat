@@ -27,7 +27,7 @@ GemHadar do
 
   required_ruby_version  '~> 3.1'
 
-  executables << 'ollama_chat'
+  executables << 'ollama_chat' << 'ollama_chat_send'
 
   dependency             'excon',                 '~> 1.0'
   dependency             'ollama-ruby',           '~> 1.0'
