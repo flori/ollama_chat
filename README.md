@@ -122,13 +122,13 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /location                       toggle location submission
 /voice( change)                 toggle voice output or change the voice
 /list [n]                       list the last n / all conversation exchanges
-/clear( messages|links|history) clear the all messages, links, or the chat history (defaults to messages)
+/clear [messages|links|history] clear the all messages, links, or the chat history (defaults to messages)
 /clobber                        clear the conversation, links, and collection
 /drop [n]                       drop the last n exchanges, defaults to 1
 /model                          change the model
 /system                         change system prompt (clears conversation)
 /regenerate                     the last answer message
-/collection( clear|change)      change (default) collection or clear
+/collection [clear|change]      change (default) collection or clear
 /info                           show information for current session
 /config                         output current configuration ("/Users/flori/.config/ollama_chat/config.yml")
 /document_policy                pick a scan policy for document references
@@ -137,7 +137,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /embedding                      toggle embedding paused or not
 /embed source                   embed the source's content
 /web [n] query                  query web search & return n or 1 results
-/links( clear)                  display (or clear) links used in the chat
+/links [clear]                  display (or clear) links used in the chat
 /save filename                  store conversation messages
 /load filename                  load conversation messages
 /quit                           to quit

@@ -63,15 +63,15 @@ module OllamaChat::Information
       /markdown                       toggle markdown output
       /stream                         toggle stream output
       /location                       toggle location submission
-      /voice( change)                 toggle voice output or change the voice
+      /voice [change]                 toggle voice output or change the voice
       /list [n]                       list the last n / all conversation exchanges
-      /clear( messages|links|history) clear the all messages, links, or the chat history (defaults to messages)
+      /clear [messages|links|history] clear the all messages, links, or the chat history (defaults to messages)
       /clobber                        clear the conversation, links, and collection
       /drop [n]                       drop the last n exchanges, defaults to 1
       /model                          change the model
       /system                         change system prompt (clears conversation)
       /regenerate                     the last answer message
-      /collection( clear|change)      change (default) collection or clear
+      /collection [clear|change]      change (default) collection or clear
       /info                           show information for current session
       /config                         output current configuration (#{@ollama_chat_config.filename.to_s.inspect})
       /document_policy                pick a scan policy for document references
