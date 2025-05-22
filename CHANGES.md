@@ -1,5 +1,30 @@
 # Changes
 
+## 2025-05-22 v0.0.7
+
+* Added `ollama_chat_send` executable in `/bin`, required 'ollama_chat' gem,
+  sent user input to Ollama server via
+  `OllamaChat::ServerSocket.send_to_server_socket` method and handled
+  exceptions and exit with non-zero status code if an error occurs.
+* Added new `server_socket.rb` file containing module and methods for
+  server-side socket handling, modified `chat.rb` to include `ServerSocket`
+  module and use its `init_server_socket` method to start server socket,
+  updated `chat.rb` to handle incoming messages from server socket in
+  interactive loop sent via `send_to_server_socket`.
+* Refactored chat history management into separate module by adding
+  OllamaChat::History module, including History in OllamaChat::Chat and moving
+  chat history methods to new History module.
+* Refactored chat history configuration by making chat history filename use
+  config setting first instead of environment variable OLLAMA_CHAT_HISTORY.
+* Updated chat commands and documentation by updating `/clear`, `/collection`,
+  `/links` command helps to use more consistent syntax, updated
+  `OllamaChat::Information` module in `lib/ollama_chat/information.rb` to
+  reflect changes.
+* Added support for chat history loading and saving by adding `require
+  'tins/secure_write'` and `require 'json'` to dependencies, modified
+  OllamaChat::Chat class to initialize, save, and clear chat history, utilized
+  `File.secure_write` for secure saving of chat history.
+
 ## 2025-04-15 v0.0.6
 
 * Updated Rakefile to use `ollama-ruby` version **1.0**.
