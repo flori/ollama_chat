@@ -437,10 +437,11 @@ class OllamaChat::Chat
 
   def setup_cache
     if url = config.redis.expiring.url?
+      ex = config.redis.expiring.ex?.to_i
       Documentrix::Documents::RedisCache.new(
         prefix: 'Expiring-',
         url:,
-        ex:     config.redis.expiring.ex?.to_i,
+        ex:
       )
     end
   end
