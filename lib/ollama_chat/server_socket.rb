@@ -21,6 +21,9 @@ module OllamaChat::ServerSocket
 
   def init_server_socket
     FileUtils.mkdir_p OllamaChat::ServerSocket.runtime_dir
+    if File.exist?(OllamaChat::ServerSocket.server_socket_path)
+      raise Errno::EEXIST, "Path already exists #{OllamaChat::ServerSocket.server_socket_path.inspect}"
+    end
     Thread.new do
       Socket.unix_server_loop(OllamaChat::ServerSocket.server_socket_path) do |sock, client_addrinfo|
         begin
@@ -33,6 +36,8 @@ module OllamaChat::ServerSocket
         end
       end
     rescue Errno::ENOENT
+    ensure
+      FileUtils.rm_f OllamaChat::ServerSocket.server_socket_path
     end
   end
 end
