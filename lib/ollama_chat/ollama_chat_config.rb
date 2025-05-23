@@ -4,9 +4,10 @@ class OllamaChat::OllamaChatConfig
   include ComplexConfig
   include FileUtils
 
-  DEFAULT_CONFIG = File.read(
-    Pathname.new(__FILE__).dirname.join('ollama_chat_config/default_config.yml')
-  )
+  DEFAULT_CONFIG_PATH = Pathname.new(__FILE__).dirname.
+    join('ollama_chat_config/default_config.yml')
+
+  DEFAULT_CONFIG = File.read(DEFAULT_CONFIG_PATH)
 
   def initialize(filename = nil)
     @filename = filename || default_path
@@ -30,6 +31,10 @@ class OllamaChat::OllamaChatConfig
 
   attr_reader :config
 
+  def default_config_path
+    DEFAULT_CONFIG_PATH
+  end
+
   def default_path
     config_dir_path + 'config.yml'
   end
@@ -44,5 +49,9 @@ class OllamaChat::OllamaChatConfig
 
   def database_path
     cache_dir_path + 'documents.db'
+  end
+
+  def diff_tool
+    ENV.fetch('DIFF_TOOL', 'vimdiff')
   end
 end

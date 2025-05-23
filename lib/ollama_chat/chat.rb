@@ -13,6 +13,7 @@ require 'pdf/reader'
 require 'csv'
 require 'xdg'
 require 'socket'
+require 'shellwords'
 
 class OllamaChat::Chat
   include Tins::GO
@@ -67,6 +68,8 @@ class OllamaChat::Chat
     @images        = []
     init_chat_history
     init_server_socket
+  rescue ComplexConfig::AttributeMissing => e
+    fix_config(e)
   end
 
   attr_reader :ollama
@@ -376,6 +379,8 @@ class OllamaChat::Chat
       STDOUT.puts "Type /quit to quit."
     end
     0
+  rescue ComplexConfig::AttributeMissing => e
+    fix_config(e)
   ensure
     save_history
   end
@@ -443,6 +448,21 @@ class OllamaChat::Chat
         url:,
         ex:
       )
+    end
+  end
+
+  def fix_config(exception)
+    STDOUT.puts "When reading the config file, a #{exception.class} "\
+      "exception was caught: #{exception.message.inspect}"
+    if ask?(prompt: 'Do you want to fix the config? (y/n) ') =~ /\Ay/i
+      system Shellwords.join([
+        @ollama_chat_config.diff_tool,
+        @ollama_chat_config.filename,
+        @ollama_chat_config.default_config_path,
+      ])
+      exit 0
+    else
+      exit 1
     end
   end
 end
