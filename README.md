@@ -144,6 +144,27 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /help                           to view this help
 ```
 
+### Using `ollama_chat_send` to send input to a running `ollama_chat`
+
+You can do this from the shell by pasting into the `ollama_chat_send`
+executable.
+
+```
+$ echo "Why is the sky blue?" | ollama_chat_send
+```
+
+To send a text from inside a `vim` buffer, you can use a function/leader like
+this:
+
+```
+map <leader>o :<C-U>call OllamaChatSend(@*)<CR>
+
+function! OllamaChatSend(input)
+  let input = "Take note of the following code snippet (" . &filetype . ") **AND** await further instructions:\n\n```\n" . a:input . "\n```\n"
+  call system('ollama_chat_send', input)
+endfunction
+```
+
 ## Download
 
 The homepage of this app is located at
