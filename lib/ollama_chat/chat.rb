@@ -68,7 +68,7 @@ class OllamaChat::Chat
     @images        = []
     init_chat_history
     init_server_socket
-  rescue ComplexConfig::AttributeMissing => e
+  rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
 
@@ -379,7 +379,7 @@ class OllamaChat::Chat
       STDOUT.puts "Type /quit to quit."
     end
     0
-  rescue ComplexConfig::AttributeMissing => e
+  rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   ensure
     save_history
