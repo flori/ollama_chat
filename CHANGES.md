@@ -1,5 +1,16 @@
 # Changes
 
+## 2025-05-23 v0.0.8
+
+* Introduce `fix_config` method to rescue `ComplexConfig` exceptions and prompt
+  user for correction.
+  * Added section to README.md on using `ollama_chat_send` to send input to a
+  running `ollama_chat` process.
+* Fix path existence check and cleanup on server socket initialization.
+  * Added check for existing path at
+    `OllamaChat::ServerSocket.server_socket_path` to prevent overwrite.
+  * Clean up server socket file if it exists when leaving thread.
+
 ## 2025-05-22 v0.0.7
 
 * Added `ollama_chat_send` executable in `/bin`, required 'ollama_chat' gem,
