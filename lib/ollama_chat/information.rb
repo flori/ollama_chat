@@ -102,6 +102,7 @@ module OllamaChat::Information
         -D DOCUMENT    load document and add to embeddings collection (multiple)
         -M             use (empty) MemoryCache for this chat session
         -E             disable embeddings for this chat session
+        -S             open a socket to receive input from ollama_chat_send
         -V             display the current version number and quit
         -h             this help
 

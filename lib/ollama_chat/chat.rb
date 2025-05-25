@@ -32,7 +32,7 @@ class OllamaChat::Chat
   include OllamaChat::ServerSocket
 
   def initialize(argv: ARGV.dup)
-    @opts               = go 'f:u:m:s:c:C:D:MEVh', argv
+    @opts               = go 'f:u:m:s:c:C:D:MESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
@@ -67,7 +67,7 @@ class OllamaChat::Chat
     @current_voice = config.voice.default
     @images        = []
     init_chat_history
-    init_server_socket
+    @opts[?S] and init_server_socket
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
