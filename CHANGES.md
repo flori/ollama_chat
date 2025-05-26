@@ -1,5 +1,16 @@
 # Changes
 
+## 2025-05-26 v0.0.9
+
+* Improved tag parsing in OllamaChat:
+  * Added regex validation for valid tags to `Documentrix::Utils::Tags`.
+  * Modified `parse_content` method in `OllamaChat::Parsing` to handle valid tag formats.
+  * Updated `scan` methods in `content` processing to more correctly identify tags.
+* Added option to explicitly open socket for receiving input from `ollama_chat_send`:
+  * Added new command-line option `-S` to enable server socket functionality.
+  * Updated `OllamaChat::Chat` class to include server socket initialization based on the new option.
+  * Modified usage message in `README.md` and `information.rb` files.
+
 ## 2025-05-23 v0.0.8
 
 * Introduce `fix_config` method to rescue `ComplexConfig` exceptions and prompt
@@ -13,7 +24,7 @@
 
 ## 2025-05-22 v0.0.7
 
-* Added `ollama_chat_send` executable in `/bin`, required 'ollama_chat' gem,
+* Added `ollama_chat_send` executable in `/bin`, required `ollama_chat` gem,
   sent user input to Ollama server via
   `OllamaChat::ServerSocket.send_to_server_socket` method and handled
   exceptions and exit with non-zero status code if an error occurs.
