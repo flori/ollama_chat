@@ -331,7 +331,7 @@ class OllamaChat::Chat
       content, tags = if parse_content
                         parse_content(content, @images)
                       else
-                        [ content, Documentrix::Utils::Tags.new ]
+                        [ content, Documentrix::Utils::Tags.new(valid_tag: /\A#*([\w\]\[]+)/) ]
                       end
 
       if embedding.on? && content

@@ -113,10 +113,10 @@ module OllamaChat::Parsing
 
   def parse_content(content, images)
     images.clear
-    tags = Documentrix::Utils::Tags.new
+    tags = Documentrix::Utils::Tags.new valid_tag: /\A#*([\w\]\[]+)/
 
     contents = [ content ]
-    content.scan(%r((https?://\S+)|(#\S+)|(?:file://)?(\S*\/\S+))).each do |url, tag, file|
+    content.scan(%r((https?://\S+)|(?<![a-zA-Z\d])#+([\w\]\[]+)|(?:file://)?(\S*\/\S+))).each do |url, tag, file|
       case
       when tag
         tags.add(tag)
