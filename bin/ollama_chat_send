@@ -3,7 +3,8 @@
 require 'ollama_chat'
 
 begin
-  OllamaChat::ServerSocket.send_to_server_socket(STDIN.read)
+  type = (ARGV.shift || 'socket_input').to_sym
+  OllamaChat::ServerSocket.send_to_server_socket(STDIN.read, type:)
 rescue => e
   warn "Caught #{e.class}: #{e}"
   exit 1

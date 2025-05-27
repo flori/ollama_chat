@@ -8,9 +8,9 @@ module OllamaChat::ServerSocket
       File.join(runtime_dir, 'ollama_chat.sock')
     end
 
-    def send_to_server_socket(content)
+    def send_to_server_socket(content, type: :socket_input)
       FileUtils.mkdir_p runtime_dir
-      message = { content: }
+      message = { content:, type: }
       socket = UNIXSocket.new(server_socket_path)
       socket.puts JSON(message)
       socket.close
