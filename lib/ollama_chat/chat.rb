@@ -106,6 +106,229 @@ class OllamaChat::Chat
 
   private
 
+  def handle_input(content)
+    case content
+    when %r(^/copy$)
+      copy_to_clipboard
+      :next
+    when %r(^/paste$)
+      paste_from_input
+    when %r(^/markdown$)
+      markdown.toggle
+      :next
+    when %r(^/stream$)
+      stream.toggle
+      :next
+    when %r(^/location$)
+      location.toggle
+      :next
+    when %r(^/voice(?:\s+(change))?$)
+      if $1 == 'change'
+        change_voice
+      else
+        voice.toggle
+      end
+      :next
+    when %r(^/list(?:\s+(\d*))?$)
+      last = 2 * $1.to_i if $1
+      messages.list_conversation(last)
+      :next
+    when %r(^/clear(?:\s+(messages|links|history|all))?$)
+      clean($1)
+      :next
+    when %r(^/clobber$)
+      clean('all')
+      :next
+    when %r(^/drop(?:\s+(\d*))?$)
+      messages.drop($1)
+      messages.list_conversation(2)
+      :next
+    when %r(^/model$)
+      @model = choose_model('', @model)
+      :next
+    when %r(^/system$)
+      change_system_prompt(@system)
+      info
+      :next
+    when %r(^/regenerate$)
+      if content = messages.second_last&.content
+        content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
+        messages.drop(2)
+      else
+        STDOUT.puts "Not enough messages in this conversation."
+        return :redo
+      end
+      @parse_content = false
+      content
+    when %r(^/collection(?:\s+(clear|change))?$)
+      case $1 || 'change'
+      when 'clear'
+        loop do
+          tags = @documents.tags.add('[EXIT]').add('[ALL]')
+          tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
+          case tag
+          when nil, '[EXIT]'
+            STDOUT.puts "Exiting chooser."
+            break
+          when '[ALL]'
+            if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
+              @documents.clear
+              STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
+              break
+            else
+              STDOUT.puts 'Cancelled.'
+              sleep 3
+            end
+          when /./
+            @documents.clear(tags: [ tag ])
+            STDOUT.puts "Cleared tag #{tag} from collection #{bold{@documents.collection}}."
+            sleep 3
+          end
+        end
+      when 'change'
+        choose_collection(@documents.collection)
+      end
+      :next
+    when %r(^/info$)
+      info
+      :next
+    when %r(^/document_policy$)
+      choose_document_policy
+      :next
+    when %r(^/import\s+(.+))
+      @parse_content = false
+      import($1) or :next
+    when %r(^/summarize\s+(?:(\d+)\s+)?(.+))
+      @parse_content = false
+      summarize($2, words: $1) or :next
+    when %r(^/embedding$)
+      embedding_paused.toggle(show: false)
+      embedding.show
+      :next
+    when %r(^/embed\s+(.+))
+      @parse_content = false
+      embed($1) or :next
+    when %r(^/web\s+(?:(\d+)\s+)?(.+))
+      @parse_content = false
+      web($1, $2)
+    when %r(^/save\s+(.+)$)
+      messages.save_conversation($1)
+      STDOUT.puts "Saved conversation to #$1."
+      :next
+    when %r(^/links(?:\s+(clear))?$)
+      manage_links($1)
+      :next
+    when %r(^/load\s+(.+)$)
+      messages.load_conversation($1)
+      if messages.size > 1
+        messages.list_conversation(2)
+      end
+      STDOUT.puts "Loaded conversation from #$1."
+      :next
+    when %r(^/config$)
+      display_config
+      :next
+    when %r(^/quit$), nil
+      STDOUT.puts "Goodbye."
+      :return
+    when %r(^/)
+      display_chat_help
+      :next
+    when /\A\s*\z/
+      STDOUT.puts "Type /quit to quit."
+      :next
+    end
+  end
+
+  def web(count, query)
+    urls            = search_web(query, count.to_i) or return :next
+    urls.each do |url|
+      fetch_source(url) { |url_io| embed_source(url_io, url) }
+    end
+    urls_summarized = urls.map { summarize(_1) }
+    query   = $2.inspect
+    results = urls.zip(urls_summarized).
+      map { |u, s| "%s as \n:%s" % [ u, s ] } * "\n\n"
+    config.prompts.web % { query:, results: }
+  end
+
+  def manage_links(command)
+    case command
+    when 'clear'
+      loop do
+        links_options = links.dup.add('[EXIT]').add('[ALL]')
+        link = OllamaChat::Utils::Chooser.choose(links_options, prompt: 'Clear? %s')
+        case link
+        when nil, '[EXIT]'
+          STDOUT.puts "Exiting chooser."
+          break
+        when '[ALL]'
+          if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
+            links.clear
+            STDOUT.puts "Cleared all links in list."
+            break
+          else
+            STDOUT.puts 'Cancelled.'
+            sleep 3
+          end
+        when /./
+          links.delete(link)
+          STDOUT.puts "Cleared link from links in list."
+          sleep 3
+        end
+      end
+    when nil
+      if links.empty?
+        STDOUT.puts "List is empty."
+      else
+        Math.log10(links.size).ceil
+        format  = "% #{}s. %s"
+        connect = -> link { hyperlink(link) { link } }
+        STDOUT.puts links.each_with_index.map { |x, i| format % [ i + 1, connect.(x) ] }
+      end
+    end
+  end
+
+  def clean(what)
+    what = 'messages' if what.nil?
+    case what
+    when 'messages'
+      messages.clear
+      STDOUT.puts "Cleared messages."
+    when 'links'
+      links.clear
+      STDOUT.puts "Cleared links."
+    when 'history'
+      clear_history
+      STDOUT.puts "Cleared history."
+    when 'all'
+      if ask?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /\Ay/i
+        messages.clear
+        @documents.clear
+        links.clear
+        clear_history
+        STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
+      else
+        STDOUT.puts 'Cancelled.'
+      end
+    end
+  end
+
+  def display_config
+    default_pager = ENV['PAGER'].full?
+    if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
+      fallback_pager << ' -r'
+    end
+    my_pager = default_pager || fallback_pager
+    rendered = config.to_s
+    Kramdown::ANSI::Pager.pager(
+      lines: rendered.count(?\n),
+      command: my_pager
+    ) do |output|
+      output.puts rendered
+    end
+  end
+
   def interact_with_user
     loop do
       @parse_content = true
@@ -125,210 +348,15 @@ class OllamaChat::Chat
       end
 
       unless type == :socket_input
-        case content
-        when %r(^/copy$)
-          copy_to_clipboard
+        case next_action = handle_input(content)
+        when :next
           next
-        when %r(^/paste$)
-          content = paste_from_input
-        when %r(^/markdown$)
-          markdown.toggle
-          next
-        when %r(^/stream$)
-          stream.toggle
-          next
-        when %r(^/location$)
-          location.toggle
-          next
-        when %r(^/voice(?:\s+(change))?$)
-          if $1 == 'change'
-            change_voice
-          else
-            voice.toggle
-          end
-          next
-        when %r(^/list(?:\s+(\d*))?$)
-          last = 2 * $1.to_i if $1
-          messages.list_conversation(last)
-          next
-        when %r(^/clear(?:\s+(messages|links|history))?$)
-          what = $1.nil? ? 'messages' : $1
-          case what
-          when 'messages'
-            messages.clear
-            STDOUT.puts "Cleared messages."
-          when 'links'
-            links.clear
-            STDOUT.puts "Cleared links."
-          when 'history'
-            clear_history
-            STDOUT.puts "Cleared history."
-          end
-          next
-        when %r(^/clobber$)
-          if ask?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /\Ay/i
-            messages.clear
-            @documents.clear
-            links.clear
-            clear_history
-            STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
-          else
-            STDOUT.puts 'Cancelled.'
-          end
-          next
-        when %r(^/drop(?:\s+(\d*))?$)
-          messages.drop($1)
-          messages.list_conversation(2)
-          next
-        when %r(^/model$)
-          @model = choose_model('', @model)
-          next
-        when %r(^/system$)
-          change_system_prompt(@system)
-          info
-          next
-        when %r(^/regenerate$)
-          if content = messages.second_last&.content
-            content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
-            messages.drop(2)
-          else
-            STDOUT.puts "Not enough messages in this conversation."
-            redo
-          end
-          @parse_content = false
-          content
-        when %r(^/collection(?:\s+(clear|change))?$)
-          case $1 || 'change'
-          when 'clear'
-            loop do
-              tags = @documents.tags.add('[EXIT]').add('[ALL]')
-              tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
-              case tag
-              when nil, '[EXIT]'
-                STDOUT.puts "Exiting chooser."
-                break
-              when '[ALL]'
-                if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
-                  @documents.clear
-                  STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
-                  break
-                else
-                  STDOUT.puts 'Cancelled.'
-                  sleep 3
-                end
-              when /./
-                @documents.clear(tags: [ tag ])
-                STDOUT.puts "Cleared tag #{tag} from collection #{bold{@documents.collection}}."
-                sleep 3
-              end
-            end
-          when 'change'
-            choose_collection(@documents.collection)
-          end
-          next
-        when %r(^/info$)
-          info
-          next
-        when %r(^/document_policy$)
-          choose_document_policy
-          next
-        when %r(^/import\s+(.+))
-          @parse_content = false
-          content       = import($1) or next
-        when %r(^/summarize\s+(?:(\d+)\s+)?(.+))
-          @parse_content = false
-          content       = summarize($2, words: $1) or next
-        when %r(^/embedding$)
-          embedding_paused.toggle(show: false)
-          embedding.show
-          next
-        when %r(^/embed\s+(.+))
-          @parse_content = false
-          content       = embed($1) or next
-        when %r(^/web\s+(?:(\d+)\s+)?(.+))
-          @parse_content   = false
-          urls            = search_web($2, $1.to_i) or next
-          urls.each do |url|
-            fetch_source(url) { |url_io| embed_source(url_io, url) }
-          end
-          urls_summarized = urls.map { summarize(_1) }
-          query   = $2.inspect
-          results = urls.zip(urls_summarized).
-            map { |u, s| "%s as \n:%s" % [ u, s ] } * "\n\n"
-          content = config.prompts.web % { query:, results: }
-        when %r(^/save\s+(.+)$)
-          messages.save_conversation($1)
-          STDOUT.puts "Saved conversation to #$1."
-          next
-        when %r(^/links(?:\s+(clear))?$)
-          case $1
-          when 'clear'
-            loop do
-              links_options = links.dup.add('[EXIT]').add('[ALL]')
-              link = OllamaChat::Utils::Chooser.choose(links_options, prompt: 'Clear? %s')
-              case link
-              when nil, '[EXIT]'
-                STDOUT.puts "Exiting chooser."
-                break
-              when '[ALL]'
-                if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
-                  links.clear
-                  STDOUT.puts "Cleared all links in list."
-                  break
-                else
-                  STDOUT.puts 'Cancelled.'
-                  sleep 3
-                end
-              when /./
-                links.delete(link)
-                STDOUT.puts "Cleared link from links in list."
-                sleep 3
-              end
-            end
-          when nil
-            if links.empty?
-              STDOUT.puts "List is empty."
-            else
-              Math.log10(links.size).ceil
-              format  = "% #{}s. %s"
-              connect = -> link { hyperlink(link) { link } }
-              STDOUT.puts links.each_with_index.map { |x, i| format % [ i + 1, connect.(x) ] }
-            end
-          end
-          next
-        when %r(^/load\s+(.+)$)
-          messages.load_conversation($1)
-          if messages.size > 1
-            messages.list_conversation(2)
-          end
-          STDOUT.puts "Loaded conversation from #$1."
-          next
-        when %r(^/config$)
-          default_pager = ENV['PAGER'].full?
-          if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
-            fallback_pager << ' -r'
-          end
-          my_pager = default_pager || fallback_pager
-          rendered = config.to_s
-          Kramdown::ANSI::Pager.pager(
-            lines: rendered.count(?\n),
-            command: my_pager
-          ) do |output|
-            output.puts rendered
-          end
-          next
-        when %r(^/quit$)
-          STDOUT.puts "Goodbye."
+        when :redo
+          redo
+        when :return
           return
-        when %r(^/)
-          display_chat_help
-          next
-        when ''
-          STDOUT.puts "Type /quit to quit."
-          next
-        when nil
-          STDOUT.puts "Goodbye."
-          return
+        when String
+          content = next_action
         end
       end
 
