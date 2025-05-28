@@ -1,5 +1,15 @@
 # Changes
 
+## 2025-05-28 v0.0.10
+
+* Simplify and improve command handling logic.
+    * Update chat input handling to use a single `handle_input` method for all commands.
+    * Add tests for various chat commands, including input handling, document
+      policy selection, summarization, and more.
+    * Improve test coverage for `DocumentCache`, `Information`, and other modules.
+    * Improved handling of commands, e.g. **don't** when sending via `ollama_chat_send` by default.
+* Added support for sending content to server socket with specific type.
+
 ## 2025-05-26 v0.0.9
 
 * Improved tag parsing in OllamaChat:
