@@ -246,7 +246,6 @@ class OllamaChat::Chat
       fetch_source(url) { |url_io| embed_source(url_io, url) }
     end
     urls_summarized = urls.map { summarize(_1) }
-    query   = $2.inspect
     results = urls.zip(urls_summarized).
       map { |u, s| "%s as \n:%s" % [ u, s ] } * "\n\n"
     config.prompts.web % { query:, results: }
