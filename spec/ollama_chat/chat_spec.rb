@@ -6,43 +6,211 @@ RSpec.describe OllamaChat::Chat do
   end
 
   let :chat do
-    OllamaChat::Chat.new argv: argv
+    OllamaChat::Chat.new(argv: argv).expose
   end
 
-  connect_to_ollama_server(instantiate: false)
+  describe 'instantiation' do
+    connect_to_ollama_server(instantiate: false)
 
-  it 'can be instantiated' do
-    expect(chat).to be_a described_class
+    it 'can be instantiated' do
+      expect(chat).to be_a described_class
+    end
+  end
+
+  describe 'handle_input' do
+    connect_to_ollama_server
+
+    it 'returns :next when input is "/copy"' do
+      expect(chat).to receive(:copy_to_clipboard)
+      expect(chat.handle_input("/copy")).to eq :next
+    end
+
+    it 'returns :next when input is "/paste"' do
+      expect(chat).to receive(:paste_from_input).and_return "pasted this"
+      expect(chat.handle_input("/paste")).to eq "pasted this"
+    end
+
+    it 'returns :next when input is "/markdown"' do
+      expect(chat.markdown).to receive(:toggle)
+      expect(chat.handle_input("/markdown")).to eq :next
+    end
+
+    it 'returns :next when input is "/stream"' do
+      expect(chat.stream).to receive(:toggle)
+      expect(chat.handle_input("/stream")).to eq :next
+    end
+
+    it 'returns :next when input is "/location"' do
+      expect(chat.location).to receive(:toggle)
+      expect(chat.handle_input("/location")).to eq :next
+    end
+
+    it 'returns :next when input is "/voice(?:\s+(change))? "' do
+      expect(chat.voice).to receive(:toggle)
+      expect(chat.handle_input("/voice")).to eq :next
+      expect(chat).to receive(:change_voice)
+      expect(chat.handle_input("/voice change")).to eq :next
+    end
+
+    it 'returns :next when input is "/list(?:\s+(\d*))? "' do
+      expect(chat.messages).to receive(:list_conversation).with(4)
+      expect(chat.handle_input("/list 2")).to eq :next
+    end
+
+    it 'returns :next when input is "/clear(messages|links|history|all)"' do
+      expect(chat).to receive(:clean).with('messages')
+      expect(chat.handle_input("/clear messages")).to eq :next
+      expect(chat).to receive(:clean).with('links')
+      expect(chat.handle_input("/clear links")).to eq :next
+      expect(chat).to receive(:clean).with('history')
+      expect(chat.handle_input("/clear history")).to eq :next
+      expect(chat).to receive(:clean).with('all')
+      expect(chat.handle_input("/clear all")).to eq :next
+    end
+
+    it 'returns :next when input is "/clobber"' do
+      expect(chat).to receive(:clean).with('all')
+      expect(chat.handle_input("/clobber")).to eq :next
+    end
+
+    it 'returns :next when input is "/drop(?:\s+(\d*))?"' do
+      expect(chat.messages).to receive(:drop).with(?2)
+      expect(chat.messages).to receive(:list_conversation).with(2)
+      expect(chat.handle_input("/drop 2")).to eq :next
+    end
+
+    it 'returns :next when input is "/model"' do
+      expect(chat).to receive(:choose_model).with('', 'llama3.1')
+      expect(chat.handle_input("/model")).to eq :next
+    end
+
+    it 'returns :next when input is "/system"' do
+      expect(chat).to receive(:change_system_prompt).with(nil)
+      expect(chat).to receive(:info)
+      expect(chat.handle_input("/system")).to eq :next
+    end
+
+    it 'returns :next when input is "/regenerate"' do
+      expect(STDOUT).to receive(:puts).with(/Not enough messages/)
+      expect(chat.handle_input("/regenerate")).to eq :redo
+    end
+
+    it 'returns :next when input is "/collection(clear|change)"' do
+      expect(OllamaChat::Utils::Chooser).to receive(:choose)
+      expect(STDOUT).to receive(:puts).with(/Exiting/)
+      expect(chat.handle_input("/collection clear")).to eq :next
+      expect(OllamaChat::Utils::Chooser).to receive(:choose)
+      expect(chat).to receive(:info)
+      expect(STDOUT).to receive(:puts).with(/./)
+      expect(chat.handle_input("/collection change")).to eq :next
+    end
+
+    it 'returns :next when input is "/info"' do
+      expect(chat).to receive(:info)
+      expect(chat.handle_input("/info")).to eq :next
+    end
+
+    it 'returns :next when input is "/document_policy"' do
+      expect(chat).to receive(:choose_document_policy)
+      expect(chat.handle_input("/document_policy")).to eq :next
+    end
+
+    it 'returns :next when input is "/import\s+(.+)"' do
+      expect(chat).to receive(:import).with('./some_file')
+      expect(chat.handle_input("/import ./some_file")).to eq :next
+    end
+
+    it 'returns :next when input is "/summarize\s+(?:(\d+)\s+)?(.+)"' do
+      expect(chat).to receive(:summarize).with('./some_file', words: '23')
+      expect(chat.handle_input("/summarize 23 ./some_file")).to eq :next
+    end
+
+    it 'returns :next when input is "/embedding"' do
+      expect(chat.embedding_paused).to receive(:toggle)
+      expect(chat.embedding).to receive(:show)
+      expect(chat.handle_input("/embedding")).to eq :next
+    end
+
+    it 'returns :next when input is "/embed\s+(.+)"' do
+      expect(chat).to receive(:embed).with('./some_file')
+      expect(chat.handle_input("/embed ./some_file")).to eq :next
+    end
+
+    it 'returns :next when input is "/web\s+(?:(\d+)\s+)?(.+)"' do
+      expect(chat).to receive(:web).with('23', 'query').and_return 'the response'
+      expect(chat.handle_input("/web 23 query")).to eq 'the response'
+    end
+
+    it 'returns :next when input is "/save\s+(.+)$"' do
+      expect(chat.messages).to receive(:save_conversation).with('./some_file')
+      expect(chat.handle_input("/save ./some_file")).to eq :next
+    end
+
+    it 'returns :next when input is "/links(?:\s+(clear))?$" ' do
+      expect(chat).to receive(:manage_links).with(nil)
+      expect(chat.handle_input("/links")).to eq :next
+      expect(chat).to receive(:manage_links).with('clear')
+      expect(chat.handle_input("/links clear")).to eq :next
+    end
+
+    it 'returns :next when input is "/load\s+(.+)$"' do
+      expect(chat.messages).to receive(:load_conversation).with('./some_file')
+      expect(chat.handle_input("/load ./some_file")).to eq :next
+    end
+
+    it 'returns :next when input is "/config"' do
+      expect(chat).to receive(:display_config)
+      expect(chat.handle_input("/config")).to eq :next
+    end
+
+    it 'returns :next when input is "/quit"' do
+      expect(STDOUT).to receive(:puts).with(/Goodbye/)
+      expect(chat.handle_input("/quit")).to eq :return
+    end
+
+    it 'returns :next when input is "/nixda"' do
+      expect(chat).to receive(:display_chat_help)
+      expect(chat.handle_input("/nixda")).to eq :next
+    end
+
+    it 'returns :next when input is "   "' do
+      expect(STDOUT).to receive(:puts).with(/to quit/)
+      expect(chat.handle_input("   ")).to eq :next
+    end
   end
 
   describe 'chat history' do
+    connect_to_ollama_server(instantiate: false)
+
     it 'derives chat_history_filename' do
-      expect(chat.send(:chat_history_filename)).to_not be_nil
+      expect(chat.chat_history_filename).to_not be_nil
     end
 
     it 'can save chat history' do
       expect(File).to receive(:secure_write).with(
-        chat.send(:chat_history_filename),
+        chat.chat_history_filename,
         kind_of(String)
       )
-      chat.send(:save_history)
+      chat.save_history
     end
 
     it 'can initialize chat history' do
-      expect(File).to receive(:exist?).with(chat.send(:chat_history_filename)).
+      expect(File).to receive(:exist?).with(chat.chat_history_filename).
         and_return true
-      expect(File).to receive(:open).with(chat.send(:chat_history_filename), ?r)
-      chat.send(:init_chat_history)
+      expect(File).to receive(:open).with(chat.chat_history_filename, ?r)
+      chat.init_chat_history
     end
 
     it 'can clear history' do
       chat
       expect(Readline::HISTORY).to receive(:clear)
-      chat.send(:clear_history)
+      chat.clear_history
     end
   end
 
   context 'loading conversations' do
+    connect_to_ollama_server(instantiate: false)
+
     let :argv do
       %w[ -C test -c ] << asset('conversation.json')
     end
@@ -56,7 +224,10 @@ RSpec.describe OllamaChat::Chat do
   end
 
   describe OllamaChat::DocumentCache do
+    connect_to_ollama_server(instantiate: false)
+
     context 'with MemoryCache' do
+
       let :argv do
         %w[ -M ]
       end
@@ -77,6 +248,8 @@ RSpec.describe OllamaChat::Chat do
 
   describe Documentrix::Documents do
     context 'with documents' do
+    connect_to_ollama_server(instantiate: false)
+
       let :argv do
         %w[ -C test -D ] << asset('example.html')
       end
@@ -90,6 +263,8 @@ RSpec.describe OllamaChat::Chat do
   end
 
   describe OllamaChat::Information do
+    connect_to_ollama_server(instantiate: false)
+
     it 'has progname' do
       expect(chat.progname).to eq 'ollama_chat'
     end
