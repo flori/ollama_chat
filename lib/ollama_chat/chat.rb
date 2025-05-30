@@ -386,9 +386,10 @@ class OllamaChat::Chat
         messages:,
         voice:    (@current_voice if voice.on?)
       )
+      thought_less_messages = remove_think_blocks(messages)
       ollama.chat(
         model: @model,
-        messages:,
+        messages: thought_less_messages,
         options: @model_options,
         stream: stream.on?,
         &handler
@@ -417,6 +418,19 @@ class OllamaChat::Chat
   end
 
   private
+
+  def remove_think_blocks(messages)
+    new_messages = OllamaChat::MessageList.new(self)
+    messages.to_ary.each do |message|
+      thought_less_content = message.content.gsub(%r(<think(?:ing)?>.*?</think(?:ing)?>)im, '')
+      new_messages << Ollama::Message.new(
+        role: message.role,
+        content: thought_less_content,
+        images: message.images
+      )
+    end
+    new_messages
+  end
 
   def setup_documents
     if embedding.on?
