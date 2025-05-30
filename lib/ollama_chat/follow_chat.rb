@@ -22,15 +22,15 @@ class OllamaChat::FollowChat
           bold { color(111) { 'assistant:' } }
         @output.puts @user unless @chat.markdown.on?
       end
-      if content = response.message&.content
-        content = content.gsub(%r(<think>), "💭\n").gsub(%r(</think>), "\n💬")
-      end
-      @messages.last.content << content
-      if @chat.markdown.on? and content = @messages.last.content.full?
-        markdown_content = Kramdown::ANSI.parse(content)
-        @output.print clear_screen, move_home, @user, ?\n, markdown_content
-      else
-        @output.print content
+      @messages.last.content << response.message&.content
+      if content = @messages.last.content.full?
+        content = emphasize_think_block(content)
+        if @chat.markdown.on?
+          markdown_content = Kramdown::ANSI.parse(content)
+          @output.print clear_screen, move_home, @user, ?\n, markdown_content
+        else
+          @output.print content
+        end
       end
       @say.call(response)
     end
@@ -56,5 +56,11 @@ class OllamaChat::FollowChat
     '📊 ' + color(111) {
       Kramdown::ANSI::Width.wrap(stats_text, percentage: 90).gsub(/(?<!\A)^/, '   ')
     }
+  end
+
+  private
+
+  def emphasize_think_block(content)
+    content.gsub(%r(<think(?:ing)?>)i, "\n💭\n").gsub(%r(</think(?:ing)?>)i, "\n💬\n")
   end
 end
