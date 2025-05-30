@@ -153,7 +153,7 @@ class OllamaChat::Chat
     when %r(^/regenerate$)
       if content = messages.second_last&.content
         content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
-        messages.drop(2)
+        messages.drop(1)
       else
         STDOUT.puts "Not enough messages in this conversation."
         return :redo
