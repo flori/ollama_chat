@@ -46,6 +46,7 @@ class OllamaChat::Chat
     )
     server_version
     @document_policy = config.document_policy
+    @think_mode      = config.think_mode
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
     model_system     = pull_model_unless_present(@model, @model_options)
