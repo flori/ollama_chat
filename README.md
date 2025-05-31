@@ -133,7 +133,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /info                           show information for current session
 /config                         output current configuration ("/Users/flori/.config/ollama_chat/config.yml")
 /document_policy                pick a scan policy for document references
-/think_mode                     pick a think mode for reasoning models
+/think_mode                     pick a think mode for reasoning models (display, omit, only_delete, no_delete)
 /import source                  import the source's content
 /summarize [n] source           summarize the source's content in n words
 /embedding                      toggle embedding paused or not
