@@ -8,7 +8,7 @@ RSpec.describe OllamaChat::FollowChat do
   end
 
   let :chat do
-    double('Chat', markdown: double(on?: false))
+    double('Chat', markdown: double(on?: false), think_mode: 'display')
   end
 
   let :follow_chat do
@@ -31,8 +31,10 @@ RSpec.describe OllamaChat::FollowChat do
   it 'can follow without markdown' do
     message = Ollama::Message.new(role: 'assistant', content: 'world')
     response = double(message:, done: false)
-    expect(output).to receive(:puts).with(/assistant/)
-    expect(output).to receive(:print).with(/world/)
+    expect(output).to receive(:print).with(
+      "\e[2J", "\e[1;1H", "📨 \e[1m\e[38;5;111massistant:\e[0m\e[0m", "\n",
+      "world"
+    )
     follow_chat.call(response)
     response = double(
       message:              nil,

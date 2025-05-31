@@ -297,6 +297,7 @@ RSpec.describe OllamaChat::Chat do
             Streaming|
             Location|
             Document\ policy|
+            Think\ mode|
             Currently\ selected\ search\ engine
           /x
         ).at_least(1)
