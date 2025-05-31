@@ -1,5 +1,26 @@
 # Changes
 
+## 2025-06-01 v0.0.11
+
+* **Think Mode Implementation**:
+  + Introduced `@think_mode` attribute to read think mode setting from config
+  + Implemented `remove_think_blocks` method to filter out thought blocks from chat messages sent to the LLM model.
+  + Added conditional logic based on `@think_mode` value to handle different modes (`'display'`, `'omit'`, `'no_delete'`, `'only_delete'`)
+
+    * **'display'**: Displays thought blocks' tags as emojis.
+    * **'omit'**: Omit internal reasoning blocks and tags from the output entirely.
+    * **'no_delete'**: Sends the entire conversation, including all think tags, to the Large Language Model (LLM) for processing.
+    * **'only_delete'**: Removes the explicit indicators of thought processes only from the conversation sent to the LLM, but does not modify the output shown to the user.
+* **User Interface Improvements**:
+  + Added `/think_mode` command to help users understand think mode options
+  + Updated session output to include current think mode
+  + Added think mode chooser to OllamaChat::Dialog, allowing users to select their preferred think mode
+* **Output Handling Enhancements**:
+  + Improved markdown handling for think blocks in OllamaChat::FollowChat class
+  + Modified output to print clear screen, move home, and user info before printing content
+* **Configuration Updates**:
+  + Added `think_mode` key with value `"display"` to `default_config.yml`
+
 ## 2025-05-28 v0.0.10
 
 * Simplify and improve command handling logic.
