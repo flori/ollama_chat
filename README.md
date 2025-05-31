@@ -121,7 +121,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /markdown                       toggle markdown output
 /stream                         toggle stream output
 /location                       toggle location submission
-/voice( change)                 toggle voice output or change the voice
+/voice [change]                 toggle voice output or change the voice
 /list [n]                       list the last n / all conversation exchanges
 /clear [messages|links|history] clear the all messages, links, or the chat history (defaults to messages)
 /clobber                        clear the conversation, links, and collection
@@ -133,6 +133,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /info                           show information for current session
 /config                         output current configuration ("/Users/flori/.config/ollama_chat/config.yml")
 /document_policy                pick a scan policy for document references
+/think_mode                     pick a think mode for reasoning models
 /import source                  import the source's content
 /summarize [n] source           summarize the source's content in n words
 /embedding                      toggle embedding paused or not

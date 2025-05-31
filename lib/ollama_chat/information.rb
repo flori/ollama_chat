@@ -82,7 +82,7 @@ module OllamaChat::Information
       /embedding                      toggle embedding paused or not
       /embed source                   embed the source's content
       /web [n] query                  query web search & return n or 1 results
-      /links( clear)                  display (or clear) links used in the chat
+      /links [clear]                  display (or clear) links used in the chat
       /save filename                  store conversation messages
       /load filename                  load conversation messages
       /quit                           to quit
