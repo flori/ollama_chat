@@ -20,16 +20,22 @@ class OllamaChat::FollowChat
         @messages << Message.new(role: 'assistant', content: '')
         @user = message_type(@messages.last.images) + " " +
           bold { color(111) { 'assistant:' } }
-        @output.puts @user unless @chat.markdown.on?
       end
       @messages.last.content << response.message&.content
       if content = @messages.last.content.full?
-        content = emphasize_think_block(content)
+        case @chat.think_mode
+        when 'display'
+          content = emphasize_think_block(content)
+        when 'omit'
+          content = omit_think_block(content)
+        when 'no_delete', 'only_delete'
+          content = quote_think_tags(content)
+        end
         if @chat.markdown.on?
           markdown_content = Kramdown::ANSI.parse(content)
           @output.print clear_screen, move_home, @user, ?\n, markdown_content
         else
-          @output.print content
+          @output.print clear_screen, move_home, @user, ?\n, content
         end
       end
       @say.call(response)
@@ -62,5 +68,17 @@ class OllamaChat::FollowChat
 
   def emphasize_think_block(content)
     content.gsub(%r(<think(?:ing)?>)i, "\n💭\n").gsub(%r(</think(?:ing)?>)i, "\n💬\n")
+  end
+
+  def omit_think_block(content)
+    content.gsub(%r(<think(?:ing)?>.*?(</think(?:ing)?>|\z))im, '')
+  end
+
+  def quote_think_tags(content)
+    if @chat.markdown.on?
+      content.gsub(%r(<(think(?:ing)?)>)i, "\n\\<\\1\\>\n").gsub(%r(</(think(?:ing)?)>)i, "\n\\</\\1\\>\n")
+    else
+      content.gsub(%r(<(think(?:ing)?)>)i, "\n<\\1\>\n").gsub(%r(</(think(?:ing)?)>)i, "\n</\\1>\n")
+    end
   end
 end
