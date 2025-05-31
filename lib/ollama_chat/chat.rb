@@ -387,12 +387,17 @@ class OllamaChat::Chat
         messages:,
         voice:    (@current_voice if voice.on?)
       )
-      thought_less_messages = remove_think_blocks(messages)
+      messages_to_send =
+        if @think_mode == 'no_delete'
+          messages
+        else
+          remove_think_blocks(messages)
+        end
       ollama.chat(
-        model: @model,
-        messages: thought_less_messages,
-        options: @model_options,
-        stream: stream.on?,
+        model:    @model,
+        messages: messages_to_send,
+        options:  @model_options,
+        stream:   stream.on?,
         &handler
       )
       if embedding.on? && !records.empty?
