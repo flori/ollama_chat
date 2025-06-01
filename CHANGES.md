@@ -5,12 +5,7 @@
 * **Think Mode Implementation**:
   + Introduced `@think_mode` attribute to read think mode setting from config
   + Implemented `remove_think_blocks` method to filter out thought blocks from chat messages sent to the LLM model.
-  + Added conditional logic based on `@think_mode` value to handle different modes (`'display'`, `'omit'`, `'no_delete'`, `'only_delete'`)
-
-    * **'display'**: Displays thought blocks' tags as emojis.
-    * **'omit'**: Omit internal reasoning blocks and tags from the output entirely.
-    * **'no_delete'**: Sends the entire conversation, including all think tags, to the Large Language Model (LLM) for processing.
-    * **'only_delete'**: Removes the explicit indicators of thought processes only from the conversation sent to the LLM, but does not modify the output shown to the user.
+  + Added conditional logic based on `@think_mode` value to handle different modes
 * **User Interface Improvements**:
   + Added `/think_mode` command to help users understand think mode options
   + Updated session output to include current think mode

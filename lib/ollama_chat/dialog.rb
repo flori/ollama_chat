@@ -57,30 +57,6 @@ module OllamaChat::Dialog
     info
   end
 
-  attr_accessor :think_mode
-
-  def choose_think_mode
-    modes = %w[ display omit only_delete no_delete ].sort
-    current  = if modes.index(@think_mode)
-                 @think_mode
-               elsif modes.index(config.think_mode)
-                 config.think_mode
-               else
-                 modes.first
-               end
-    modes.unshift('[EXIT]')
-    think_mode = OllamaChat::Utils::Chooser.choose(modes)
-    case think_mode
-    when nil, '[EXIT]'
-      STDOUT.puts "Exiting chooser."
-      think_mode = current
-    end
-    self.think_mode = think_mode
-  ensure
-    STDOUT.puts "Using think mode #{bold{@think_mode}}."
-    info
-  end
-
   def change_system_prompt(default, system: nil)
     selector = Regexp.new(system.to_s[1..-1].to_s)
     prompts  = config.system_prompts.attribute_names.compact.grep(selector)

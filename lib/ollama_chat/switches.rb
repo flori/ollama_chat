@@ -49,9 +49,11 @@ module OllamaChat::Switches
     include CheckSwitch
   end
 
-  attr_reader :markdown
-
   attr_reader :stream
+
+  attr_reader :think
+
+  attr_reader :markdown
 
   attr_reader :voice
 
@@ -64,21 +66,30 @@ module OllamaChat::Switches
   attr_reader :location
 
   def setup_switches(config)
-    @markdown = Switch.new(
-      :markdown,
-      config:,
-      msg: {
-        true  => "Using #{italic{'ANSI'}} markdown to output content.",
-        false => "Using plaintext for outputting content.",
-      }
-    )
-
     @stream = Switch.new(
       :stream,
       config:,
       msg: {
         true  => "Streaming enabled.",
         false => "Streaming disabled.",
+      }
+    )
+
+    @think = Switch.new(
+      :think,
+      config:,
+      msg: {
+        true  => "Thinking enabled.",
+        false => "Thinking disabled.",
+      }
+    )
+
+    @markdown = Switch.new(
+      :markdown,
+      config:,
+      msg: {
+        true  => "Using #{italic{'ANSI'}} markdown to output content.",
+        false => "Using plaintext for outputting content.",
       }
     )
 

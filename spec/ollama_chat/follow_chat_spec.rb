@@ -8,7 +8,7 @@ RSpec.describe OllamaChat::FollowChat do
   end
 
   let :chat do
-    double('Chat', markdown: double(on?: false), think_mode: 'display')
+    double('Chat', markdown: double(on?: false), think: double(on?: false))
   end
 
   let :follow_chat do

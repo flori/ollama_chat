@@ -46,7 +46,6 @@ class OllamaChat::Chat
     )
     server_version
     @document_policy = config.document_policy
-    @think_mode      = config.think_mode
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
     model_system     = pull_model_unless_present(@model, @model_options)
@@ -195,6 +194,9 @@ class OllamaChat::Chat
       :next
     when %r(^/document_policy$)
       choose_document_policy
+      :next
+    when %r(^/think$)
+      think.toggle
       :next
     when %r(^/import\s+(.+))
       @parse_content = false
@@ -387,17 +389,12 @@ class OllamaChat::Chat
         messages:,
         voice:    (@current_voice if voice.on?)
       )
-      messages_to_send =
-        if @think_mode == 'no_delete'
-          messages
-        else
-          remove_think_blocks(messages)
-        end
       ollama.chat(
         model:    @model,
-        messages: messages_to_send,
+        messages: ,
         options:  @model_options,
         stream:   stream.on?,
+        think:    think.on?,
         &handler
       )
       if embedding.on? && !records.empty?
@@ -424,19 +421,6 @@ class OllamaChat::Chat
   end
 
   private
-
-  def remove_think_blocks(messages)
-    new_messages = OllamaChat::MessageList.new(self)
-    messages.to_ary.each do |message|
-      thought_less_content = message.content.gsub(%r(<think(?:ing)?>.*?</think(?:ing)?>)im, '')
-      new_messages << Ollama::Message.new(
-        role: message.role,
-        content: thought_less_content,
-        images: message.images
-      )
-    end
-    new_messages
-  end
 
   def setup_documents
     if embedding.on?

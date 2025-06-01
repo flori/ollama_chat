@@ -48,7 +48,7 @@ module OllamaChat::Information
     stream.show
     location.show
     STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
-    STDOUT.puts "Think mode is currently: #{bold{@think_mode}}"
+    STDOUT.puts "Thinking is #{bold(think.on? ? 'enabled' : 'disabled')}."
     STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
     if @voice.on?
       STDOUT.puts "Using voice #{bold{@current_voice}} to speak."
@@ -76,7 +76,7 @@ module OllamaChat::Information
       /info                           show information for current session
       /config                         output current configuration (#{@ollama_chat_config.filename.to_s.inspect})
       /document_policy                pick a scan policy for document references
-      /think_mode                     pick a think mode for reasoning models
+      /think                          enable ollama think setting for models
       /import source                  import the source's content
       /summarize [n] source           summarize the source's content in n words
       /embedding                      toggle embedding paused or not

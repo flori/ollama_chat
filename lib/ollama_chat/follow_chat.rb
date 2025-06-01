@@ -14,40 +14,59 @@ class OllamaChat::FollowChat
   end
 
   def call(response)
-    OllamaChat::Chat.config.debug and jj response
+    debug_output(response)
+
     if response&.message&.role == 'assistant'
-      if @messages&.last&.role != 'assistant'
-        @messages << Message.new(role: 'assistant', content: '')
-        @user = message_type(@messages.last.images) + " " +
-          bold { color(111) { 'assistant:' } }
-      end
-      @messages.last.content << response.message&.content
-      if content = @messages.last.content.full?
-        case @chat.think_mode
-        when 'display'
-          content = emphasize_think_block(content)
-        when 'omit'
-          content = omit_think_block(content)
-        when 'no_delete', 'only_delete'
-          content = quote_think_tags(content)
-        end
-        if @chat.markdown.on?
-          markdown_content = Kramdown::ANSI.parse(content)
-          @output.print clear_screen, move_home, @user, ?\n, markdown_content
-        else
-          @output.print clear_screen, move_home, @user, ?\n, content
-        end
-      end
+      ensure_assistant_response_exists
+      update_last_message(response)
+      display_formatted_terminal_output
       @say.call(response)
     end
-    if response.done
-      @output.puts "", eval_stats(response)
-    end
+
+    output_eval_stats(response)
+
     self
   end
 
+  private
+
+  def ensure_assistant_response_exists
+    if @messages&.last&.role != 'assistant'
+      @messages << Message.new(
+        role: 'assistant',
+        content: '',
+        thinking: ('' if @chat.think.on?)
+      )
+      @user = message_type(@messages.last.images) + " " +
+        bold { color(111) { 'assistant:' } }
+    end
+  end
+
+  def update_last_message(response)
+    @messages.last.content << response.message&.content
+    if @chat.think.on? and response_thinking = response.message&.thinking.full?
+      @messages.last.thinking << response_thinking
+    end
+  end
+
+  def display_formatted_terminal_output
+    content, thinking = @messages.last.content, @messages.last.thinking
+    if @chat.markdown.on?
+      content = talk_annotate { Kramdown::ANSI.parse(content) }
+      if @chat.think.on?
+        thinking = think_annotate { Kramdown::ANSI.parse(thinking) }
+      end
+    else
+      content = talk_annotate { content }
+      @chat.think.on? and thinking = think_annotate { @messages.last.thinking.full? }
+    end
+    @output.print(*([
+      clear_screen, move_home, @user, ?\n, thinking, content
+    ].compact))
+  end
+
   def eval_stats(response)
-    eval_duration = response.eval_duration / 1e9
+    eval_duration        = response.eval_duration / 1e9
     prompt_eval_duration = response.prompt_eval_duration / 1e9
     stats_text = {
       eval_duration:        Tins::Duration.new(eval_duration),
@@ -64,21 +83,12 @@ class OllamaChat::FollowChat
     }
   end
 
-  private
-
-  def emphasize_think_block(content)
-    content.gsub(%r(<think(?:ing)?>)i, "\n💭\n").gsub(%r(</think(?:ing)?>)i, "\n💬\n")
+  def output_eval_stats(response)
+    response.done or return
+    @output.puts "", eval_stats(response)
   end
 
-  def omit_think_block(content)
-    content.gsub(%r(<think(?:ing)?>.*?(</think(?:ing)?>|\z))im, '')
-  end
-
-  def quote_think_tags(content)
-    if @chat.markdown.on?
-      content.gsub(%r(<(think(?:ing)?)>)i, "\n\\<\\1\\>\n").gsub(%r(</(think(?:ing)?)>)i, "\n\\</\\1\\>\n")
-    else
-      content.gsub(%r(<(think(?:ing)?)>)i, "\n<\\1\>\n").gsub(%r(</(think(?:ing)?)>)i, "\n</\\1>\n")
-    end
+  def debug_output(response)
+    OllamaChat::Chat.config.debug and jj response
   end
 end

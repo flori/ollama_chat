@@ -32,7 +32,7 @@ voice:
 markdown: true
 stream: true
 document_policy: importing
-think_mode: display
+think: false
 embedding:
   enabled: true
   model:
