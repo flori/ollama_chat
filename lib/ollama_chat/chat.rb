@@ -1,5 +1,6 @@
 require 'tins'
 require 'tins/secure_write'
+require 'tins/xt/string_version'
 require 'json'
 require 'term/ansicolor'
 require 'reline'
@@ -44,7 +45,9 @@ class OllamaChat::Chat
       debug:      config.debug,
       user_agent:
     )
-    server_version
+    if server_version.version < '0.9.0'.version
+      raise ArgumentError, 'require ollama API version 0.9.0 or higher'
+    end
     @document_policy = config.document_policy
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
