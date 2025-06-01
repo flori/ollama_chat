@@ -1,5 +1,15 @@
 # Changes
 
+## 2025-06-01 v0.0.12
+
+* **API Compatibility**: Enforces Ollama API version `0.9.0` or higher to
+  support new features like the `thinking` attribute.
+* **Think Output Splitting**: When `think` is enabled, the API response is
+  split into `content` and `thinking` fields, enabled by the new API version.
+* **Think Mode Simplified**: The previous multi-mode `think_mode` system has
+  been replaced with a boolean `think` switch for cleaner, more intuitive
+  control.
+
 ## 2025-06-01 v0.0.11
 
 * **Think Mode Implementation**:
