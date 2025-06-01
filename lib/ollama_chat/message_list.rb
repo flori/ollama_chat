@@ -1,6 +1,6 @@
 class OllamaChat::MessageList
   include Term::ANSIColor
-  include OllamaChat::MessageType
+  include OllamaChat::MessageFormat
 
   # The initialize method sets up the message list for an OllamaChat session.
   #

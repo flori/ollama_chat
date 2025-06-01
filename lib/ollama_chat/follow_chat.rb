@@ -2,7 +2,7 @@ class OllamaChat::FollowChat
   include Ollama
   include Ollama::Handlers::Concern
   include Term::ANSIColor
-  include OllamaChat::MessageType
+  include OllamaChat::MessageFormat
 
   def initialize(chat:, messages:, voice: nil, output: STDOUT)
     super(output:)

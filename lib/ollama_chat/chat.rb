@@ -27,7 +27,7 @@ class OllamaChat::Chat
   include OllamaChat::Dialog
   include OllamaChat::Information
   include OllamaChat::Clipboard
-  include OllamaChat::MessageType
+  include OllamaChat::MessageFormat
   include OllamaChat::History
   include OllamaChat::ServerSocket
 
