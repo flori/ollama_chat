@@ -136,7 +136,7 @@ class OllamaChat::Chat
       last = 2 * $1.to_i if $1
       messages.list_conversation(last)
       :next
-    when %r(^/clear(?:\s+(messages|links|history|all))?$)
+    when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
       clean($1)
       :next
     when %r(^/clobber$)
@@ -306,6 +306,9 @@ class OllamaChat::Chat
     when 'history'
       clear_history
       STDOUT.puts "Cleared history."
+    when 'tags'
+      @documents.clear
+      STDOUT.puts "Cleared all tags."
     when 'all'
       if ask?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /\Ay/i
         messages.clear
