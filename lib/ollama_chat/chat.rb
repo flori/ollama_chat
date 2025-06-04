@@ -41,8 +41,11 @@ class OllamaChat::Chat
     setup_switches(config)
     base_url         = @opts[?u] || config.url
     @ollama          = Ollama::Client.new(
-      base_url:   base_url,
-      debug:      config.debug,
+      connect_timeout: config.timeouts.connect_timeout?,
+      read_timeout:    config.timeouts.read_timeout?,
+      write_timeout:   config.timeouts.write_timeout?,
+      base_url:        base_url,
+      debug:           config.debug,
       user_agent:
     )
     if server_version.version < '0.9.0'.version

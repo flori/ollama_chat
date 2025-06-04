@@ -5,6 +5,10 @@ model:
   name: <%= ENV.fetch('OLLAMA_CHAT_MODEL', 'llama3.1') %>
   options:
     num_ctx: 8192
+timeouts:
+  connect_timeout: null
+  read_timeout: 300
+  write_timeout: 300
 location:
   enabled: false
   name: Berlin
