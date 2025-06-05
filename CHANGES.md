@@ -1,5 +1,15 @@
 # Changes
 
+## 2025-06-05 v0.0.13
+
+* Improved chat command handling
+  - Added support for '/clear tags' to clear all tags.
+  - Updated cases for 'history', 'all' and added case for 'tags'.
+  - Added commands to clear documents collection and print a message in `information.rb`.
+  - `OllamaChat::Chat#clean` now accepts 'tags' as an option.
+* Apply read and write timeouts from configuration (300 seconds) for ollama server.
+* Added method comments
+
 ## 2025-06-01 v0.0.12
 
 * **API Compatibility**: Enforces Ollama API version `0.9.0` or higher to
