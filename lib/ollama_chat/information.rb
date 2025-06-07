@@ -55,6 +55,7 @@ module OllamaChat::Information
     STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
     STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
     @messages.show_system_prompt
+    STDOUT.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     nil
   end
 

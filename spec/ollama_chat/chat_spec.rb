@@ -300,7 +300,8 @@ RSpec.describe OllamaChat::Chat do
             Document\ policy|
             Thinking|
             Voice\ output|
-            Currently\ selected\ search\ engine
+            Currently\ selected\ search\ engine|
+            Conversation\ length
           /x
         ).at_least(1)
       expect(chat.info).to be_nil
