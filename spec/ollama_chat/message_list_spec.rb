@@ -82,10 +82,27 @@ RSpec.describe OllamaChat::MessageList do
     expect(list.show_system_prompt).to eq list
   end
 
-  it 'can set_system_prompt' do
+  it 'can set_system_prompt if unset' do
+    list.messages.clear
+    expect(list.messages.count { _1.role == 'system' }).to eq 0
     expect {
       expect(list.set_system_prompt('test prompt')).to eq list
     }.to change { list.system }.from(nil).to('test prompt')
+    expect(list.messages.count { _1.role == 'system' }).to eq 1
+  end
+
+  it 'can set_system_prompt if already set' do
+    list.messages.clear
+    expect(list.messages.count { _1.role == 'system' }).to eq 0
+    list.set_system_prompt('first prompt')
+    expect(list.system).to eq('first prompt')
+    expect(list.messages.count { _1.role == 'system' }).to eq 1
+    #
+    list.set_system_prompt('new prompt')
+    expect(list.system).to eq('new prompt')
+    expect(list.messages.count { _1.role == 'system' }).to eq 1
+    expect(list.messages.first.role).to eq('system')
+    expect(list.messages.first.content).to eq('new prompt')
   end
 
   it 'can drop n conversations exhanges' do
