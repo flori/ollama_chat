@@ -145,8 +145,10 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] the message list instance itself, allowing for chaining.
   def set_system_prompt(system)
     @system = system.to_s
-    @messages.clear
-    @messages << Ollama::Message.new(role: 'system', content: self.system)
+    @messages.reject! { |msg| msg.role == 'system' }
+    @messages.unshift(
+      Ollama::Message.new(role: 'system', content: self.system)
+    )
     self
   end
 
