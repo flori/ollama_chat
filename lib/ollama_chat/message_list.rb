@@ -106,10 +106,20 @@ class OllamaChat::MessageList
                    when 'system' then 213
                    else 210
                    end
+      thinking = if @chat.think.on?
+                   think_annotate do
+                     m.thinking.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+                   end
+                 end
       content = m.content.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
       message_text = message_type(m.images) + " "
       message_text += bold { color(role_color) { m.role } }
-      message_text += ":\n#{content}"
+      if thinking
+        message_text += [ ?:, thinking, talk_annotate { content } ].compact.
+          map { _1.chomp } * ?\n
+      else
+        message_text += ":\n#{content}"
+      end
       m.images.full? { |images|
         message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
       }
@@ -136,19 +146,26 @@ class OllamaChat::MessageList
     end
   end
 
-  # The set_system_prompt method sets the system prompt for the chat session.
-  # This implies deleting all of the messages in the message list, so it only
-  # contains the system prompt at the end.
+  # Sets the system prompt for the chat session.
   #
-  # @param system [ String ] the new system prompt
+  # @param system [String, nil] The new system prompt. If `nil` or `false`, clears the system prompt.
   #
-  # @return [ OllamaChat::MessageList ] the message list instance itself, allowing for chaining.
+  # @return [OllamaChat::MessageList] Returns `self` to allow chaining of method calls.
+  #
+  # @note This method:
+  #   - Removes all existing system prompts from the message list
+  #   - Adds the new system prompt to the beginning of the message list if provided
+  #   - Handles edge cases such as clearing prompts when `system` is `nil` or `false`
   def set_system_prompt(system)
-    @system = system.to_s
     @messages.reject! { |msg| msg.role == 'system' }
-    @messages.unshift(
-      Ollama::Message.new(role: 'system', content: self.system)
-    )
+    if new_system_prompt = system.full?(:to_s)
+      @system = new_system_prompt
+      @messages.unshift(
+        Ollama::Message.new(role: 'system', content: self.system)
+      )
+    else
+      @system = nil
+    end
     self
   end
 
