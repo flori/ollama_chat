@@ -64,14 +64,31 @@ RSpec.describe OllamaChat::MessageList do
     FileUtils.rm_f 'tmp/test-conversation.json'
   end
 
-  it 'can list conversations' do
+  it 'can list conversations without thinking' do
     expect(chat).to receive(:markdown).
       and_return(double(on?: true)).at_least(:once)
+    expect(chat).to receive(:think).
+      and_return(double(on?: false)).at_least(:once)
     list <<  Ollama::Message.new(role: 'user', content: 'world')
     expect(STDOUT).to receive(:puts).
       with("📨 \e[1m\e[38;5;213msystem\e[0m\e[0m:\nhello\n")
     expect(STDOUT).to receive(:puts).
       with("📨 \e[1m\e[38;5;172muser\e[0m\e[0m:\nworld\n")
+    list.list_conversation
+  end
+
+  it 'can list conversations with thinking' do
+    expect(chat).to receive(:markdown).
+      and_return(double(on?: true)).at_least(:once)
+    expect(chat).to receive(:think).
+      and_return(double(on?: true)).at_least(:once)
+    expect(STDOUT).to receive(:puts).
+      with("📨 \e[1m\e[38;5;213msystem\e[0m\e[0m:\n💭\nI need to say something nice…\n\n💬\nhello\n")
+    expect(STDOUT).to receive(:puts).
+      with("📨 \e[1m\e[38;5;172muser\e[0m\e[0m:\nworld\n")
+    list.set_system_prompt nil
+    list << Ollama::Message.new(role: 'system', content: 'hello', thinking: 'I need to say something nice…')
+    list << Ollama::Message.new(role: 'user', content: 'world')
     list.list_conversation
   end
 
