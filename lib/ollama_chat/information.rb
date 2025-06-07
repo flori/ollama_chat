@@ -30,29 +30,30 @@ module OllamaChat::Information
   def info
     STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
     STDOUT.puts "Connected to ollama server version: #{bold(server_version)}"
-    STDOUT.puts "Current model is #{bold{@model}}."
+    STDOUT.puts "Current conversation model is #{bold{@model}}."
     if @model_options.present?
       STDOUT.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
     end
     @embedding.show
     if @embedding.on?
-      STDOUT.puts "Embedding model is #{bold{@embedding_model}}"
+      STDOUT.puts "Current embedding model is #{bold{@embedding_model}}"
       if @embedding_model_options.present?
         STDOUT.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"
       end
       STDOUT.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
       collection_stats
     end
-    STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
     markdown.show
     stream.show
+    think.show
     location.show
-    STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
-    STDOUT.puts "Thinking is #{bold(think.on? ? 'enabled' : 'disabled')}."
-    STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
+    voice.show
     if @voice.on?
-      STDOUT.puts "Using voice #{bold{@current_voice}} to speak."
+      STDOUT.puts "  Using voice #{bold{@current_voice}} to speak."
     end
+    STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
+    STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
+    STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
     @messages.show_system_prompt
     nil
   end
