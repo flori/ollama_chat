@@ -71,7 +71,7 @@ module OllamaChat::Information
       /clobber                        clear the conversation, links, and collection
       /drop [n]                       drop the last n exchanges, defaults to 1
       /model                          change the model
-      /system [show]                  change/show system prompt (clears conversation)
+      /system [show]                  change/show system prompt
       /regenerate                     the last answer message
       /collection [clear|change]      change (default) collection or clear
       /info                           show information for current session
