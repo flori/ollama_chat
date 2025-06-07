@@ -24,7 +24,7 @@ RSpec.describe OllamaChat::Information do
 
   it 'can show info' do
     expect(STDOUT).to receive(:puts).with(/Connected to ollama server version/)
-    expect(STDOUT).to receive(:puts).with(/Current model is/)
+    expect(STDOUT).to receive(:puts).with(/Current conversation model is/)
     expect(STDOUT).to receive(:puts).at_least(1)
     expect(chat.info).to be_nil
   end

@@ -288,7 +288,8 @@ RSpec.describe OllamaChat::Chat do
           /
             Running\ ollama_chat\ version|
             Connected\ to\ ollama\ server|
-            Current\ model|
+            Current\ conversation\ model|
+            Current\ embedding\ model|
             Options|
             Embedding|
             Text\ splitter|
@@ -297,7 +298,8 @@ RSpec.describe OllamaChat::Chat do
             Streaming|
             Location|
             Document\ policy|
-            Thinking\ is|
+            Thinking|
+            Voice\ output|
             Currently\ selected\ search\ engine
           /x
         ).at_least(1)
