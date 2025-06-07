@@ -1,8 +1,21 @@
 # Changes
 
+## 2025-06-07 v0.0.14
+
+* **Message List Improvements**:
+  * Added thinking status to messages when chat is in think mode
+  * Improved system prompt handling with new method documentation
+* **Improved /system command handling for OllamaChat chat system**:
+  * Added support for '/system [show]' command to show or change system prompt.
+* Add conversation length to chat information display
+* **Improvements to OllamaChat::SourceFetching**:
+  * Fixed bug where document type concatenation could cause errors when `full?`
+    returns `nil`, ensuring proper string formatting and avoiding potential
+    crashes.
+
 ## 2025-06-05 v0.0.13
 
-* Improved chat command handling
+* **Improved chat command handling**
   - Added support for '/clear tags' to clear all tags.
   - Updated cases for 'history', 'all' and added case for 'tags'.
   - Added commands to clear documents collection and print a message in `information.rb`.
