@@ -373,6 +373,8 @@ class OllamaChat::Chat
         end
       end
 
+      content = content.encode(invalid: :replace)
+
       content, tags = if @parse_content
                         parse_content(content, @images)
                       else
