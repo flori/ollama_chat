@@ -50,7 +50,7 @@ module OllamaChat::SourceFetching
 
   def import_source(source_io, source)
     source        = source.to_s
-    document_type = source_io&.content_type.full? { |ct| italic { ct } } + ' '
+    document_type = source_io&.content_type.full? { |ct| italic { ct } + ' ' }
     STDOUT.puts "Importing #{document_type}document #{source.to_s.inspect} now."
     source_content = parse_source(source_io)
     "Imported #{source.inspect}:\n\n#{source_content}\n\n"
