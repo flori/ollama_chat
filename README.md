@@ -123,11 +123,11 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /location                       toggle location submission
 /voice [change]                 toggle voice output or change the voice
 /list [n]                       list the last n / all conversation exchanges
-/clear [messages|links|history] clear the all messages, links, or the chat history (defaults to messages)
+/clear [what]                   clear what=messages|links|history|tags|all
 /clobber                        clear the conversation, links, and collection
 /drop [n]                       drop the last n exchanges, defaults to 1
 /model                          change the model
-/system                         change system prompt (clears conversation)
+/system [show]                  change/show system prompt
 /regenerate                     the last answer message
 /collection [clear|change]      change (default) collection or clear
 /info                           show information for current session
