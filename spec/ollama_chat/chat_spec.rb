@@ -86,7 +86,7 @@ RSpec.describe OllamaChat::Chat do
 
     it 'returns :next when input is "/system"' do
       expect(chat).to receive(:change_system_prompt).with(nil)
-      expect(chat).to receive(:info)
+      expect(chat.messages).to receive(:show_system_prompt)
       expect(chat.handle_input("/system")).to eq :next
     end
 

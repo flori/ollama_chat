@@ -152,9 +152,11 @@ class OllamaChat::Chat
     when %r(^/model$)
       @model = choose_model('', @model)
       :next
-    when %r(^/system$)
-      change_system_prompt(@system)
-      info
+    when %r(^/system(?:\s+(show))?$)
+      if $1 != 'show'
+        change_system_prompt(@system)
+      end
+      @messages.show_system_prompt
       :next
     when %r(^/regenerate$)
       if content = messages.second_last&.content

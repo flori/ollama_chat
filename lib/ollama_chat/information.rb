@@ -54,7 +54,6 @@ module OllamaChat::Information
     STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
     STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
     STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
-    @messages.show_system_prompt
     STDOUT.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     nil
   end
@@ -72,7 +71,7 @@ module OllamaChat::Information
       /clobber                        clear the conversation, links, and collection
       /drop [n]                       drop the last n exchanges, defaults to 1
       /model                          change the model
-      /system                         change system prompt (clears conversation)
+      /system [show]                  change/show system prompt (clears conversation)
       /regenerate                     the last answer message
       /collection [clear|change]      change (default) collection or clear
       /info                           show information for current session
