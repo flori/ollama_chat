@@ -39,7 +39,16 @@ RSpec.describe OllamaChat::Information do
     expect(chat.usage).to eq 0
   end
 
-  it 'can show version' do
+  it 'can show  version' do
+    expect(STDOUT).to receive(:puts).with(/^ollama_chat \d+\.\d+\.\d+$/)
     expect(chat.version).to eq 0
+  end
+
+  it 'can show server version' do
+    expect(chat.server_version).to eq '6.6.6'
+  end
+
+  it 'can show server URL' do
+    expect(chat.server_url).to be_a URI::HTTP
   end
 end
