@@ -29,7 +29,7 @@ module OllamaChat::Information
 
   def info
     STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
-    STDOUT.puts "Connected to ollama server version: #{bold(server_version)}"
+    STDOUT.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
     STDOUT.puts "Current conversation model is #{bold{@model}}."
     if @model_options.present?
       STDOUT.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
@@ -120,5 +120,9 @@ module OllamaChat::Information
 
   def server_version
     @server_version ||= ollama.version.version
+  end
+
+  def server_url
+    @server_url ||= ollama.base_url
   end
 end
