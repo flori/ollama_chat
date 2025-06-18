@@ -1,6 +1,11 @@
 module OllamaChat::Dialog
   def choose_model(cli_model, current_model)
+    selector = if cli_model =~ /\A\?+(.*)\z/
+                 cli_model = ''
+                 Regexp.new($1)
+               end
     models = ollama.tags.models.map(&:name).sort
+    selector and models = models.grep(selector)
     model = if cli_model == ''
               OllamaChat::Utils::Chooser.choose(models) || current_model
             else
@@ -58,8 +63,12 @@ module OllamaChat::Dialog
   end
 
   def change_system_prompt(default, system: nil)
-    selector = Regexp.new(system.to_s[1..-1].to_s)
-    prompts  = config.system_prompts.attribute_names.compact.grep(selector)
+    selector = if system =~ /\A\?(.+)\z/
+                 Regexp.new($1)
+               else
+                 Regexp.new(system.to_s)
+               end
+    prompts = config.system_prompts.attribute_names.compact.grep(selector)
     if prompts.size == 1
       system = config.system_prompts.send(prompts.first)
     else
