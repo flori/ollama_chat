@@ -128,22 +128,42 @@ class OllamaChat::MessageList
     self
   end
 
-  # The drop method removes the last n exchanges from the message list and returns the number of removed exchanges.
+  # Removes the last `n` exchanges from the message list. An exchange consists
+  # of a user and an assistant message. If only a single user message is
+  # present at the end, it will be removed first before proceeding with
+  # complete exchanges.
   #
-  # @param n [ Integer ] the number of exchanges to remove
+  # @param n [Integer] The number of exchanges to remove.
+  # @return [Integer] The actual number of complete exchanges removed.
+  #                   This may be less than `n` if there are not enough messages.
   #
-  # @return [ Integer ] the number of removed exchanges, or 0 if there are no more exchanges to pop
+  # @note
+  #   - System messages are preserved and not considered part of an exchange.
+  #   - If only one incomplete exchange (a single user message) exists, it will
+  #     be dropped first before removing complete exchanges.
   def drop(n)
-    if @messages.reject { _1.role == 'system' }.size > 1
-      n = n.to_i.clamp(1, Float::INFINITY)
-      r = @messages.pop(2 * n)
-      m = r.size / 2
-      STDOUT.puts "Dropped the last #{m} exchanges."
-      m
-    else
-      STDOUT.puts "No more exchanges you can drop."
-      0
+    n = n.to_i.clamp(1, Float::INFINITY)
+    non_system_messages = @messages.reject { _1.role == 'system' }
+    if non_system_messages&.last&.role == 'user'
+      @messages.pop
+      n -= 1
     end
+    if n == 0
+      STDOUT.puts "Dropped the last exchange."
+      return 1
+    end
+    if non_system_messages.empty?
+      STDOUT.puts "No more exchanges can be dropped."
+      return 0
+    end
+    m = 0
+    while @messages.size > 1 && n > 0
+      @messages.pop(2)
+      m += 1
+      n -= 1
+    end
+    STDOUT.puts "Dropped the last #{m} exchanges."
+    m
   end
 
   # Sets the system prompt for the chat session.

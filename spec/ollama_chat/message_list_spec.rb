@@ -128,8 +128,23 @@ RSpec.describe OllamaChat::MessageList do
     expect(list.size).to eq 1
     list <<  Ollama::Message.new(role: 'user', content: 'world')
     expect(list.size).to eq 2
-    expect(list.drop(1)).to eq 0
     list <<  Ollama::Message.new(role: 'assistant', content: 'hi')
+    expect(list.size).to eq 3
+    expect(list.drop(1)).to eq 1
+    expect(list.size).to eq 1
+    expect(list.drop(1)).to eq 0
+    expect(list.size).to eq 1
+    expect(list.drop(1)).to eq 0
+    expect(list.size).to eq 1
+  end
+
+  it 'drops the last user message when there is no assistant response' do
+    expect(list.size).to eq 1
+    list << Ollama::Message.new(role: 'user', content: 'hello')
+    list << Ollama::Message.new(role: 'assistant', content: 'hi')
+    list << Ollama::Message.new(role: 'user', content: 'world')
+    expect(list.size).to eq 4
+    expect(list.drop(1)).to eq 1
     expect(list.size).to eq 3
     expect(list.drop(1)).to eq 1
     expect(list.size).to eq 1
