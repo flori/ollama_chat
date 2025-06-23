@@ -13,6 +13,8 @@ class OllamaChat::FollowChat
     @user        = nil
   end
 
+  attr_reader :messages
+
   def call(response)
     debug_output(response)
 

@@ -1,6 +1,7 @@
 require 'tins'
 require 'tins/secure_write'
 require 'tins/xt/string_version'
+require 'tins/xt/full'
 require 'json'
 require 'term/ansicolor'
 require 'reline'
@@ -352,15 +353,14 @@ class OllamaChat::Chat
         content = Reline.readline(input_prompt, true)&.chomp
       rescue Interrupt
         if message = server_socket_message
-          self.server_socket_message = nil
-          type    = message.fetch('type', 'socket_input').to_sym
-          content = message['content']
+          type    = message.type.full?(:to_sym) || :socket_input
+          content = message.content
         else
           raise
         end
       end
 
-      unless type == :socket_input
+      if type == :terminal_input
         case next_action = handle_input(content)
         when :next
           next
@@ -421,10 +421,22 @@ class OllamaChat::Chat
         }.uniq.map { |l, t| hyperlink(l, t) }.join(' ')
         config.debug and jj messages.to_ary
       end
+
+      case type
+      when :socket_input
+        server_socket_message&.disconnect
+      when :socket_input_with_response
+        if message = handler.messages.last
+          server_socket_message.respond({ role: message.role, content: message.content })
+        end
+        server_socket_message&.disconnect
+      end
     rescue Ollama::Errors::TimeoutError
       STDOUT.puts "#{bold('Error')}: Currently lost connection to ollama server and cannot send command."
     rescue Interrupt
       STDOUT.puts "Type /quit to quit."
+    ensure
+        self.server_socket_message = nil
     end
     0
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
