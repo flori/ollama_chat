@@ -5,6 +5,10 @@ RSpec.describe OllamaChat::Chat do
     %w[ -C test ]
   end
 
+  before do
+    ENV['OLLAMA_CHAT_MODEL'] = 'llama3.1'
+  end
+
   let :chat do
     OllamaChat::Chat.new(argv: argv).expose
   end
