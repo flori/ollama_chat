@@ -170,6 +170,32 @@ function! OllamaChatSend(input)
 endfunction
 ```
 
+#### Advanced Parameters for `ollama_chat_send`
+
+The `ollama_chat_send` command now supports additional parameters to enhance functionality:
+
+- **Terminal Input (`-t`)**: Sends input as terminal commands, enabling special commands like `/import`.
+
+  ```bash
+  $ echo "/import https://example.com/some-content" | ollama_chat_send -t
+  ```
+
+- **Wait for Response (`-r`)**: Enables two-way communication by waiting for and returning the server's response.
+
+  ```bash
+  $ response=$(echo "Tell me a joke." | ollama_chat_send -r)
+  $ echo "$response"
+  ```
+
+- **Help (`-h` or `--help`)**: Displays usage information and available options.
+
+  ```bash
+  $ ollama_chat_send -h
+  ```
+
+These parameters provide greater flexibility in how you interact with
+`ollama_chat`, whether from the command line or integrated tools like `vim`.
+
 ## Download
 
 The homepage of this app is located at
