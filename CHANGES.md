@@ -1,5 +1,20 @@
 # Changes
 
+## 2025-07-02 v0.0.15
+
+- **Enhanced `ollama_chat_send` and Unix Domain Socket Support:**
+  - Added support for advanced parameters:
+    - `-t`: Sends input as terminal commands.
+    - `-r`: Enables two-way communication by waiting for and returning the server's response.
+    - `-h` or `--help`: Displays usage information and available options.
+  - Improved socket management using the `unix_socks` gem.
+  - Enhanced message processing logic to handle different types of messages
+    (`:socket_input`, `:terminal_input`, `:socket_input_with_response`).
+- **Selector Support for Model and System Prompt Selection:**
+  - Introduced `?selector` syntax to filter models and prompts.
+  - Updated documentation to reflect this new feature.
+  - Added a chooser dialog when multiple options match the selector.
+
 ## 2025-06-07 v0.0.14
 
 * **Message List Improvements**:
