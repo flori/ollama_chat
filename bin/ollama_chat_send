@@ -5,22 +5,24 @@ require 'tins/go'
 include Tins::GO
 
 
-opts = go 'rth', ARGV
+opts = go 'f:rth', ARGV
 
 def usage(rc = 0)
   puts <<~EOT
     Usage: #{File.basename($0)} [OPTIONS]
 
     Options:
-      -r    Wait for the response from Ollama Chat and output it
-      -t    Send input as terminal input including commands, e. g. /import
-      -h    Show this help message
+      -r         Wait for the response from Ollama Chat and output it
+      -t         Send input as terminal input including commands, e. g. /import
+      -f CONFIG  file to read
+      -h         Show this help message
 
     Send data to a running Ollame Chat client via standard input.
   EOT
   exit rc
 end
 
+config = OllamaChat::OllamaChatConfig.new(opts[?f]).config
 opts[?h] and usage
 begin
   type = if opts[?t]
@@ -28,7 +30,7 @@ begin
          else
            opts[?r] ? :socket_input_with_response : :socket_input
          end
-  response = OllamaChat::ServerSocket.send_to_server_socket(STDIN.read, type:)
+  response = OllamaChat::ServerSocket.send_to_server_socket(STDIN.read, type:, config:)
   type == :socket_input_with_response and puts response.content
 rescue => e
   warn "Caught #{e.class}: #{e}"
