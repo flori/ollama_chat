@@ -8,14 +8,22 @@ module OllamaChat::ServerSocket
     #
     # @return [ String, NilClass ] the response from the server if type is
     #   :socket_input_with_response, otherwise nil.
-    def send_to_server_socket(content, type: :socket_input)
-      server = UnixSocks::Server.new(socket_name: 'ollama_chat.sock')
+    def send_to_server_socket(content, config:, type: :socket_input)
+      server  = create_socket_server(config:)
       message = { content:, type: }
       if type.to_sym == :socket_input_with_response
          return server.transmit_with_response(message)
       else
          server.transmit(message)
          nil
+      end
+    end
+
+    def create_socket_server(config:)
+      if runtime_dir = config.server_socket_runtime_dir
+        UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
+      else
+        UnixSocks::Server.new(socket_name: 'ollama_chat.sock')
       end
     end
   end
@@ -33,7 +41,7 @@ module OllamaChat::ServerSocket
   # @return [ nil ] This method does not return any value, it only sets up the
   # server socket and kills the process when a message is received.
   def init_server_socket
-    server = UnixSocks::Server.new(socket_name: 'ollama_chat.sock')
+    server = OllamaChat::ServerSocket.create_socket_server(config:)
     server.receive_in_background do |message|
       self.server_socket_message = message
       Process.kill :INT, $$
