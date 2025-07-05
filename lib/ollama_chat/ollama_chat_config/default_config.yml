@@ -61,6 +61,7 @@ redis:
     url: <%= ENV.fetch('REDIS_EXPIRING_URL', 'null') %>
     ex: 86400
 chat_history_filename: <%= ENV.fetch('OLLAMA_CHAT_HISTORY', '~/.ollama_chat_history') %>
+server_socket_runtime_dir: .
 debug: <%= ENV['OLLAMA_CHAT_DEBUG'].to_i == 1 ? true : false %>
 request_headers:
   Accept: 'text/*,application/*,image/*'
