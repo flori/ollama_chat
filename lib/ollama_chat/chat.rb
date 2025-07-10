@@ -355,6 +355,7 @@ class OllamaChat::Chat
         if message = server_socket_message
           type    = message.type.full?(:to_sym) || :socket_input
           content = message.content
+          STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
         else
           raise
         end
