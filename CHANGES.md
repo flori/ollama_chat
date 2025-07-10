@@ -1,5 +1,23 @@
 # Changes
 
+## 2025-07-10 v0.0.16
+
+- **New Features**
+  - Added `-f CONFIG` option to `ollama_chat_send` for specifying configuration files.
+  - Introduced `server_socket_runtime_dir` setting in the default config, and
+  make it default to the current directory, allowing for a per directory chat
+  to receive server socket messages.
+
+- **Enhancements**
+  - Improved logging with debug output for received server socket messages.
+  - Refactored server socket handling:
+    - Created `create_socket_server` method for UnixSocks setup with configurable runtime directories.
+    - Updated `send_to_server_socket` and `init_server_socket` methods to use the new helper.
+  - Changed evaluation rate metrics from 'c/s' to 't/s' for better clarity.
+
+- **Documentation**
+  - Added additional documentation for key classes and methods in `FollowChat`.
+
 ## 2025-07-02 v0.0.15
 
 - **Enhanced `ollama_chat_send` and Unix Domain Socket Support:**
