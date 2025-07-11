@@ -418,7 +418,7 @@ class OllamaChat::Chat
                  else
                    'file://%s' % File.expand_path(record.source)
                  end
-          [ link, record.tags.first ]
+          [ link, ?# + record.tags.first ]
         }.uniq.map { |l, t| hyperlink(l, t) }.join(' ')
         config.debug and jj messages.to_ary
       end
