@@ -1,5 +1,12 @@
 # Changes
 
+## 2025-07-14 v0.0.17
+
+* Implement Pager Support for List Command
+* Add simple command completion to chat
+* Improved chat link generation
+  + Changed `record.tags.first` to have prefix `?#` before the tag
+
 ## 2025-07-10 v0.0.16
 
 - **New Features**
