@@ -58,8 +58,8 @@ module OllamaChat::Information
     nil
   end
 
-  def display_chat_help
-    STDOUT.puts <<~EOT
+  private def display_chat_help_message
+    <<~EOT
       /copy                           to copy last response to clipboard
       /paste                          to paste content
       /markdown                       toggle markdown output
@@ -89,6 +89,10 @@ module OllamaChat::Information
       /quit                           to quit
       /help                           to view this help
     EOT
+  end
+
+  def display_chat_help
+    STDOUT.puts display_chat_help_message
     nil
   end
 

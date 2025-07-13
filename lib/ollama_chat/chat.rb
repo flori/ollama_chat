@@ -348,9 +348,10 @@ class OllamaChat::Chat
       @parse_content = true
       type           = :terminal_input
       input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
-
       begin
-        content = Reline.readline(input_prompt, true)&.chomp
+        content = enable_command_completion do
+          Reline.readline(input_prompt, true)&.chomp
+        end
       rescue Interrupt
         if message = server_socket_message
           type    = message.type.full?(:to_sym) || :socket_input
@@ -525,5 +526,16 @@ class OllamaChat::Chat
     else
       exit 1
     end
+  end
+
+  def enable_command_completion(&block)
+    old = Reline.completion_proc
+    commands = display_chat_help_message.scan(/^\s*(\S+)/).inject(&:concat)
+    Reline.completion_proc = -> input {
+      commands.grep Regexp.new('\A' + Regexp.quote(input))
+    }
+    block.()
+  ensure
+    Reline.completion_proc = old
   end
 end
