@@ -99,31 +99,33 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ]
   def list_conversation(last = nil)
     last = (last || @messages.size).clamp(0, @messages.size)
-    @messages[-last..-1].to_a.each do |m|
-      role_color = case m.role
-                   when 'user' then 172
-                   when 'assistant' then 111
-                   when 'system' then 213
-                   else 210
+    use_pager do |output|
+      @messages[-last..-1].to_a.each do |m|
+        role_color = case m.role
+                     when 'user' then 172
+                     when 'assistant' then 111
+                     when 'system' then 213
+                     else 210
+                     end
+        thinking = if @chat.think.on?
+                     think_annotate do
+                       m.thinking.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+                     end
                    end
-      thinking = if @chat.think.on?
-                   think_annotate do
-                     m.thinking.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
-                   end
-                 end
-      content = m.content.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
-      message_text = message_type(m.images) + " "
-      message_text += bold { color(role_color) { m.role } }
-      if thinking
-        message_text += [ ?:, thinking, talk_annotate { content } ].compact.
-          map { _1.chomp } * ?\n
-      else
-        message_text += ":\n#{content}"
+        content = m.content.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+        message_text = message_type(m.images) + " "
+        message_text += bold { color(role_color) { m.role } }
+        if thinking
+          message_text += [ ?:, thinking, talk_annotate { content } ].compact.
+            map { _1.chomp } * ?\n
+        else
+          message_text += ":\n#{content}"
+        end
+        m.images.full? { |images|
+          message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
+        }
+        output.puts message_text
       end
-      m.images.full? { |images|
-        message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
-      }
-      STDOUT.puts message_text
     end
     self
   end
@@ -260,5 +262,23 @@ class OllamaChat::MessageList
 
   def config
     @chat.config
+  end
+
+  def determine_pager_command
+    default_pager = ENV['PAGER'].full?
+    if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
+      fallback_pager << ' -r'
+    end
+    default_pager || fallback_pager
+  end
+
+  def use_pager
+    command       = determine_pager_command
+    output_buffer = StringIO.new
+    yield output_buffer
+    messages = output_buffer.string
+    Kramdown::ANSI::Pager.pager(command:, lines: messages.count(?\n)) do |output|
+      output.puts messages
+    end
   end
 end
