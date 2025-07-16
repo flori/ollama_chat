@@ -1,10 +1,21 @@
 module OllamaChat::Dialog
+  private def model_with_size(model)
+    result = model.name
+    formatted_size = Term::ANSIColor.bold {
+      Tins::Unit.format(model.size, unit: ?B, prefix: 1024, format: '%.1f %U')
+    }
+    result.singleton_class.class_eval do
+      define_method(:to_s) { "%s %s" % [ model.name, formatted_size ] }
+    end
+    result
+  end
+
   def choose_model(cli_model, current_model)
     selector = if cli_model =~ /\A\?+(.*)\z/
                  cli_model = ''
                  Regexp.new($1)
                end
-    models = ollama.tags.models.map(&:name).sort
+    models = ollama.tags.models.sort_by(&:name).map { |m| model_with_size(m) }
     selector and models = models.grep(selector)
     model = if cli_model == ''
               OllamaChat::Utils::Chooser.choose(models) || current_model
