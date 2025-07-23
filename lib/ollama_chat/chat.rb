@@ -159,6 +159,9 @@ class OllamaChat::Chat
       end
       @messages.show_system_prompt
       :next
+    when %r(^/prompt)
+      @prefill_prompt = choose_prompt
+      :next
     when %r(^/regenerate$)
       if content = messages.second_last&.content
         content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
@@ -350,6 +353,14 @@ class OllamaChat::Chat
       input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
       begin
         content = enable_command_completion do
+          if prefill_prompt = @prefill_prompt.full?
+            Reline.pre_input_hook = -> {
+              Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
+              @prefill_prompt = nil
+            }
+          else
+            Reline.pre_input_hook = nil
+          end
           Reline.readline(input_prompt, true)&.chomp
         end
       rescue Interrupt

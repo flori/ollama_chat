@@ -103,6 +103,18 @@ module OllamaChat::Dialog
     @messages.set_system_prompt(system)
   end
 
+  def choose_prompt
+    prompts = config.prompts.attribute_names
+    prompts.unshift('[EXIT]')
+    case chosen = OllamaChat::Utils::Chooser.choose(prompts)
+    when '[EXIT]', nil
+      STDOUT.puts "Exiting chooser."
+      return
+    when *prompts
+      config.prompts.send(chosen)
+    end
+  end
+
   def change_voice
     chosen  = OllamaChat::Utils::Chooser.choose(config.voice.list)
     @current_voice = chosen.full? || config.voice.default

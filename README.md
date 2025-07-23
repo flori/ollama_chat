@@ -131,6 +131,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /drop [n]                       drop the last n exchanges, defaults to 1
 /model                          change the model
 /system [show]                  change/show system prompt
+/prompt                         prefill user prompt with preset prompts
 /regenerate                     the last answer message
 /collection [clear|change]      change (default) collection or clear
 /info                           show information for current session
