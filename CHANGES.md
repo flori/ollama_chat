@@ -1,5 +1,25 @@
 # Changes
 
+## 2025-07-31 v0.0.18
+
+* **Added /prompt command**: The `/prompt` command was added to the list of
+  supported commands, allowing users to prefill their input with text from
+  predefined prompts.
+  + Integrated prompt handling in `lib/ollama_chat/chat.rb`, where a new case
+    statement for `/prompt` sets up prefill functionality.
+  + Implemented prompt selection using the `choose_prompt` method in
+    `lib/ollama_chat/dialog.rb`.
+  + Set up input hooks using `Reline.pre_input_hook` to insert selected prompts
+    before user input.
+* **Improved user interaction**:
+  - Added model size display during model selection via the `model_with_size`
+    method in `lib/ollama_chat/dialog.rb`.
+  - Updated model selection logic to include formatted sizes in the display.
+* **Optimized voice list generation**: In
+  `lib/ollama_chat/ollama_chat_config/default_config.yml`, updated the voice
+  list generation logic to use a more efficient method of retrieving voice
+  names.
+
 ## 2025-07-14 v0.0.17
 
 * Implement Pager Support for List Command
