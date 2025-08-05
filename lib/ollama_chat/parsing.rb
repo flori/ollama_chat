@@ -23,7 +23,7 @@ module OllamaChat::Parsing
     when %r(\Aapplication/(json|ld\+json|x-ruby|x-perl|x-gawk|x-python|x-javascript|x-c?sh|x-dosexec|x-shellscript|x-tex|x-latex|x-lyx|x-bibtex)), %r(\Atext/), nil
       source_io.read
     else
-      STDERR.puts "Cannot embed #{source_io&.content_type} document."
+      STDERR.puts "Cannot parse #{source_io&.content_type} document."
       return
     end
   end
