@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::Switches do
+describe OllamaChat::Switches do
   describe OllamaChat::Switches::Switch do
     let :switch do
       described_class.new(

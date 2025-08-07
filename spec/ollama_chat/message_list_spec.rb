@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::MessageList do
+describe OllamaChat::MessageList do
   let :config do
     double(
       location: double(

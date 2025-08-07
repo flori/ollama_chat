@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::FollowChat do
+describe OllamaChat::FollowChat do
   let :messages do
     [
       Ollama::Message.new(role: 'user', content: 'hello', images: []),

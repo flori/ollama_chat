@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'pathname'
 
-RSpec.describe OllamaChat::Parsing do
+describe OllamaChat::Parsing do
   let :chat do
     OllamaChat::Chat.new.tap do |chat|
       chat.document_policy = 'importing'

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::Information do
+describe OllamaChat::Information do
   let :chat do
     OllamaChat::Chat.new
   end

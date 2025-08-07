@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::Utils::CacheFetcher do
+describe OllamaChat::Utils::CacheFetcher do
   let :url do
     'https://www.example.com/hello'
   end

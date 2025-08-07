@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::Clipboard do
+describe OllamaChat::Clipboard do
   let :chat do
     OllamaChat::Chat.new
   end

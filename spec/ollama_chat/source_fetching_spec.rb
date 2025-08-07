@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::SourceFetching do
+describe OllamaChat::SourceFetching do
   let :chat do
     OllamaChat::Chat.new
   end

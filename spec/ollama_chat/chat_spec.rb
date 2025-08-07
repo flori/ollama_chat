@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe OllamaChat::Chat do
+describe OllamaChat::Chat do
   let :argv do
     %w[ -C test ]
   end
