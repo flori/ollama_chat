@@ -31,6 +31,19 @@ RSpec.describe OllamaChat::Parsing do
       end
     end
 
+    it 'can parse RSS with application/xml content type' do
+      asset_io('example.rss') do |io|
+        def io.content_type
+          'application/xml'
+        end
+        expect(chat.parse_source(io)).to start_with(<<~EOT)
+          # Example News Feed
+
+          ## [New Study Shows Benefits of Meditation](https://example.com/article/meditation-benefits)
+        EOT
+      end
+    end
+
     it 'can parse CSV' do
       asset_io('example.csv') do |io|
         def io.content_type

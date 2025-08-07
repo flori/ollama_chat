@@ -3,7 +3,7 @@ module OllamaChat::Parsing
     case source_io&.content_type
     when 'text/html'
       reverse_markdown(source_io.read)
-    when 'text/xml'
+    when 'text/xml', 'application/xml'
       if source_io.read(8192) =~ %r(^\s*<rss\s)
         source_io.rewind
         return parse_rss(source_io)
