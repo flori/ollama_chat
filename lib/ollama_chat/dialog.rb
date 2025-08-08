@@ -79,7 +79,7 @@ module OllamaChat::Dialog
                else
                  Regexp.new(system.to_s)
                end
-    prompts = config.system_prompts.attribute_names.compact.grep(selector)
+    prompts = config.system_prompts.attribute_names.compact.grep(selector).sort
     if prompts.size == 1
       system = config.system_prompts.send(prompts.first)
     else
@@ -104,7 +104,7 @@ module OllamaChat::Dialog
   end
 
   def choose_prompt
-    prompts = config.prompts.attribute_names
+    prompts = config.prompts.attribute_names.sort
     prompts.unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(prompts)
     when '[EXIT]', nil
