@@ -1,5 +1,4 @@
 module OllamaChat::ModelHandling
-
   # The model_present? method checks if the specified Ollama model is available.
   #
   # @param model [ String ] the name of the Ollama model

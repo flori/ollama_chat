@@ -41,7 +41,7 @@ module OllamaChat::MessageOutput
   def output(filename)
     if message = @messages.last and message.role == 'assistant'
       begin
-        write_file_unless_exist(filename)
+        write_file_unless_exist(filename, message)
         STDOUT.puts "Last response was written to #{filename.inspect}."
         self
       rescue => e
@@ -54,14 +54,15 @@ module OllamaChat::MessageOutput
 
   private
 
-  # The write_file_unless_exist method creates a new file with the message
-  # content, but only if a file with the given filename does not already exist.
+  # The write_file_unless_exist method creates a new file with the specified
+  # message content, but only if a file with that name does not already exist.
   #
   # @param filename [ String ] the path of the file to be created
+  # @param message [ Ollama::Message ] the message object containing the content to write
   #
-  # @return [ TrueClass, nil ] returns true if the file was successfully created,
-  #                            or nil if the file already exists and no action was taken
-  def write_file_unless_exist(filename)
+  # @return [ TrueClass ] if the file was successfully created
+  # @return [ nil ] if the file already exists and was not created
+  def write_file_unless_exist(filename, message)
     if File.exist?(filename)
       STDERR.puts "File #{filename.inspect} already exists. Choose another filename."
       return
