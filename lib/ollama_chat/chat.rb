@@ -141,6 +141,9 @@ class OllamaChat::Chat
       last = 2 * $1.to_i if $1
       messages.list_conversation(last)
       :next
+    when %r(^/last$)
+      messages.show_last
+      :next
     when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
       clean($1)
       :next

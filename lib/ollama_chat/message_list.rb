@@ -100,32 +100,22 @@ class OllamaChat::MessageList
   def list_conversation(last = nil)
     last = (last || @messages.size).clamp(0, @messages.size)
     use_pager do |output|
-      @messages[-last..-1].to_a.each do |m|
-        role_color = case m.role
-                     when 'user' then 172
-                     when 'assistant' then 111
-                     when 'system' then 213
-                     else 210
-                     end
-        thinking = if @chat.think.on?
-                     think_annotate do
-                       m.thinking.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
-                     end
-                   end
-        content = m.content.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
-        message_text = message_type(m.images) + " "
-        message_text += bold { color(role_color) { m.role } }
-        if thinking
-          message_text += [ ?:, thinking, talk_annotate { content } ].compact.
-            map { _1.chomp } * ?\n
-        else
-          message_text += ":\n#{content}"
-        end
-        m.images.full? { |images|
-          message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
-        }
-        output.puts message_text
+      @messages[-last..-1].to_a.each do |message|
+        output.puts message_text_for(message)
       end
+    end
+    self
+  end
+
+  # The show_last method displays the text of the last message if it is not
+  # from the user. It uses a pager for output and returns the instance itself.
+  #
+  # @return [ OllamaChat::MessageList ] returns the instance of the class
+  def show_last
+    message = last
+    message&.role == 'user' and return
+    use_pager do |output|
+      output.puts message_text_for(message)
     end
     self
   end
@@ -260,10 +250,21 @@ class OllamaChat::MessageList
 
   private
 
+  # The config method provides access to the chat configuration object.
+  #
+  # @return [ Object ] the configuration object associated with the chat instance
   def config
     @chat.config
   end
 
+  # The determine_pager_command method identifies an appropriate pager command
+  # for displaying content.
+  # It first checks for a default pager specified by the PAGER environment variable.
+  # If no default is found, it attempts to locate 'less' or 'more' in the
+  # system PATH as fallback options.
+  # The method returns the selected pager command, ensuring it includes the
+  # '-r' flag for proper handling of raw control characters when a fallback
+  # pager is used.
   def determine_pager_command
     default_pager = ENV['PAGER'].full?
     if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
@@ -272,6 +273,11 @@ class OllamaChat::MessageList
     default_pager || fallback_pager
   end
 
+  # The use_pager method wraps the given block with a pager context.
+  # If the output would exceed the terminal's line capacity, it pipes the content
+  # through an appropriate pager command (like 'less' or 'more').
+  #
+  # @param block [Proc] A block that yields an IO object to write output to
   def use_pager
     command       = determine_pager_command
     output_buffer = StringIO.new
@@ -280,5 +286,42 @@ class OllamaChat::MessageList
     Kramdown::ANSI::Pager.pager(command:, lines: messages.count(?\n)) do |output|
       output.puts messages
     end
+  end
+
+  # The message_text_for method generates formatted text representation of a
+  # message including its role, content, thinking annotations, and associated
+  # images.
+  # It applies color coding to different message roles and uses markdown
+  # parsing when enabled. The method also handles special formatting for
+  # thinking annotations and image references within the message.
+  #
+  # @param message [Object] the message object containing role, content, thinking, and images
+  #
+  # @return [String] the formatted text representation of the message
+  def message_text_for(message)
+    role_color = case message.role
+                 when 'user' then 172
+                 when 'assistant' then 111
+                 when 'system' then 213
+                 else 210
+                 end
+    thinking = if @chat.think.on?
+                 think_annotate do
+                   message.thinking.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+                 end
+               end
+    content = message.content.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+    message_text = message_type(message.images) + " "
+    message_text += bold { color(role_color) { message.role } }
+    if thinking
+      message_text += [ ?:, thinking, talk_annotate { content } ].compact.
+        map { _1.chomp } * ?\n
+    else
+      message_text += ":\n#{content}"
+    end
+    message.images.full? { |images|
+      message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
+    }
+    message_text
   end
 end

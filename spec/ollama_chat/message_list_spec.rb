@@ -70,6 +70,16 @@ describe OllamaChat::MessageList do
       expect(list).to receive(:determine_pager_command).and_return nil
     end
 
+    it 'can show last message' do
+      expect(chat).to receive(:markdown).
+        and_return(double(on?: true)).at_least(:once)
+      expect(chat).to receive(:think).
+        and_return(double(on?: false)).at_least(:once)
+      expect(STDOUT).to receive(:puts).
+        with("📨 \e[1m\e[38;5;213msystem\e[0m\e[0m:\nhello\n")
+      list.show_last
+    end
+
     it 'can list conversations without thinking' do
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
