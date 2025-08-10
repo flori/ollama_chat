@@ -146,6 +146,8 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /links [clear]                  display (or clear) links used in the chat
 /save filename                  store conversation messages
 /load filename                  load conversation messages
+/output filename                save last response to filename
+/pipe command                   write last response to command's stdin
 /quit                           to quit
 /help                           to view this help
 ```

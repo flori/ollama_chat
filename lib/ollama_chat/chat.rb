@@ -28,6 +28,7 @@ class OllamaChat::Chat
   include OllamaChat::WebSearching
   include OllamaChat::Dialog
   include OllamaChat::Information
+  include OllamaChat::MessageOutput
   include OllamaChat::Clipboard
   include OllamaChat::MessageFormat
   include OllamaChat::History
@@ -227,18 +228,33 @@ class OllamaChat::Chat
       @parse_content = false
       web($1, $2)
     when %r(^/save\s+(.+)$)
-      messages.save_conversation($1)
-      STDOUT.puts "Saved conversation to #$1."
+      filename = $1
+      if messages.save_conversation(filename)
+        STDOUT.puts "Saved conversation to #{filename.inspect}."
+      else
+        STDOUT.puts "Saving conversation to #{filename.inspect} failed."
+      end
       :next
     when %r(^/links(?:\s+(clear))?$)
       manage_links($1)
       :next
     when %r(^/load\s+(.+)$)
-      messages.load_conversation($1)
+      filename = $1
+      success = messages.load_conversation(filename)
       if messages.size > 1
         messages.list_conversation(2)
       end
-      STDOUT.puts "Loaded conversation from #$1."
+      if success
+        STDOUT.puts "Loaded conversation from #{filename.inspect}."
+      else
+        STDOUT.puts "Loading conversation from #{filename.inspect} failed."
+      end
+      :next
+    when %r(^/pipe\s+(.+)$)
+      pipe($1)
+      :next
+    when %r(^/output\s+(.+)$)
+      output($1)
       :next
     when %r(^/config$)
       display_config

@@ -66,7 +66,7 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] self
   def load_conversation(filename)
     unless File.exist?(filename)
-      STDOUT.puts "File #{filename} doesn't exist. Choose another filename."
+      STDERR.puts "File #{filename.inspect} doesn't exist. Choose another filename."
       return
     end
     @messages =
@@ -83,10 +83,10 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] self
   def save_conversation(filename)
     if File.exist?(filename)
-      STDOUT.puts "File #{filename} already exists. Choose another filename."
+      STDERR.puts "File #{filename.inspect} already exists. Choose another filename."
       return
     end
-    File.open(filename, 'w') do |output|
+    File.open(filename, ?w) do |output|
       output.puts JSON(@messages)
     end
     self
