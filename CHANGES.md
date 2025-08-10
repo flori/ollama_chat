@@ -1,5 +1,32 @@
 # Changes
 
+## 2025-08-11 v0.0.19
+
+* Added `/last` command to show last assistant message:
+  * Introduced `show_last` method in `MessageList` class to display the last
+    non-user message.
+  * Extracted message formatting logic into `message_text_for` method for
+    better code organization.
+  * Updated documentation comments for improved clarity.
+  * Updated `README.md` to document the new `/last` command.
+* Added `/output` and `/pipe` commands for response handling:
+  * Introduced `OllamaChat::MessageOutput` module with `pipe` and `output`
+    methods.
+  * Updated `MessageList#save_conversation` and `MessageList#load_conversation`
+    to use `STDERR` for errors.
+  * Added comprehensive error handling with exit code checking for pipe
+    operations.
+  * Updated help text to document new `/output` and `/pipe` commands.
+* Sorted prompt lists for consistent ordering:
+  * Ensured predictable prompt selection order in dialog interface.
+* Removed RSpec describe syntax in favor of bare `describe`.
+* Supported application/xml content type for RSS parsing:
+  * Added `application/xml` MIME type support alongside existing `text/xml`.
+  * Updated `OllamaChat::Parsing` module condition matching.
+  * Added test case for `application/xml` RSS parsing.
+  * Maintained other development dependencies at their current versions.
+* Updated error message wording in parsing module.
+
 ## 2025-07-31 v0.0.18
 
 * **Added /prompt command**: The `/prompt` command was added to the list of
