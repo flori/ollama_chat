@@ -1,5 +1,4 @@
 module OllamaChat::Clipboard
-
   # Copy the last assistant's message to the system clipboard.
   #
   # This method checks if there is a last message from an assistant in the `@messages`

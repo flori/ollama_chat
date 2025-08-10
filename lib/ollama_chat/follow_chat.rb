@@ -4,7 +4,6 @@ class OllamaChat::FollowChat
   include Term::ANSIColor
   include OllamaChat::MessageFormat
 
-
   # Initializes a new instance of OllamaChat::FollowChat.
   #
   # @param [OllamaChat::Chat] chat The chat object, which represents the conversation context.

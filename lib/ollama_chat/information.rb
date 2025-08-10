@@ -7,15 +7,31 @@ module OllamaChat::Information
   end
 
   module UserAgent
+    # The progname method returns the name of the application.
+    #
+    # @return [ String ] the application name "ollama_chat"
     def progname
       'ollama_chat'
     end
 
+    # The user_agent method constructs and returns a user agent string
+    # that combines the program name and the OllamaChat version
+    # separated by a forward slash.
+    #
+    # @return [ String ] the formatted user agent string
     def user_agent
       [ progname, OllamaChat::VERSION ] * ?/
     end
   end
 
+  # The collection_stats method displays statistics about the current document
+  # collection.
+  #
+  # This method outputs information regarding the active document collection,
+  # including the collection name, total number of embeddings, and a list of
+  # tags.
+  #
+  # @return [ nil ] This method always returns nil.
   def collection_stats
     STDOUT.puts <<~EOT
       Current Collection
@@ -27,6 +43,13 @@ module OllamaChat::Information
     nil
   end
 
+  # The info method displays comprehensive information about the current state
+  # of the ollama_chat instance.
+  # This includes version details, server connection status, model
+  # configurations, embedding settings, and various operational switches.
+  #
+  # @return [ nil ] This method does not return a value; it outputs information
+  # directly to standard output.
   def info
     STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
     STDOUT.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
@@ -58,6 +81,9 @@ module OllamaChat::Information
     nil
   end
 
+  # The display_chat_help_message method returns a formatted string containing
+  # all available command-line options and their descriptions for the chat
+  # interface.
   private def display_chat_help_message
     <<~EOT
       /copy                           to copy last response to clipboard
@@ -95,11 +121,18 @@ module OllamaChat::Information
     EOT
   end
 
+  # The display_chat_help method outputs the chat help message to standard output.
+  #
+  # @return [ nil ] This method always returns nil after printing the help message.
   def display_chat_help
     STDOUT.puts display_chat_help_message
     nil
   end
 
+  # The usage method displays the command-line interface help text
+  # and returns an exit code of 0.
+  #
+  # @return [ Integer ] always returns 0 indicating successful help display
   def usage
     STDOUT.puts <<~EOT
       Usage: #{progname} [OPTIONS]
@@ -123,15 +156,25 @@ module OllamaChat::Information
     0
   end
 
+  # The version method outputs the program name and its version number to
+  # standard output.
+  #
+  # @return [ Integer ] returns 0 indicating successful execution
   def version
     STDOUT.puts "%s %s" % [ progname, OllamaChat::VERSION ]
     0
   end
 
+  # The server_version method retrieves the version of the Ollama server.
+  #
+  # @return [ String ] the version string of the connected Ollama server
   def server_version
     @server_version ||= ollama.version.version
   end
 
+  # The server_url method returns the base URL of the Ollama server connection.
+  #
+  # @return [ String ] the base URL used for communicating with the Ollama API
   def server_url
     @server_url ||= ollama.base_url
   end
