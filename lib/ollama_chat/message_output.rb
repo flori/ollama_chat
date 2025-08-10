@@ -1,4 +1,12 @@
 module OllamaChat::MessageOutput
+  # The pipe method forwards the last assistant message to a command's standard
+  # input.
+  #
+  # @param cmd [ String ] the command to which the output should be piped
+  #
+  # @return [ OllamaChat::Chat ] returns self
+  # @return [ nil ] returns nil if the command is not provided or if there is
+  # no assistant message
   def pipe(cmd)
     cmd.present? or return
     if message = @messages.last and message.role == 'assistant'
@@ -21,6 +29,15 @@ module OllamaChat::MessageOutput
     end
   end
 
+  # The output method writes the last assistant message to a file.
+  #
+  # @param filename [ String ] the path to the file where the output should be written
+  #
+  # @return [ Chat ] returns self on success, nil on failure
+  #
+  # @see write_file_unless_exist
+  #
+  # @note If no assistant message is available, an error message is printed to stderr.
   def output(filename)
     if message = @messages.last and message.role == 'assistant'
       begin
@@ -37,6 +54,13 @@ module OllamaChat::MessageOutput
 
   private
 
+  # The write_file_unless_exist method creates a new file with the message
+  # content, but only if a file with the given filename does not already exist.
+  #
+  # @param filename [ String ] the path of the file to be created
+  #
+  # @return [ TrueClass, nil ] returns true if the file was successfully created,
+  #                            or nil if the file already exists and no action was taken
   def write_file_unless_exist(filename)
     if File.exist?(filename)
       STDERR.puts "File #{filename.inspect} already exists. Choose another filename."
@@ -47,4 +71,4 @@ module OllamaChat::MessageOutput
     end
     true
   end
-  end
+end
