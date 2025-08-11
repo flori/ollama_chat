@@ -1,10 +1,24 @@
 require 'digest/md5'
 
 class OllamaChat::Utils::CacheFetcher
+  # The initialize method sets up the cache instance variable for the object.
+  #
+  # @param cache [ Object ] the cache object to be stored
+  #
+  # @return [ void ]
   def initialize(cache)
     @cache = cache
   end
 
+  # The get method retrieves cached content by key and yields it as an IO object.
+  # It first checks if the body and content type are present in the cache.
+  # If both are found, it creates a StringIO object from the body,
+  # extends it with HeaderExtension, sets the content type,
+  # and then yields the IO object to the provided block.
+  #
+  # @param url [ String ] the URL used as a key for caching
+  #
+  # @yield [ io ] yields the cached IO object if found
   def get(url, &block)
     block or raise ArgumentError, 'require block argument'
     body         = @cache[key(:body, url)]
@@ -19,6 +33,13 @@ class OllamaChat::Utils::CacheFetcher
     end
   end
 
+  # The put method stores the body and content type of an IO object in the
+  # cache using a URL-based key.
+  #
+  # @param url [ String ] the URL used to generate the cache key
+  # @param io [ StringIO, Tempfile ] the IO object containing the body and content type
+  #
+  # @return [ CacheFetcher ] returns itself to allow for method chaining
   def put(url, io)
     io.rewind
     body = io.read
@@ -32,6 +53,15 @@ class OllamaChat::Utils::CacheFetcher
 
   private
 
+  # The key method generates a unique identifier by combining a type prefix
+  # with a URL digest.
+  # It returns a string that consists of the type, a hyphen, and the MD5 hash
+  # of the URL.
+  #
+  # @param type [ String ] the type prefix for categorizing the key
+  # @param url [ String ] the URL to be hashed
+  #
+  # @return [ String ] a hyphen-separated string of the type and URL's MD5 digest
   def key(type, url)
     [ type, Digest::MD5.hexdigest(url) ] * ?-
   end
