@@ -1,4 +1,16 @@
 module OllamaChat::WebSearching
+  # The search_web method performs a web search using the configured search
+  # engine.
+  # It appends location information to the query if available and limits the
+  # number of results.
+  # The method delegates to engine-specific search methods based on the
+  # configured search engine.
+  #
+  # @param query [ String ] the search query string
+  # @param n [ Integer ] the maximum number of results to return
+  #
+  # @return [ Array<String>, nil ] an array of URLs from the search results or
+  # nil if the search engine is not implemented
   def search_web(query, n = nil)
     l     = @messages.at_location.full? and query += " #{l}"
     n     = n.to_i.clamp(1..)
@@ -14,10 +26,22 @@ module OllamaChat::WebSearching
 
   private
 
+  # The search_engine method returns the currently configured web search engine
+  # to be used for online searches.
+  #
+  # @return [ String ] the name of the web search engine
+  # @see OllamaChat::Config::WebSearch#use
   def search_engine
     config.web_search.use
   end
 
+  # The search_web_with_searxng method performs a web search using the SearxNG
+  # engine and returns the URLs of the first n search results.
+  #
+  # @param query [ String ] the search query string
+  # @param n [ Integer ] the number of search results to return
+  #
+  # @return [ Array<String> ] an array of URLs from the search results
   def search_web_with_searxng(query, n)
     url = config.web_search.engines.searxng.url % { query: }
     OllamaChat::Utils::Fetcher.get(
@@ -30,6 +54,15 @@ module OllamaChat::WebSearching
     end
   end
 
+  # The search_web_with_duckduckgo method performs a web search using the
+  # DuckDuckGo search engine and extracts URLs from the search results.
+  #
+  # @param query [ String ] the search query string to be used
+  # @param n [ Integer ] the maximum number of URLs to extract from the search
+  # results
+  #
+  # @return [ Array<String> ] an array of URL strings extracted from the search
+  # results
   def search_web_with_duckduckgo(query, n)
     url = config.web_search.engines.duckduckgo.url % { query: }
     OllamaChat::Utils::Fetcher.get(
@@ -47,7 +80,8 @@ module OllamaChat::WebSearching
           url = URI.decode_uri_component(url)
           url = URI.parse(url)
           url.host =~ /duckduckgo\.com/ and next
-          links.add(url.to_s)
+          url = url.to_s
+          links.add(url)
           result << url
           n -= 1
         else
