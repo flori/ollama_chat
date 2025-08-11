@@ -60,6 +60,13 @@ class OllamaChat::FollowChat
 
   private
 
+  # The ensure_assistant_response_exists method ensures that the last message
+  # in the conversation is from the assistant role.
+  #
+  # If the last message is not from an assistant, it adds a new assistant
+  # message with empty content and optionally includes thinking content if the
+  # chat's think mode is enabled. It also updates the user display variable to
+  # reflect the assistant's message type and styling.
   def ensure_assistant_response_exists
     if @messages&.last&.role != 'assistant'
       @messages << Message.new(
@@ -72,6 +79,12 @@ class OllamaChat::FollowChat
     end
   end
 
+  # The update_last_message method appends the content of a response to the
+  # last message in the conversation. It also appends thinking content to the
+  # last message if thinking is enabled and thinking content is present.
+  #
+  # @param response [ Object ] the response object containing message content
+  # and thinking
   def update_last_message(response)
     @messages.last.content << response.message&.content
     if @chat.think.on? and response_thinking = response.message&.thinking.full?
@@ -79,6 +92,13 @@ class OllamaChat::FollowChat
     end
   end
 
+  # The display_formatted_terminal_output method formats and outputs the
+  # terminal content by processing the last message's content and thinking,
+  # then prints it to the output. It handles markdown parsing and annotation
+  # based on chat settings, and ensures proper formatting with clear screen and
+  # move home commands. The method takes into account whether markdown and
+  # thinking modes are enabled to determine how to process and display the
+  # content.
   def display_formatted_terminal_output
     content, thinking = @messages.last.content, @messages.last.thinking
     if @chat.markdown.on?
@@ -95,6 +115,14 @@ class OllamaChat::FollowChat
     ].compact))
   end
 
+  # The eval_stats method processes response statistics and formats them into a
+  # colored, readable string output.
+  #
+  # @param response [ Object ] the response object containing evaluation metrics
+  #
+  # @return [ String ] a formatted string with statistical information about
+  # the evaluation process including durations, counts, and rates, styled with
+  # colors and formatting
   def eval_stats(response)
     eval_duration        = response.eval_duration / 1e9
     prompt_eval_duration = response.prompt_eval_duration / 1e9
@@ -113,11 +141,19 @@ class OllamaChat::FollowChat
     }
   end
 
+  # The output_eval_stats method outputs evaluation statistics to the specified
+  # output stream.
+  #
+  # @param response [ Object ] the response object containing evaluation data
   def output_eval_stats(response)
     response.done or return
     @output.puts "", eval_stats(response)
   end
 
+  # The debug_output method conditionally outputs the response object using jj
+  # when debugging is enabled.
+  #
+  # @param response [ Object ] the response object to be outputted
   def debug_output(response)
     OllamaChat::Chat.config.debug and jj response
   end
