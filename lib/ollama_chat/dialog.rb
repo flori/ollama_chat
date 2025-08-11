@@ -32,11 +32,14 @@ module OllamaChat::Dialog
                end
     models = ollama.tags.models.sort_by(&:name).map { |m| model_with_size(m) }
     selector and models = models.grep(selector)
-    model = if cli_model == ''
-              OllamaChat::Utils::Chooser.choose(models) || current_model
-            else
-              cli_model || current_model
-            end
+    model =
+      if models.size == 1
+        models.first
+      elsif cli_model == ''
+        OllamaChat::Utils::Chooser.choose(models) || current_model
+      else
+        cli_model || current_model
+      end
   ensure
     STDOUT.puts green { "Connecting to #{model}@#{ollama.base_url} now…" }
   end
