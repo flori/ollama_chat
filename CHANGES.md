@@ -1,5 +1,17 @@
 # Changes
 
+## 2025-08-11 v0.0.20
+
+### Documentation
+
+- Added more YARD-style documentation to all public methods throughout the codebase.
+
+### Fixed
+
+- **Message Output**:
+  - Corrected `output(filename)` method to pass the message object to
+    `write_file_unless_exist` for proper content writing.
+
 ## 2025-08-11 v0.0.19
 
 * Added `/last` command to show last assistant message:
