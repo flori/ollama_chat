@@ -39,6 +39,7 @@ document_policy: importing
 think: false
 embedding:
   enabled: true
+  paused: false
   model:
     name: mxbai-embed-large
     embedding_length: 1024

@@ -15,7 +15,7 @@ describe OllamaChat::Switches do
 
     context 'default to false' do
       let :config do
-        double(test?: false)
+        double(test: false)
       end
 
       it 'can be switched on' do
@@ -38,7 +38,7 @@ describe OllamaChat::Switches do
 
     context 'default to false' do
       let :config do
-        double(test?: true)
+        double(test: true)
       end
 
       it 'can be switched on' do
@@ -63,7 +63,7 @@ describe OllamaChat::Switches do
   describe OllamaChat::Switches::CombinedSwitch do
     describe 'off' do
       let :config do
-        double(test1?: true, test2?: false)
+        double(test1: true, test2: false)
       end
 
       let :switch1 do
@@ -117,7 +117,7 @@ describe OllamaChat::Switches do
 
     describe 'on' do
       let :config do
-        double(test1?: false, test2?: true)
+        double(test1: false, test2: true)
       end
 
       let :switch1 do
