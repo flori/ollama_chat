@@ -1,5 +1,21 @@
 # Changes
 
+## 2025-08-11 v0.0.21
+
+* **Vim Integration**: The `/vim` command allows users to insert the last chat
+  message into a Vim server, improving workflow integration. It uses
+  `--servername` and `--remote-send` to insert text at the cursor position and
+  automatically indents based on the current column.
+* **Improved Documentation**: Comprehensive documentation has been added to
+  various modules and classes, making it easier for developers to understand
+  and use the gem's features.
+* **Model Selection Logic**: When only a single model is available, the code
+  now automatically selects that model instead of showing a prompt, improving
+  usability.
+* **Configuration Handling**: Configuration file error handling has been
+  updated to use `STDERR` for output, ensuring errors are displayed
+  appropriately.
+
 ## 2025-08-11 v0.0.20
 
 ### Documentation
