@@ -4,8 +4,7 @@ describe OllamaChat::Switches do
   describe OllamaChat::Switches::Switch do
     let :switch do
       described_class.new(
-        :test,
-        config: config,
+        value: config.test,
         msg: {
           true  => "Enabled.",
           false => "Disabled.",
@@ -68,8 +67,7 @@ describe OllamaChat::Switches do
 
       let :switch1 do
         OllamaChat::Switches::Switch.new(
-          :test1,
-          config: config,
+          value: config.test1,
           msg: {
             true  => "Enabled.",
             false => "Disabled.",
@@ -79,8 +77,7 @@ describe OllamaChat::Switches do
 
       let :switch2 do
         OllamaChat::Switches::Switch.new(
-          :test2,
-          config: config,
+          value: config.test2,
           msg: {
             true  => "Enabled.",
             false => "Disabled.",
@@ -122,8 +119,7 @@ describe OllamaChat::Switches do
 
       let :switch1 do
         OllamaChat::Switches::Switch.new(
-          :test1,
-          config: config,
+          value: config.test1,
           msg: {
             true  => "Enabled.",
             false => "Disabled.",
@@ -133,8 +129,7 @@ describe OllamaChat::Switches do
 
       let :switch2 do
         OllamaChat::Switches::Switch.new(
-          :test2,
-          config: config,
+          value: config.test2,
           msg: {
             true  => "Enabled.",
             false => "Disabled.",

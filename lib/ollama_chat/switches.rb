@@ -24,15 +24,15 @@ module OllamaChat::Switches
   end
 
   class Switch
-    # The initialize method sets up the switch instance with a name, message
-    # configuration, and config object. It determines the initial boolean value
-    # based on the config parameter and stores both the value and message.
+    # The initialize method sets up the switch with a default value and
+    # message.
     #
-    # @param name [ Symbol ] the name of the switch in the config.
     # @param msg [ Hash ] a hash containing true and false messages
-    # @param config [ Object ] the configuration object used to determine the switch state
-    def initialize(name, msg:, config:)
-      @value = [ false, true ].include?(config) ? config : !!config.send("#{name}")
+    # @param value [ Object ] the default state of the switch
+    #
+    # @return [ void ]
+    def initialize(msg:, value:)
+      @value = !!value
       @msg   = msg
     end
 
@@ -137,8 +137,7 @@ module OllamaChat::Switches
   # containing settings for the switches
   def setup_switches(config)
     @stream = Switch.new(
-      :stream,
-      config:,
+      value: config.stream,
       msg: {
         true  => "Streaming enabled.",
         false => "Streaming disabled.",
@@ -146,8 +145,7 @@ module OllamaChat::Switches
     )
 
     @think = Switch.new(
-      :think,
-      config:,
+      value: config.think,
       msg: {
         true  => "Thinking enabled.",
         false => "Thinking disabled.",
@@ -155,8 +153,7 @@ module OllamaChat::Switches
     )
 
     @markdown = Switch.new(
-      :markdown,
-      config:,
+      value: config.markdown,
       msg: {
         true  => "Using #{italic{'ANSI'}} markdown to output content.",
         false => "Using plaintext for outputting content.",
@@ -164,8 +161,7 @@ module OllamaChat::Switches
     )
 
     @voice = Switch.new(
-      :enabled,
-      config: config.voice,
+      value: config.voice.enabled,
       msg: {
         true  => "Voice output enabled.",
         false => "Voice output disabled.",
@@ -173,8 +169,7 @@ module OllamaChat::Switches
     )
 
     @embedding_enabled = Switch.new(
-      :enabled,
-      config: config.embedding,
+      value: config.embedding.enabled,
       msg: {
         true  => "Embedding enabled.",
         false => "Embedding disabled.",
@@ -182,8 +177,7 @@ module OllamaChat::Switches
     )
 
     @embedding_paused = Switch.new(
-      :paused,
-      config: config.embedding,
+      value: config.embedding.paused,
       msg: {
         true  => "Embedding paused.",
         false => "Embedding resumed.",
@@ -199,8 +193,7 @@ module OllamaChat::Switches
     )
 
     @location = Switch.new(
-      :enabled,
-      config: config.location,
+      value: config.location.enabled,
       msg: {
         true  => "Location and localtime enabled.",
         false => "Location and localtime disabled.",
