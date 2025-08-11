@@ -34,6 +34,33 @@ class OllamaChat::Chat
   include OllamaChat::History
   include OllamaChat::ServerSocket
 
+  # Initializes a new OllamaChat::Chat instance with the given command-line
+  # arguments.
+  #
+  # Sets up the chat environment including configuration parsing, Ollama client
+  # initialization, model selection, system prompt handling, document
+  # processing setup, and history management. This method handles all the
+  # bootstrapping necessary to create a functional chat session that can
+  # communicate with an Ollama server and process various input types including
+  # text, documents, web content, and images.
+  #
+  # The initialization process includes parsing command-line options using
+  # Tins::GO for robust argument handling, setting up the Ollama client with
+  # configurable timeouts (connect, read, write), validating Ollama API version
+  # compatibility (requires >= 0.9.0 for features used), configuring model
+  # selection based on command-line or configuration defaults, initializing
+  # system prompts from files or inline content, setting up document processing
+  # pipeline with embedding capabilities through Documentrix::Documents,
+  # creating message history management through OllamaChat::MessageList,
+  # initializing cache systems for document embeddings, setting up
+  # voice support and image handling for multimodal interactions, enabling
+  # optional server socket functionality for remote input, and handling
+  # configuration errors with interactive recovery mechanisms.
+  #
+  # @param argv [Array<String>] Command-line arguments to parse (defaults to ARGV.dup)
+  #
+  # @raise [ArgumentError] If the Ollama API version is less than 0.9.0, indicating
+  #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
     @opts               = go 'f:u:m:s:c:C:D:MESVh', argv
     @opts[?h] and exit usage
@@ -80,28 +107,66 @@ class OllamaChat::Chat
     fix_config(e)
   end
 
+  # The ollama reader returns the Ollama API client instance.
+  #
+  # @return [Ollama::Client] the configured Ollama API client
   attr_reader :ollama
 
+
+  # Returns the documents set for this object, initializing it lazily if needed.
+  #
+  # The documents set is memoized, meaning it will only be created once per
+  # object instance and subsequent calls will return the same
+  # Documentrix::Documents instance.
+  #
+  # @return [Documentrix::Documents] A Documentrix::Documents object containing
+  # all documents associated with this instance
   attr_reader :documents
 
+  # Returns the messages set for this object, initializing it lazily if needed.
+  #
+  # The messages set is memoized, meaning it will only be created once per
+  # object instance and subsequent calls will return the same
+  # OllamaChat::MessageList instance.
+  #
+  # @return [OllamaChat::MessageList] A MessageList object containing all
+  # messages associated with this instance
   attr_reader :messages
 
+  # Returns the links set for this object, initializing it lazily if needed.
+  #
+  # The links set is memoized, meaning it will only be created once per object
+  # instance and subsequent calls will return the same Set instance.
+  #
+  # @return [Set] A Set object containing all links associated with this instance
   def links
     @links ||= Set.new
   end
 
   class << self
+    # The config attribute accessor provides read and write access to the
+    # configuration object associated with this instance.
     attr_accessor :config
   end
 
+  # The config= method assigns a new configuration object to the class.
+  #
+  # @param config [ ComplexConfig::Settings ] the configuration object to be set
   def config=(config)
     self.class.config = config
   end
 
+  # The config method returns the configuration object associated with the
+  # class.
+  #
+  # @return [ ComplexConfig::Settings ] the configuration instance
   def config
     self.class.config
   end
 
+  # The start method initializes the chat session by displaying information and
+  # conversation history, then prompts the user for input to begin interacting
+  # with the chat.
   def start
     info
     if messages.size > 1
@@ -281,6 +346,14 @@ class OllamaChat::Chat
     end
   end
 
+  # The web method searches for URLs based on a query and processes them by
+  # fetching, embedding, and summarizing their content, then formats the
+  # results into a prompt string.
+  #
+  # @param count [ String ] the number of URLs to search for
+  # @param query [ String ] the search query string
+  #
+  # @return [ String ] the formatted prompt string containing the query and summarized results
   def web(count, query)
     urls            = search_web(query, count.to_i) or return :next
     urls.each do |url|
@@ -292,6 +365,16 @@ class OllamaChat::Chat
     config.prompts.web % { query:, results: }
   end
 
+  # The manage_links method handles operations on a collection of links, such
+  # as displaying them or clearing specific entries.
+  #
+  # It supports two main commands: 'clear' and nil (default).
+  # When the command is 'clear', it presents an interactive menu to either
+  # clear all links or individual links.
+  # When the command is nil, it displays the current list of links with
+  # hyperlinks.
+  #
+  # @param command [ String, nil ] the operation to perform on the links
   def manage_links(command)
     case command
     when 'clear'
@@ -329,10 +412,14 @@ class OllamaChat::Chat
     end
   end
 
+  # The clean method clears various parts of the chat session based on the
+  # specified parameter.
+  #
+  # @param what [ String, nil ] the type of data to clear, defaults to
+  # 'messages' if nil
   def clean(what)
-    what = 'messages' if what.nil?
     case what
-    when 'messages'
+    when 'messages', nil
       messages.clear
       STDOUT.puts "Cleared messages."
     when 'links'
@@ -357,6 +444,11 @@ class OllamaChat::Chat
     end
   end
 
+  # The display_config method renders the configuration and displays it using a
+  # pager.
+  # It determines an appropriate pager command based on environment variables
+  # and available system commands, then uses Kramdown::ANSI::Pager to show the
+  # formatted configuration output.
   def display_config
     default_pager = ENV['PAGER'].full?
     if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
@@ -372,6 +464,18 @@ class OllamaChat::Chat
     end
   end
 
+  # The interact_with_user method manages the interactive loop for user input
+  # and chat processing.
+  # It handles reading user input, processing commands, managing messages, and
+  # communicating with the Ollama server.
+  # The method supports command completion, prefilling prompts, socket input
+  # handling, and various chat features including embedding context and voice
+  # support.
+  # It processes user input through command handling, content parsing, and
+  # message formatting before sending requests to the Ollama server.
+  # The method also handles server socket messages, manages chat history, and
+  # ensures proper cleanup and configuration handling throughout the
+  # interaction.
   def interact_with_user
     loop do
       @parse_content = true
@@ -486,6 +590,13 @@ class OllamaChat::Chat
 
   private
 
+  # The setup_documents method initializes the document processing pipeline by
+  # configuring the embedding model and database connection.
+  # It then loads specified documents into the system and returns the
+  # configured document collection.
+  #
+  # @return [ Documentrix::Documents, NULL ] the initialized document
+  # collection if embedding is enabled, otherwise NULL
   def setup_documents
     if embedding.on?
       @embedding_model         = config.embedding.model.name
@@ -508,10 +619,35 @@ class OllamaChat::Chat
       add_documents_from_argv(document_list)
       @documents
     else
-      Tins::NULL
+      NULL
     end
   end
 
+  # Adds documents from command line arguments to the document collection
+  #
+  # Processes a list of document paths or URLs, handling both local files and
+  # remote resources.
+  #
+  # @param document_list [Array<String>] List of document paths or URLs to process
+  #
+  # @return [void]
+  #
+  # @example Adding local files
+  #   add_documents_from_argv(['/path/to/file1.txt', '/path/to/file2.pdf'])
+  #
+  # @example Adding remote URLs
+  #   add_documents_from_argv(['https://example.com/page1', 'http://example.com/page2'])
+  #
+  # @example Mixed local and remote
+  #   add_documents_from_argv(['/local/file.txt', 'https://remote.com/document'])
+  #
+  # @note Empty entries in the document list will trigger a collection clear operation
+  # @note Documents are processed in batches of 25 to manage memory usage
+  # @note Progress is reported to STDOUT during processing
+  #
+  # @see fetch_source
+  # @see embed_source
+  # @see documents.clear
   def add_documents_from_argv(document_list)
     if document_list.any?(&:empty?)
       STDOUT.puts "Clearing collection #{bold{documents.collection}}."
@@ -539,6 +675,11 @@ class OllamaChat::Chat
     end
   end
 
+  # The setup_cache method initializes and returns a Redis cache instance with
+  # expiring keys if a Redis URL is configured.
+  #
+  # @return [ Documentrix::Documents::RedisCache, nil ] the configured Redis
+  # cache instance or nil if no URL is set.
   def setup_cache
     if url = config.redis.expiring.url?
       ex = config.redis.expiring.ex?.to_i
@@ -550,6 +691,14 @@ class OllamaChat::Chat
     end
   end
 
+  # The fix_config method handles configuration file errors by informing the
+  # user about the exception and prompting them to fix it.
+  # It then executes a diff tool to compare the current config file with the
+  # default one.
+  # This method exits the program after handling the configuration error
+  #
+  # @param exception [ Exception ] the exception that occurred while reading
+  # the config file
   def fix_config(exception)
     STDOUT.puts "When reading the config file, a #{exception.class} "\
       "exception was caught: #{exception.message.inspect}"
@@ -565,6 +714,17 @@ class OllamaChat::Chat
     end
   end
 
+  # Enables tab completion for chat commands within the interactive session
+  #
+  # Temporarily replaces the current Reline completion procedure with a custom
+  # one that provides command completion based on the chat help message.
+  #
+  # @param block [Proc] The block to execute with enhanced tab completion enabled
+  #
+  # @return [Object] The return value of the executed block
+  #
+  # @see display_chat_help_message
+  # @see Reline.completion_proc
   def enable_command_completion(&block)
     old = Reline.completion_proc
     commands = display_chat_help_message.scan(/^\s*(\S+)/).inject(&:concat)
