@@ -116,6 +116,7 @@ module OllamaChat::Information
       /load filename                  load conversation messages
       /output filename                save last response to filename
       /pipe command                   write last response to command's stdin
+      /vim                            insert the last message into a vim server
       /quit                           to quit
       /help                           to view this help
     EOT

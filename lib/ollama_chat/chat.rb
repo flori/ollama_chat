@@ -235,7 +235,7 @@ class OllamaChat::Chat
       if messages.save_conversation(filename)
         STDOUT.puts "Saved conversation to #{filename.inspect}."
       else
-        STDOUT.puts "Saving conversation to #{filename.inspect} failed."
+        STDERR.puts "Saving conversation to #{filename.inspect} failed."
       end
       :next
     when %r(^/links(?:\s+(clear))?$)
@@ -250,7 +250,7 @@ class OllamaChat::Chat
       if success
         STDOUT.puts "Loaded conversation from #{filename.inspect}."
       else
-        STDOUT.puts "Loading conversation from #{filename.inspect} failed."
+        STDERR.puts "Loading conversation from #{filename.inspect} failed."
       end
       :next
     when %r(^/pipe\s+(.+)$)
@@ -258,6 +258,13 @@ class OllamaChat::Chat
       :next
     when %r(^/output\s+(.+)$)
       output($1)
+      :next
+    when %r(^/vim(?:\s+(.+))?$)
+      if message = messages.last
+        OllamaChat::Vim.new($1).insert message.content
+      else
+        STDERR.puts "Warning: No message found to insert into Vim"
+      end
       :next
     when %r(^/config$)
       display_config
