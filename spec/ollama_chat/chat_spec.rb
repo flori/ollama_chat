@@ -79,7 +79,7 @@ describe OllamaChat::Chat do
 
     it 'returns :next when input is "/drop(?:\s+(\d*))?"' do
       expect(chat.messages).to receive(:drop).with(?2)
-      expect(chat.messages).to receive(:list_conversation).with(2)
+      expect(chat.messages).to receive(:show_last)
       expect(chat.handle_input("/drop 2")).to eq :next
     end
 
