@@ -217,7 +217,7 @@ class OllamaChat::Chat
       :next
     when %r(^/drop(?:\s+(\d*))?$)
       messages.drop($1)
-      messages.list_conversation(2)
+      messages.show_last
       :next
     when %r(^/model$)
       @model = choose_model('', @model)
