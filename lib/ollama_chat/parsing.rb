@@ -200,6 +200,11 @@ module OllamaChat::Parsing
       when file
         file = file.sub(/#.*/, '')
         file =~ %r(\A[~./]) or file.prepend('./')
+        file = begin
+                 File.expand_path(file)
+               rescue ArgumentError
+                 next
+               end
         File.exist?(file) or next
         source = file
       when url
