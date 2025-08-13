@@ -191,7 +191,7 @@ EOT
     it 'can add images' do
       images = []
       expect(chat).to receive(:add_image).
-        with(images, kind_of(IO), %r(/spec/assets/kitten.jpg\z)).
+        with(images, kind_of(IO), %r(/spec/assets/kitten\.jpg\z)).
         and_call_original
       chat.parse_content('./spec/assets/kitten.jpg', images)
       expect(images.size).to eq 1
