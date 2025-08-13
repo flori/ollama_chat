@@ -1,24 +1,48 @@
 module OllamaChat::ServerSocket
   class << self
-    # The send_to_server_socket method sends content to the server socket and returns
-    # the response if type is :socket_input_with_response, otherwise it returns nil.
-
-    # @param content [ String ] the message to be sent to the server
-    # @param type [ Symbol ] the type of message being sent (default: :socket_input)
+    # The send_to_server_socket method transmits a message to a Unix domain
+    # socket server for processing by the Ollama Chat client.
     #
-    # @return [ String, NilClass ] the response from the server if type is
-    #   :socket_input_with_response, otherwise nil.
-    def send_to_server_socket(content, config:, type: :socket_input)
+    # This method creates a socket server instance using the provided
+    # configuration, prepares a message with the given content, type, and parse
+    # flag, then sends it either as a simple transmission or with a response
+    # expectation depending on the message type. It is used to enable
+    # communication between external processes and the chat session via a named
+    # Unix socket.
+    #
+    # @param content [ String ] the message content to be sent
+    # @param config [ ComplexConfig::Settings ] the configuration object containing server settings
+    # @param type [ Symbol ] the type of message transmission, defaults to :socket_input
+    # @param parse [ TrueClass, FalseClass ] whether to parse the response, defaults to false
+    #
+    # @return [ UnixSocks::Message, nil ] the response from transmit_with_response if type
+    # is :socket_input_with_response, otherwise nil
+    def send_to_server_socket(content, config:, type: :socket_input, parse: false)
       server  = create_socket_server(config:)
-      message = { content:, type: }
+      message = { content:, type:, parse: }
       if type.to_sym == :socket_input_with_response
-         return server.transmit_with_response(message)
+        server.transmit_with_response(message)
       else
-         server.transmit(message)
-         nil
+        server.transmit(message)
+        nil
       end
     end
 
+    # The create_socket_server method constructs and returns a Unix domain
+    # socket server instance for communication with the Ollama Chat client.
+    #
+    # This method initializes a UnixSocks::Server object configured to listen
+    # for incoming messages on a named socket file. It supports specifying a
+    # custom runtime directory for the socket, which is useful for isolating
+    # multiple instances or environments. If no runtime directory is provided
+    # in the configuration, it defaults to using the standard system location
+    # for Unix domain sockets.
+    #
+    # @param config [ComplexConfig::Settings] the configuration object
+    # containing server settings
+    #
+    # @return [UnixSocks::Server] a configured Unix domain socket server
+    # instance ready to receive messages
     def create_socket_server(config:)
       if runtime_dir = config.server_socket_runtime_dir
         UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
@@ -37,9 +61,6 @@ module OllamaChat::ServerSocket
   # messages in the background. When a message is received, it updates the
   # instance variable `server_socket_message` and sends an interrupt signal
   # to the current process in order to handle the message.
-  #
-  # @return [ nil ] This method does not return any value, it only sets up the
-  # server socket and kills the process when a message is received.
   def init_server_socket
     server = OllamaChat::ServerSocket.create_socket_server(config:)
     server.receive_in_background do |message|

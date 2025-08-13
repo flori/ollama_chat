@@ -495,8 +495,9 @@ class OllamaChat::Chat
         end
       rescue Interrupt
         if message = server_socket_message
-          type    = message.type.full?(:to_sym) || :socket_input
-          content = message.content
+          type           = message.type.full?(:to_sym) || :socket_input
+          content        = message.content
+          @parse_content = message.parse
           STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
         else
           raise

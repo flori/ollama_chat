@@ -191,6 +191,14 @@ The `ollama_chat_send` command now supports additional parameters to enhance fun
   $ echo "$response"
   ```
 
+- **Source Parsing (`-p`)**: Enables automatic parsing of URLs, file paths, and
+  similar tokens in input content. When enabled, the system will attempt to
+  resolve and include external resources.
+
+  ```bash
+  $ echo "Visit https://example.com for more info" | ollama_chat_send -p
+  ```
+
 - **Help (`-h` or `--help`)**: Displays usage information and available options.
 
   ```bash

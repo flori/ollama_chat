@@ -1,0 +1,133 @@
+require 'spec_helper'
+
+describe OllamaChat::ServerSocket do
+  let :instance do
+    Object.extend(described_class)
+  end
+
+  describe '#send_to_server_socket' do
+    let(:config) { double('Config') }
+    let(:server) { double('Server') }
+
+    before do
+      expect(OllamaChat::ServerSocket).to receive(:create_socket_server).with(config: config).and_return(server)
+    end
+
+    context 'with default parameters' do
+      it 'uses correct defaults' do
+        message = { content: 'test', type: :socket_input, parse: false }
+
+        expect(server).to receive(:transmit).with(message).and_return(nil)
+
+        result = OllamaChat::ServerSocket.send_to_server_socket('test', config: config)
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with :socket_input type and parse: true' do
+      it 'sends message with parse flag and returns nil' do
+        message = { content: 'test', type: :socket_input, parse: true }
+
+        expect(server).to receive(:transmit).with(message).and_return(nil)
+
+        result = OllamaChat::ServerSocket.send_to_server_socket(
+          'test',
+          config: config,
+          type: :socket_input,
+          parse: true
+        )
+
+        expect(result).to be_nil
+      end
+    end
+
+    context 'with :socket_input_with_response type and parse: false' do
+      it 'sends message and returns response with parse flag' do
+        message = { content: 'test', type: :socket_input_with_response, parse: false }
+        response = double('Response')
+
+        expect(server).to receive(:transmit_with_response).with(message).and_return(response)
+
+        result = OllamaChat::ServerSocket.send_to_server_socket(
+          'test',
+          config: config,
+          type: :socket_input_with_response,
+          parse: false
+        )
+
+        expect(result).to eq(response)
+      end
+    end
+
+    context 'with :socket_input_with_response type and parse: true' do
+      it 'sends message and returns response with parse flag' do
+        message = { content: 'test', type: :socket_input_with_response, parse: true }
+        response = double('Response')
+
+        expect(server).to receive(:transmit_with_response).with(message).and_return(response)
+
+        result = OllamaChat::ServerSocket.send_to_server_socket(
+          'test',
+          config: config,
+          type: :socket_input_with_response,
+          parse: true
+        )
+
+        expect(result).to eq(response)
+      end
+    end
+
+  end
+
+  describe '#create_socket_server' do
+    context 'with configured runtime_dir' do
+      it 'can be created with configured runtime_dir' do
+        config = double('Config', server_socket_runtime_dir: '/custom/runtime')
+        expect(UnixSocks::Server).to receive(:new).with(
+          socket_name: 'ollama_chat.sock',
+          runtime_dir: '/custom/runtime'
+        ).and_return :unix_socks_server
+
+        result = OllamaChat::ServerSocket.create_socket_server(config: config)
+        expect(result).to eq :unix_socks_server
+      end
+    end
+
+    context 'with default runtime_dir' do
+      it 'can be created with default runtime_dir' do
+        config = double('Config', server_socket_runtime_dir: nil)
+        expect(UnixSocks::Server).to receive(:new).with(
+          socket_name: 'ollama_chat.sock'
+        ).and_return :unix_socks_server
+
+        result = OllamaChat::ServerSocket.create_socket_server(config: config)
+        expect(result).to eq :unix_socks_server
+      end
+    end
+  end
+
+  describe '#server_socket_message' do
+    it 'can be set' do
+      message = double('message')
+      instance.server_socket_message = message
+      expect(instance.server_socket_message).to eq(message)
+    end
+
+    it 'can be read' do
+      message = double('message')
+      instance.server_socket_message = message
+      expect(instance.server_socket_message).to eq(message)
+    end
+  end
+
+  describe '#init_server_socket' do
+    it 'can be initialized' do
+      config = double('Config')
+      expect(instance).to receive(:config).and_return config
+      server = double('Server', receive_in_background: :receive_in_background)
+      expect(described_class).to receive(:create_socket_server).and_return server
+      expect(instance.init_server_socket).to eq :receive_in_background
+    end
+  end
+end

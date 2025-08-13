@@ -5,7 +5,7 @@ require 'tins/go'
 include Tins::GO
 
 
-opts = go 'f:rth', ARGV
+opts = go 'f:rtph', ARGV
 
 def usage(rc = 0)
   puts <<~EOT
@@ -14,6 +14,7 @@ def usage(rc = 0)
     Options:
       -r         Wait for the response from Ollama Chat and output it
       -t         Send input as terminal input including commands, e. g. /import
+      -p         Send input with source parsing enabled (defaults to disabled)
       -f CONFIG  file to read
       -h         Show this help message
 
@@ -30,7 +31,7 @@ begin
          else
            opts[?r] ? :socket_input_with_response : :socket_input
          end
-  response = OllamaChat::ServerSocket.send_to_server_socket(STDIN.read, type:, config:)
+  response = OllamaChat::ServerSocket.send_to_server_socket(STDIN.read, type:, config:, parse: !!opts[?p])
   type == :socket_input_with_response and puts response.content
 rescue => e
   warn "Caught #{e.class}: #{e}"
