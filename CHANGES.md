@@ -1,5 +1,17 @@
 # Changes
 
+## 2025-08-13 v0.0.22
+
+- Added new `-p` command line flag for enabling source parsing functionality
+- Enhanced `send_to_server_socket` method to accept and pass a `parse` parameter
+- Modified `chat.rb` to handle the `parse` content flag from server messages
+- Updated documentation in `README.md` with example usage of the new `-p` flag
+- Added comprehensive tests for the new parsing functionality in `server_socket_spec.rb`
+- Improved method documentation in `server_socket.rb` with detailed parameter descriptions
+- Replaced `messages.list_conversation(2)` with `messages.show_last` in `/drop` command behavior
+- Updated `gem_hadar` development dependency from version **1.27** to **2.0**
+- Simplified SimpleCov setup by using `GemHadar::SimpleCov.start` instead of manual configuration
+
 ## 2025-08-11 v0.0.21
 
 * **Vim Integration**: The `/vim` command allows users to insert the last chat
