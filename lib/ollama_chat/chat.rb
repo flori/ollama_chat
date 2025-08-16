@@ -33,6 +33,7 @@ class OllamaChat::Chat
   include OllamaChat::MessageFormat
   include OllamaChat::History
   include OllamaChat::ServerSocket
+  include OllamaChat::KramdownANSI
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -97,10 +98,11 @@ class OllamaChat::Chat
         system.present? and messages.set_system_prompt(system)
       end
     end
-    @documents     = setup_documents
-    @cache         = setup_cache
-    @current_voice = config.voice.default
-    @images        = []
+    @documents            = setup_documents
+    @cache                = setup_cache
+    @current_voice        = config.voice.default
+    @images               = []
+    @kramdown_ansi_styles = configure_kramdown_ansi_styles
     init_chat_history
     @opts[?S] and init_server_socket
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e

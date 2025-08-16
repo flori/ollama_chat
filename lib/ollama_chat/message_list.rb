@@ -193,7 +193,7 @@ class OllamaChat::MessageList
   #
   # @return [self, NilClass] nil if the system prompt is empty, otherwise self.
   def show_system_prompt
-    system_prompt = Kramdown::ANSI.parse(system.to_s).gsub(/\n+\z/, '').full?
+    system_prompt = @chat.kramdown_ansi_parse(system.to_s).gsub(/\n+\z/, '').full?
     system_prompt or return
     STDOUT.puts <<~EOT
       Configured system prompt is:
@@ -307,10 +307,10 @@ class OllamaChat::MessageList
                  end
     thinking = if @chat.think.on?
                  think_annotate do
-                   message.thinking.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+                   message.thinking.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
                  end
                end
-    content = message.content.full? { @chat.markdown.on? ? Kramdown::ANSI.parse(_1) : _1 }
+    content = message.content.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
     message_text = message_type(message.images) + " "
     message_text += bold { color(role_color) { message.role } }
     if thinking

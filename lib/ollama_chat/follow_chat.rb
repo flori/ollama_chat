@@ -102,9 +102,9 @@ class OllamaChat::FollowChat
   def display_formatted_terminal_output
     content, thinking = @messages.last.content, @messages.last.thinking
     if @chat.markdown.on?
-      content = talk_annotate { Kramdown::ANSI.parse(content) }
+      content = talk_annotate { @chat.kramdown_ansi_parse(content) }
       if @chat.think.on?
-        thinking = think_annotate { Kramdown::ANSI.parse(thinking) }
+        thinking = think_annotate { @chat.kramdown_ansi_parse(content) }
       end
     else
       content = talk_annotate { content }

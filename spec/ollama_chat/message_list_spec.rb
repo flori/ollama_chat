@@ -23,6 +23,12 @@ describe OllamaChat::MessageList do
     double('Chat', config:)
   end
 
+  before do
+    allow(chat).to receive(:kramdown_ansi_parse) do |content|
+      Kramdown::ANSI.parse(content)
+    end
+  end
+
   let :list do
     described_class.new(chat).tap do |list|
       list << Ollama::Message.new(role: 'system', content: 'hello')
@@ -133,8 +139,6 @@ describe OllamaChat::MessageList do
 
   it 'can show_system_prompt' do
     expect(list).to receive(:system).and_return 'test **prompt**'
-    expect(Kramdown::ANSI).to receive(:parse).with('test **prompt**').
-      and_call_original
     expect(list.show_system_prompt).to eq list
   end
 

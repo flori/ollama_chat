@@ -15,6 +15,34 @@ gem install ollama_chat
 
 in your terminal.
 
+## Configuration
+
+### Environment Variables
+
+The following environment variables can be used to configure behavior:
+
+- `OLLAMA_URL` - Base URL for Ollama server (default: `http://localhost:11434`)
+- `OLLAMA_HOST` - Base URL for Ollama server (default: `localhost:11434`)
+- `OLLAMA_MODEL` - Default model to use (e.g., `llama3.1`)
+- `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES` - Custom ANSI styles for Markdown formatting
+- `KRAMDOWN_ANSI_STYLES` - Fallback ANSI styles configuration
+- `OLLAMA_CHAT_SYSTEM` - System prompt file or content (default: `null`)
+- `OLLAMA_CHAT_COLLECTION` - Collection name for embeddings
+- `PAGER` - Default pager for output
+- `REDIS_URL` - Redis connection URL for caching
+- `REDIS_EXPIRING_URL` - Redis connection URL for expiring data
+- `OLLAMA_CHAT_HISTORY` - Chat history filename (default: `~/.ollama_chat_history`)
+- `OLLAMA_CHAT_DEBUG` - Debug mode toggle (1 = enabled)
+- `DIFF_TOOL` - Tool for diff operations (default: `vimdiff`)
+- `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL
+
+Example usage for `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES`:
+
+```bash
+# Set custom ANSI colors for Markdown output as a JSON object:
+export KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES='{"header":["bold","on_color241","white"],"strong":["bold","color76"],"em":["italic","color227"],"code":["bold","color214"]}'
+```
+
 ## Usage
 
 It can be started with the following arguments:
