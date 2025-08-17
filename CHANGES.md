@@ -1,5 +1,22 @@
 # Changes
 
+## 2025-08-17 v0.0.23
+
+- Added `OllamaChat::KramdownANSI` module with `configure_kramdown_ansi_styles` and `kramdown_ansi_parse` methods for consistent Markdown formatting
+- Replaced direct calls to `Kramdown::ANSI.parse` with `@chat.kramdown_ansi_parse` in `FollowChat` and `MessageList`
+- Integrated `OllamaChat::KramdownANSI` module into `OllamaChat::Chat` class
+- Configured `@kramdown_ansi_styles` during chat initialization
+- Added support for environment variables `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES` and `KRAMDOWN_ANSI_STYLES` for styling configuration
+- Updated tests to mock `kramdown_ansi_parse` instead of direct `Kramdown::ANSI.parse`
+- Documented environment variables for customizing Markdown formatting with example JSON format
+- Added `lib/ollama_chat/kramdown_ansi.rb` to `extra_rdoc_files` and `files` list in gemspec
+- Escaped dot in regex pattern in `parsing_spec.rb` for proper image file matching
+- Implemented `File.expand_path` to resolve `~` shortcuts before existence check in parsing module
+- Added error handling for malformed paths by rescuing `ArgumentError` exceptions
+- Skipped invalid file paths during processing loop using `next` statement
+- Maintained backward compatibility for standard file paths
+- Added comprehensive list of supported environment variables in documentation
+
 ## 2025-08-13 v0.0.22
 
 - Added new `-p` command line flag for enabling source parsing functionality
