@@ -13,12 +13,13 @@ module OllamaChat::ServerSocket
     # @param content [ String ] the message content to be sent
     # @param config [ ComplexConfig::Settings ] the configuration object containing server settings
     # @param type [ Symbol ] the type of message transmission, defaults to :socket_input
+    # @param runtime_dir [ String ] pathname to runtime_dir of socket file
     # @param parse [ TrueClass, FalseClass ] whether to parse the response, defaults to false
     #
     # @return [ UnixSocks::Message, nil ] the response from transmit_with_response if type
     # is :socket_input_with_response, otherwise nil
-    def send_to_server_socket(content, config:, type: :socket_input, parse: false)
-      server  = create_socket_server(config:)
+    def send_to_server_socket(content, config:, type: :socket_input, runtime_dir: nil, parse: false)
+      server  = create_socket_server(config:, runtime_dir:)
       message = { content:, type:, parse: }
       if type.to_sym == :socket_input_with_response
         server.transmit_with_response(message)
@@ -43,7 +44,10 @@ module OllamaChat::ServerSocket
     #
     # @return [UnixSocks::Server] a configured Unix domain socket server
     # instance ready to receive messages
-    def create_socket_server(config:)
+    def create_socket_server(config:, runtime_dir: nil)
+      if runtime_dir
+        return UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
+      end
       if runtime_dir = config.server_socket_runtime_dir
         UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
       else
