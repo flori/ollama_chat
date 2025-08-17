@@ -1,5 +1,11 @@
 # Changes
 
+## 2025-08-17 v0.0.24
+
+- Updated `kramdown-ansi` dependency version constraint from **0.0** to **0.1**
+- Modified both Rakefile and ollama_chat.gemspec files to reflect new version
+  constraint for `kramdown-ansi`
+
 ## 2025-08-17 v0.0.23
 
 - Added `OllamaChat::KramdownANSI` module with `configure_kramdown_ansi_styles` and `kramdown_ansi_parse` methods for consistent Markdown formatting
