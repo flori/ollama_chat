@@ -39,7 +39,7 @@ GemHadar do
   dependency             'mime-types',            '~> 3.0'
   dependency             'reverse_markdown',      '~> 3.0'
   dependency             'xdg'
-  dependency             'kramdown-ansi',         '~> 0.0', '>= 0.0.1'
+  dependency             'kramdown-ansi',         '~> 0.1'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
   dependency             'tins',                  '~> 1.34'
   dependency             'search_ui',             '~> 0.0'
