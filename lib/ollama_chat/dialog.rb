@@ -1,3 +1,20 @@
+# A module that provides interactive selection and configuration functionality
+# for OllamaChat.
+#
+# The Dialog module encapsulates various helper methods for choosing models,
+# system prompts, document policies, and voices, as well as displaying
+# information and managing chat sessions. It leverages user interaction
+# components like choosers and prompts to enable dynamic configuration during
+# runtime.
+#
+# @example Selecting a model from available options
+#   chat.choose_model('-m llama3.1', 'llama3.1')
+#
+# @example Changing the system prompt
+#   chat.change_system_prompt('default_prompt', system: '?sherlock')
+#
+# @example Choosing a document policy
+#   chat.choose_document_policy
 module OllamaChat::Dialog
   # The model_with_size method formats a model's size for display
   # by creating a formatted string that includes the model name and its size

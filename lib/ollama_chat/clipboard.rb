@@ -1,3 +1,15 @@
+# A module that provides clipboard functionality for copying and pasting chat
+# messages.
+#
+# This module enables users to copy the last assistant message to the system
+# clipboard and paste content from input, facilitating easy transfer of
+# conversation content between different applications and contexts.
+#
+# @example Copying a message to clipboard
+#   chat.copy_to_clipboard
+#
+# @example Pasting content from input
+#   content = chat.paste_from_input
 module OllamaChat::Clipboard
   # Copy the last assistant's message to the system clipboard.
   #

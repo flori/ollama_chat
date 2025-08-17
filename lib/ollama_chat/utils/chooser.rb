@@ -2,6 +2,22 @@ require 'amatch'
 require 'search_ui'
 require 'term/ansicolor'
 
+# A module that provides interactive selection functionality using fuzzy
+# matching and search capabilities.
+#
+# The Chooser module enables users to interactively select items from a list
+# using a search interface with fuzzy matching. It leverages the Amatch library
+# for similarity matching and SearchUI for the interactive display and
+# selection experience.
+#
+# @example Using the chooser in an interactive menu
+#   entries = ['apple', 'banana', 'cherry']
+#   selected = OllamaChat::Utils::Chooser.choose(entries, prompt: 'Choose a fruit:')
+#
+# @example Returning immediately if only one entry exists
+#   entries = ['single_option']
+#   result = OllamaChat::Utils::Chooser.choose(entries, return_immediately: true)
+#   # Returns 'single_option' directly without user interaction
 module OllamaChat::Utils::Chooser
   class << self
     include SearchUI
