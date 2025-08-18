@@ -21,11 +21,13 @@ module OllamaChat::KramdownANSI
   # content with appropriate terminal formatting based on the application's
   # styling configuration.
   #
-  # @param content [ String ] the raw content to be parsed and formatted
+  # @param content [ String, nil ] the raw content to be parsed and formatted.
+  #   If nil, returns an empty string.
   #
   # @return [ String ] the content formatted with ANSI escape sequences
   # according to the configured styles
   def kramdown_ansi_parse(content)
+    content.nil? and return ''
     Kramdown::ANSI.parse(content, ansi_styles: @kramdown_ansi_styles)
   end
 end
