@@ -41,7 +41,7 @@ GemHadar do
   dependency             'xdg'
   dependency             'kramdown-ansi',         '~> 0.1'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
-  dependency             'tins',                  '~> 1.34'
+  dependency             'tins',                  '~> 1.41'
   dependency             'search_ui',             '~> 0.0'
   dependency             'amatch',                '~> 0.4.1'
   dependency             'pdf-reader',            '~> 2.0'

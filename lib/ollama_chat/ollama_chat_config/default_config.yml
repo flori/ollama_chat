@@ -21,8 +21,10 @@ prompts:
     %{words} words:
 
     %{source_content}
-  web: |
-    Answer the the query %{query} using these sources and summaries:
+  web_embed: |
+    Answer the the query %{query} using the provided chunks.
+  web_import: |
+    Answer the the query %{query} using these imported source:
 
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, on %{localtime}, preferring %{units}

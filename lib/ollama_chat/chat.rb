@@ -348,23 +348,34 @@ class OllamaChat::Chat
     end
   end
 
-  # The web method searches for URLs based on a query and processes them by
-  # fetching, embedding, and summarizing their content, then formats the
-  # results into a prompt string.
+  # The web method performs a web search and processes the results based on
+  # embedding configuration.
   #
-  # @param count [ String ] the number of URLs to search for
+  # It searches for the given query using the configured search engine and
+  # processes up to the specified number of URLs. If embeddings are enabled, it
+  # embeds each result and interpolates the query into the web_embed prompt.
+  # Otherwise, it imports each result and interpolates both the query and
+  # results into the web_import prompt.
+  #
+  # @param count [ String ] the maximum number of search results to process
   # @param query [ String ] the search query string
   #
-  # @return [ String ] the formatted prompt string containing the query and summarized results
+  # @return [ String, Symbol ] the interpolated prompt content or :next if no URLs were found
   def web(count, query)
-    urls            = search_web(query, count.to_i) or return :next
-    urls.each do |url|
-      fetch_source(url) { |url_io| embed_source(url_io, url) }
+    urls = search_web(query, count.to_i) or return :next
+    if @embedding.on?
+      prompt = config.prompts.web_embed
+      urls.each do |url|
+        fetch_source(url) { |url_io| embed_source(url_io, url) }
+      end
+      prompt.named_placeholders_interpolate({query:})
+    else
+      prompt = config.prompts.web_import
+      results = urls.each_with_object('') do |url, content|
+        import(url).full? { |c| content << c }
+      end
+      prompt.named_placeholders_interpolate({query:, results:})
     end
-    urls_summarized = urls.map { summarize(_1) }
-    results = urls.zip(urls_summarized).
-      map { |u, s| "%s as \n:%s" % [ u, s ] } * "\n\n"
-    config.prompts.web % { query:, results: }
   end
 
   # The manage_links method handles operations on a collection of links, such

@@ -110,7 +110,6 @@ module OllamaChat::SourceFetching
     end
   end
 
-
   # Summarizes content from the given source IO and source identifier.
   #
   # This method takes an IO object containing document content and generates a
@@ -145,7 +144,6 @@ module OllamaChat::SourceFetching
       content
     end
   end
-
 
   # Embeds content from the given source IO and source identifier.
   #
