@@ -1,5 +1,29 @@
 # Changes
 
+## 2025-08-18 v0.0.25
+
+- Integrated `context_spook` gem as development dependency
+- Added new context files: `.contexts/full.rb`, `.contexts/info.rb`, and
+  `.contexts/lib.rb`
+- Updated `ollama-ruby` dependency version constraint from `~> 1.2` to `~> 1.6`
+- Bumped **tins** dependency from ~> **1.34** to ~> **1.41**
+- Refactored `web` method in `chat.rb` to conditionally handle embeddings
+- Split web prompt templates into `web_embed` and `web_import`
+- Moved cache check message to display before cache retrieval
+- Fixed `show_last` behavior for empty lists with comprehensive tests
+- Added nil check to `kramdown_ansi_parse` method to prevent `NoMethodError`
+- Added documentation comments to `OllamaChat::Clipboard`,
+  `OllamaChat::Dialog`, `OllamaChat::Utils::Chooser`, and
+  `OllamaChat::Utils::FileArgument` modules
+- Added new command line option `-d DIR` to specify runtime directory for
+  socket file
+- Updated `OllamaChat::ServerSocket.send_to_server_socket` method to accept
+  `runtime_dir` parameter
+- Modified `create_socket_server` method to use provided `runtime_dir` when
+  creating Unix socket server
+- Updated help text to document the new `-d` option
+- Added separate context for `runtime_dir` parameter testing in spec
+
 ## 2025-08-17 v0.0.24
 
 - Updated `kramdown-ansi` dependency version constraint from **0.0** to **0.1**
