@@ -113,7 +113,7 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] returns the instance of the class
   def show_last
     message = last
-    message&.role == 'user' and return
+    !message || message.role == 'user' and return
     use_pager do |output|
       output.puts message_text_for(message)
     end

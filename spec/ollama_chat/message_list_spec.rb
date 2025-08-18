@@ -71,6 +71,32 @@ describe OllamaChat::MessageList do
     FileUtils.rm_f 'tmp/test-conversation.json'
   end
 
+
+  describe '.show_last' do
+    it 'shows nothing when there are no messages' do
+      empty_list = described_class.new(chat)
+      expect { empty_list.show_last }.not_to raise_error
+      expect(empty_list.show_last).to be nil
+    end
+
+    it 'shows nothing when the last message is by the assistant' do
+      list = described_class.new(chat)
+      allow(chat).to receive(:think).and_return(double(on?: false))
+      allow(chat).to receive(:markdown).and_return(double(on?: false))
+      list <<  Ollama::Message.new(role: 'assistant', content: 'hello')
+      expect(STDOUT).to receive(:puts).
+        with("📨 \e[1m\e[38;5;111massistant\e[0m\e[0m:\nhello\n")
+      expect(list.show_last).to be_a described_class
+    end
+
+    it 'shows nothing when the last message is by the user' do
+      list = described_class.new(chat)
+      list <<  Ollama::Message.new(role: 'user', content: 'world')
+      expect { list.show_last }.not_to raise_error
+      expect(list.show_last).to be nil
+    end
+  end
+
   context 'without pager' do
     before do
       expect(list).to receive(:determine_pager_command).and_return nil
