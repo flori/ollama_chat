@@ -52,6 +52,7 @@ GemHadar do
   development_dependency 'webmock'
   development_dependency 'debug'
   development_dependency 'simplecov'
+  development_dependency 'context_spook'
 
   licenses << 'MIT'
   
