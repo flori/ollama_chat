@@ -51,8 +51,9 @@ class OllamaChat::Utils::Fetcher
   def self.get(url, headers: {}, **options, &block)
     cache = options.delete(:cache) and
       cache = OllamaChat::Utils::CacheFetcher.new(cache)
-    cache and infobar.puts "Getting #{url.to_s.inspect} from cache."
+    cache and infobar.puts "Getting #{url.to_s.inspect} via cache…"
     if result = cache&.get(url, &block)
+      infobar.puts "…hit, found#{result.content_type} content in cache."
       return result
     else
       new(**options).send(:get, url, headers:) do |tmp|
