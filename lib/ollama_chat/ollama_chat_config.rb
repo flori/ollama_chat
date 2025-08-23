@@ -1,5 +1,22 @@
 require 'pathname'
 
+# A configuration class for managing OllamaChat settings and file paths.
+#
+# This class handles the initialization and management of configuration files
+# for the OllamaChat application. It provides methods for setting up default
+# configurations, determining appropriate file paths for config and cache
+# directories, and managing the loading and creation of configuration files
+# based on XDG standards.
+#
+# @example Initializing with a custom configuration file
+#   config = OllamaChat::OllamaChatConfig.new('/path/to/custom/config.yml')
+#
+# @example Accessing default configuration paths
+#   config = OllamaChat::OllamaChatConfig.new
+#   config.default_config_path # => Path to the default configuration file
+#   config.config_dir_path     # => Path to the configuration directory
+#   config.cache_dir_path      # => Path to the cache directory
+#   config.database_path       # => Path to the documents database file
 class OllamaChat::OllamaChatConfig
   include ComplexConfig
   include FileUtils
