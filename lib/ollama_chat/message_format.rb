@@ -1,3 +1,19 @@
+# A module that provides formatting functionality for chat messages.
+#
+# The MessageFormat module encapsulates methods for determining message icons
+# based on whether images are present, and for conditionally annotating content
+# with thinking or talk indicators. It supports customizable formatting of
+# message text for display in terminal interfaces.
+#
+# @example Using message_type to determine icon based on images
+#   message_type([])        # => "📨"
+#   message_type(["image"]) # => "📸"
+#
+# @example Annotating content with thinking indicator
+#   think_annotate { "Thinking..." } # => "💭\nThinking...\n" (when think is enabled)
+#
+# @example Annotating content with talk indicator
+#   talk_annotate { "Speaking..." } # => "💬\nSpeaking...\n" (when think is enabled)
 module OllamaChat::MessageFormat
   # The message_type method determines the appropriate message icon based on
   # whether images are present.
