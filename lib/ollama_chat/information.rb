@@ -1,3 +1,4 @@
+
 module OllamaChat::Information
   extend Tins::Concern
 
@@ -6,6 +7,20 @@ module OllamaChat::Information
     extend UserAgent
   end
 
+  # A module that provides user agent functionality for identifying the
+  # application.
+  #
+  # This module encapsulates methods for determining the application name and
+  # constructing a standardized user agent string that includes the application
+  # name and version. It is designed to be included in classes that need to
+  # provide identification information for HTTP requests or other
+  # communications.
+  #
+  # @example Accessing the program name
+  #   UserAgent.progname # => "ollama_chat"
+  #
+  # @example Generating a user agent string
+  #   UserAgent.user_agent # => "ollama_chat/0.0.25"
   module UserAgent
     # The progname method returns the name of the application.
     #
