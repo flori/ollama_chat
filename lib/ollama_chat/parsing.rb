@@ -1,3 +1,16 @@
+# A module that provides content parsing functionality for OllamaChat.
+#
+# The Parsing module encapsulates methods for processing various types of input
+# sources including HTML, XML, CSV, RSS, Atom, PDF, and Postscript documents.
+# It handles content extraction and conversion into standardized text formats
+# suitable for chat interactions. The module supports different document
+# policies for handling imported or embedded content and provides utilities for
+# parsing structured data from multiple source types.
+#
+# @example Processing different document types
+#   chat.parse_source(html_io)    # Converts HTML to markdown
+#   chat.parse_source(pdf_io)     # Extracts text from PDF files
+#   chat.parse_source(csv_io)     # Formats CSV data into readable strings
 module OllamaChat::Parsing
   # The parse_source method processes different types of input sources and
   # converts them into a standardized text representation.
