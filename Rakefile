@@ -21,7 +21,7 @@ GemHadar do
 
   test_dir    'spec'
   ignore      '.*.sw[pon]', 'pkg', 'Gemfile.lock', '.AppleDouble', '.bundle',
-    '.yardoc', 'tags', 'corpus', 'coverage', '/config/searxng/*'
+    '.yardoc', 'doc', 'tags', 'corpus', 'coverage', '/config/searxng/*'
 
   readme      'README.md'
 

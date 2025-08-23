@@ -1,3 +1,33 @@
+# A collection class for managing chat messages with support for system
+# prompts, paged output, and conversation history.
+
+# This class provides functionality for storing, retrieving, and displaying
+# chat messages in a structured manner. It handles system prompts separately
+# from regular user and assistant messages, supports pagination for displaying
+# conversations, and offers methods for manipulating message history including
+# clearing, loading, saving, and dropping exchanges. The class integrates with
+# Kramdown::ANSI for formatted output and supports location information in
+# system messages.
+
+# @example Creating a new message list
+#   chat = OllamaChat::Chat.new
+#   messages = OllamaChat::MessageList.new(chat)
+#
+# @example Adding messages to the list
+#   messages << Ollama::Message.new(role: 'user', content: 'Hello')
+#   messages << Ollama::Message.new(role: 'assistant', content: 'Hi there!')
+#
+# @example Displaying conversation history
+#   messages.list_conversation(5)  # Shows last 5 exchanges
+#
+# @example Clearing messages
+#   messages.clear  # Removes all non-system messages
+#
+# @example Loading a saved conversation
+#   messages.load_conversation('conversation.json')
+#
+# @example Saving current conversation
+#   messages.save_conversation('my_conversation.json')
 class OllamaChat::MessageList
   include Term::ANSIColor
   include OllamaChat::MessageFormat
@@ -11,8 +41,20 @@ class OllamaChat::MessageList
     @messages = []
   end
 
+  # The system attribute reader returns the system prompt for the chat session.
+  #
+  # @attr_reader [ String, nil ] the current system prompt content or nil if not set
   attr_reader :system
 
+  # The messages attribute reader returns the messages set for this object,
+  # initializing it lazily if needed.
+  #
+  # The messages set is memoized, meaning it will only be created once per
+  # object instance and subsequent calls will return the same
+  # OllamaChat::MessageList instance.
+  #
+  # @attr_reader [OllamaChat::MessageList] A MessageList object containing all
+  # messages associated with this instance
   attr_reader :messages
 
   # Returns the number of messages stored in the message list.

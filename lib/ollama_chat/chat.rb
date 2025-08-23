@@ -661,7 +661,6 @@ class OllamaChat::Chat
   #
   # @see fetch_source
   # @see embed_source
-  # @see documents.clear
   def add_documents_from_argv(document_list)
     if document_list.any?(&:empty?)
       STDOUT.puts "Clearing collection #{bold{documents.collection}}."
