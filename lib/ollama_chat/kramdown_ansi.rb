@@ -1,3 +1,15 @@
+# A module that provides Kramdown::ANSI styling configuration and parsing
+# functionality for OllamaChat.
+#
+# This module handles the setup and application of ANSI styles for markdown
+# rendering, allowing for customizable terminal output formatting. It manages
+# the configuration of ANSI styles either from environment variables or falls
+# back to default settings, and provides methods to parse content with the
+# configured styling.
+#
+# @example Configuring custom ANSI styles via environment variable
+#   Set KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES to a JSON object containing style
+#   definitions for customizing markdown output formatting in the terminal.
 module OllamaChat::KramdownANSI
   # The configure_kramdown_ansi_styles method sets up ANSI styling for
   # Kramdown::ANSI output by checking for specific environment variables and
