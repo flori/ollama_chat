@@ -1,4 +1,20 @@
-
+# A module that provides information and user agent functionality for
+# OllamaChat
+#
+# The Information module encapsulates methods for managing application
+# identification, displaying version and configuration details, and handling
+# command-line interface help messages. It includes user agent capabilities for
+# HTTP requests and provides comprehensive information display features for
+# chat sessions.
+#
+# @example Displaying application information
+#   chat.info
+#
+# @example Showing version details
+#   chat.version
+#
+# @example Displaying usage help
+#   chat.usage
 module OllamaChat::Information
   extend Tins::Concern
 
