@@ -1,6 +1,12 @@
 require 'tempfile'
 require 'pathname'
 
+# A class that provides functionality for inserting text into Vim buffers via
+# remote communication.
+#
+# @example
+#   vim = OllamaChat::Vim.new("MY_SERVER")
+#   vim.insert("Hello, Vim!")
 class OllamaChat::Vim
   # Initializes a new Vim server connection
   #
