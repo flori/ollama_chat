@@ -1,3 +1,20 @@
+# A module that provides functionality for managing Ollama models, including
+# checking model availability, pulling models from remote servers, and handling
+# model presence verification.
+#
+# This module encapsulates the logic for interacting with Ollama models,
+# ensuring that required models are available locally before attempting to use
+# them in chat sessions. It handles both local model verification and remote
+# model retrieval when necessary.
+#
+# @example Checking if a model is present
+#   chat.model_present?('llama3.1')
+#
+# @example Pulling a model from a remote server
+#   chat.pull_model_from_remote('mistral')
+#
+# @example Ensuring a model is available locally
+#   chat.pull_model_unless_present('phi3', {})
 module OllamaChat::ModelHandling
   # The model_present? method checks if the specified Ollama model is available.
   #
