@@ -1,3 +1,25 @@
+# A module that provides server socket functionality for OllamaChat
+#
+# The ServerSocket module encapsulates the logic for creating and managing Unix
+# domain socket servers that enable external processes to send input to running
+# ollama_chat sessions. It supports both simple message transmission and
+# bidirectional communication with response handling, allowing for integration
+# with tools like ollama_chat_send.
+#
+# @example Sending a message to a running chat session
+#   OllamaChat::ServerSocket.send_to_server_socket(
+#     "Hello from external process",
+#     config: chat_config,
+#     type: :socket_input
+#   )
+#
+# @example Sending a message and waiting for a response
+#   response = OllamaChat::ServerSocket.send_to_server_socket(
+#     "What is the answer?",
+#     config: chat_config,
+#     type: :socket_input_with_response,
+#     parse: true
+#   )
 module OllamaChat::ServerSocket
   class << self
     # The send_to_server_socket method transmits a message to a Unix domain
@@ -56,6 +78,11 @@ module OllamaChat::ServerSocket
     end
   end
 
+  # The server_socket_message accessor method provides read and write access to
+  # the server socket message instance variable.
+  #
+  # @return [ Object, nil ] the current server socket message object or nil if
+  # not set
   attr_accessor :server_socket_message
 
   # Initializes the server socket to receive messages from the Ollama Chat

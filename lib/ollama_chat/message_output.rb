@@ -1,3 +1,15 @@
+# A module that provides output functionality for chat messages.
+#
+# This module encapsulates methods for piping assistant responses to command
+# standard input and writing assistant responses to files. It handles the
+# mechanics of sending output to external processes or saving content to disk
+# while providing appropriate error handling and user feedback.
+#
+# @example Piping a response to a command
+#   chat.pipe('cat > output.txt')
+#
+# @example Writing a response to a file
+#   chat.output('response.txt')
 module OllamaChat::MessageOutput
   # The pipe method forwards the last assistant message to a command's standard
   # input.

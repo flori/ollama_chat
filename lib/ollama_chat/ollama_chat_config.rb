@@ -21,9 +21,11 @@ class OllamaChat::OllamaChatConfig
   include ComplexConfig
   include FileUtils
 
+  # Path to the default config
   DEFAULT_CONFIG_PATH = Pathname.new(__FILE__).dirname.
     join('ollama_chat_config/default_config.yml')
 
+  # Content of the default config
   DEFAULT_CONFIG = File.read(DEFAULT_CONFIG_PATH)
 
   # The initialize method sets up the configuration file path and ensures the

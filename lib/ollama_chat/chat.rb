@@ -17,6 +17,20 @@ require 'xdg'
 require 'socket'
 require 'shellwords'
 
+# A chat client for interacting with Ollama models through a terminal
+# interface.
+#
+# The Chat class provides a complete command-line interface for chatting with
+# language models via the Ollama API. It handles configuration management,
+# message history, document processing, web searching, and various interactive
+# features including voice output, markdown rendering, and embedding
+# capabilities.
+#
+# @example Initializing a chat session
+#   chat = OllamaChat::Chat.new(argv: ['-m', 'llama3.1'])
+#
+# @example Starting an interactive chat
+#   chat.start
 class OllamaChat::Chat
   include Tins::GO
   include Term::ANSIColor
@@ -113,7 +127,6 @@ class OllamaChat::Chat
   #
   # @return [Ollama::Client] the configured Ollama API client
   attr_reader :ollama
-
 
   # Returns the documents set for this object, initializing it lazily if needed.
   #

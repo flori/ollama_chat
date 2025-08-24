@@ -319,7 +319,8 @@ class OllamaChat::MessageList
   # If the output would exceed the terminal's line capacity, it pipes the content
   # through an appropriate pager command (like 'less' or 'more').
   #
-  # @param block [Proc] A block that yields an IO object to write output to
+  # @yield A block that yields an IO object to write output to
+  # @yieldparam [IO] the IO object to write to
   def use_pager
     command       = determine_pager_command
     output_buffer = StringIO.new

@@ -1,3 +1,28 @@
+# A module that provides functionality for fetching and processing various
+# types of content sources.
+#
+# The SourceFetching module encapsulates methods for retrieving content from
+# different source types including URLs, file paths, and shell commands. It
+# handles the logic for determining the appropriate fetching method based on
+# the source identifier and processes the retrieved content through specialized
+# parsers depending on the content type. The module also manages image
+# handling, document importing, summarizing, and embedding operations while
+# providing error handling and debugging capabilities.
+#
+# @example Fetching content from a URL
+#   chat.fetch_source('https://example.com/document.html') do |source_io|
+#     # Process the fetched content
+#   end
+#
+# @example Importing a local file
+#   chat.fetch_source('/path/to/local/file.txt') do |source_io|
+#     # Process the imported file content
+#   end
+#
+# @example Executing a shell command
+#   chat.fetch_source('!ls -la') do |source_io|
+#     # Process the command output
+#   end
 module OllamaChat::SourceFetching
   # The http_options method prepares HTTP options for requests based on
   # configuration settings.

@@ -1,5 +1,20 @@
 require 'digest/md5'
 
+# A cache fetcher implementation that handles caching of HTTP responses with
+# content type metadata.
+#
+# This class provides a mechanism to store and retrieve cached HTTP responses,
+# including their content types, using a key-based system. It is designed to
+# work with various cache backends and ensures that both the response body and
+# metadata are properly cached and retrieved for efficient subsequent requests.
+#
+# @example Using the CacheFetcher to cache and retrieve HTTP responses
+#   cache = Redis.new
+#   fetcher = OllamaChat::Utils::CacheFetcher.new(cache)
+#   fetcher.put('https://example.com', io)
+#   fetcher.get('https://example.com') do |cached_io|
+#     # Process cached content
+#   end
 class OllamaChat::Utils::CacheFetcher
   # The initialize method sets up the cache instance variable for the object.
   #

@@ -1,3 +1,15 @@
+# A class that handles chat responses and manages the flow of conversation
+# between the user and Ollama models.
+#
+# This class is responsible for processing Ollama API responses, updating
+# message history, displaying formatted output to the terminal, and managing
+# voice synthesis for spoken responses. It acts as a handler for streaming
+# responses and ensures proper formatting and display of both regular content
+# and thinking annotations.
+#
+# @example Processing a chat response
+#   follow_chat = OllamaChat::FollowChat.new(chat: chat_instance, messages: message_list)
+#   follow_chat.call(response)
 class OllamaChat::FollowChat
   include Ollama
   include Ollama::Handlers::Concern
@@ -6,10 +18,13 @@ class OllamaChat::FollowChat
 
   # Initializes a new instance of OllamaChat::FollowChat.
   #
-  # @param [OllamaChat::Chat] chat The chat object, which represents the conversation context.
-  # @param [#to_a] messages A collection of message objects, representing the conversation history.
+  # @param [OllamaChat::Chat] chat The chat object, which represents the
+  # conversation context.
+  # @param [#to_a] messages A collection of message objects, representing the
+  # conversation history.
   # @param [String] voice (optional) to speek with if any.
-  # @param [IO] output (optional) The output stream where terminal output should be printed. Defaults to STDOUT.
+  # @param [IO] output (optional) The output stream where terminal output
+  # should be printed. Defaults to STDOUT.
   #
   # @return [OllamaChat::FollowChat] A new instance of OllamaChat::FollowChat.
   def initialize(chat:, messages:, voice: nil, output: STDOUT)
@@ -23,7 +38,8 @@ class OllamaChat::FollowChat
 
   # Returns the conversation history (an array of message objects).
   #
-  # @return [OllamaChat::MessageList<Ollama::Message>] The array of messages in the conversation.
+  # @return [OllamaChat::MessageList<Ollama::Message>] The array of messages in
+  # the conversation.
   attr_reader :messages
 
   # Invokes the chat flow based on the provided Ollama server response.
@@ -32,15 +48,18 @@ class OllamaChat::FollowChat
   # about the user input and the assistant's response.
   #
   # If the response indicates an assistant message, this method:
-  #   1. Ensures that an assistant response exists in the message history (if not already present).
-  #   2. Updates the last message with the new content and thinking (if applicable).
+  #   1. Ensures that an assistant response exists in the message history (if
+  #      not already present).
+  #   2. Updates the last message with the new content and thinking (if
+  #      applicable).
   #   3. Displays the formatted terminal output for the user.
   #   4. Outputs the voice response (if configured).
   #
   # Regardless of whether an assistant message is present, this method also
   # outputs evaluation statistics (if applicable).
   #
-  # @param [Ollama::Response] response The parsed JSON response from the Ollama server.
+  # @param [Ollama::Response] response The parsed JSON response from the Ollama
+  # server.
   #
   # @return [OllamaChat::FollowChat] The current instance for method chaining.
   def call(response)

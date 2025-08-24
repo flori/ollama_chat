@@ -1,3 +1,12 @@
+# The main module namespace for the OllamaChat application.
+#
+# This module serves as the root namespace for all components of the OllamaChat
+# Ruby gem, providing access to core classes, utilities, and configuration
+# management for interacting with Ollama language models through a terminal
+# interface.
+#
+# @example Accessing the main module
+#   OllamaChat::VERSION # => "0.0.25"
 module OllamaChat
 end
 

@@ -5,7 +5,34 @@ require 'mime-types'
 require 'stringio'
 require 'ollama_chat/utils/cache_fetcher'
 
+# A fetcher implementation that handles retrieval and caching of HTTP
+# resources.
+#
+# This class provides functionality to fetch content from URLs, with support
+# for caching responses and their metadata. It handles various content types
+# and integrates with different cache backends to improve performance by
+# avoiding redundant network requests.
+#
+# @example Fetching content from a URL with caching
+#   fetcher = OllamaChat::Utils::Fetcher.new(cache: redis_cache)
+#   fetcher.get('https://example.com/data.json') do |tmp|
+#     # Process the fetched content
+#   end
 class OllamaChat::Utils::Fetcher
+  # A module that extends IO objects with content type metadata and expiration
+  # tracking.
+  #
+  # This module provides a way to attach MIME content type information and
+  # cache expiration details to IO objects, enabling them to carry metadata
+  # about their source and caching behavior. It is primarily used by fetcher
+  # implementations to decorate response objects with additional context for
+  # processing and caching decisions.
+  #
+  # @example Extending an IO object with header metadata
+  #   io = StringIO.new("content")
+  #   io.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
+  #   io.content_type = MIME::Types['text/plain'].first
+  #   io.ex = 3600
   module HeaderExtension
     # The content_type method accesses the content type attribute of the object.
     #
@@ -30,6 +57,18 @@ class OllamaChat::Utils::Fetcher
     end
   end
 
+  # A custom error class raised when retrying HTTP requests without streaming.
+  #
+  # This exception is specifically used in the Fetcher class to indicate that
+  # an HTTP request should be retried using a non-streaming approach when a
+  # streaming attempt fails or is not supported.
+  #
+  # @example Handling the RetryWithoutStreaming error
+  #   begin
+  #     fetcher.get('https://example.com')
+  #   rescue RetryWithoutStreaming
+  #     # Handle retry with non-streaming method
+  #   end
   class RetryWithoutStreaming < StandardError; end
 
   # The get method retrieves content from a URL, using caching when available.

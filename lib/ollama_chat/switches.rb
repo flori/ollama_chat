@@ -1,4 +1,28 @@
+# A module that provides switch functionality for configuring application
+# behavior.
+#
+# The Switches module encapsulates various toggle switches used throughout the
+# OllamaChat application to control different features and settings such as
+# streaming, thinking, markdown output, voice output, embedding, and location
+# information. These switches allow users to dynamically enable or disable
+# specific functionalities during a chat session.
+#
+# @example Toggling a switch on/off
+#   switch = OllamaChat::Switches::Switch.new(value: false, msg: { true => 'Enabled', false => 'Disabled' })
+#   switch.toggle  # Turns the switch on
+#   switch.toggle  # Turns the switch off
 module OllamaChat::Switches
+  # A module that provides switch state checking functionality.
+  #
+  # The CheckSwitch module adds methods for checking the boolean state of
+  # switches and displaying their current status. It's designed to be included
+  # in switch classes to provide consistent behavior for querying switch states
+  # and outputting status messages.
+  #
+  # @example Checking switch states
+  #   switch = OllamaChat::Switches::Switch.new(value: true, msg: { true => 'On', false => 'Off' })
+  #   switch.on?   # Returns true
+  #   switch.off?  # Returns false
   module CheckSwitch
     extend Tins::Concern
 
@@ -23,6 +47,19 @@ module OllamaChat::Switches
     end
   end
 
+  # A switch class that manages boolean state with toggle and set
+  # functionality.
+  #
+  # The Switch class provides a simple way to manage boolean configuration
+  # options with methods to toggle, set, and query the current state. It
+  # includes messaging capabilities to provide feedback when the state changes.
+  #
+  # @example Creating and using a switch
+  #   switch = Switch.new(value: false, msg: { true => 'Enabled', false => 'Disabled' })
+  #   switch.toggle  # Turns the switch on
+  #   switch.value   # Returns true
+  #   switch.off?    # Returns false
+  #   switch.on?     # Returns true
   class Switch
     # The initialize method sets up the switch with a default value and
     # message.
@@ -64,6 +101,18 @@ module OllamaChat::Switches
     include CheckSwitch
   end
 
+  # A switch class that manages a boolean state based on a proc value.
+  #
+  # The CombinedSwitch class provides a way to manage a boolean configuration
+  # option where the state is determined by evaluating a stored proc. This is
+  # useful for complex conditions that depend on multiple factors or dynamic
+  # values, such as combining multiple switch states into a single effective
+  # state.
+  #
+  # @example Checking if embedding is currently performed
+  #   # When embedding_enabled is true and embedding_paused is false,
+  #   # the combined switch will return true
+  #   combined_switch.value # => true
   class CombinedSwitch
     # The initialize method sets up the switch with a value and message.
     #

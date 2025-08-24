@@ -1,3 +1,14 @@
+# A module that provides web search functionality for OllamaChat.
+#
+# The WebSearching module encapsulates the logic for performing web searches
+# using configured search engines. It handles query construction, location
+# information integration, and delegates to engine-specific implementations for
+# retrieving search results. The module supports multiple search engines
+# including SearxNG and DuckDuckGo, making it flexible for different deployment
+# scenarios and privacy preferences.
+#
+# @example Performing a web search
+#   chat.search_web('ruby programming tutorials', 5)
 module OllamaChat::WebSearching
   # The search_web method performs a web search using the configured search
   # engine.
