@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Chat do
+describe OllamaChat::Chat, protect_env: true do
   let :argv do
     %w[ -C test ]
   end
