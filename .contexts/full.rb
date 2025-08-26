@@ -15,6 +15,12 @@ context do
     end
   end
 
+  namespace "spec" do
+    Dir['spec/**/*.rb'].each do |filename|
+      file filename, tags: 'spec'
+    end
+  end
+
   file 'Rakefile',  tags: 'gem_hadar'
 
   file 'README.md', tags: 'documentation'

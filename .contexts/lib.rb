@@ -17,6 +17,8 @@ context do
 
   file 'Rakefile',  tags: 'gem_hadar'
 
+  file 'README.md', tags: 'documentation'
+
   meta ruby: RUBY_DESCRIPTION
 
   meta code_coverage: json('coverage/coverage_context.json')
