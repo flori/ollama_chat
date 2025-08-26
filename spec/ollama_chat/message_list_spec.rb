@@ -39,7 +39,7 @@ describe OllamaChat::MessageList do
     expect(list.size).to eq 1
     list.clear
     expect(list.size).to eq 1
-    list <<  Ollama::Message.new(role: 'user', content: 'world')
+    list << Ollama::Message.new(role: 'user', content: 'world')
     expect(list.size).to eq 2
     list.clear
     expect(list.size).to eq 1
@@ -47,7 +47,7 @@ describe OllamaChat::MessageList do
 
   it 'can be added to' do
     expect(list.size).to eq 1
-    list <<  Ollama::Message.new(role: 'user', content: 'world')
+    list << Ollama::Message.new(role: 'user', content: 'world')
     expect(list.size).to eq 2
   end
 
@@ -71,8 +71,31 @@ describe OllamaChat::MessageList do
     FileUtils.rm_f 'tmp/test-conversation.json'
   end
 
+  describe "#last" do
+    it "returns the last message when there are multiple messages" do
+      list = described_class.new(chat)
+      list << Ollama::Message.new(role: 'system', content: 'hello')
+      list << Ollama::Message.new(role: 'user', content: 'First message')
+      list << Ollama::Message.new(role: 'assistant', content: 'Second message')
 
-  describe '.show_last' do
+      expect(list.last.content).to eq('Second message')
+    end
+
+    it "returns the last message when there is only one message" do
+      list = described_class.new(chat)
+      list << Ollama::Message.new(role: 'system', content: 'hello')
+
+      expect(list.last.content).to eq('hello')
+    end
+
+    it "returns nil when there are no messages" do
+      list = described_class.new(chat)
+
+      expect(list.last).to be_nil
+    end
+  end
+
+  describe '#show_last' do
     it 'shows nothing when there are no messages' do
       empty_list = described_class.new(chat)
       expect { empty_list.show_last }.not_to raise_error
@@ -83,7 +106,7 @@ describe OllamaChat::MessageList do
       list = described_class.new(chat)
       allow(chat).to receive(:think).and_return(double(on?: false))
       allow(chat).to receive(:markdown).and_return(double(on?: false))
-      list <<  Ollama::Message.new(role: 'assistant', content: 'hello')
+      list << Ollama::Message.new(role: 'assistant', content: 'hello')
       expect(STDOUT).to receive(:puts).
         with("📨 \e[1m\e[38;5;111massistant\e[0m\e[0m:\nhello\n")
       expect(list.show_last).to be_a described_class
@@ -91,9 +114,21 @@ describe OllamaChat::MessageList do
 
     it 'shows nothing when the last message is by the user' do
       list = described_class.new(chat)
-      list <<  Ollama::Message.new(role: 'user', content: 'world')
+      list << Ollama::Message.new(role: 'user', content: 'world')
       expect { list.show_last }.not_to raise_error
       expect(list.show_last).to be nil
+    end
+
+    it "shows last N messages when N is larger than available messages" do
+      allow(chat).to receive(:think).and_return(double(on?: false))
+      allow(chat).to receive(:markdown).and_return(double(on?: false))
+      list = described_class.new(chat)
+      list << Ollama::Message.new(role: 'system', content: 'hello')
+      list << Ollama::Message.new(role: 'user', content: 'First message')
+      list << Ollama::Message.new(role: 'assistant', content: 'Second message')
+
+      expect(STDOUT).to receive(:puts).with(/Second message/)
+      expect(list.show_last(23)).to eq(list)
     end
   end
 
@@ -117,7 +152,7 @@ describe OllamaChat::MessageList do
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think).
         and_return(double(on?: false)).at_least(:once)
-      list <<  Ollama::Message.new(role: 'user', content: 'world')
+      list << Ollama::Message.new(role: 'user', content: 'world')
       expect(STDOUT).to receive(:puts).
         with(
           "📨 \e[1m\e[38;5;213msystem\e[0m\e[0m:\nhello\n" \
@@ -158,7 +193,7 @@ describe OllamaChat::MessageList do
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think).
         and_return(double(on?: false)).at_least(:once)
-      list <<  Ollama::Message.new(role: 'user', content: 'world')
+      list << Ollama::Message.new(role: 'user', content: 'world')
       list.list_conversation
     end
   end
@@ -195,9 +230,9 @@ describe OllamaChat::MessageList do
     expect(list.size).to eq 1
     expect(list.drop(1)).to eq 0
     expect(list.size).to eq 1
-    list <<  Ollama::Message.new(role: 'user', content: 'world')
+    list << Ollama::Message.new(role: 'user', content: 'world')
     expect(list.size).to eq 2
-    list <<  Ollama::Message.new(role: 'assistant', content: 'hi')
+    list << Ollama::Message.new(role: 'assistant', content: 'hi')
     expect(list.size).to eq 3
     expect(list.drop(1)).to eq 1
     expect(list.size).to eq 1
@@ -227,7 +262,7 @@ describe OllamaChat::MessageList do
 
   it 'can be converted int an Ollama::Message array' do
     expect(chat).to receive(:location).and_return(double(on?: false))
-    list <<  Ollama::Message.new(role: 'user', content: 'world')
+    list << Ollama::Message.new(role: 'user', content: 'world')
     expect(list.to_ary.map(&:as_json)).to eq [
       Ollama::Message.new(role: 'system', content: 'hello').as_json,
       Ollama::Message.new(role: 'user', content: 'world').as_json,
@@ -236,7 +271,7 @@ describe OllamaChat::MessageList do
 
   it 'can be converted int an Ollama::Message array with location' do
     expect(chat).to receive(:location).and_return(double(on?: true))
-    list <<  Ollama::Message.new(role: 'user', content: 'world')
+    list << Ollama::Message.new(role: 'user', content: 'world')
     first = list.to_ary.first
     expect(first.role).to eq 'system'
     expect(first.content).to match(
@@ -246,7 +281,7 @@ describe OllamaChat::MessageList do
   it 'can be converted int an Ollama::Message array with location without a system prompt' do
     expect(chat).to receive(:location).and_return(double(on?: true))
     list = described_class.new(chat).tap do |list|
-      list <<  Ollama::Message.new(role: 'user', content: 'hello')
+      list << Ollama::Message.new(role: 'user', content: 'hello')
       list << Ollama::Message.new(role: 'assistant', content: 'world')
     end
     first = list.to_ary.first

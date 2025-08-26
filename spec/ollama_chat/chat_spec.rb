@@ -77,6 +77,16 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/clobber")).to eq :next
     end
 
+    it 'returns :next when input is "/last"' do
+      expect(chat.messages).to receive(:show_last)
+      expect(chat.handle_input("/last")).to eq :next
+    end
+
+    it 'returns :next when input is "/last\s+(\d+)"' do
+      expect(chat.messages).to receive(:show_last).with(2)
+      expect(chat.handle_input("/last 2")).to eq :next
+    end
+
     it 'returns :next when input is "/drop(?:\s+(\d*))?"' do
       expect(chat.messages).to receive(:drop).with(?2)
       expect(chat.messages).to receive(:show_last)

@@ -123,7 +123,7 @@ module OllamaChat::Information
       /stream                         toggle stream output
       /location                       toggle location submission
       /voice [change]                 toggle voice output or change the voice
-      /last                           show the last system/assistant message
+      /last [n]                       show the last n / 1 system/assistant message
       /list [n]                       list the last n / all conversation exchanges
       /clear [what]                   clear what=messages|links|history|tags|all
       /clobber                        clear the conversation, links, and collection

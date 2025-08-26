@@ -153,7 +153,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /stream                         toggle stream output
 /location                       toggle location submission
 /voice [change]                 toggle voice output or change the voice
-/last                           show the last system/assistant message
+/last [n]                       show the last n / 1 system/assistant message
 /list [n]                       list the last n / all conversation exchanges
 /clear [what]                   clear what=messages|links|history|tags|all
 /clobber                        clear the conversation, links, and collection
@@ -177,6 +177,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /load filename                  load conversation messages
 /output filename                save last response to filename
 /pipe command                   write last response to command's stdin
+/vim                            insert the last message into a vim server
 /quit                           to quit
 /help                           to view this help
 ```

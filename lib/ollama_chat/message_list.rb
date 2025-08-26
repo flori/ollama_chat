@@ -153,11 +153,15 @@ class OllamaChat::MessageList
   # from the user. It uses a pager for output and returns the instance itself.
   #
   # @return [ OllamaChat::MessageList ] returns the instance of the class
-  def show_last
-    message = last
-    !message || message.role == 'user' and return
+  def show_last(n = nil)
+    n ||= 1
+    messages = @messages.reject { |message| message.role == 'user' }
+    n = n.clamp(0..messages.size)
+    n <= 0 and return
     use_pager do |output|
-      output.puts message_text_for(message)
+      messages[-n..-1].to_a.each do |message|
+        output.puts message_text_for(message)
+      end
     end
     self
   end

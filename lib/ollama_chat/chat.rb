@@ -218,11 +218,12 @@ class OllamaChat::Chat
       end
       :next
     when %r(^/list(?:\s+(\d*))?$)
-      last = 2 * $1.to_i if $1
-      messages.list_conversation(last)
+      n = 2 * $1.to_i if $1
+      messages.list_conversation(n)
       :next
-    when %r(^/last$)
-      messages.show_last
+    when %r(^/last(?:\s+(\d*))?$)
+      n = $1.to_i if $1
+      messages.show_last(n)
       :next
     when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
       clean($1)
