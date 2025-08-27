@@ -1,5 +1,20 @@
 # Changes
 
+## 2025-08-27 v0.0.26
+
+- Enhanced `/last` command to support numeric argument, allowing users to
+  specify the number of messages to display
+- Configured tests to protect environment variables by using `protect_env:
+  true` option and direct `ENV` manipulation
+- Refactored spec helper with modularized `AssetHelpers`, `StubOllamaServer`,
+  and `ProtectEnvVars` modules for better organization
+- Improved code clarity and added comprehensive documentation across multiple
+  modules including `OllamaChat`, `Chat`, `MessageList`, and others
+- Added detailed class-level documentation for `OllamaChatConfig` with examples
+- Included documentation for the `Parsing`, `Vim`, `MessageFormat`,
+  `KramdownANSI`, `Information`, `UserAgent`, and `History` modules
+- Improved cache hit message formatting and wording for better user experience
+
 ## 2025-08-18 v0.0.25
 
 - Integrated `context_spook` gem as development dependency
