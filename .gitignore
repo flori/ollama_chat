@@ -1,11 +1,13 @@
 .*.sw[pon]
 .AppleDouble
 .bundle
+.starscope.db
 .yardoc
 /config/searxng/*
 Gemfile.lock
 corpus
 coverage
+cscope.out
 doc
 pkg
 tags
