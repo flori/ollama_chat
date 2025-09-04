@@ -45,6 +45,7 @@ class OllamaChat::Utils::CacheFetcher
       io.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
       io.content_type = content_type
       block.(io)
+      io
     end
   end
 
