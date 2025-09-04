@@ -1,5 +1,12 @@
 # Changes
 
+## 2025-09-05 v0.0.27
+
+- Enhanced cache hit notifications to properly handle content type with
+  fallback to 'unknown'
+- Modified `OllamaChat::Utils::CacheFetcher` to return `io` for proper content
+  type propagation
+
 ## 2025-08-27 v0.0.26
 
 - Enhanced `/last` command to support numeric argument, allowing users to
