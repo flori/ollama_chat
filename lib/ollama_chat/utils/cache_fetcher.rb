@@ -34,6 +34,7 @@ class OllamaChat::Utils::CacheFetcher
   # @param url [ String ] the URL used as a key for caching
   #
   # @yield [ io ] yields the cached IO object if found
+  # @return [ io ] the cached IO object if found
   def get(url, &block)
     block or raise ArgumentError, 'require block argument'
     body         = @cache[key(:body, url)]
