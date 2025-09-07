@@ -1,5 +1,17 @@
 # Changes
 
+## 2025-09-08 v0.0.28
+
+- Replaced `server_socket_runtime_dir` config option with
+  `working_dir_dependent_socket`
+- Used `Digest::MD5` to generate unique socket names based on working directory
+- Socket names now follow format `ollama_chat-<hash>.sock` instead of fixed
+  name
+- Updated `unix_socks` dependency version constraint from >= 0.0.1 to ~> 0.1
+- Added new `.utilsrc` configuration file for code indexing and search
+  utilities
+- Added return type documentation to `CacheFetcher#get` method
+
 ## 2025-09-05 v0.0.27
 
 - Enhanced cache hit notifications to properly handle content type with
@@ -49,22 +61,31 @@
 ## 2025-08-17 v0.0.24
 
 - Updated `kramdown-ansi` dependency version constraint from **0.0** to **0.1**
-- Modified both Rakefile and ollama_chat.gemspec files to reflect new version
+- Modified both Rakefile and `ollama_chat.gemspec` files to reflect new version
   constraint for `kramdown-ansi`
 
 ## 2025-08-17 v0.0.23
 
-- Added `OllamaChat::KramdownANSI` module with `configure_kramdown_ansi_styles` and `kramdown_ansi_parse` methods for consistent Markdown formatting
-- Replaced direct calls to `Kramdown::ANSI.parse` with `@chat.kramdown_ansi_parse` in `FollowChat` and `MessageList`
+- Added `OllamaChat::KramdownANSI` module with `configure_kramdown_ansi_styles`
+  and `kramdown_ansi_parse` methods for consistent Markdown formatting
+- Replaced direct calls to `Kramdown::ANSI.parse` with
+  `@chat.kramdown_ansi_parse` in `FollowChat` and `MessageList`
 - Integrated `OllamaChat::KramdownANSI` module into `OllamaChat::Chat` class
 - Configured `@kramdown_ansi_styles` during chat initialization
-- Added support for environment variables `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES` and `KRAMDOWN_ANSI_STYLES` for styling configuration
-- Updated tests to mock `kramdown_ansi_parse` instead of direct `Kramdown::ANSI.parse`
-- Documented environment variables for customizing Markdown formatting with example JSON format
-- Added `lib/ollama_chat/kramdown_ansi.rb` to `extra_rdoc_files` and `files` list in gemspec
-- Escaped dot in regex pattern in `parsing_spec.rb` for proper image file matching
-- Implemented `File.expand_path` to resolve `~` shortcuts before existence check in parsing module
-- Added error handling for malformed paths by rescuing `ArgumentError` exceptions
+- Added support for environment variables `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES`
+  and `KRAMDOWN_ANSI_STYLES` for styling configuration
+- Updated tests to mock `kramdown_ansi_parse` instead of direct
+  `Kramdown::ANSI.parse`
+- Documented environment variables for customizing Markdown formatting with
+  example JSON format
+- Added `lib/ollama_chat/kramdown_ansi.rb` to `extra_rdoc_files` and `files`
+  list in gemspec
+- Escaped dot in regex pattern in `parsing_spec.rb` for proper image file
+  matching
+- Implemented `File.expand_path` to resolve `~` shortcuts before existence
+  check in parsing module
+- Added error handling for malformed paths by rescuing `ArgumentError`
+  exceptions
 - Skipped invalid file paths during processing loop using `next` statement
 - Maintained backward compatibility for standard file paths
 - Added comprehensive list of supported environment variables in documentation
@@ -72,14 +93,19 @@
 ## 2025-08-13 v0.0.22
 
 - Added new `-p` command line flag for enabling source parsing functionality
-- Enhanced `send_to_server_socket` method to accept and pass a `parse` parameter
+- Enhanced `send_to_server_socket` method to accept and pass a `parse`
+  parameter
 - Modified `chat.rb` to handle the `parse` content flag from server messages
 - Updated documentation in `README.md` with example usage of the new `-p` flag
-- Added comprehensive tests for the new parsing functionality in `server_socket_spec.rb`
-- Improved method documentation in `server_socket.rb` with detailed parameter descriptions
-- Replaced `messages.list_conversation(2)` with `messages.show_last` in `/drop` command behavior
+- Added comprehensive tests for the new parsing functionality in
+  `server_socket_spec.rb`
+- Improved method documentation in `server_socket.rb` with detailed parameter
+  descriptions
+- Replaced `messages.list_conversation(2)` with `messages.show_last` in `/drop`
+  command behavior
 - Updated `gem_hadar` development dependency from version **1.27** to **2.0**
-- Simplified SimpleCov setup by using `GemHadar::SimpleCov.start` instead of manual configuration
+- Simplified SimpleCov setup by using `GemHadar::SimpleCov.start` instead of
+  manual configuration
 
 ## 2025-08-11 v0.0.21
 
@@ -101,7 +127,8 @@
 
 ### Documentation
 
-- Added more YARD-style documentation to all public methods throughout the codebase.
+- Added more YARD-style documentation to all public methods throughout the
+  codebase.
 
 ### Fixed
 
@@ -174,8 +201,10 @@
 - **Enhancements**
   - Improved logging with debug output for received server socket messages.
   - Refactored server socket handling:
-    - Created `create_socket_server` method for UnixSocks setup with configurable runtime directories.
-    - Updated `send_to_server_socket` and `init_server_socket` methods to use the new helper.
+    - Created `create_socket_server` method for UnixSocks setup with
+      configurable runtime directories.
+    - Updated `send_to_server_socket` and `init_server_socket` methods to use
+      the new helper.
   - Changed evaluation rate metrics from 'c/s' to 't/s' for better clarity.
 
 - **Documentation**
@@ -233,37 +262,48 @@
 
 * **Think Mode Implementation**:
   + Introduced `@think_mode` attribute to read think mode setting from config
-  + Implemented `remove_think_blocks` method to filter out thought blocks from chat messages sent to the LLM model.
-  + Added conditional logic based on `@think_mode` value to handle different modes
+  + Implemented `remove_think_blocks` method to filter out thought blocks from
+    chat messages sent to the LLM model.
+  + Added conditional logic based on `@think_mode` value to handle different
+    modes
 * **User Interface Improvements**:
   + Added `/think_mode` command to help users understand think mode options
   + Updated session output to include current think mode
-  + Added think mode chooser to OllamaChat::Dialog, allowing users to select their preferred think mode
+  + Added think mode chooser to OllamaChat::Dialog, allowing users to select
+    their preferred think mode
 * **Output Handling Enhancements**:
   + Improved markdown handling for think blocks in OllamaChat::FollowChat class
-  + Modified output to print clear screen, move home, and user info before printing content
+  + Modified output to print clear screen, move home, and user info before
+    printing content
 * **Configuration Updates**:
   + Added `think_mode` key with value `"display"` to `default_config.yml`
 
 ## 2025-05-28 v0.0.10
 
 * Simplify and improve command handling logic.
-    * Update chat input handling to use a single `handle_input` method for all commands.
+    * Update chat input handling to use a single `handle_input` method for all
+      commands.
     * Add tests for various chat commands, including input handling, document
       policy selection, summarization, and more.
-    * Improve test coverage for `DocumentCache`, `Information`, and other modules.
-    * Improved handling of commands, e.g. **don't** when sending via `ollama_chat_send` by default.
+    * Improve test coverage for `DocumentCache`, `Information`, and other
+      modules.
+    * Improved handling of commands, e.g. **don't** when sending via
+      `ollama_chat_send` by default.
 * Added support for sending content to server socket with specific type.
 
 ## 2025-05-26 v0.0.9
 
 * Improved tag parsing in OllamaChat:
   * Added regex validation for valid tags to `Documentrix::Utils::Tags`.
-  * Modified `parse_content` method in `OllamaChat::Parsing` to handle valid tag formats.
-  * Updated `scan` methods in `content` processing to more correctly identify tags.
-* Added option to explicitly open socket for receiving input from `ollama_chat_send`:
+  * Modified `parse_content` method in `OllamaChat::Parsing` to handle valid
+    tag formats.
+  * Updated `scan` methods in `content` processing to more correctly identify
+    tags.
+* Added option to explicitly open socket for receiving input from
+  `ollama_chat_send`:
   * Added new command-line option `-S` to enable server socket functionality.
-  * Updated `OllamaChat::Chat` class to include server socket initialization based on the new option.
+  * Updated `OllamaChat::Chat` class to include server socket initialization
+    based on the new option.
   * Modified usage message in `README.md` and `information.rb` files.
 
 ## 2025-05-23 v0.0.8
@@ -305,9 +345,12 @@
 ## 2025-04-15 v0.0.6
 
 * Updated Rakefile to use `ollama-ruby` version **1.0**.
-* Modified `model_present?` method in `lib/ollama_chat/model_handling.rb` to use `ollama.show(model:)`.
-* Changed `pull_model_from_remote` method in `lib/ollama_chat/model_handling.rb` to use `ollama.pull(model:).
-* Updated `ollama_chat.gemspec` to use `ollama-ruby` version **1.0** and updated date to **2025-04-14**.
+* Modified `model_present?` method in `lib/ollama_chat/model_handling.rb` to
+  use `ollama.show(model:)`.
+* Changed `pull_model_from_remote` method in
+  `lib/ollama_chat/model_handling.rb` to use `ollama.pull(model:).
+* Updated `ollama_chat.gemspec` to use `ollama-ruby` version **1.0** and
+  updated date to **2025-04-14**.
 * Attempt to capture stderr as well by redirecting stderr to stdout for
   commands that output to it always or in the error case.
 * Updated development dependencies in `ollama_chat.gemspec`.
@@ -316,7 +359,8 @@
 
 * Updated default config to use environment variable for Searxng URL:
   * Changed `url` field in `searxng` section of `default_config.yml`.
-  * Replaced hardcoded URL with expression that fetches value from `OLLAMA_SEARXNG_URL` environment variable.
+  * Replaced hardcoded URL with expression that fetches value from
+    `OLLAMA_SEARXNG_URL` environment variable.
 * Handle Ollama server disconnection:
   * Added error handling for `Ollama::Errors::TimeoutError`.
   * Print error message when connection is lost.
@@ -336,18 +380,23 @@
     for web searching with all engines.
   + Updated `ollama_chat/chat.rb` to use the new `web_searching` module and
     updated the `search_web` method to return results from either engine.
-  + Added specs in `spec/ollama_chat/web_searching_spec.rb` to test the new functionality.
+  + Added specs in `spec/ollama_chat/web_searching_spec.rb` to test the new
+    functionality.
 * Added ollama chat version display to information module and spec:
-  + Added `STDOUT.puts` for displaying ollama chat version in `lib/ollama_chat/information.rb`
-  + Updated test in `spec/ollama_chat/chat_spec.rb` to include new output string
+  + Added `STDOUT.puts` for displaying ollama chat version in
+    `lib/ollama_chat/information.rb`
+  + Updated test in `spec/ollama_chat/chat_spec.rb` to include new output
+    string
 * Update chat document redis cache expiration time default to 0.
 
 ## 2025-02-17 v0.0.3
 
 * Support setting of request headers:
     * Added `request_headers` option to `default_config.yml
-    * Updated `OllamaChat::SourceFetching` module to pass `config.request_headers?.to_h` to `Fetcher.get`
-    * Updated `OllamaChat::Utils::Fetcher.get` method to take an optional `headers:` parameter
+    * Updated `OllamaChat::SourceFetching` module to pass
+      `config.request_headers?.to_h` to `Fetcher.get`
+    * Updated `OllamaChat::Utils::Fetcher.get` method to take an optional
+      `headers:` parameter
     * Updated tests for Fetcher utility to include new headers option
 * Refactoring
     * Added `connect_to_ollama_server` method to `spec_helper.rb`
@@ -379,8 +428,10 @@
 ## 2025-02-02 v0.0.1
 
 * Renamed `documents` variable to `@documents` in `OllamaChat::Chat`
-    * Modified `add_documents_from_argv` method to accept only `document_list` as argument
-    * Updated spec for `OllamaChat::Chat` to reflect changes in `add_documents_from_argv` method
+    * Modified `add_documents_from_argv` method to accept only `document_list`
+      as argument
+    * Updated spec for `OllamaChat::Chat` to reflect changes in
+      `add_documents_from_argv` method
 * Use `clamp(1..)` instead of manual checks for `n.to_i` in source fetching
 * Dropped is now used consistently in the code for message popping
 * Set up Redis environment and service for development:
