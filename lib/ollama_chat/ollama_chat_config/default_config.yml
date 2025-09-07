@@ -24,7 +24,11 @@ prompts:
   web_embed: |
     Answer the the query %{query} using the provided chunks.
   web_import: |
-    Answer the the query %{query} using these imported source:
+    Answer the the query %{query} using these imported sources:
+
+    %{results}
+  web_summarize: |
+    Answer the the query %{query} using these summarized sources:
 
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, on %{localtime}, preferring %{units}

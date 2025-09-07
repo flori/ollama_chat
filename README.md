@@ -171,7 +171,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /summarize [n] source           summarize the source's content in n words
 /embedding                      toggle embedding paused or not
 /embed source                   embed the source's content
-/web [n] query                  query web search & return n or 1 results
+/web [n] query                  query web & for n(=1) results (policy: importing)
 /links [clear]                  display (or clear) links used in the chat
 /save filename                  store conversation messages
 /load filename                  load conversation messages

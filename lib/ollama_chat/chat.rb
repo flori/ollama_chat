@@ -362,31 +362,60 @@ class OllamaChat::Chat
     end
   end
 
-  # The web method performs a web search and processes the results based on
-  # embedding configuration.
+  # Performs a web search and processes the results based on document processing configuration.
   #
-  # It searches for the given query using the configured search engine and
-  # processes up to the specified number of URLs. If embeddings are enabled, it
-  # embeds each result and interpolates the query into the web_embed prompt.
-  # Otherwise, it imports each result and interpolates both the query and
-  # results into the web_import prompt.
+  # Searches for the given query using the configured search engine and processes up to
+  # the specified number of URLs. The processing approach varies based on the current
+  # document policy and embedding status:
   #
-  # @param count [ String ] the maximum number of search results to process
-  # @param query [ String ] the search query string
+  # - **Embedding mode**: When `@document_policy == 'embedding'` AND `@embedding.on?` is true,
+  #   each result is embedded and the query is interpolated into the `web_embed` prompt.
+  # - **Summarizing mode**: When `@document_policy == 'summarizing'`,
+  #   each result is summarized and both query and results are interpolated into the
+  #   `web_summarize` prompt.
+  # - **Importing mode**: For all other cases, each result is imported and both query and
+  #   results are interpolated into the `web_import` prompt.
   #
-  # @return [ String, Symbol ] the interpolated prompt content or :next if no URLs were found
+  # @param count [String] The maximum number of search results to process (defaults to 1)
+  # @param query [String] The search query string
+  #
+  # @return [String, Symbol] The interpolated prompt content when successful,
+  #   or :next if no URLs were found or processing failed
+  #
+  # @example Basic web search
+  #   web('3', 'ruby programming tutorials')
+  #
+  # @example Web search with embedding policy
+  #   # With @document_policy == 'embedding' and @embedding.on?
+  #   # Processes results through embedding pipeline
+  #
+  # @example Web search with summarizing policy
+  #   # With @document_policy == 'summarizing'
+  #   # Processes results through summarization pipeline
+  #
+  # @see #search_web
+  # @see #fetch_source
+  # @see #embed_source
+  # @see #import
+  # @see #summarize
   def web(count, query)
     urls = search_web(query, count.to_i) or return :next
-    if @embedding.on?
+    if @document_policy == 'embedding' && @embedding.on?
       prompt = config.prompts.web_embed
       urls.each do |url|
         fetch_source(url) { |url_io| embed_source(url_io, url) }
       end
       prompt.named_placeholders_interpolate({query:})
+    elsif @document_policy == 'summarizing'
+      prompt = config.prompts.web_summarize
+      results = urls.each_with_object('') do |url, content|
+        import(url).full? { |c| content << c }
+      end
+      prompt.named_placeholders_interpolate({query:, results:})
     else
       prompt = config.prompts.web_import
       results = urls.each_with_object('') do |url, content|
-        import(url).full? { |c| content << c }
+        summarize(url).full? { |c| content << c }
       end
       prompt.named_placeholders_interpolate({query:, results:})
     end
