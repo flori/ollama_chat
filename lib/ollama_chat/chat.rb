@@ -48,6 +48,7 @@ class OllamaChat::Chat
   include OllamaChat::History
   include OllamaChat::ServerSocket
   include OllamaChat::KramdownANSI
+  include OllamaChat::Conversation
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -312,27 +313,13 @@ class OllamaChat::Chat
       @parse_content = false
       web($1, $2)
     when %r(^/save\s+(.+)$)
-      filename = $1
-      if messages.save_conversation(filename)
-        STDOUT.puts "Saved conversation to #{filename.inspect}."
-      else
-        STDERR.puts "Saving conversation to #{filename.inspect} failed."
-      end
+      save_conversation($1)
       :next
     when %r(^/links(?:\s+(clear))?$)
       manage_links($1)
       :next
     when %r(^/load\s+(.+)$)
-      filename = $1
-      success = messages.load_conversation(filename)
-      if messages.size > 1
-        messages.list_conversation(2)
-      end
-      if success
-        STDOUT.puts "Loaded conversation from #{filename.inspect}."
-      else
-        STDERR.puts "Loading conversation from #{filename.inspect} failed."
-      end
+      load_conversation($1)
       :next
     when %r(^/pipe\s+(.+)$)
       pipe($1)
@@ -756,6 +743,7 @@ class OllamaChat::Chat
   # @param exception [ Exception ] the exception that occurred while reading
   # the config file
   def fix_config(exception)
+    save_conversation('backup.json')
     STDOUT.puts "When reading the config file, a #{exception.class} "\
       "exception was caught: #{exception.message.inspect}"
     if ask?(prompt: 'Do you want to fix the config? (y/n) ') =~ /\Ay/i
