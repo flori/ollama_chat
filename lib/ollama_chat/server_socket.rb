@@ -1,3 +1,5 @@
+require 'digest/md5'
+
 # A module that provides server socket functionality for OllamaChat
 #
 # The ServerSocket module encapsulates the logic for creating and managing Unix
@@ -70,8 +72,10 @@ module OllamaChat::ServerSocket
       if runtime_dir
         return UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
       end
-      if runtime_dir = config.server_socket_runtime_dir
-        UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
+      if config.working_dir_dependent_socket
+        path   = File.expand_path(Dir.pwd)
+        digest = Digest::MD5.hexdigest(path)
+        UnixSocks::Server.new(socket_name: "ollama_chat-#{digest}.sock")
       else
         UnixSocks::Server.new(socket_name: 'ollama_chat.sock')
       end
