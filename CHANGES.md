@@ -1,5 +1,18 @@
 # Changes
 
+## 2025-09-08 v0.0.29
+
+- Refactored conversation persistence into a dedicated
+  `OllamaChat::Conversation` module
+- Added automatic backup saving in the `fix_config` method using
+  **backup.json**
+- Simplified `/save` and `/load` commands to delegate to module methods
+- Introduced document processing policies for web search results with three
+  modes: **embedding**, **summarizing**, and **importing**
+- Added `@document_policy` configuration to control result processing mode
+- Updated `/web` command help text and added new prompt templates for summarization and importing modes
+- Modified conditional logic from `@embedding.on?` to `@document_policy == 'embedding' && @embedding.on?`
+
 ## 2025-09-08 v0.0.28
 
 - Replaced `server_socket_runtime_dir` config option with
