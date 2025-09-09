@@ -34,7 +34,7 @@ GemHadar do
   executables << 'ollama_chat' << 'ollama_chat_send'
 
   dependency             'excon',                 '~> 1.0'
-  dependency             'ollama-ruby',           '~> 1.6'
+  dependency             'ollama-ruby',           '~> 1.7'
   dependency             'documentrix',           '~> 0.0', '>= 0.0.2'
   dependency             'unix_socks',            '~> 0.1'
   dependency             'rss',                   '~> 0.3'
@@ -43,7 +43,7 @@ GemHadar do
   dependency             'mime-types',            '~> 3.0'
   dependency             'reverse_markdown',      '~> 3.0'
   dependency             'xdg'
-  dependency             'kramdown-ansi',         '~> 0.1'
+  dependency             'kramdown-ansi',         '~> 0.2'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
   dependency             'tins',                  '~> 1.41'
   dependency             'search_ui',             '~> 0.0'
