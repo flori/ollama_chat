@@ -1,5 +1,13 @@
 # Changes
 
+## 2025-09-11 v0.0.30
+
+- Changed `config.prompts.web_import` to `config.prompts.web_summarize` in default branch
+- Updated method calls from `import(url).full?` to `summarize(url).full?` in summarizing branch
+- Updated method calls from `summarize(url).full?` to `import(url).full?` in default branch
+- Added `ask_and_send_or_self(:read)` call within the block for both branches
+- Added `ruby:3.1-alpine` image configuration to CI pipeline
+
 ## 2025-09-08 v0.0.29
 
 - Refactored conversation persistence into a dedicated
