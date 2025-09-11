@@ -394,15 +394,19 @@ class OllamaChat::Chat
       end
       prompt.named_placeholders_interpolate({query:})
     elsif @document_policy == 'summarizing'
-      prompt = config.prompts.web_summarize
+      prompt = config.prompts.web_import
       results = urls.each_with_object('') do |url, content|
-        import(url).full? { |c| content << c }
+        summarize(url).full? do |c|
+          content << c.ask_and_send_or_self(:read)
+        end
       end
       prompt.named_placeholders_interpolate({query:, results:})
     else
-      prompt = config.prompts.web_import
+      prompt = config.prompts.web_summarize
       results = urls.each_with_object('') do |url, content|
-        summarize(url).full? { |c| content << c }
+        import(url).full? do |c|
+          content << c.ask_and_send_or_self(:read)
+        end
       end
       prompt.named_placeholders_interpolate({query:, results:})
     end
