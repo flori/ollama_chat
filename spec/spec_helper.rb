@@ -1,5 +1,8 @@
-require 'gem_hadar/simplecov'
-GemHadar::SimpleCov.start
+begin
+  require 'gem_hadar/simplecov'
+  GemHadar::SimpleCov.start
+rescue LoadError
+end
 require 'rspec'
 require 'tins/xt/expose'
 begin
@@ -143,6 +146,9 @@ RSpec.configure do |config|
   config.extend StubOllamaServer
 
   config.around(&ProtectEnvVars.apply)
+  config.before(:each) do
+    ENV['OLLAMA_HOST'] = 'localhost:11434'
+  end
 
   config.before(:suite) do
     infobar.show = nil
