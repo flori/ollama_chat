@@ -76,7 +76,7 @@ module OllamaChat::SourceFetching
       filename = File.expand_path(filename)
       check_exist && !File.exist?(filename) and return
       fetch_source_as_filename(filename, &block)
-    when  %r{\A((?:\.\.|[~.]?)/(?:\\ |\\|[^\\]+)*)}
+    when  %r{\A((?:\.\.|[~.]?)/(?:\\ |\\|[^\\]+)+)}
       filename = $1
       filename = filename.gsub('\ ', ' ')
       filename = File.expand_path(filename)

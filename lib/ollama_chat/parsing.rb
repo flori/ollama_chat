@@ -200,7 +200,7 @@ module OllamaChat::Parsing
     |                                      # OR
     "((?:\.\.|[~.]?)/(?:\\"|\\|[^"\\]+)+)" # Quoted file path with escaped " quotes
     |                                      # OR
-    (\S*\/\S+)                             # File path with at least one forward slash
+    ((?:\.\.|[~.]?)/(?:\\\ |\\|[^\\ ]+)+)  # File path with escaped spaces
   }x
   private_constant :CONTENT_REGEXP
 
@@ -237,6 +237,7 @@ module OllamaChat::Parsing
         check_exist = true
         source      = file
       when file
+        file = file.gsub('\ ', ' ')
         file =~ %r(\A[~./]) or file.prepend('./')
         check_exist = true
         source      = file

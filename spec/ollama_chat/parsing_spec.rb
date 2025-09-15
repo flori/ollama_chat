@@ -222,6 +222,22 @@ EOT
       FileUtils.rm_f file_path
     end
 
+    it 'can parse file path with escaped spaces' do
+      file_path = Pathname.pwd.join('spec/assets/example with .html')
+      FileUtils.cp 'spec/assets/example_with_quote.html', file_path
+      quoted_file_path = file_path.to_s.gsub(' ', '\\ ')
+      content, = chat.parse_content(%{see #{quoted_file_path}}, [])
+      expect(content).to include(<<~EOT)
+        Imported "#{file_path}":
+
+        # My First Heading
+
+        My first paragraph.
+      EOT
+    ensure
+      FileUtils.rm_f file_path
+    end
+
     it 'can add images' do
       images = []
       expect(chat).to receive(:add_image).
