@@ -1,5 +1,11 @@
 # Changes
 
+## 2025-09-15 v0.0.32
+
+- Fixed file path parsing for escaped spaces and URI handling
+  - Updated regex pattern for relative paths to better handle `\ ` escaped spaces
+  - Added explicit unescaping of spaces in test case for `./spec/assets/file\ with\ spaces.html`
+
 ## 2025-09-15 v0.0.31
 
 - Added new test asset file `"spec/assets/example with \".html"` as
