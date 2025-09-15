@@ -47,9 +47,10 @@ describe OllamaChat::SourceFetching do
       end
 
       it 'can handle files with \\ escaped spaces' do
-        source = './spec/assets/file\ with\ spaces.html'
+        source    = './spec/assets/file\ with\ spaces.html'
+        unescaped = source.gsub('\ ', ' ')
         expect(chat).to receive(:fetch_source_as_filename).
-          with(File.expand_path(source))
+          with(File.expand_path(unescaped))
         chat.fetch_source(source)
       end
 

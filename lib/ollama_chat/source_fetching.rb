@@ -71,16 +71,20 @@ module OllamaChat::SourceFetching
         block.(tmp)
       end
     when %r{\Afile://([^\s#]+)}
-      filename = URI.decode_www_form_component($1)
+      filename = $1
+      filename = URI.decode_www_form_component(filename)
       filename = File.expand_path(filename)
       check_exist && !File.exist?(filename) and return
       fetch_source_as_filename(filename, &block)
-    when  %r{\A((?:\.\.|[~.]?)/(?:\ |\S+)*)}
-      filename = File.expand_path($1)
+    when  %r{\A((?:\.\.|[~.]?)/(?:\\ |\\|[^\\]+)*)}
+      filename = $1
+      filename = filename.gsub('\ ', ' ')
+      filename = File.expand_path(filename)
       check_exist && !File.exist?(filename) and return
       fetch_source_as_filename(filename, &block)
     when %r{\A"((?:\.\.|[~.]?)/(?:\\"|\\|[^"\\]+)+)"}
-      filename = $1.gsub('\"', ?")
+      filename = $1
+      filename = filename.gsub('\"', ?")
       filename = File.expand_path(filename)
       check_exist && !File.exist?(filename) and return
       fetch_source_as_filename(filename, &block)
