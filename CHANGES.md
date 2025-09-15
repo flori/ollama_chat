@@ -1,5 +1,14 @@
 # Changes
 
+## 2025-09-15 v0.0.33
+
+- Enhanced `CONTENT_REGEXP` to support escaped spaces in file paths using
+  `(?:\\\ |\\|[^\\ ]+)`
+- Modified `SourceFetching` module to properly unescape spaces with `gsub('\ ',
+  ' ')`
+- Added new test case `can parse file path with escaped spaces` to verify
+  functionality
+
 ## 2025-09-15 v0.0.32
 
 - Fixed file path parsing for escaped spaces and URI handling
