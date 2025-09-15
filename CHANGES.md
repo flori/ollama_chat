@@ -1,5 +1,35 @@
 # Changes
 
+## 2025-09-15 v0.0.31
+
+- Added new test asset file `"spec/assets/example with \".html"` as
+  `spec/assets/example_with_quote.html`
+- Enhanced parsing tests in `spec/ollama_chat/parsing_spec.rb` to support file
+  URLs with spaces and quotes
+- Added cleanup code using `FileUtils.rm_f` in test cases to remove temporary
+  files
+- Modified test method names to reflect support for spaces and quotes in file
+  paths
+- Added `ghostscript` package to the Dockerfile dependencies
+- Added `fail_fast: true` to the script configuration
+- Added a check for `pbcopy` command in clipboard spec
+- Wrapped SimpleCov require in begin/rescue block to handle LoadError
+- Set default `OLLAMA_HOST` environment variable to 'localhost:11434' in spec
+  helper
+- Added `CONTENT_REGEXP` for unified parsing of URLs, tags, and file references
+- Updated `parse_content` method to use new regex and support quoted file paths
+- Introduced `check_exist:` option in `fetch_source` to validate file existence
+- Extracted file reading logic into new helper method
+  `fetch_source_as_filename`
+- Enhanced handling of file URLs with spaces and special characters
+- Added comprehensive tests for parsing file paths with spaces, quotes, and
+  encoding
+- Supported `file://` URI decoding using `URI.decode_www_form_component`
+- Refactored `fetch_source` to better handle relative, absolute, and tilde
+  paths
+- Updated spec files to use `Pathname` and improved assertions for file content
+- Updated `gem_hadar` development dependency version from **2.3** to **2.6**
+
 ## 2025-09-11 v0.0.30
 
 - Changed `config.prompts.web_import` to `config.prompts.web_summarize` in default branch
