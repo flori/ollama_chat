@@ -178,9 +178,10 @@ EOT
       EOT
     end
 
-    it 'can parse file URLs with spaces' do
-      source_path= Pathname.pwd.join('spec/assets/example with ".html')
-      file_url = "file://#{source_path.to_s.gsub(' ', '%20').gsub('"', '%22')}"
+    it 'can parse file URLs with spaces and quotes' do
+      file_path = Pathname.pwd.join('spec/assets/example with ".html')
+      FileUtils.cp 'spec/assets/example_with_quote.html', file_path
+      file_url = "file://#{file_path.to_s.gsub(' ', '%20').gsub('"', '%22')}"
       content, = chat.parse_content("see #{file_url}", [])
       expect(content).to include(<<~EOT)
         Imported "#{file_url}":
@@ -189,6 +190,8 @@ EOT
 
         My first paragraph.
       EOT
+    ensure
+      FileUtils.rm_f file_path
     end
 
     it 'can parse file paths' do
@@ -205,14 +208,18 @@ EOT
 
     it 'can parse quoted file paths' do
       file_path = Pathname.pwd.join('spec/assets/example with ".html')
-      content, = chat.parse_content(%{see "#{Dir.pwd}/spec/assets/example with \\".html"}, [])
+      FileUtils.cp 'spec/assets/example_with_quote.html', file_path
+      quoted_file_path = file_path.to_s.gsub('"', '\"')
+      content, = chat.parse_content(%{see "#{quoted_file_path}"}, [])
       expect(content).to include(<<~EOT)
-        Imported "#{Dir.pwd}/spec/assets/example with \\".html":
+        Imported "#{quoted_file_path}":
 
         # My First Heading
 
         My first paragraph.
       EOT
+    ensure
+      FileUtils.rm_f file_path
     end
 
     it 'can add images' do
