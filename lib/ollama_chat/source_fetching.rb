@@ -52,14 +52,14 @@ module OllamaChat::SourceFetching
   # @param source [ String ] the source identifier which can be a command, URL, or file path
   #
   # @yield [ tmp ]
-  def fetch_source(source, &block)
+  def fetch_source(source, check_exist: false, &block)
     case source
-    when %r(\A!(.*))
+    when %r{\A!(.*)}
       command = $1
       OllamaChat::Utils::Fetcher.execute(command) do |tmp|
         block.(tmp)
       end
-    when %r(\Ahttps?://\S+)
+    when %r{\Ahttps?://\S+}
       links.add(source.to_s)
       OllamaChat::Utils::Fetcher.get(
         source,
@@ -70,12 +70,20 @@ module OllamaChat::SourceFetching
       ) do |tmp|
         block.(tmp)
       end
-    when %r(\Afile://(/\S*?)#|\A((?:\.\.|[~.]?)/\S*))
-      filename = $~.captures.compact.first
+    when %r{\Afile://([^\s#]+)}
+      filename = URI.decode_www_form_component($1)
       filename = File.expand_path(filename)
-      OllamaChat::Utils::Fetcher.read(filename) do |tmp|
-        block.(tmp)
-      end
+      check_exist && !File.exist?(filename) and return
+      fetch_source_as_filename(filename, &block)
+    when  %r{\A((?:\.\.|[~.]?)/(?:\ |\S+)*)}
+      filename = File.expand_path($1)
+      check_exist && !File.exist?(filename) and return
+      fetch_source_as_filename(filename, &block)
+    when %r{\A"((?:\.\.|[~.]?)/(?:\\"|\\|[^"\\]+)+)"}
+      filename = $1.gsub('\"', ?")
+      filename = File.expand_path(filename)
+      check_exist && !File.exist?(filename) and return
+      fetch_source_as_filename(filename, &block)
     else
       raise "invalid source #{source.inspect}"
     end
@@ -83,6 +91,21 @@ module OllamaChat::SourceFetching
     STDERR.puts "Cannot fetch source #{source.to_s.inspect}: #{e.class} #{e}\n#{e.backtrace * ?\n}"
   end
 
+  # Reads a file and extends it with header extension metadata. It then yields
+  # the file to the provided block for processing. If the file does not exist,
+  # it outputs an error message to standard error.
+  #
+  # @param filename [ String ] the path to the file to be read
+  #
+  # @yield [ file ] yields the opened file with header extension
+  #
+  # @return [ nil ] returns nil if the file does not exist
+  # @return [ Object ] returns the result of the block execution if the file exists
+  private def fetch_source_as_filename(filename, &block)
+    OllamaChat::Utils::Fetcher.read(filename) do |tmp|
+      block.(tmp)
+    end
+  end
 
   # Adds an image to the images collection from the given source IO and source
   # identifier.

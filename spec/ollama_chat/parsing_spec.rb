@@ -167,9 +167,23 @@ EOT
     end
 
     it 'can parse file URLs' do
-      content, = chat.parse_content("see file://#{Dir.pwd}/spec/assets/example.html", [])
+      source_path= Pathname.pwd.join('spec/assets/example.html')
+      content, = chat.parse_content("see file://#{source_path}", [])
       expect(content).to include(<<~EOT)
-        Imported "#{Pathname.pwd.join('spec/assets/example.html')}":
+        Imported "file://#{source_path}":
+
+        # My First Heading
+
+        My first paragraph.
+      EOT
+    end
+
+    it 'can parse file URLs with spaces' do
+      source_path= Pathname.pwd.join('spec/assets/example with ".html')
+      file_url = "file://#{source_path.to_s.gsub(' ', '%20').gsub('"', '%22')}"
+      content, = chat.parse_content("see #{file_url}", [])
+      expect(content).to include(<<~EOT)
+        Imported "#{file_url}":
 
         # My First Heading
 
@@ -178,9 +192,22 @@ EOT
     end
 
     it 'can parse file paths' do
-      content, = chat.parse_content("see #{Dir.pwd}/spec/assets/example.html", [])
+      file_path = Pathname.pwd.join('spec/assets/example.html')
+      content, = chat.parse_content("see #{file_path}", [])
       expect(content).to include(<<~EOT)
-        Imported "#{Pathname.pwd.join('spec/assets/example.html')}":
+        Imported "#{file_path}":
+
+        # My First Heading
+
+        My first paragraph.
+      EOT
+    end
+
+    it 'can parse quoted file paths' do
+      file_path = Pathname.pwd.join('spec/assets/example with ".html')
+      content, = chat.parse_content(%{see "#{Dir.pwd}/spec/assets/example with \\".html"}, [])
+      expect(content).to include(<<~EOT)
+        Imported "#{Dir.pwd}/spec/assets/example with \\".html":
 
         # My First Heading
 

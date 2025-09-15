@@ -189,6 +189,21 @@ module OllamaChat::Parsing
     )
   end
 
+  CONTENT_REGEXP = %r{
+    (https?://\S+)                         # Match HTTP/HTTPS URLs
+    |                                      # OR
+    (?<![a-zA-Z\d])                        # Negative lookbehind: not part of a larger word
+    \#                                     # Literal # character (starts a tag)
+    ([\w\]\[]+)                            # Tag content: alphanumeric, brackets, underscores
+    |                                      # OR
+    (file://(?:[^\s#]+))                   # Match file:// URLs
+    |                                      # OR
+    "((?:\.\.|[~.]?)/(?:\\"|\\|[^"\\]+)+)" # Quoted file path with escaped " quotes
+    |                                      # OR
+    (\S*\/\S+)                             # File path with at least one forward slash
+  }x
+  private_constant :CONTENT_REGEXP
+
   # Parses content and processes embedded resources based on document policy
   #
   # This method analyzes input content for URLs, tags, and file references,
@@ -203,28 +218,30 @@ module OllamaChat::Parsing
   def parse_content(content, images)
     images.clear
     tags = Documentrix::Utils::Tags.new valid_tag: /\A#*([\w\]\[]+)/
-
     contents = [ content ]
-    content.scan(%r((https?://\S+)|(?<![a-zA-Z\d])#+([\w\]\[]+)|(?:file://)?(\S*\/\S+))).each do |url, tag, file|
+    content.scan(CONTENT_REGEXP).each { |url, tag, file_url, quoted_file, file|
+      check_exist = false
       case
       when tag
         tags.add(tag)
         next
-      when file
-        file = file.sub(/#.*/, '')
-        file =~ %r(\A[~./]) or file.prepend('./')
-        file = begin
-                 File.expand_path(file)
-               rescue ArgumentError
-                 next
-               end
-        File.exist?(file) or next
-        source = file
       when url
         links.add(url.to_s)
         source = url
+      when file_url
+        check_exist = true
+        source      = file_url
+      when quoted_file
+        file = quoted_file.gsub('\"', ?")
+        file =~ %r(\A[~./]) or file.prepend('./')
+        check_exist = true
+        source      = file
+      when file
+        file =~ %r(\A[~./]) or file.prepend('./')
+        check_exist = true
+        source      = file
       end
-      fetch_source(source) do |source_io|
+      fetch_source(source, check_exist:) do |source_io|
         case source_io&.content_type&.media_type
         when 'image'
           add_image(images, source_io, source)
@@ -246,7 +263,7 @@ module OllamaChat::Parsing
           )
         end
       end
-    end
+    }
     new_content = contents.select { _1.present? rescue nil }.compact * "\n\n"
     return new_content, (tags unless tags.empty?)
   end
