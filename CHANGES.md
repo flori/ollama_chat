@@ -1,5 +1,20 @@
 # Changes
 
+## 2025-09-17 v0.0.34
+
+- Modified `-d` flag semantics to use working directory instead of runtime
+  directory for socket path derivation
+- Updated `send_to_server_socket` and `create_socket_server` methods to accept
+  `working_dir` parameter
+- Changed argument parsing in `ollama_chat_send` binary to utilize
+  `working_dir` instead of `runtime_dir`
+- Updated documentation and help text to reflect new `-d` option semantics
+- Added tests covering new `working_dir` functionality with default fallback to
+  current directory
+- Maintained backward compatibility by preserving existing `runtime_dir`
+  behavior when specified
+- Modified method signatures to support both old and new parameter styles
+
 ## 2025-09-15 v0.0.33
 
 - Enhanced `CONTENT_REGEXP` to support escaped spaces in file paths using
