@@ -38,12 +38,13 @@ module OllamaChat::ServerSocket
     # @param config [ ComplexConfig::Settings ] the configuration object containing server settings
     # @param type [ Symbol ] the type of message transmission, defaults to :socket_input
     # @param runtime_dir [ String ] pathname to runtime_dir of socket file
+    # @param working_dir [ String ] pathname to working_dir used for deriving socket file
     # @param parse [ TrueClass, FalseClass ] whether to parse the response, defaults to false
     #
     # @return [ UnixSocks::Message, nil ] the response from transmit_with_response if type
     # is :socket_input_with_response, otherwise nil
-    def send_to_server_socket(content, config:, type: :socket_input, runtime_dir: nil, parse: false)
-      server  = create_socket_server(config:, runtime_dir:)
+    def send_to_server_socket(content, config:, type: :socket_input, runtime_dir: nil, working_dir: nil, parse: false)
+      server  = create_socket_server(config:, runtime_dir:, working_dir:)
       message = { content:, type:, parse: }
       if type.to_sym == :socket_input_with_response
         server.transmit_with_response(message)
@@ -65,15 +66,18 @@ module OllamaChat::ServerSocket
     #
     # @param config [ComplexConfig::Settings] the configuration object
     # containing server settings
+    # @param runtime_dir [ String ] pathname to runtime_dir of socket file
+    # @param working_dir [ String ] pathname to working_dir used for deriving socket file
     #
     # @return [UnixSocks::Server] a configured Unix domain socket server
     # instance ready to receive messages
-    def create_socket_server(config:, runtime_dir: nil)
+    def create_socket_server(config:, runtime_dir: nil, working_dir: nil)
+      working_dir ||= Dir.pwd
       if runtime_dir
         return UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
       end
       if config.working_dir_dependent_socket
-        path   = File.expand_path(Dir.pwd)
+        path   = File.expand_path(working_dir)
         digest = Digest::MD5.hexdigest(path)
         UnixSocks::Server.new(socket_name: "ollama_chat-#{digest}.sock")
       else

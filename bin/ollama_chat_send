@@ -4,9 +4,15 @@ require 'ollama_chat'
 require 'tins/go'
 include Tins::GO
 
-
 opts = go 'f:d:rtph', ARGV
 
+# Displays the usage information for the ollama_chat_send command.
+#
+# This method outputs a formatted help message that describes the available
+# options and usage of the ollama_chat_send command, including details about
+# sending input to a running Ollama Chat client.
+#
+# @param rc [ Integer ] the exit code to use when exiting the program
 def usage(rc = 0)
   puts <<~EOT
     Usage: #{File.basename($0)} [OPTIONS]
@@ -16,7 +22,7 @@ def usage(rc = 0)
       -t         Send input as terminal input including commands, e. g. /import
       -p         Send input with source parsing enabled (defaults to disabled)
       -f CONFIG  file to read
-      -d DIR     the runtime directory to look for the socket file
+      -d DIR     the working directory to derive the socket file from
       -h         Show this help message
 
     Send data to a running Ollame Chat client via standard input.
@@ -36,8 +42,8 @@ begin
     STDIN.read,
     type:,
     config:,
-    runtime_dir: opts[?d],
-    parse: !!opts[?p]
+    working_dir: opts[?d],
+    parse:       !!opts[?p]
   )
   type == :socket_input_with_response and puts response.content
 rescue => e

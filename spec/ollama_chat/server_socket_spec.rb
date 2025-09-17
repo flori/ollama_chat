@@ -13,7 +13,7 @@ describe OllamaChat::ServerSocket do
 
       before do
         expect(OllamaChat::ServerSocket).to receive(:create_socket_server).
-          with(config: config, runtime_dir: nil).and_return(server)
+          with(config: config, runtime_dir: nil, working_dir: nil).and_return(server)
       end
 
       context 'with default parameters' do
@@ -50,7 +50,8 @@ describe OllamaChat::ServerSocket do
           message = { content: 'test', type: :socket_input_with_response, parse: false }
           response = double('Response')
 
-          expect(server).to receive(:transmit_with_response).with(message).and_return(response)
+          expect(server).to receive(:transmit_with_response).with(message).
+            and_return(response)
 
           result = OllamaChat::ServerSocket.send_to_server_socket(
             'test',
@@ -68,7 +69,8 @@ describe OllamaChat::ServerSocket do
           message = { content: 'test', type: :socket_input_with_response, parse: true }
           response = double('Response')
 
-          expect(server).to receive(:transmit_with_response).with(message).and_return(response)
+          expect(server).to receive(:transmit_with_response).with(message).
+            and_return(response)
 
           result = OllamaChat::ServerSocket.send_to_server_socket(
             'test',
@@ -82,10 +84,32 @@ describe OllamaChat::ServerSocket do
       end
     end
 
+    context 'with working_dir' do
+      before do
+        expect(OllamaChat::ServerSocket).to receive(:create_socket_server).
+          with(config: config, runtime_dir: nil, working_dir: 'foo/path').
+          and_return(server)
+      end
+
+      context 'with working_dir parameter' do
+        it 'uses correct parameter' do
+          message = { content: 'test', type: :socket_input, parse: false }
+          expect(server).to receive(:transmit).with(message).and_return(nil)
+
+          result = OllamaChat::ServerSocket.send_to_server_socket(
+            'test', config: config, working_dir: 'foo/path'
+          )
+
+          expect(result).to be_nil
+        end
+      end
+    end
+
     context 'with runtime_dir parameter' do
       before do
         expect(OllamaChat::ServerSocket).to receive(:create_socket_server).
-          with(config: config, runtime_dir: '/foo/bar').and_return(server)
+          with(config: config, runtime_dir: '/foo/bar', working_dir: nil).
+          and_return(server)
       end
 
       it 'uses correct defaults' do
@@ -94,7 +118,9 @@ describe OllamaChat::ServerSocket do
         expect(server).to receive(:transmit).with(message).and_return(nil)
 
 
-        result = OllamaChat::ServerSocket.send_to_server_socket('test', config: config, runtime_dir: '/foo/bar')
+        result = OllamaChat::ServerSocket.send_to_server_socket(
+          'test', config: config, runtime_dir: '/foo/bar'
+        )
 
         expect(result).to be_nil
       end

@@ -228,6 +228,16 @@ The `ollama_chat_send` command now supports additional parameters to enhance fun
   $ echo "Visit https://example.com for more info" | ollama_chat_send -p
   ```
 
+- **Working Directory (`-d`)**: Specifies the working directory used to derive
+  the Unix socket file path. When the ollama chat configuration is set to use a
+  working directory dependent socket (via `working_dir_dependent_socket: true`),
+  this option determines the base path for socket naming. If not specified, the
+  current working directory is assumed.
+
+  ```bash
+  $ echo "Hello world" | ollama_chat_send -d /tmp/my_working_dir -r
+  ```
+
 - **Runtime Directory (`-d`)**: Specifies the directory where the Unix socket
   file of `ollama_chat` was created, if you want to send to a specific
   `ollama_chat`.
