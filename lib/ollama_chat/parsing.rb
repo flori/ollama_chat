@@ -200,7 +200,7 @@ module OllamaChat::Parsing
     |                                      # OR
     "((?:\.\.|[~.]?)/(?:\\"|\\|[^"\\]+)+)" # Quoted file path with escaped " quotes
     |                                      # OR
-    ((?:\.\.|[~.]?)/(?:\\\ |\\|[^\\ ]+)+)  # File path with escaped spaces
+    ((?:\.\.|[~.]?)/(?:\\\ |\\|[^\\\s]+)+) # File path with escaped spaces
   }x
   private_constant :CONTENT_REGEXP
 
