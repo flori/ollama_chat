@@ -1,8 +1,7 @@
 ---
-url: <%= ENV['OLLAMA_URL'] || 'http://%s' % ENV.fetch('OLLAMA_HOST') %>
 proxy: null # http://localhost:8080
 model:
-  name: <%= ENV.fetch('OLLAMA_CHAT_MODEL', 'llama3.1') %>
+  name: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::MODEL %>
   options:
     num_ctx: 8192
 timeouts:
@@ -33,7 +32,7 @@ prompts:
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, on %{localtime}, preferring %{units}
 system_prompts:
-  default: <%= ENV.fetch('OLLAMA_CHAT_SYSTEM', 'null') %>
+  default: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::SYSTEM || 'null' %>
   assistant: You are a helpful assistant.
 voice:
   enabled: false
@@ -54,7 +53,7 @@ embedding:
     prompt: 'Represent this sentence for searching relevant passages: %s'
   batch_size: 10
   database_filename: null # ':memory:'
-  collection: <%= ENV['OLLAMA_CHAT_COLLECTION'] %>
+  collection: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::COLLECTION %>
   found_texts_size: 4096
   found_texts_count: 10
   splitter:
@@ -63,13 +62,11 @@ embedding:
 cache: Documentrix::Documents::SQLiteCache
 redis:
   documents:
-    url: <%= ENV.fetch('REDIS_URL', 'null') %>
+    url: <%= OllamaChat::EnvConfig::OLLAMA::REDIS_URL %>
   expiring:
-    url: <%= ENV.fetch('REDIS_EXPIRING_URL', 'null') %>
+    url: <%= OllamaChat::EnvConfig::OLLAMA::REDIS_EXPIRING_URL %>
     ex: 86400
-chat_history_filename: <%= ENV.fetch('OLLAMA_CHAT_HISTORY', '~/.ollama_chat_history') %>
 working_dir_dependent_socket: true
-debug: <%= ENV['OLLAMA_CHAT_DEBUG'].to_i == 1 ? true : false %>
 request_headers:
   Accept: 'text/*,application/*,image/*'
 ssl_no_verify: []
@@ -80,4 +77,4 @@ web_search:
     duckduckgo:
       url: 'https://www.duckduckgo.com/html/?q=%{query}'
     searxng:
-      url: <%= ENV.fetch('OLLAMA_SEARXNG_URL', 'http://localhost:8088/search?q=%{query}&language=en&format=json') %>
+      url: <%= OllamaChat::EnvConfig::OLLAMA::SEARXNG_URL %>

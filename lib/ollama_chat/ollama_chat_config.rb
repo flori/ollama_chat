@@ -112,6 +112,6 @@ class OllamaChat::OllamaChatConfig
   #
   # @return [ String ] the command name of the diff tool to be used
   def diff_tool
-    ENV.fetch('DIFF_TOOL', 'vimdiff')
+    OllamaChat::EnvConfig::DIFF_TOOL?
   end
 end

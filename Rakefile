@@ -29,7 +29,7 @@ GemHadar do
 
   readme      'README.md'
 
-  required_ruby_version  '~> 3.1'
+  required_ruby_version  '~> 3.2'
 
   executables << 'ollama_chat' << 'ollama_chat_send'
 
@@ -50,6 +50,7 @@ GemHadar do
   dependency             'amatch',                '~> 0.4.1'
   dependency             'pdf-reader',            '~> 2.0'
   dependency             'csv',                   '~> 3.0'
+  dependency             'const_conf',            '~> 0.3'
   development_dependency 'all_images',            '~> 0.6'
   development_dependency 'rspec',                 '~> 3.2'
   development_dependency 'kramdown',              '~> 2.0'

@@ -11,6 +11,7 @@ rescue LoadError
 end
 require 'webmock/rspec'
 WebMock.disable_net_connect!
+require 'const_conf/spec'
 require 'ollama_chat'
 
 ComplexConfig::Provider.deep_freeze = false
@@ -108,6 +109,7 @@ module StubOllamaServer
         to_return(status: 200, body: asset_json('api_show.json'))
       stub_request(:get, %r(/api/version\z)).
         to_return(status: 200, body: asset_json('api_version.json'))
+      allow_any_instance_of(OllamaChat::Chat).to receive(:connect_message)
       instantiate and chat
     end
   end
@@ -145,12 +147,10 @@ RSpec.configure do |config|
   config.include AssetHelpers
   config.extend StubOllamaServer
 
-  config.around(&ProtectEnvVars.apply)
-  config.before(:each) do
-    ENV['OLLAMA_HOST'] = 'localhost:11434'
-  end
-
   config.before(:suite) do
     infobar.show = nil
   end
+
+  config.around(&ProtectEnvVars.apply)
+  config.include(ConstConf::ConstConfHelper)
 end

@@ -58,7 +58,15 @@ module OllamaChat::Dialog
         cli_model || current_model
       end
   ensure
-    STDOUT.puts green { "Connecting to #{model}@#{ollama.base_url} now…" }
+    connect_message(model, ollama.base_url)
+  end
+
+  # The connect_message method displays a connection status message.
+  #
+  # @param model [String] the model name to connect to
+  # @param base_url [String] the base URL of the connection
+  def connect_message(model, base_url)
+    STDOUT.puts green { "Connecting to #{model}@#{base_url} now…" }
   end
 
   # The ask? method prompts the user with a question and returns their input.

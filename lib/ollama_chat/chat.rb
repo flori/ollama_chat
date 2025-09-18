@@ -84,13 +84,13 @@ class OllamaChat::Chat
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
     setup_switches(config)
-    base_url         = @opts[?u] || config.url
+    base_url         = @opts[?u] || OllamaChat::EnvConfig::OLLAMA::URL
     @ollama          = Ollama::Client.new(
       connect_timeout: config.timeouts.connect_timeout?,
       read_timeout:    config.timeouts.read_timeout?,
       write_timeout:   config.timeouts.write_timeout?,
       base_url:        base_url,
-      debug:           config.debug,
+      debug:           ,
       user_agent:
     )
     if server_version.version < '0.9.0'.version
@@ -122,6 +122,13 @@ class OllamaChat::Chat
     @opts[?S] and init_server_socket
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
+  end
+
+  # The debug method accesses the debug configuration setting.
+  #
+  # @return [TrueClass, FalseClass] the current debug mode status
+  def debug
+    OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG
   end
 
   # The ollama reader returns the Ollama API client instance.
@@ -497,11 +504,7 @@ class OllamaChat::Chat
   # and available system commands, then uses Kramdown::ANSI::Pager to show the
   # formatted configuration output.
   def display_config
-    default_pager = ENV['PAGER'].full?
-    if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
-      fallback_pager << ' -r'
-    end
-    my_pager = default_pager || fallback_pager
+    command  = OllamaChat::EnvConfig::PAGER?
     rendered = config.to_s
     Kramdown::ANSI::Pager.pager(
       lines: rendered.count(?\n),
@@ -610,7 +613,7 @@ class OllamaChat::Chat
                  end
           [ link, ?# + record.tags.first ]
         }.uniq.map { |l, t| hyperlink(l, t) }.join(' ')
-        config.debug and jj messages.to_ary
+        debug and jj messages.to_ary
       end
 
       case type
@@ -660,7 +663,7 @@ class OllamaChat::Chat
         collection:        ,
         cache:             configure_cache,
         redis_url:         config.redis.documents.url?,
-        debug:             config.debug
+        debug:
       )
 
       document_list = @opts[?D].to_a
@@ -750,9 +753,12 @@ class OllamaChat::Chat
     save_conversation('backup.json')
     STDOUT.puts "When reading the config file, a #{exception.class} "\
       "exception was caught: #{exception.message.inspect}"
+    unless diff_tool = OllamaChat::EnvConfig::DIFF_TOOL?
+      exit 1
+    end
     if ask?(prompt: 'Do you want to fix the config? (y/n) ') =~ /\Ay/i
       system Shellwords.join([
-        @ollama_chat_config.diff_tool,
+        diff_tool,
         @ollama_chat_config.filename,
         @ollama_chat_config.default_config_path,
       ])

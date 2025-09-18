@@ -7,21 +7,21 @@ describe OllamaChat::KramdownANSI do
 
   describe '#configure_kramdown_ansi_styles', protect_env: true do
     it 'can be configured via env var' do
-      ENV['KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES'] = '{}'
-      ENV.delete('KRAMDOWN_ANSI_STYLES')
-
+      const_conf_as(
+        'OllamaChat::EnvConfig::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES' => '{"foo":"bar"}'
+      )
       styles = { bold: '1' }
-      expect(Kramdown::ANSI::Styles).to receive(:from_env_var).
-        with('KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES').
+      expect(Kramdown::ANSI::Styles).to receive(:from_json).
+        with('{"foo":"bar"}').
         and_return(double(ansi_styles: styles))
 
       expect(chat.configure_kramdown_ansi_styles).to eq(styles)
     end
 
     it 'has a default configuration' do
-      ENV.delete('KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES')
-      ENV.delete('KRAMDOWN_ANSI_STYLES')
-
+      const_conf_as(
+        'OllamaChat::EnvConfig::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES' => nil
+      )
       expect(chat.configure_kramdown_ansi_styles).to be_a(Hash)
     end
   end

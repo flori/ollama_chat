@@ -65,7 +65,7 @@ module OllamaChat::SourceFetching
         source,
         headers:      config.request_headers?.to_h,
         cache:        @cache,
-        debug:        config.debug,
+        debug:        ,
         http_options: http_options(OllamaChat::Utils::Fetcher.normalize_url(source))
       ) do |tmp|
         block.(tmp)

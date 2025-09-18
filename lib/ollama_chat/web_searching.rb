@@ -58,7 +58,7 @@ module OllamaChat::WebSearching
     OllamaChat::Utils::Fetcher.get(
       url,
       headers: config.request_headers?.to_h,
-      debug:   config.debug
+      debug:
     ) do |tmp|
       data = JSON.parse(tmp.read, object_class: JSON::GenericObject)
       data.results.first(n).map(&:url)
@@ -79,7 +79,7 @@ module OllamaChat::WebSearching
     OllamaChat::Utils::Fetcher.get(
       url,
       headers: config.request_headers?.to_h,
-      debug:   config.debug
+      debug:
     ) do |tmp|
       result = []
       doc = Nokogiri::HTML(tmp)

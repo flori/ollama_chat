@@ -174,6 +174,6 @@ class OllamaChat::FollowChat
   #
   # @param response [ Object ] the response object to be outputted
   def debug_output(response)
-    OllamaChat::Chat.config.debug and jj response
+    @chat.debug and jj response
   end
 end

@@ -312,11 +312,7 @@ class OllamaChat::MessageList
   # '-r' flag for proper handling of raw control characters when a fallback
   # pager is used.
   def determine_pager_command
-    default_pager = ENV['PAGER'].full?
-    if fallback_pager = `which less`.chomp.full? || `which more`.chomp.full?
-      fallback_pager << ' -r'
-    end
-    default_pager || fallback_pager
+    OllamaChat::EnvConfig::PAGER?
   end
 
   # The use_pager method wraps the given block with a pager context.

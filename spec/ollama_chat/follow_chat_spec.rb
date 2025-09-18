@@ -8,7 +8,7 @@ describe OllamaChat::FollowChat do
   end
 
   let :chat do
-    double('Chat', markdown: double(on?: false), think: double(on?: false))
+    double('Chat', markdown: double(on?: false), think: double(on?: false), debug: false)
   end
 
   let :follow_chat do
@@ -17,10 +17,6 @@ describe OllamaChat::FollowChat do
 
   let :output do
     double('output', :sync= => true)
-  end
-
-  before do
-    allow(OllamaChat::Chat).to receive(:config).and_return(double(debug: false))
   end
 
   it 'has .call' do
