@@ -143,7 +143,7 @@ class OllamaChat::Chat
   # Documentrix::Documents instance.
   #
   # @return [Documentrix::Documents] A Documentrix::Documents object containing
-  # all documents associated with this instance
+  #   all documents associated with this instance
   attr_reader :documents
 
   # Returns the messages set for this object, initializing it lazily if needed.
@@ -153,7 +153,7 @@ class OllamaChat::Chat
   # OllamaChat::MessageList instance.
   #
   # @return [OllamaChat::MessageList] A MessageList object containing all
-  # messages associated with this instance
+  #   messages associated with this instance
   attr_reader :messages
 
   # Returns the links set for this object, initializing it lazily if needed.
@@ -202,6 +202,11 @@ class OllamaChat::Chat
 
   private
 
+  # Handles user input commands and processes chat interactions.
+  #
+  # @param content [String] The input content to process
+  # @return [Symbol, String, nil] Returns a symbol indicating next action,
+  #   the content to be processed, or nil for no action needed
   def handle_input(content)
     case content
     when %r(^/copy$)
@@ -470,7 +475,7 @@ class OllamaChat::Chat
   # specified parameter.
   #
   # @param what [ String, nil ] the type of data to clear, defaults to
-  # 'messages' if nil
+  #   'messages' if nil
   def clean(what)
     case what
     when 'messages', nil
@@ -647,7 +652,7 @@ class OllamaChat::Chat
   # configured document collection.
   #
   # @return [ Documentrix::Documents, NULL ] the initialized document
-  # collection if embedding is enabled, otherwise NULL
+  #   collection if embedding is enabled, otherwise NULL
   def setup_documents
     if embedding.on?
       @embedding_model         = config.embedding.model.name
@@ -729,7 +734,7 @@ class OllamaChat::Chat
   # expiring keys if a Redis URL is configured.
   #
   # @return [ Documentrix::Documents::RedisCache, nil ] the configured Redis
-  # cache instance or nil if no URL is set.
+  #   cache instance or nil if no URL is set.
   def setup_cache
     if url = config.redis.expiring.url?
       ex = config.redis.expiring.ex?.to_i
@@ -748,7 +753,7 @@ class OllamaChat::Chat
   # This method exits the program after handling the configuration error
   #
   # @param exception [ Exception ] the exception that occurred while reading
-  # the config file
+  #   the config file
   def fix_config(exception)
     save_conversation('backup.json')
     STDOUT.puts "When reading the config file, a #{exception.class} "\
