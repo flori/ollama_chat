@@ -1,5 +1,26 @@
 # Changes
 
+## 2025-09-18 v0.0.35
+
+- Replaced ad-hoc ENV handling with `const_conf` gem for structured
+  configuration management
+- Bumped required Ruby version from **3.1** to **3.2**
+- Added `const_conf (~> 0.3)` as a runtime dependency
+- Introduced `OllamaChat::EnvConfig` module to centralize environment variables
+- Updated `OllamaChat::Chat`, `OllamaChat::FollowChat`, and related classes to
+  use the new configuration system
+- Replaced direct ENV access with `EnvConfig::OLLAMA::URL`,
+  `EnvConfig::PAGER?`, etc.
+- Refactored default configuration values in YAML files to use `const_conf`
+  constants
+- Removed legacy debug flag handling and simplified `debug` method
+  implementation
+- Updated test suite to use `const_conf_as` helper and removed old ENV stubbing
+  logic
+- Adjusted gemspec to include new files and dependencies, updated required Ruby
+  version
+- Updated regex pattern to match only escaped spaces in file paths
+
 ## 2025-09-17 v0.0.34
 
 - Modified `-d` flag semantics to use working directory instead of runtime
