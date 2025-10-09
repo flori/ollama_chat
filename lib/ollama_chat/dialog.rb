@@ -158,7 +158,7 @@ module OllamaChat::Dialog
     if prompts.size == 1
       system = config.system_prompts.send(prompts.first)
     else
-      prompts.unshift('[EXIT]').unshift('[NEW]')
+      prompts.unshift('[NEW]').unshift('[EXIT]')
       chosen = OllamaChat::Utils::Chooser.choose(prompts)
       system =
         case chosen
