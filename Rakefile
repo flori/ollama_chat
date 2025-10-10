@@ -24,14 +24,17 @@ GemHadar do
     '.yardoc', 'doc', 'tags', 'corpus', 'coverage', '/config/searxng/*',
     '.starscope.db', 'cscope.out'
   package_ignore '.all_images.yml', '.tool-versions', '.gitignore', 'VERSION',
-    '.rspec', '.github', *FileList['.contexts/*'], '.envrc'
-
+    '.rspec', '.github', '.contexts', '.envrc', '.yardopts'
 
   readme      'README.md'
 
   required_ruby_version  '~> 3.2'
 
   executables << 'ollama_chat' << 'ollama_chat_send'
+
+  github_workflows(
+    'static.yml' => {}
+  )
 
   dependency             'excon',                 '~> 1.0'
   dependency             'ollama-ruby',           '~> 1.7'
