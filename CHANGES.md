@@ -1,5 +1,23 @@
 # Changes
 
+## 2025-10-11 v0.0.36
+
+- Added `openssl-dev` package to apk packages in Dockerfile
+- Replaced explicit `_1` parameter syntax with implicit `_1` syntax for
+  compatibility with older Ruby versions
+- Removed `require 'xdg'` statement from `chat.rb`
+- Removed `xdg` gem dependency and implemented direct XDG directory usage
+- Added documentation link to README with a link to the GitHub.io documentation
+  site
+- Introduced GitHub Actions workflow for static content deployment to GitHub
+  Pages
+- Updated `gem_hadar` development dependency to version **2.8**
+- Reordered menu options in dialog prompts to place `[EXIT]` first
+- Corrected YARD documentation guidelines for `initialize` methods
+- Updated documentation comments with consistent formatting
+- Updated Redis (ValKey) image version from **8.1.1** to **8.1.3**
+- Removed deprecated `REDIS_EXPRING_URL` environment variable from `.envrc`
+
 ## 2025-09-18 v0.0.35
 
 - Replaced ad-hoc ENV handling with `const_conf` gem for structured
