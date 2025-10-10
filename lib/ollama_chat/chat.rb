@@ -13,7 +13,6 @@ require 'nokogiri'
 require 'rss'
 require 'pdf/reader'
 require 'csv'
-require 'xdg'
 require 'socket'
 require 'shellwords'
 
