@@ -5,6 +5,10 @@
 **ollama_chat** is a chat client, that can be used to connect to an ollama
 server and enter chat conversations with the LLMs provided by it.
 
+## Documentation
+
+Complete API documentation is available at: [GitHub.io](https://flori.github.io/ollama_chat/)
+
 ## Installation (gem)
 
 To install **ollama_chat**, you can type
