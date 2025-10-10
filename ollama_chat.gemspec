@@ -41,7 +41,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<redis>.freeze, ["~> 5.0".freeze])
   s.add_runtime_dependency(%q<mime-types>.freeze, ["~> 3.0".freeze])
   s.add_runtime_dependency(%q<reverse_markdown>.freeze, ["~> 3.0".freeze])
-  s.add_runtime_dependency(%q<xdg>.freeze, [">= 0".freeze])
   s.add_runtime_dependency(%q<kramdown-ansi>.freeze, ["~> 0.2".freeze])
   s.add_runtime_dependency(%q<complex_config>.freeze, ["~> 0.22".freeze, ">= 0.22.2".freeze])
   s.add_runtime_dependency(%q<tins>.freeze, ["~> 1.41".freeze])

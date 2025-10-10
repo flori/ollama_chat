@@ -1,4 +1,5 @@
 require 'const_conf'
+require 'pathname'
 
 module OllamaChat
   module EnvConfig
@@ -6,6 +7,18 @@ module OllamaChat
 
     description 'Environment config for OllamaChat'
     prefix ''
+
+    XDG_CONFIG_HOME = set do
+      description 'XDG Configuration directory path'
+      default { '~/.config' }
+      decode  { Pathname.new(it) + 'ollama_chat' }
+    end
+
+    XDG_CACHE_HOME = set do
+      description 'XDG Cache directory path'
+      default { '~/.cache' }
+      decode  { Pathname.new(it) + 'ollama_chat' }
+    end
 
     PAGER = set do
       description 'Pager command to use in case terminal lines are exceeded by output'

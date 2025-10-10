@@ -87,7 +87,7 @@ class OllamaChat::OllamaChatConfig
   # @return [ Pathname ] the pathname object representing the configuration
   # directory
   def config_dir_path
-    XDG.new.config_home + 'ollama_chat'
+    OllamaChat::EnvConfig::XDG_CONFIG_HOME
   end
 
   # The cache_dir_path method returns the path to the ollama_chat cache
@@ -95,7 +95,7 @@ class OllamaChat::OllamaChatConfig
   #
   # @return [ Pathname ] the pathname object representing the cache directory path
   def cache_dir_path
-    XDG.new.cache_home + 'ollama_chat'
+    OllamaChat::EnvConfig::XDG_CACHE_HOME
   end
 
   # The database_path method constructs the full path to the documents database
