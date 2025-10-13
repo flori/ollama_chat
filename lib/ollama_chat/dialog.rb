@@ -149,8 +149,11 @@ module OllamaChat::Dialog
   # @param system [ String ] the system prompt identifier or pattern to
   # search for
   def change_system_prompt(default, system: nil)
-    selector = if system =~ /\A\?(.+)\z/
+    selector = case system
+               when /\A\?(.+)\z/
                  Regexp.new($1)
+               when ??
+                 /./
                else
                  Regexp.new(system.to_s)
                end
