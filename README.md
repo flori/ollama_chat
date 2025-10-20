@@ -35,7 +35,7 @@ The following environment variables can be used to configure behavior:
 - `PAGER` - Default pager for output
 - `REDIS_URL` - Redis connection URL for caching
 - `REDIS_EXPIRING_URL` - Redis connection URL for expiring data
-- `OLLAMA_CHAT_HISTORY` - Chat history filename (default: `~/.ollama_chat_history`)
+- `OLLAMA_CHAT_HISTORY` - Chat history filename (default: `$XDG_CACHE_HOME/ollama_chat/history.json`)
 - `OLLAMA_CHAT_DEBUG` - Debug mode toggle (1 = enabled)
 - `DIFF_TOOL` - Tool for diff operations (default: `vimdiff`)
 - `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL

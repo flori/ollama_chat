@@ -105,7 +105,7 @@ module OllamaChat
 
         HISTORY = set do
           description 'File to save the chat history in'
-          default     '~/.ollama_chat_history'
+          default     XDG_CACHE_HOME + 'history.json'
         end
       end
     end
