@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
-# stub: ollama_chat 0.0.36 ruby lib
+# stub: ollama_chat 0.0.37 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "ollama_chat".freeze
-  s.version = "0.0.36".freeze
+  s.version = "0.0.37".freeze
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
