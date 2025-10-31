@@ -1,5 +1,17 @@
 # Changes
 
+## 2025-10-31 v0.0.37
+
+- Refactored system prompt selection logic to use `case`/`when` statement
+  instead of `if`/`elsif` for improved readability
+- Maintained same functionality for regex pattern matching with `/\A\?(.+)\z/`
+  pattern
+- Handled special case with `?` argument to match any character with `/./` regex
+- Updated `amatch` dependency version constraint from `~> 0.4.1` to `~> 0.4` in
+  `Rakefile` and `ollama_chat.gemspec`
+- Updated `rubygems` version requirement from **3.6.9** to **3.7.2** in
+  `ollama_chat.gemspec`
+
 ## 2025-10-11 v0.0.36
 
 - Added `openssl-dev` package to apk packages in Dockerfile
