@@ -59,7 +59,6 @@ code_indexer do
     tins
     unix_socks
     webmock
-    xdg
   ]
 
   paths {
