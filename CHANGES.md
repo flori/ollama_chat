@@ -1,5 +1,22 @@
 # Changes
 
+## 2025-11-11 v0.0.38
+
+- Added `ask?` method call to confirm overwriting existing files when saving
+  conversations
+- Modified `save_conversation` in `OllamaChat::Conversation` to prompt before
+  overwriting
+- Removed explicit file existence check from `MessageList#save_conversation`
+- Both `/save` and `/output` commands now support overwrite confirmation
+- Replace `write_file_unless_exist` method with `attempt_to_write_file`
+- Add user confirmation prompt before overwriting existing files
+- Update method documentation to reflect new overwrite behavior
+- Modify file writing logic to use `attempt_to_write_file` instead of direct
+  write
+- Update `output` method to check return value of `attempt_to_write_file`
+  before printing success message
+- Removed `xdg` gem from the list of dependencies in `code_indexer` block
+
 ## 2025-10-31 v0.0.37
 
 - Refactored system prompt selection logic to use `case`/`when` statement
