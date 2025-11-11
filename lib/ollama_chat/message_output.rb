@@ -43,18 +43,16 @@ module OllamaChat::MessageOutput
 
   # The output method writes the last assistant message to a file.
   #
-  # @param filename [ String ] the path to the file where the output should be written
+  # @param filename [ String ] the path to the file where the last assistant
+  # message should be written
   #
-  # @return [ Chat ] returns self on success, nil on failure
-  #
-  # @see write_file_unless_exist
-  #
-  # @note If no assistant message is available, an error message is printed to stderr.
+  # @return [ OllamaChat::Chat ] returns self
   def output(filename)
     if message = @messages.last and message.role == 'assistant'
       begin
-        write_file_unless_exist(filename, message)
-        STDOUT.puts "Last response was written to #{filename.inspect}."
+        if attempt_to_write_file(filename, message)
+          STDOUT.puts "Last response was written to #{filename.inspect}."
+        end
         self
       rescue => e
         STDERR.puts "Writing to #{filename.inspect}, caused #{e.class}: #{e}."
@@ -66,21 +64,28 @@ module OllamaChat::MessageOutput
 
   private
 
-  # The write_file_unless_exist method creates a new file with the specified
-  # message content, but only if a file with that name does not already exist.
+  # The attempt_to_write_file method handles writing content to a file with
+  # overwrite confirmation.
   #
-  # @param filename [ String ] the path of the file to be created
+  # This method checks if a file already exists and prompts the user for
+  # confirmation before overwriting it. If the user declines or if the file
+  # doesn't exist, the method returns early without writing. Otherwise, it
+  # opens the file in write mode and writes the message content to it.
+  #
+  # @param filename [ String ] the path to the file where the content should be written
   # @param message [ Ollama::Message ] the message object containing the content to write
   #
-  # @return [ TrueClass ] if the file was successfully created
-  # @return [ nil ] if the file already exists and was not created
-  def write_file_unless_exist(filename, message)
-    if File.exist?(filename)
-      STDERR.puts "File #{filename.inspect} already exists. Choose another filename."
+  # @return [ TrueClass ] returns true if the file was successfully written
+  # @return [ nil ] returns nil if the user chose not to overwrite or if an error occurred
+  def attempt_to_write_file(filename, message)
+    if !File.exist?(filename) ||
+        ask?(prompt: "File #{filename.inspect} already exists, overwrite? (y/n) ") =~ /\Ay/i
+    then
+      File.open(filename, ?w) do |output|
+        output.write(message.content)
+      end
+    else
       return
-    end
-    File.open(filename, ?w) do |output|
-      output.write(message.content)
     end
     true
   end
