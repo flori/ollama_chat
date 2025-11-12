@@ -70,7 +70,7 @@ working_dir_dependent_socket: true
 request_headers:
   Accept: 'text/*,application/*,image/*'
 ssl_no_verify: []
-copy: pbcopy
+copy: ctc # Copy stdin to clipboard app
 web_search:
   use: duckduckgo
   engines:
