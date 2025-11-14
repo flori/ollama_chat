@@ -1,5 +1,11 @@
 # Changes
 
+## 2025-11-14 v0.0.39
+
+- Updated `tins` dependency version from `~> 1.41` to `~> 1.47` in `Rakefile` and `ollama_chat.gemspec`
+- Updated clipboard command to use `ctc` for cross-platform support, which acts
+  as a wrapper to copy stdin to the clipboard
+
 ## 2025-11-11 v0.0.38
 
 - Added `ask?` method call to confirm overwriting existing files when saving
