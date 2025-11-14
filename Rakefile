@@ -47,7 +47,7 @@ GemHadar do
   dependency             'reverse_markdown',      '~> 3.0'
   dependency             'kramdown-ansi',         '~> 0.2'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
-  dependency             'tins',                  '~> 1.41'
+  dependency             'tins',                  '~> 1.47'
   dependency             'search_ui',             '~> 0.0'
   dependency             'amatch',                '~> 0.4'
   dependency             'pdf-reader',            '~> 2.0'

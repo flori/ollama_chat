@@ -43,7 +43,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<reverse_markdown>.freeze, ["~> 3.0".freeze])
   s.add_runtime_dependency(%q<kramdown-ansi>.freeze, ["~> 0.2".freeze])
   s.add_runtime_dependency(%q<complex_config>.freeze, ["~> 0.22".freeze, ">= 0.22.2".freeze])
-  s.add_runtime_dependency(%q<tins>.freeze, ["~> 1.41".freeze])
+  s.add_runtime_dependency(%q<tins>.freeze, ["~> 1.47".freeze])
   s.add_runtime_dependency(%q<search_ui>.freeze, ["~> 0.0".freeze])
   s.add_runtime_dependency(%q<amatch>.freeze, ["~> 0.4".freeze])
   s.add_runtime_dependency(%q<pdf-reader>.freeze, ["~> 2.0".freeze])
