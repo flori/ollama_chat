@@ -1,5 +1,14 @@
 # Changes
 
+## 2025-11-20 v0.0.41
+
+- Fixed message output specification and removed duplicate expectation
+- Added `clientserver` configuration option to `vim` section in `default_config.yml`
+- Updated `OllamaChat::Vim` to accept `clientserver:` keyword argument in `initialize`
+- Modified `insert` and `col` methods in `vim.rb` to use `--clientserver` flag
+- Passed `clientserver` from `chat.rb` when creating `OllamaChat::Vim` instance
+- Set default `clientserver` value to **socket**
+
 ## 2025-11-20 v0.0.40
 
 - Improved Vim server name generation to ensure uniqueness by replacing
