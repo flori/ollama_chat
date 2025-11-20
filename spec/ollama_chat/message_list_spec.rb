@@ -66,7 +66,6 @@ describe OllamaChat::MessageList do
 
   it 'can save conversations' do
     expect(list.save_conversation('tmp/test-conversation.json')).to eq list
-    expect(list.save_conversation('tmp/test-conversation.json')).to be_nil
   ensure
     FileUtils.rm_f 'tmp/test-conversation.json'
   end

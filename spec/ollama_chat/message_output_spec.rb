@@ -11,7 +11,7 @@ describe OllamaChat::MessageOutput do
     expect(STDERR).to receive(:puts).with(/No response available to write to "foo.txt"/)
     expect(chat.output('foo.txt')).to be_nil
     chat.instance_variable_get(:@messages).load_conversation(asset('conversation.json'))
-    expect(chat).to receive(:write_file_unless_exist).and_return true
+    expect(chat).to receive(:attempt_to_write_file).and_return true
     expect(STDOUT).to receive(:puts).with(/Last response was written to \"foo.txt\"./)
     expect(chat.output('foo.txt')).to eq chat
   end
