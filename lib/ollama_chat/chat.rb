@@ -340,7 +340,8 @@ class OllamaChat::Chat
       :next
     when %r(^/vim(?:\s+(.+))?$)
       if message = messages.last
-        OllamaChat::Vim.new($1).insert message.content
+        clientserver = config.vim?&.clientserver
+        OllamaChat::Vim.new($1, clientserver:).insert message.content
       else
         STDERR.puts "Warning: No message found to insert into Vim"
       end

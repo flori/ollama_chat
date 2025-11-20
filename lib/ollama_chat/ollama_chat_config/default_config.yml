@@ -78,3 +78,5 @@ web_search:
       url: 'https://www.duckduckgo.com/html/?q=%{query}'
     searxng:
       url: <%= OllamaChat::EnvConfig::OLLAMA::SEARXNG_URL %>
+vim:
+  clientserver: socket

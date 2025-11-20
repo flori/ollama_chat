@@ -17,11 +17,14 @@ class OllamaChat::Vim
   # @param server_name [String, nil] The name of the Vim server to connect to.
   #   If nil or empty, defaults to a server name derived from the current working
   #   directory using {default_server_name}
+  # @param clientserver [String] The clientserver protocol to use, defaults to 'socket'
+  #
   # @return [OllamaChat::Vim] A new Vim instance configured with the specified
   #   server name
-  def initialize(server_name)
+  def initialize(server_name, clientserver: nil)
     server_name.full? or server_name = self.class.default_server_name
-    @server_name = server_name
+    @server_name  = server_name
+    @clientserver = clientserver || 'socket'
   end
 
   # The default_server_name method generates a standardized server name
@@ -57,7 +60,7 @@ class OllamaChat::Vim
     Tempfile.open do |tmp|
       tmp.write(text)
       tmp.flush
-      system %{vim --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"}
+      system %{vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"}
     end
   end
 
@@ -68,6 +71,6 @@ class OllamaChat::Vim
   # the result of `col('.')`, which represents the current column number (1-indexed)
   # of the cursor position.
   def col
-    `vim --servername "#@server_name" --remote-expr "col('.')"`.chomp.to_i
+    `vim --clientserver "#@clientserver" --servername "#@server_name" --remote-expr "col('.')"`.chomp.to_i
   end
 end
