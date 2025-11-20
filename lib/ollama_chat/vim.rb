@@ -1,5 +1,4 @@
 require 'tempfile'
-require 'pathname'
 
 # A class that provides functionality for inserting text into Vim buffers via
 # remote communication.
@@ -11,23 +10,38 @@ class OllamaChat::Vim
   # Initializes a new Vim server connection
   #
   # Creates a new OllamaChat::Vim instance for interacting with a specific Vim
-  # server. If no server name is provided, it defaults to using the current
-  # working directory as the server identifier.
+  # server. If no server name is provided, it derives a standardized server
+  # name based on the current working directory using the default_server_name
+  # method.
   #
   # @param server_name [String, nil] The name of the Vim server to connect to.
-  #  If nil or empty, defaults to the current working directory path in
-  #  uppercase
+  #   If nil or empty, defaults to a server name derived from the current working
+  #   directory using {default_server_name}
+  # @return [OllamaChat::Vim] A new Vim instance configured with the specified
+  #   server name
   def initialize(server_name)
-    server_name.full? or server_name = default_server_name
+    server_name.full? or server_name = self.class.default_server_name
     @server_name = server_name
   end
 
-  # The default server name is derived from the current working directory It
-  # converts the absolute path to uppercase for consistent identification This
-  # approach ensures each working directory gets a unique server identifier The
-  # server name format makes it easy to distinguish different Vim sessions
-  def default_server_name
-    Pathname.pwd.to_s.upcase
+  # The default_server_name method generates a standardized server name
+  # based on a given name or the current working directory.
+  #
+  # This method creates a unique server identifier by combining the basename
+  # of the provided name (or current working directory) with a truncated
+  # MD5 hash digest of the full path. The resulting name is converted to
+  # uppercase for consistent formatting.
+  #
+  # @param name [ String ] the base name to use for server identification
+  #   defaults to the current working directory
+  #
+  # @return [ String ] a formatted server name suitable for use with Vim
+  #   server connections
+  def self.default_server_name(name = Dir.pwd)
+    prefix = File.basename(name)
+    suffix = Digest::MD5.hexdigest(name)[0, 8]
+    name = [ prefix, suffix ] * ?-
+    name.upcase
   end
 
   # Inserts text at the current cursor position in Vim
