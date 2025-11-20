@@ -1,5 +1,13 @@
 # Changes
 
+## 2025-11-20 v0.0.40
+
+- Improved Vim server name generation to ensure uniqueness by replacing
+  `Pathname.pwd.to_s.upcase` with `File.basename` and `Digest::MD5.hexdigest`
+- Modified `default_server_name` method to create server names in the format
+  `MYAPP-3F2B4D8A` instead of just `MYAPP`
+- Enhanced documentation for `OllamaChat::Vim#initialize` and `OllamaChat::Vim.default_server_name` methods
+
 ## 2025-11-14 v0.0.39
 
 - Updated `tins` dependency version from `~> 1.41` to `~> 1.47` in `Rakefile` and `ollama_chat.gemspec`
