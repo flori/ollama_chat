@@ -1,5 +1,16 @@
 # Changes
 
+## 2025-12-03 v0.0.42
+
+- Updated `ollama-ruby` gem dependency from version **1.7** to **1.14**
+- Fixed JSON serialization issues with image data in Ollama messages
+- Ensured proper base64 encoding and formatting of image URLs
+- Added spec for `display_config` method in `OllamaChat::Information` module
+- Replaced explicit `my_pager` variable with `OllamaChat::EnvConfig::PAGER?` lookup
+- Enabled users to customize pager behavior through environment configuration
+- Updated `lib/ollama_chat/ollama_chat_config/default_config.yml` to prevent shell expansion in voice list command
+- Changed `say -v ?` to `say -v '?'` to prevent shell expansion and potential hanging issues
+
 ## 2025-11-20 v0.0.41
 
 - Fixed message output specification and removed duplicate expectation
