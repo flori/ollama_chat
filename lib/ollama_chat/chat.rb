@@ -513,7 +513,7 @@ class OllamaChat::Chat
     rendered = config.to_s
     Kramdown::ANSI::Pager.pager(
       lines: rendered.count(?\n),
-      command: my_pager
+      command:
     ) do |output|
       output.puts rendered
     end
