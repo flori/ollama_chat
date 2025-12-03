@@ -29,6 +29,14 @@ describe OllamaChat::Information do
     expect(chat.info).to be_nil
   end
 
+  it 'can display display_config' do
+    const_conf_as(
+      'OllamaChat::EnvConfig::PAGER' => 'cat'
+    )
+    expect(chat.config).to receive(:to_s).and_return('test configuration')
+    expect { chat.send(:display_config) }.not_to raise_error
+  end
+
   it 'can show display_chat_help' do
     expect(STDOUT).to receive(:puts).with(%r(/info.*show information))
     expect(chat.display_chat_help).to be_nil
