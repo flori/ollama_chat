@@ -135,11 +135,6 @@ module OllamaChat::Switches
   # @return [ OllamaChat::Switches::Switch ] the stream switch instance
   attr_reader :stream
 
-  # The think method returns the current state of the thinking switch.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the thinking switch instance
-  attr_reader :think
-
   # The markdown attribute reader returns the markdown switch object.
   # The voice reader returns the voice switch instance.
   #
@@ -188,14 +183,6 @@ module OllamaChat::Switches
       msg: {
         true  => "Streaming enabled.",
         false => "Streaming disabled.",
-      }
-    )
-
-    @think = Switch.new(
-      value: config.think,
-      msg: {
-        true  => "Thinking enabled.",
-        false => "Thinking disabled.",
       }
     )
 

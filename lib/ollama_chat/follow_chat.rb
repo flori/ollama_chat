@@ -91,7 +91,7 @@ class OllamaChat::FollowChat
       @messages << Message.new(
         role: 'assistant',
         content: '',
-        thinking: ('' if @chat.think.on?)
+        thinking: ('' if @chat.think?)
       )
       @user = message_type(@messages.last.images) + " " +
         bold { color(111) { 'assistant:' } }
@@ -106,7 +106,7 @@ class OllamaChat::FollowChat
   # and thinking
   def update_last_message(response)
     @messages.last.content << response.message&.content
-    if @chat.think.on? and response_thinking = response.message&.thinking.full?
+    if @chat.think? and response_thinking = response.message&.thinking.full?
       @messages.last.thinking << response_thinking
     end
   end
@@ -122,12 +122,12 @@ class OllamaChat::FollowChat
     content, thinking = @messages.last.content, @messages.last.thinking
     if @chat.markdown.on?
       content = talk_annotate { @chat.kramdown_ansi_parse(content) }
-      if @chat.think.on?
-        thinking = think_annotate { @chat.kramdown_ansi_parse(content) }
+      if @chat.think?
+        thinking = think_annotate { @chat.kramdown_ansi_parse(thinking) }
       end
     else
       content = talk_annotate { content }
-      @chat.think.on? and thinking = think_annotate { @messages.last.thinking.full? }
+      @chat.think? and thinking = think_annotate { thinking }
     end
     @output.print(*([
       clear_screen, move_home, @user, ?\n, thinking, content

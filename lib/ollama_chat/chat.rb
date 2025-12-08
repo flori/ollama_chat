@@ -98,6 +98,7 @@ class OllamaChat::Chat
     @document_policy = config.document_policy
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
+    @think           = config.think
     model_system     = pull_model_unless_present(@model, @model_options)
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @messages        = OllamaChat::MessageList.new(self)
@@ -305,7 +306,7 @@ class OllamaChat::Chat
       choose_document_policy
       :next
     when %r(^/think$)
-      think.toggle
+      choose_think_mode
       :next
     when %r(^/import\s+(.+))
       @parse_content = false
@@ -606,7 +607,7 @@ class OllamaChat::Chat
         messages: ,
         options:  @model_options,
         stream:   stream.on?,
-        think:    think.on?,
+        think:    ,
         &handler
       )
       if embedding.on? && !records.empty?

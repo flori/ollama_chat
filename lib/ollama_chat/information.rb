@@ -99,7 +99,7 @@ module OllamaChat::Information
     end
     markdown.show
     stream.show
-    think.show
+    think_show
     location.show
     voice.show
     if @voice.on?

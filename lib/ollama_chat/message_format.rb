@@ -34,7 +34,7 @@ module OllamaChat::MessageFormat
   def think_annotate(&block)
     string = block.()
     string.to_s.size == 0 and return
-    if @chat.think.on?
+    if @chat.think?
       "💭\n#{string}\n"
     end
   end
@@ -48,7 +48,7 @@ module OllamaChat::MessageFormat
   def talk_annotate(&block)
     string = block.()
     string.to_s.size == 0 and return
-    if @chat.think.on?
+    if @chat.think?
       "💬\n#{string}\n"
     else
       string
