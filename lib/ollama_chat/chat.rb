@@ -686,8 +686,6 @@ class OllamaChat::Chat
   #
   # @param document_list [Array<String>] List of document paths or URLs to process
   #
-  # @return [void]
-  #
   # @example Adding local files
   #   add_documents_from_argv(['/path/to/file1.txt', '/path/to/file2.pdf'])
   #

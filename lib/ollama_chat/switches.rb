@@ -40,8 +40,6 @@ module OllamaChat::Switches
 
     # The show method outputs the current value of the message to standard
     # output.
-    #
-    # @return [ void ]
     def show
       STDOUT.puts @msg[value]
     end

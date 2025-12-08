@@ -19,8 +19,6 @@ class OllamaChat::Utils::CacheFetcher
   # The initialize method sets up the cache instance variable for the object.
   #
   # @param cache [ Object ] the cache object to be stored
-  #
-  # @return [ void ]
   def initialize(cache)
     @cache = cache
   end
