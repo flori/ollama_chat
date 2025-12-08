@@ -40,6 +40,7 @@ class OllamaChat::Chat
   include OllamaChat::SourceFetching
   include OllamaChat::WebSearching
   include OllamaChat::Dialog
+  include OllamaChat::ThinkControl
   include OllamaChat::Information
   include OllamaChat::MessageOutput
   include OllamaChat::Clipboard
@@ -80,6 +81,7 @@ class OllamaChat::Chat
     @opts               = go 'f:u:m:s:c:C:D:MESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
+    @messages           = OllamaChat::MessageList.new(self)
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
     setup_switches(config)
@@ -101,7 +103,6 @@ class OllamaChat::Chat
     @think           = config.think
     model_system     = pull_model_unless_present(@model, @model_options)
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
-    @messages        = OllamaChat::MessageList.new(self)
     if @opts[?c]
       messages.load_conversation(@opts[?c])
     else
@@ -307,6 +308,9 @@ class OllamaChat::Chat
       :next
     when %r(^/think$)
       choose_think_mode
+      :next
+    when %r(^/think_loud$)
+      think_loud.toggle
       :next
     when %r(^/import\s+(.+))
       @parse_content = false

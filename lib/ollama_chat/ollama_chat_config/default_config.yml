@@ -42,6 +42,7 @@ markdown: true
 stream: true
 document_policy: importing
 think: false
+think_loud: true
 embedding:
   enabled: true
   paused: false

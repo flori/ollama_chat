@@ -141,6 +141,11 @@ module OllamaChat::Switches
   # @return [ OllamaChat::Switches::Switch ] the markdown switch instance
   attr_reader :markdown
 
+  # The think_loud method returns the current state of the think loud switch.
+  #
+  # @return [ OllamaChat::Switches::Switch ] the think loud switch instance
+  attr_reader :think_loud
+
   # The voice reader returns the voice switch instance.
   #
   # @return [ OllamaChat::Switches::Switch ] the voice switch instance
@@ -183,6 +188,14 @@ module OllamaChat::Switches
       msg: {
         true  => "Streaming enabled.",
         false => "Streaming disabled.",
+      }
+    )
+
+    @think_loud = Switch.new(
+      value: config.think_loud,
+      msg: {
+        true  => "Thinking out loud, show thinking annotations.",
+        false => "Thinking silently, don't show thinking annotations.",
       }
     )
 

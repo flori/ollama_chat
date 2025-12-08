@@ -313,6 +313,7 @@ describe OllamaChat::Chat, protect_env: true do
             Location|
             Document\ policy|
             Think\ mode|
+            Thinking\ out\ loud|
             Voice\ output|
             Currently\ selected\ search\ engine|
             Conversation\ length
