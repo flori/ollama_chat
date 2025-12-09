@@ -9,7 +9,7 @@ describe OllamaChat::FollowChat do
 
   let :chat do
     double('Chat', markdown: double(on?: false), think_loud?: true,
-           think?: false, debug: false)
+           think?: false, debug: false, stream: double(on? true))
   end
 
   let :follow_chat do

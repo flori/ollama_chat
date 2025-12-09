@@ -68,7 +68,13 @@ class OllamaChat::FollowChat
     if response&.message&.role == 'assistant'
       ensure_assistant_response_exists
       update_last_message(response)
-      display_formatted_terminal_output
+      if @chat.stream.on?
+        display_formatted_terminal_output
+      else
+        if display_output
+          display_formatted_terminal_output
+        end
+      end
       @say.call(response)
     end
 
@@ -130,6 +136,46 @@ class OllamaChat::FollowChat
     end
   end
 
+  # The prepare_last_message method processes and formats content and thinking
+  # annotations for display.
+  #
+  # This method prepares the final content and thinking text by applying
+  # appropriate formatting based on the chat's markdown and think loud
+  # settings. It handles parsing of content through Kramdown::ANSI when
+  # markdown is enabled, and applies annotation
+  # formatting to both content and thinking text according to the chat's
+  # configuration.
+  #
+  # @return [Array<String, String>] an array containing the processed content
+  #   and thinking text
+  # @return [Array<String, nil>] an array containing the processed content and
+  #   nil if thinking is disabled
+  def prepare_last_message
+    content, thinking = @messages.last.content, @messages.last.thinking
+    if @chat.markdown.on?
+      content = talk_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(content) }
+      if @chat.think_loud?
+        thinking = think_annotate { truncate_for_terminal@chat.kramdown_ansi_parse(thinking) }
+      end
+    else
+      content = talk_annotate { content }
+      @chat.think? and thinking = think_annotate { thinking }
+    end
+    return content, thinking
+  end
+
+  # The last_message_with_user method constructs a formatted message array by
+  # combining user information, newline characters, thinking annotations, and
+  # content for display in the terminal output.
+  #
+  # @return [ Array ] an array containing the user identifier, newline
+  #   character, thinking annotation (if present), and content formatted for
+  #   terminal display
+  def last_message_with_user
+    content, thinking = prepare_last_message
+    [ @user, ?\n, thinking, content ]
+  end
+
   # The display_formatted_terminal_output method formats and outputs the
   # terminal content by processing the last message's content and thinking,
   # then prints it to the output. It handles markdown parsing and annotation
@@ -138,19 +184,21 @@ class OllamaChat::FollowChat
   # thinking modes are enabled to determine how to process and display the
   # content.
   def display_formatted_terminal_output
-    content, thinking = @messages.last.content, @messages.last.thinking
-    if @chat.markdown.on?
-      content = talk_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(content) }
-      if @chat.think_loud?
-        thinking = think_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(thinking) }
-      end
-    else
-      content = talk_annotate { content }
-      @chat.think? and thinking = think_annotate { thinking }
+    @output.print(*([ clear_screen, move_home, *last_message_with_user ].compact))
+  end
+
+  # The display_output method shows the last message in the conversation.
+  #
+  # This method delegates to the messages object's show_last method, which
+  # displays the most recent non-user message in the conversation history.
+  # It is typically used to provide feedback to the user about the last
+  # response from the assistant.
+  # @return [ nil, String ] the pager command or nil if no paging was
+  #   performed.
+  def display_output
+    @messages.use_pager do |output|
+      output.print(*last_message_with_user)
     end
-    @output.print(*([
-      clear_screen, move_home, @user, ?\n, thinking, content
-    ].compact))
   end
 
   # The eval_stats method processes response statistics and formats them into a

@@ -290,6 +290,22 @@ class OllamaChat::MessageList
     end.to_s
   end
 
+  # The use_pager method wraps the given block with a pager context.
+  # If the output would exceed the terminal's line capacity, it pipes the content
+  # through an appropriate pager command (like 'less' or 'more').
+  #
+  # @yield A block that yields an IO object to write output to
+  # @yieldparam [IO] the IO object to write to
+  def use_pager
+    command       = determine_pager_command
+    output_buffer = StringIO.new
+    yield output_buffer
+    messages = output_buffer.string
+    Kramdown::ANSI::Pager.pager(command:, lines: messages.count(?\n)) do |output|
+      output.puts messages
+    end
+  end
+
   private
 
   # The config method provides access to the chat configuration object.
@@ -309,22 +325,6 @@ class OllamaChat::MessageList
   # pager is used.
   def determine_pager_command
     OllamaChat::EnvConfig::PAGER?
-  end
-
-  # The use_pager method wraps the given block with a pager context.
-  # If the output would exceed the terminal's line capacity, it pipes the content
-  # through an appropriate pager command (like 'less' or 'more').
-  #
-  # @yield A block that yields an IO object to write output to
-  # @yieldparam [IO] the IO object to write to
-  def use_pager
-    command       = determine_pager_command
-    output_buffer = StringIO.new
-    yield output_buffer
-    messages = output_buffer.string
-    Kramdown::ANSI::Pager.pager(command:, lines: messages.count(?\n)) do |output|
-      output.puts messages
-    end
   end
 
   # The message_text_for method generates formatted text representation of a
