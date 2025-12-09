@@ -26,7 +26,6 @@ module OllamaChat::ThinkControl
     when 'low', 'medium', 'high'
       @think = chosen
     end
-    STDOUT.puts "Exiting chooser."
   end
 
   # The think? method checks if the think mode is enabled.
@@ -37,18 +36,21 @@ module OllamaChat::ThinkControl
     !!think
   end
 
+  # The think_mode method returns the current think mode status as a string.
+  #
+  # @return [ String ] returns 'enabled' if think mode is true, the think mode
+  #   value if it's a string, or 'disabled' if think mode is false or nil
+  def think_mode
+    think == true ? 'enabled' : think || 'disabled'
+  end
+
   # The think_show method displays the current think mode status.
   #
   # This method checks the current think mode setting and outputs a message
   # indicating whether think mode is enabled, disabled, or set to a specific
   # mode level (low, medium, high).
   def think_show
-    case think_mode = think
-    when true, false
-      STDOUT.puts "Think mode is #{bold(think_mode ? 'enabled' : 'disabled')}."
-    else
-      STDOUT.puts "Using #{bold{think_mode}} as think mode."
-    end
+    STDOUT.puts "Think mode is #{bold(think_mode)}."
   end
 
   # The think_loud? method checks if both think mode and think loud mode are
