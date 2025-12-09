@@ -606,14 +606,27 @@ class OllamaChat::Chat
         messages:,
         voice:    (@current_voice if voice.on?)
       )
-      ollama.chat(
-        model:    @model,
-        messages: ,
-        options:  @model_options,
-        stream:   stream.on?,
-        think:    ,
-        &handler
-      )
+      begin
+        retried = false
+        ollama.chat(
+          model:    @model,
+          messages: ,
+          options:  @model_options,
+          stream:   stream.on?,
+          think:    ,
+          &handler
+        )
+      rescue Ollama::Errors::BadRequestError
+        if think? && !retried
+          STDOUT.puts "#{bold('Error')}: in think mode, switch thinking off and retry."
+          sleep 1
+          @think  = false
+          retried = true
+          retry
+        else
+          raise
+        end
+      end
       if embedding.on? && !records.empty?
         STDOUT.puts "", records.map { |record|
           link = if record.source =~ %r(\Ahttps?://)
