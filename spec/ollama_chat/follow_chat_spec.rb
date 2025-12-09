@@ -13,7 +13,7 @@ describe OllamaChat::FollowChat do
   end
 
   let :follow_chat do
-    described_class.new(chat:, messages:, output:)
+    described_class.new(chat:, messages:, output:).expose
   end
 
   let :output do
@@ -45,5 +45,34 @@ describe OllamaChat::FollowChat do
     )
     expect(output).to receive(:puts).with("", /eval_duration/)
     follow_chat.call(response)
+  end
+
+  context '#truncate_for_terminal' do
+    it 'can truncate text for 5 lines' do
+      text = (?A..?Z).to_a.join(?\n)
+      expect(follow_chat.truncate_for_terminal(text, max_lines: 5)).to eq(
+        (?V..?Z).to_a.join(?\n)
+      )
+    end
+
+    it 'can truncate text for -1 lines' do
+      text = (?A..?Z).to_a.join(?\n)
+      expect(follow_chat.truncate_for_terminal(text, max_lines: -1)).to eq(?Z)
+    end
+
+    it 'can truncate text for 0 lines' do
+      text = (?A..?Z).to_a.join(?\n)
+      expect(follow_chat.truncate_for_terminal(text, max_lines: 0)).to eq(?Z)
+    end
+
+    it 'can truncate text for 1 lines' do
+      text = (?A..?Z).to_a.join(?\n)
+      expect(follow_chat.truncate_for_terminal(text, max_lines: 1)).to eq(?Z)
+    end
+
+    it 'can truncate text for 42 lines' do
+      text = (?A..?Z).to_a.join(?\n)
+      expect(follow_chat.truncate_for_terminal(text, max_lines: 42)).to eq(text)
+    end
   end
 end

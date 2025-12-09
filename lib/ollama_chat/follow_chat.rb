@@ -79,6 +79,25 @@ class OllamaChat::FollowChat
 
   private
 
+  # The truncate_for_terminal method processes text to fit within a specified
+  # number of lines.
+  #
+  # This method takes a text string and trims it to ensure it doesn't exceed
+  # the maximum number of lines allowed for terminal display. If the text
+  # exceeds the limit, only
+  # the last N lines are retained where N equals the maximum lines parameter.
+  #
+  # @param text [ String ] the text content to be processed
+  # @param max_lines [ Integer ] the maximum number of lines allowed (defaults to terminal lines)
+  #
+  # @return [ String ] the text truncated to fit within the specified line limit
+  def truncate_for_terminal(text, max_lines: Tins::Terminal.lines)
+    max_lines = max_lines.clamp(1..)
+    lines = text.lines
+    return text if lines.size <= max_lines
+    lines[-max_lines..-1].join('')
+  end
+
   # The ensure_assistant_response_exists method ensures that the last message
   # in the conversation is from the assistant role.
   #
@@ -121,9 +140,9 @@ class OllamaChat::FollowChat
   def display_formatted_terminal_output
     content, thinking = @messages.last.content, @messages.last.thinking
     if @chat.markdown.on?
-      content = talk_annotate { @chat.kramdown_ansi_parse(content) }
+      content = talk_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(content) }
       if @chat.think_loud?
-        thinking = think_annotate { @chat.kramdown_ansi_parse(thinking) }
+        thinking = think_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(thinking) }
       end
     else
       content = talk_annotate { content }
