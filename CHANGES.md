@@ -1,5 +1,28 @@
 # Changes
 
+## 2025-12-09 v0.0.43
+
+- Added retry logic in `interact_with_user` method to handle
+  `Ollama::Errors::BadRequestError` when in think mode
+- Introduced `think_loud` switch with associated UI commands and logic in
+  `chat.rb`
+- Implemented `OllamaChat::ThinkControl` module in
+  `lib/ollama_chat/think_control.rb` with methods `think`, `choose_think_mode`,
+  `think?`, and `think_show`
+- Updated `ollama-ruby` dependency from version **1.14** to **1.16**
+- Simplified think mode handling and updated related tests
+- Added string modes support for think feature allowing values `"low"`,
+  `"medium"`, `"high"`
+- Modified `FollowChat` to conditionally append thinking annotations based on
+  `think_loud.on?`
+- Updated documentation comments to follow new tagging conventions for method
+  returns and attribute accessors
+- Updated `default_config.yml` to set `think_loud: true` by default
+- Modified information display to include `think_loud.show`
+- Adjusted tests to mock `think_loud` and verify annotation handling
+- Updated `follow_chat_spec.rb` to stub `think_loud?` instead of
+  `think_loud.on?`
+
 ## 2025-12-03 v0.0.42
 
 - Updated `ollama-ruby` gem dependency from version **1.7** to **1.14**
