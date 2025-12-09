@@ -37,7 +37,7 @@ GemHadar do
   )
 
   dependency             'excon',                 '~> 1.0'
-  dependency             'ollama-ruby',           '~> 1.14'
+  dependency             'ollama-ruby',           '~> 1.16'
   dependency             'documentrix',           '~> 0.0', '>= 0.0.2'
   dependency             'unix_socks',            '~> 0.1'
   dependency             'rss',                   '~> 0.3'
