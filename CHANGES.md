@@ -1,5 +1,34 @@
 # Changes
 
+## 2025-12-10 v0.0.44
+
+- Fixed `stream` option in `spec/ollama_chat/follow_chat_spec.rb` from `on?
+  true` to `on?: true`
+- Extracted `prepare_last_message` method to handle content and thinking text
+  formatting with markdown and annotation support
+- Introduced `display_output` method that uses `use_pager` from `MessageList`
+  to handle large outputs gracefully
+- Modified `FollowChat#process_response` to conditionally call
+  `display_formatted_terminal_output` based on `@chat.stream.on?`
+- Added `use_pager` method to `MessageList` that wraps output blocks with pager
+  context using `Kramdown::ANSI::Pager`
+- Updated conditional logic in `follow_chat.rb` to properly distinguish between
+  streaming and non-streaming display modes
+- Updated `kramdown-ansi` dependency version from `~> 0.2` to `~> 0.3` in
+  `Rakefile` and `ollama_chat.gemspec`
+- Added `truncate_for_terminal` method to `OllamaChat::FollowChat` class that
+  limits text to a specified number of lines
+- Modified `display_formatted_terminal_output` to use `truncate_for_terminal`
+  when processing content and thinking text
+- Updated spec file to expose the `FollowChat` instance for testing
+- Added comprehensive tests for the new `truncate_for_terminal` method covering
+  various line count scenarios
+- The method handles edge cases like negative and zero line counts by returning
+  the last line
+- Uses `Tins::Terminal.lines` as default maximum lines parameter
+- The implementation ensures terminal output stays within display limits while
+  preserving content integrity
+
 ## 2025-12-09 v0.0.43
 
 - Added retry logic in `interact_with_user` method to handle
