@@ -161,7 +161,7 @@ class OllamaChat::FollowChat
       content = talk_annotate { content }
       @chat.think? and thinking = think_annotate { thinking }
     end
-    return content, thinking
+    return content&.chomp, thinking&.chomp
   end
 
   # The last_message_with_user method constructs a formatted message array by
@@ -183,8 +183,9 @@ class OllamaChat::FollowChat
   # move home commands. The method takes into account whether markdown and
   # thinking modes are enabled to determine how to process and display the
   # content.
-  def display_formatted_terminal_output
-    @output.print(*([ clear_screen, move_home, *last_message_with_user ].compact))
+  def display_formatted_terminal_output(output = nil)
+    output ||= @output
+    output.print(*([ clear_screen, move_home, *last_message_with_user ].compact))
   end
 
   # The display_output method shows the last message in the conversation.
@@ -197,7 +198,11 @@ class OllamaChat::FollowChat
   #   performed.
   def display_output
     @messages.use_pager do |output|
-      output.print(*last_message_with_user)
+      if @chat.markdown.on?
+        display_formatted_terminal_output(output)
+      else
+        output.print(*last_message_with_user)
+      end
     end
   end
 
@@ -233,7 +238,7 @@ class OllamaChat::FollowChat
   # @param response [ Object ] the response object containing evaluation data
   def output_eval_stats(response)
     response.done or return
-    @output.puts "", eval_stats(response)
+    @output.puts "", "", eval_stats(response)
   end
 
   # The debug_output method conditionally outputs the response object using jj
