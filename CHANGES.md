@@ -1,5 +1,14 @@
 # Changes
 
+## 2025-12-10 v0.0.45
+
+- Enhanced `OllamaChat::FollowChat` class output formatting
+- Made `display_formatted_terminal_output` method accept optional output parameter
+- Improved handling of chomping content and thinking text to prevent trailing whitespace
+- Properly routed markdown vs non-markdown output through correct display methods
+- Added extra blank line before evaluation statistics for better visual separation
+- Updated bundle command to include --all flag
+
 ## 2025-12-10 v0.0.44
 
 - Fixed `stream` option in `spec/ollama_chat/follow_chat_spec.rb` from `on?
