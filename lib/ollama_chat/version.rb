@@ -1,6 +1,6 @@
 module OllamaChat
   # OllamaChat version
-  VERSION         = '0.0.45'
+  VERSION         = '0.0.46'
   VERSION_ARRAY   = VERSION.split('.').map(&:to_i) # :nodoc:
   VERSION_MAJOR   = VERSION_ARRAY[0] # :nodoc:
   VERSION_MINOR   = VERSION_ARRAY[1] # :nodoc:
