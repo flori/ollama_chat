@@ -39,7 +39,7 @@ GemHadar do
   dependency             'excon',                 '~> 1.0'
   dependency             'ollama-ruby',           '~> 1.18'
   dependency             'documentrix',           '~> 0.0', '>= 0.0.2'
-  dependency             'unix_socks',            '~> 0.1'
+  dependency             'unix_socks',            '~> 0.2'
   dependency             'rss',                   '~> 0.3'
   dependency             'term-ansicolor',        '~> 1.11'
   dependency             'redis',                 '~> 5.0'
