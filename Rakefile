@@ -28,7 +28,7 @@ GemHadar do
 
   readme      'README.md'
 
-  required_ruby_version  '~> 3.2'
+  required_ruby_version  '>= 3.2'
 
   executables << 'ollama_chat' << 'ollama_chat_send'
 

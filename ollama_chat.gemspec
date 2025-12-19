@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/flori/ollama_chat".freeze
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--title".freeze, "OllamaChat - A command-line interface (CLI) for interacting with an Ollama AI model.".freeze, "--main".freeze, "README.md".freeze]
-  s.required_ruby_version = Gem::Requirement.new("~> 3.2".freeze)
+  s.required_ruby_version = Gem::Requirement.new(">= 3.2".freeze)
   s.rubygems_version = "4.0.2".freeze
   s.summary = "A command-line interface (CLI) for interacting with an Ollama AI model.".freeze
   s.test_files = ["spec/assets/example.rb".freeze, "spec/ollama_chat/chat_spec.rb".freeze, "spec/ollama_chat/clipboard_spec.rb".freeze, "spec/ollama_chat/follow_chat_spec.rb".freeze, "spec/ollama_chat/information_spec.rb".freeze, "spec/ollama_chat/kramdown_ansi_spec.rb".freeze, "spec/ollama_chat/message_list_spec.rb".freeze, "spec/ollama_chat/message_output_spec.rb".freeze, "spec/ollama_chat/model_handling_spec.rb".freeze, "spec/ollama_chat/parsing_spec.rb".freeze, "spec/ollama_chat/server_socket_spec.rb".freeze, "spec/ollama_chat/source_fetching_spec.rb".freeze, "spec/ollama_chat/switches_spec.rb".freeze, "spec/ollama_chat/utils/cache_fetcher_spec.rb".freeze, "spec/ollama_chat/utils/fetcher_spec.rb".freeze, "spec/ollama_chat/utils/file_argument_spec.rb".freeze, "spec/ollama_chat/web_searching_spec.rb".freeze, "spec/spec_helper.rb".freeze]
