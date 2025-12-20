@@ -47,6 +47,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<search_ui>.freeze, ["~> 0.0".freeze])
   s.add_runtime_dependency(%q<amatch>.freeze, ["~> 0.4".freeze])
   s.add_runtime_dependency(%q<pdf-reader>.freeze, ["~> 2.0".freeze])
+  s.add_runtime_dependency(%q<bigdecimal>.freeze, ["~> 3.1".freeze])
   s.add_runtime_dependency(%q<csv>.freeze, ["~> 3.0".freeze])
   s.add_runtime_dependency(%q<const_conf>.freeze, ["~> 0.3".freeze])
 end

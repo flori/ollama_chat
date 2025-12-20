@@ -51,6 +51,7 @@ GemHadar do
   dependency             'search_ui',             '~> 0.0'
   dependency             'amatch',                '~> 0.4'
   dependency             'pdf-reader',            '~> 2.0'
+  dependency             'bigdecimal',            '~> 3.1'
   dependency             'csv',                   '~> 3.0'
   dependency             'const_conf',            '~> 0.3'
   development_dependency 'all_images',            '~> 0.6'
