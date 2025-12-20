@@ -43,7 +43,7 @@ describe OllamaChat::FollowChat do
       prompt_eval_count:    7,
       load_duration:        33.45,
     )
-    expect(output).to receive(:puts).with("", /eval_duration/)
+    expect(output).to receive(:puts).with("", "", /eval_duration/)
     follow_chat.call(response)
   end
 
