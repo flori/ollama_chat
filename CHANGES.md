@@ -1,5 +1,14 @@
 # Changes
 
+## 2025-12-24 v0.0.49
+
+- Updated `unix_socks` gem dependency from **~> 0.2** to **~> 0.3**
+- Replaced `UnixSocks::Server` with `UnixSocks::DomainSocketServer` in
+  `lib/ollama_chat/server_socket.rb`
+- Updated test expectations in `spec/ollama_chat/server_socket_spec.rb` to
+  match new class name
+- Bumped `gem_hadar` development dependency from **>= 2.16.0** to **>= 2.16.2**
+
 ## 2025-12-23 v0.0.48
 
 - Updated `unix_socks` dependency to version **0.2.3**
