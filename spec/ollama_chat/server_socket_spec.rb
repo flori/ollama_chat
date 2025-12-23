@@ -131,7 +131,7 @@ describe OllamaChat::ServerSocket do
     context 'with working dir dependent socket' do
       it 'can be created with configured runtime_dir' do
         config = double('Config', working_dir_dependent_socket: true)
-        expect(UnixSocks::Server).to receive(:new).with(
+        expect(UnixSocks::DomainSocketServer).to receive(:new).with(
           socket_name: /\Aollama_chat-\h{32}.sock\z/,
         ).and_return :unix_socks_server
 
@@ -143,7 +143,7 @@ describe OllamaChat::ServerSocket do
     context 'with default runtime_dir and name' do
       it 'can be created with default runtime_dir' do
         config = double('Config', working_dir_dependent_socket: false)
-        expect(UnixSocks::Server).to receive(:new).with(
+        expect(UnixSocks::DomainSocketServer).to receive(:new).with(
           socket_name: 'ollama_chat.sock'
         ).and_return :unix_socks_server
 

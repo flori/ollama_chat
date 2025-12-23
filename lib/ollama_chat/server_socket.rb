@@ -58,7 +58,7 @@ module OllamaChat::ServerSocket
     # The create_socket_server method constructs and returns a Unix domain
     # socket server instance for communication with the Ollama Chat client.
     #
-    # This method initializes a UnixSocks::Server object configured to listen
+    # This method initializes a UnixSocks::DomainSocketServer object configured to listen
     # for incoming messages on a named socket file. It supports specifying a
     # custom runtime directory for the socket, which is useful for isolating
     # multiple instances or environments. If no runtime directory is provided
@@ -70,19 +70,19 @@ module OllamaChat::ServerSocket
     # @param runtime_dir [ String ] pathname to runtime_dir of socket file
     # @param working_dir [ String ] pathname to working_dir used for deriving socket file
     #
-    # @return [UnixSocks::Server] a configured Unix domain socket server
+    # @return [UnixSocks::DomainSocketServer] a configured Unix domain socket server
     # instance ready to receive messages
     def create_socket_server(config:, runtime_dir: nil, working_dir: nil)
       working_dir ||= Dir.pwd
       if runtime_dir
-        return UnixSocks::Server.new(socket_name: 'ollama_chat.sock', runtime_dir:)
+        return UnixSocks::DomainSocketServer.new(socket_name: 'ollama_chat.sock', runtime_dir:)
       end
       if config.working_dir_dependent_socket
         path   = File.expand_path(working_dir)
         digest = Digest::MD5.hexdigest(path)
-        UnixSocks::Server.new(socket_name: "ollama_chat-#{digest}.sock")
+        UnixSocks::DomainSocketServer.new(socket_name: "ollama_chat-#{digest}.sock")
       else
-        UnixSocks::Server.new(socket_name: 'ollama_chat.sock')
+        UnixSocks::DomainSocketServer.new(socket_name: 'ollama_chat.sock')
       end
     end
   end
