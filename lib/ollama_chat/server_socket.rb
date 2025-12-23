@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'fileutils'
 
 # A module that provides server socket functionality for OllamaChat
 #
@@ -105,6 +106,20 @@ module OllamaChat::ServerSocket
     server.receive_in_background do |message|
       self.server_socket_message = message
       Process.kill :INT, $$
+    end
+  rescue Errno::EEXIST
+    socket_path = server.server_socket_path
+    STDERR.puts <<~EOT
+      Warning! Socket file exists at: #{socket_path}
+      This may indicate that another #{File.basename($0)} process is already
+      running using the same directory or that a previous process left a stale
+      socket file.
+    EOT
+    if ask?(prompt: 'Do you want to remove the existing socket file and continue? (y/n) ') =~ /\Ay/i
+      FileUtils.rm_f socket_path
+      retry
+    else
+      exit 1
     end
   end
 end
