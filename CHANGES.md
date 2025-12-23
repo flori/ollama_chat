@@ -1,5 +1,9 @@
 # Changes
 
+## 2025-12-23 v0.0.48
+
+- Updated `unix_socks` dependency to version **0.2.3**
+
 ## 2025-12-23 v0.0.47
 
 - Handle existing socket file conflicts gracefully by implementing logic to
