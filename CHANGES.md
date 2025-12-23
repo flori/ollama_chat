@@ -1,5 +1,20 @@
 # Changes
 
+## 2025-12-20 v0.0.46
+
+- Updated `rake` command in `.all_images.yml` to use `bundle exec rake spec`
+  for consistent test execution
+- Added `bigdecimal` dependency with version **3.1** to ensure proper decimal
+  arithmetic operations
+- Updated test expectation for `puts` to include an empty string parameter in the argument list
+- Updated `documentrix` dependency to version **0.0.4** or higher for runtime dependencies
+- Updated `ollama-ruby` dependency from version **1.16** to **1.18** and then to **1.19**
+- Updated `unix_socks` dependency from version **0.1** to **1.2**
+- Updated required Ruby version from `~> 3.2` to `>= 3.2` to allow usage with Ruby **3.2** and higher
+- Added Ruby **4.0-rc** image configuration with script settings
+- Updated `rubygems` version from **3.7.2** to **4.0.2**
+- Updated `gem_hadar` development dependency from ~> **2.8** to ~> **2.10**
+
 ## 2025-12-10 v0.0.45
 
 - Enhanced `OllamaChat::FollowChat` class output formatting
