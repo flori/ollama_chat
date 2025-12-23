@@ -1,5 +1,26 @@
 # Changes
 
+## 2025-12-23 v0.0.47
+
+- Handle existing socket file conflicts gracefully by implementing logic to
+  detect and manage conflicts
+- Added user prompt to remove stale socket files when conflicts occur during
+  socket creation
+- Improved error handling for `Errno::EEXIST` exceptions during socket creation
+  process
+- Enhanced user experience with clear warnings and recovery options for socket
+  file conflicts
+- Socket file cleanup now uses `FileUtils.rm_f` for safe removal of conflicting
+  files
+- Added retry mechanism after successful socket file removal to ensure proper
+  socket creation
+- Exit with error code **1** when user declines socket file removal prompt
+- Add changelog file to gem distribution using `GemHadar` with filename
+  `CHANGES.md`
+- Update `unix_socks` dependency to include minimum version **0.2.2** by
+  bumping `gem_hadar` development dependency to **>= 2.16.0** in
+  `ollama_chat.gemspec`
+
 ## 2025-12-20 v0.0.46
 
 - Updated `rake` command in `.all_images.yml` to use `bundle exec rake spec`
