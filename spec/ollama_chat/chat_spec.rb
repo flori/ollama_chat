@@ -1,8 +1,12 @@
 require 'spec_helper'
 
 describe OllamaChat::Chat, protect_env: true do
+  use_default_config = -> a {
+    a << '-f' << 'lib/ollama_chat/ollama_chat_config/default_config.yml'
+  }
+
   let :argv do
-    %w[ -C test ]
+    use_default_config.(%w[ -C test ])
   end
 
   before do
@@ -94,7 +98,7 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/model"' do
-      expect(chat).to receive(:choose_model).with('', 'llama3.1')
+      expect(chat).to receive(:choose_model).and_return 'llama3.1'
       expect(chat.handle_input("/model")).to eq :next
     end
 
@@ -226,7 +230,7 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
     let :argv do
-      %w[ -C test -c ] << asset('conversation.json')
+      use_default_config.(%w[ -C test -c ] << asset('conversation.json'))
     end
 
     it 'dispays the last exchange of the converstation' do
@@ -243,7 +247,7 @@ describe OllamaChat::Chat, protect_env: true do
     context 'with MemoryCache' do
 
       let :argv do
-        %w[ -M ]
+        use_default_config.(%w[ -M ])
       end
 
       it 'can use MemoryCache' do
@@ -265,7 +269,7 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
       let :argv do
-        %w[ -C test -D ] << asset('example.html')
+        use_default_config.(%w[ -C test -D ] << asset('example.html'))
       end
 
       it 'Adds documents passed to app via -D option' do
