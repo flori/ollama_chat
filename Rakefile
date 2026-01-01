@@ -28,6 +28,10 @@ GemHadar do
 
   readme      'README.md'
 
+  changelog do
+    filename 'CHANGES.md'
+  end
+
   required_ruby_version  '>= 3.2'
 
   executables << 'ollama_chat' << 'ollama_chat_send'
