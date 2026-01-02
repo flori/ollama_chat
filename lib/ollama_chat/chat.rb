@@ -749,12 +749,12 @@ class OllamaChat::Chat
   # The setup_cache method initializes and returns a Redis cache instance with
   # expiring keys if a Redis URL is configured.
   #
-  # @return [ Documentrix::Documents::RedisCache, nil ] the configured Redis
+  # @return [ OllamaChat::RedisCache, nil ] the configured Redis
   #   cache instance or nil if no URL is set.
   def setup_cache
     if url = config.redis.expiring.url?
       ex = config.redis.expiring.ex?.to_i
-      Documentrix::Documents::RedisCache.new(
+      OllamaChat::RedisCache.new(
         prefix: 'Expiring-',
         url:,
         ex:
