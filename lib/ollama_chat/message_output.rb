@@ -78,10 +78,11 @@ module OllamaChat::MessageOutput
   # @return [ TrueClass ] returns true if the file was successfully written
   # @return [ nil ] returns nil if the user chose not to overwrite or if an error occurred
   def attempt_to_write_file(filename, message)
-    if !File.exist?(filename) ||
-        ask?(prompt: "File #{filename.inspect} already exists, overwrite? (y/n) ") =~ /\Ay/i
+    path = Pathname.new(filename.to_s).expand_path
+    if !path.exist? ||
+        ask?(prompt: "File #{path.to_s.inspect} already exists, overwrite? (y/n) ") =~ /\Ay/i
     then
-      File.open(filename, ?w) do |output|
+      File.open(path, ?w) do |output|
         output.write(message.content)
       end
     else
