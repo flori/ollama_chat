@@ -40,10 +40,6 @@ GemHadar do
     'static.yml' => {}
   )
 
-  changelog do
-    filename 'CHANGES.md'
-  end
-
   dependency             'excon',                 '~> 1.0'
   dependency             'ollama-ruby',           '~> 1.18'
   dependency             'documentrix',           '>= 0.0.4'
