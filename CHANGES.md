@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-01-03 v0.0.50
+
+- Use Redis-based expiring cache implementation with the new
+  `OllamaChat::RedisCache` class
+- Replaced `Documentrix::Documents::RedisCache` with `OllamaChat::RedisCache`
+  in the `setup_cache` method
+- Updated `GemHadar` development dependency to version **2.16.3**
+- Integrated changelog generation capability into GemHadar configuration
+- Updated Redis image to valkey version **8.1.5** with latest bug fixes and
+  improvements
+- Improved file path resolution using `Pathname` for better handling of
+  relative paths and home directory shortcuts
+- Enhanced test suite configuration and stubbing for more consistent test
+  execution
+- Updated Ruby image tag to stable **4.0**-alpine
+- Added `lib/ollama_chat/redis_cache.rb` to `extra_rdoc_files` and `files`
+  lists in gemspec
+- Added `spec/ollama_chat/redis_cache_spec.rb` to `test_files` list in gemspec
+- Removed duplicate entry for `lib/ollama_chat/redis_cache.rb` from `files`
+  list
+- Improved test setup for source fetching with explicit configuration file
+
 ## 2025-12-24 v0.0.49
 
 - Updated `unix_socks` gem dependency from **~> 0.2** to **~> 0.3**
