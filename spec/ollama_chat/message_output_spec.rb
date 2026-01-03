@@ -17,10 +17,10 @@ describe OllamaChat::MessageOutput do
   end
 
   it 'pipe can write to command stdin' do
-    expect(STDERR).to receive(:puts).with(/No response available to output to pipe command "true"/)
-    expect(chat.pipe('true')).to be_nil
+    expect(STDERR).to receive(:puts).with(/No response available to output to pipe command ".*true.*"/)
+    expect(chat.pipe(`which true`)).to be_nil
     chat.instance_variable_get(:@messages).load_conversation(asset('conversation.json'))
-    expect(STDOUT).to receive(:puts).with(/Last response was piped to \"true\"./)
-    expect(chat.pipe('true')).to eq chat
+    expect(STDOUT).to receive(:puts).with(/Last response was piped to \".*true.*\"./)
+    expect(chat.pipe(`which true`)).to eq chat
   end
 end
