@@ -1,31 +1,31 @@
 require 'redis'
 
-# A Redis-based cache implementation for OllamaChat
-#
-# This class provides a wrapper around Redis that offers a simple key-value
-# caching interface with support for expiration times and namespace isolation.
-# It's designed to be used as a cache backend for various components in the
-# OllamaChat application.
-#
-# @example Basic usage
-#   cache = OllamaChat::RedisCache.new(prefix: 'myapp-', url: 'redis://localhost:6379')
-#   cache['key'] = 'value'
-#   value = cache['key']
-#   cache.delete('key')
-#
-# @example With expiration
-#   cache = OllamaChat::RedisCache.new(prefix: 'expiring-', url: 'redis://localhost:6379', ex: 3600)
-#   cache['key'] = 'value' # Automatically expires in 1 hour
-#
-# @example Iteration
-#   cache.each do |key, value|
-#     puts "#{key}: #{value}"
-#   end
-#
-# @example Cache management
-#   cache.clear # Remove all entries with this prefix
-#   size = cache.size # Get number of entries
 module OllamaChat
+  # A Redis-based cache implementation for OllamaChat
+  #
+  # This class provides a wrapper around Redis that offers a simple key-value
+  # caching interface with support for expiration times and namespace isolation.
+  # It's designed to be used as a cache backend for various components in the
+  # OllamaChat application.
+  #
+  # @example Basic usage
+  #   cache = OllamaChat::RedisCache.new(prefix: 'myapp-', url: 'redis://localhost:6379')
+  #   cache['key'] = 'value'
+  #   value = cache['key']
+  #   cache.delete('key')
+  #
+  # @example With expiration
+  #   cache = OllamaChat::RedisCache.new(prefix: 'expiring-', url: 'redis://localhost:6379', ex: 3600)
+  #   cache['key'] = 'value' # Automatically expires in 1 hour
+  #
+  # @example Iteration
+  #   cache.each do |key, value|
+  #     puts "#{key}: #{value}"
+  #   end
+  #
+  # @example Cache management
+  #   cache.clear # Remove all entries with this prefix
+  #   size = cache.size # Get number of entries
   class RedisCache
     include Enumerable
 
