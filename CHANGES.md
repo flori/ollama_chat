@@ -1,5 +1,35 @@
 # Changes
 
+## 2026-01-06 v0.0.51
+
+- Added `/input` command to allow users to select files using glob patterns
+  like `src/*.c` or `**/*.rb`
+    - Implemented `input` method in `OllamaChat::Chat` class using `Dir.glob` for
+      pattern matching
+    - Integrated with `OllamaChat::Utils::Chooser` for interactive file selection
+    - Added `/input` command to help text in `OllamaChat::Information` module
+    - Supports default pattern `**/*` when no argument is provided
+    - Returns file content as string for use in chat conversations
+- Integrated `/context` command in `OllamaChat::Chat` with pattern matching
+  support
+    - Updated `display_chat_help_message` to document `/context [pattern...]`
+      command
+    - Modified `README.md` to include `/context` command in help section
+    - Introduced `context_spook` **~> 1.1** dependency
+    - Created `OllamaChat::InputContent` module with `input`, `choose_filename`,
+      and `context_spook` methods
+    - Extracted input functionality from `Chat` class to `InputContent` module for
+      better organization
+    - Support both static context files (`.contexts/*.rb`) and dynamic pattern
+      matching (`lib/**/*.rb`)
+    - Implemented proper content handling with `@parse_content = false` to prevent
+      parsing of URLs
+    - Used `File.file?` instead of `File.stat(it).file?` for cleaner file checking
+    - Support multiple space-separated patterns in `/context` command
+- Added comprehensive YARD documentation for all new methods and parameters
+- Improved pipe command handling with dynamic command resolution
+- Moved `RedisCache` class comment
+
 ## 2026-01-03 v0.0.50
 
 - Use Redis-based expiring cache implementation with the new
