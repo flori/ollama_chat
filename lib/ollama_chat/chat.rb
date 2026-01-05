@@ -15,6 +15,7 @@ require 'pdf/reader'
 require 'csv'
 require 'socket'
 require 'shellwords'
+require 'context_spook'
 
 # A chat client for interacting with Ollama models through a terminal
 # interface.
@@ -49,6 +50,7 @@ class OllamaChat::Chat
   include OllamaChat::ServerSocket
   include OllamaChat::KramdownANSI
   include OllamaChat::Conversation
+  include OllamaChat::InputContent
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -329,7 +331,13 @@ class OllamaChat::Chat
       @parse_content = false
       web($1, $2)
     when %r(^/input(?:\s+(.+))?$)
+      @parse_content = false
       input($1) or :next
+    when %r(^/context(?:\s+(.+))?$)
+      arg = $1
+      arg and patterns = arg.scan(/(\S+)/).flatten
+      @parse_content = false
+      context_spook(patterns) or :next
     when %r(^/save\s+(.+)$)
       save_conversation($1)
       :next
@@ -428,30 +436,6 @@ class OllamaChat::Chat
         end
       end
       prompt.named_placeholders_interpolate({query:, results:})
-    end
-  end
-
-  # The input method reads and returns the content of a selected file.
-  #
-  # This method searches for files matching the given pattern and presents them
-  # in an interactive chooser menu. If a file is selected, its content is read
-  # and returned. If the user chooses to exit or no file is selected, the
-  # method returns nil.
-  #
-  # @param pattern [ String ] the glob pattern to search for files (defaults to '**/*')
-  #
-  # @return [ String, nil ] the content of the selected file or nil if no file
-  #   was chosen
-  def input(pattern)
-    pattern ||= '**/*'
-    files = Dir.glob(pattern).select { File.stat(it).file? }
-    files.unshift('[EXIT]')
-    case chosen = OllamaChat::Utils::Chooser.choose(files)
-    when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
-      return
-    else
-      File.read(chosen)
     end
   end
 
