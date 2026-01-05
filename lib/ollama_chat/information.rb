@@ -148,6 +148,7 @@ module OllamaChat::Information
       /save filename                  store conversation messages
       /load filename                  load conversation messages
       /output filename                save last response to filename
+      /input [pattern]                select and read content from a file (default: **/*)
       /pipe command                   write last response to command's stdin
       /vim                            insert the last message into a vim server
       /quit                           to quit
