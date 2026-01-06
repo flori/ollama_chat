@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-01-06 v0.0.52
+
+- Enabled verbose context generation to provide real-time feedback during
+  context collection operations
+- Improved user experience by monitoring context size for LLM token limit
+  considerations
+- Added better feedback mechanisms to help users gauge processing time during
+  context generation
+
 ## 2026-01-06 v0.0.51
 
 - Added `/input` command to allow users to select files using glob patterns
