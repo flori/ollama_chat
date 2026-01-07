@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-01-07 v0.0.53
+
+- Added `/compose` command functionality to compose content using an external
+  editor
+    - Introduced `OllamaChat::EnvConfig::EDITOR?` and
+      `OllamaChat::EnvConfig::EDITOR!` methods for editor configuration access
+    - Implemented `compose` method in `InputContent` module using `Tempfile` for
+      temporary file handling
+    - Added `EDITOR` configuration with default value of `vim` or `vi` if available
+    - Updated help text to include the new `/compose` command
+    - Added graceful error handling for editor failures, returning `nil` and
+      printing error to `STDERR`
+    - Required `tempfile` gem for temporary file handling functionality
+
 ## 2026-01-06 v0.0.52
 
 - Enabled verbose context generation to provide real-time feedback during
