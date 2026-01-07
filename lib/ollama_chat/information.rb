@@ -147,6 +147,7 @@ module OllamaChat::Information
       /links [clear]                  display (or clear) links used in the chat
       /save filename                  store conversation messages
       /load filename                  load conversation messages
+      /compose                        compose content using an EDITOR
       /input [pattern]                select and read content from a file (default: **/*)
       /context [pattern...]           collect context with glob patterns
       /output filename                save last response to filename

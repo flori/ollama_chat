@@ -30,6 +30,18 @@ module OllamaChat
       end
     end
 
+    EDITOR = set do
+      description 'Editor to use'
+
+      default do
+        if  editor = %w[ vim vi ].find { `which #{_1}`.full?(:chomp) }
+          editor
+        else
+          warn 'Need an editor command configured via env var "EDITOR"'
+        end
+      end
+    end
+
     DIFF_TOOL = set do
       description 'Diff tool to apply changes with'
 

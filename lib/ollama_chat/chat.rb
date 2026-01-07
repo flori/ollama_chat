@@ -338,6 +338,8 @@ class OllamaChat::Chat
       arg and patterns = arg.scan(/(\S+)/).flatten
       @parse_content = false
       context_spook(patterns) or :next
+    when %r(^/compose$)
+      compose or :next
     when %r(^/save\s+(.+)$)
       save_conversation($1)
       :next

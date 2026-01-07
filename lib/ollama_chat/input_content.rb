@@ -1,3 +1,5 @@
+require 'tempfile'
+
 # A module that provides input content processing functionality for OllamaChat.
 #
 # The InputContent module encapsulates methods for reading and returning
@@ -87,5 +89,31 @@ module OllamaChat::InputContent
         ContextSpook.generate_context(context_filename, verbose: true).to_json
       end
     end
+  end
+
+  # The compose method opens an editor to compose content.
+  #
+  # This method checks for a configured editor and opens a temporary file in
+  # that editor for the user to compose content. Upon successful editing, it
+  # reads the content from the temporary file and returns it. If the editor
+  # fails or no editor is configured, appropriate error messages are displayed
+  # and nil is returned.
+  #
+  # @return [ String, nil ] the composed content if successful, nil otherwise
+  def compose
+    unless editor = OllamaChat::EnvConfig::EDITOR?
+      STDERR.puts "Editor reqired for compose, set env var "\
+        "#{OllamaChat::EnvConfig::EDITOR!.env_var.inspect}."
+      return
+    end
+    Tempfile.open do |tmp|
+      system %{#{editor} #{tmp.path.inspect}}
+      if $?.success?
+        return File.read(tmp.path)
+      else
+        STDERR.puts "Editor failed to edit #{tmp.path.inspect}."
+      end
+    end
+    nil
   end
 end
