@@ -51,6 +51,7 @@ class OllamaChat::Chat
   include OllamaChat::KramdownANSI
   include OllamaChat::Conversation
   include OllamaChat::InputContent
+  include OllamaChat::MessageEditing
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -340,6 +341,9 @@ class OllamaChat::Chat
       context_spook(patterns) or :next
     when %r(^/compose$)
       compose or :next
+    when %r(^/revise_last$)
+      revise_last
+      :next
     when %r(^/save\s+(.+)$)
       save_conversation($1)
       :next
