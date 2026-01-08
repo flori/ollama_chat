@@ -25,7 +25,7 @@ def usage(rc = 0)
       -d DIR     the working directory to derive the socket file from
       -h         Show this help message
 
-    Send data to a running Ollame Chat client via standard input.
+    Send data to a running Ollama Chat client via standard input.
   EOT
   exit rc
 end
