@@ -1,5 +1,21 @@
 # Changes
 
+## 2026-01-08 v0.0.54
+
+### New Features
+
+- Added `/revise_last` command for editing the last message
+- Implemented `OllamaChat::MessageEditing` module with editor integration
+- Enhanced message editing with proper error handling and user feedback
+
+### Improvements
+
+- Improved `InputContent` module with better error handling (replaced `$?` with
+  direct `system` return)
+- Updated `choose_filename` to use `_1` parameter for Ruby idioms
+- Added comprehensive test suite for `InputContent` module with **100%** line
+  coverage
+
 ## 2026-01-07 v0.0.53
 
 - Added `/compose` command functionality to compose content using an external
