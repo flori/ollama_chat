@@ -1,5 +1,30 @@
 # Changes
 
+## 2026-01-08 v0.0.55
+
+- Added `OllamaChat::Vim` class for inserting text into Vim buffers using the
+  clientserver protocol
+- Implemented `server_name` and `clientserver` attribute readers for the
+  `OllamaChat::Vim` class
+- Enhanced error message for missing vim server to include the specific server
+  name being used
+- Added error handling to the `insert` method with fallback to `STDERR` output
+  when vim command fails
+- Added comprehensive specs for `OllamaChat::Vim` module with **100%** coverage
+- Fixed typo in help text for `ollama_chat_send` command ("reqired" →
+  "required")
+- Added comprehensive tests for `ThinkControl` module with **100%** coverage
+- Updated `README.md` and `OllamaChat::Information` to document the new
+  `/revise_last` command
+- Improved test coverage for Vim integration
+- Ensured proper state management and no side effects during selection in
+  `ThinkControl` tests
+- All tests use `connect_to_ollama_server` for proper setup
+- Fixed edge cases including exit conditions and nil selections in
+  `ThinkControl` tests
+- Included tests for combined logic with `think_loud` switch in `ThinkControl`
+  tests
+
 ## 2026-01-08 v0.0.54
 
 ### New Features
