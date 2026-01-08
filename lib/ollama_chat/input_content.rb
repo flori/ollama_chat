@@ -102,7 +102,7 @@ module OllamaChat::InputContent
   # @return [ String, nil ] the composed content if successful, nil otherwise
   def compose
     unless editor = OllamaChat::EnvConfig::EDITOR?
-      STDERR.puts "Editor reqired for compose, set env var "\
+      STDERR.puts "Editor required for compose, set env var "\
         "#{OllamaChat::EnvConfig::EDITOR!.env_var.inspect}."
       return
     end

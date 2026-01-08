@@ -108,7 +108,7 @@ describe OllamaChat::InputContent do
     it 'handles missing editor gracefully' do
       const_conf_as('OllamaChat::EnvConfig::EDITOR' => nil)
 
-      expect(STDERR).to receive(:puts).with(/Editor reqired for compose/)
+      expect(STDERR).to receive(:puts).with(/Editor required for compose/)
       expect(chat.compose).to be_nil
     end
 

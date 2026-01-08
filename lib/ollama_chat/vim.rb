@@ -27,6 +27,18 @@ class OllamaChat::Vim
     @clientserver = clientserver || 'socket'
   end
 
+  # The server_name attribute reader returns the name of the Vim server to
+  # connect to.
+  #
+  # @return [ String ] the name of the Vim server
+  attr_reader :server_name
+
+  # The clientserver attribute reader returns the clientserver protocol to be
+  # used.
+  #
+  # @return [ String ] the clientserver protocol identifier
+  attr_reader :clientserver
+
   # The default_server_name method generates a standardized server name
   # based on a given name or the current working directory.
   #
@@ -54,14 +66,22 @@ class OllamaChat::Vim
   # The text is automatically indented to match the current column position.
   #
   # @param text [String] The text to be inserted into the Vim buffer
+  # @return [OllamaChat::Vim, nil] Returns self if successful or nil.
   def insert(text)
     spaces = (col - 1).clamp(0..)
     text   = text.gsub(/^/, ' ' * spaces)
     Tempfile.open do |tmp|
       tmp.write(text)
       tmp.flush
-      system %{vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"}
+      result = system %{
+        vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"
+      }
+      unless result
+        STDERR.puts "Failed! vim is required in path."
+        return
+      end
     end
+    self
   end
 
   # Returns the current column position of the cursor in the Vim server
