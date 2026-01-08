@@ -77,7 +77,9 @@ class OllamaChat::Vim
         vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"
       }
       unless result
-        STDERR.puts "Failed! vim is required in path."
+        STDERR.puts <<~EOT
+          Failed! vim is required in path and running with server name "#@server_name".
+        EOT
         return
       end
     end
