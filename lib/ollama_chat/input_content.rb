@@ -36,7 +36,7 @@ module OllamaChat::InputContent
   #
   # @return [ String, nil ] the path to the selected file or nil if no file was chosen
   def choose_filename(pattern)
-    files = Dir.glob(pattern).select { File.file?(it) }
+    files = Dir.glob(pattern).select { File.file?(_1) }
     files.unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(files)
     when '[EXIT]', nil
@@ -107,8 +107,8 @@ module OllamaChat::InputContent
       return
     end
     Tempfile.open do |tmp|
-      system %{#{editor} #{tmp.path.inspect}}
-      if $?.success?
+      result = system %{#{editor} #{tmp.path.inspect}}
+      if result
         return File.read(tmp.path)
       else
         STDERR.puts "Editor failed to edit #{tmp.path.inspect}."
