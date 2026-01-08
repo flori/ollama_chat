@@ -150,6 +150,7 @@ module OllamaChat::Information
       /compose                        compose content using an EDITOR
       /input [pattern]                select and read content from a file (default: **/*)
       /context [pattern...]           collect context with glob patterns
+      /revise_last                    edit the last response in an external editor
       /output filename                save last response to filename
       /pipe command                   write last response to command's stdin
       /vim                            insert the last message into a vim server
