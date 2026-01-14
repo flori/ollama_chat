@@ -76,7 +76,7 @@ module OllamaChat::Dialog
   # @return [ String ] the user's response with trailing newline removed
   def ask?(prompt:)
     print prompt
-    STDIN.gets.chomp
+    STDIN.gets.to_s.chomp
   end
 
   # The choose_collection method presents a menu to select or create a document
