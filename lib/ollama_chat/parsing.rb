@@ -30,8 +30,6 @@ module OllamaChat::Parsing
       end
       source_io.rewind
       source_io.read
-    when 'text/csv'
-      parse_csv(source_io)
     when 'application/rss+xml'
       parse_rss(source_io)
     when 'application/atom+xml'

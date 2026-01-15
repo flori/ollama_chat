@@ -49,24 +49,7 @@ describe OllamaChat::Parsing do
         def io.content_type
           'text/csv'
         end
-        expect(chat.parse_source(io)).to eq(<<EOT)
-  name: John Doe
-  age: 32
-  occupation: Software Engineer
-
-  name: Jane Smith
-  age: 28
-  occupation: Marketing Manager
-
-  name: Bob Johnson
-  age: 45
-  occupation: Retired
-
-  name: Alice Brown
-  age: 25
-  occupation: Student
-
-EOT
+        expect(chat.parse_source(io)).to eq(asset_content('example.csv'))
       end
     end
 
