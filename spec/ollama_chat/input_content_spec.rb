@@ -9,9 +9,12 @@ describe OllamaChat::InputContent do
 
   describe '#input' do
     it 'can read content from a selected file' do
+      selected_filename = 'spec/assets/example.rb'
       # Mock the file selection process
-      expect(chat).to receive(:choose_filename).with('**/*').
-        and_return('spec/assets/example.rb')
+      expect(chat).to receive(:choose_filename).with('**/*', chosen: Set[]).
+        and_return(selected_filename)
+      expect(chat).to receive(:choose_filename).with('**/*', chosen: Set[selected_filename]).
+        and_return nil
 
       # Test that it returns the file content
       result = chat.input(nil)
@@ -19,13 +22,19 @@ describe OllamaChat::InputContent do
     end
 
     it 'returns nil when no file is selected' do
-      expect(chat).to receive(:choose_filename).with('**/*').and_return(nil)
+      expect(chat).to receive(:choose_filename).with('**/*', chosen: Set[]).
+        and_return(nil)
       expect(chat.input(nil)).to be_nil
     end
 
     it 'can read content with specific pattern' do
-      expect(chat).to receive(:choose_filename).with('spec/assets/*').
-        and_return('spec/assets/example.rb')
+      selected_filename = 'spec/assets/example.rb'
+      expect(chat).to receive(:choose_filename).
+        with('spec/assets/*', chosen: Set[]).
+        and_return(selected_filename)
+      expect(chat).to receive(:choose_filename).
+        with('spec/assets/*', chosen: Set[selected_filename]).
+        and_return nil
       result = chat.input('spec/assets/*')
       expect(result).to include('puts "Hello World!"')
     end

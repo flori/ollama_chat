@@ -8,35 +8,40 @@ require 'tempfile'
 # interactive file selection and context collection for enhancing chat
 # interactions with local or remote content.
 module OllamaChat::InputContent
-  # The input method reads and returns the content of a selected file.
+  # The input method selects and reads content from files matching a pattern.
   #
-  # This method searches for files matching the given pattern and presents them
-  # in an interactive chooser menu. If a file is selected, its content is read
-  # and returned. If the user chooses to exit or no file is selected, the
-  # method returns nil.
+  # This method prompts the user to select files matching the given glob
+  # pattern, reads their content, and returns a concatenated string with each
+  # file's content preceded by its filename.
   #
-  # @param pattern [ String ] the glob pattern to search for files (defaults to '**/*')
+  # @param pattern [String] the glob pattern to search for files (defaults to '**/*')
   #
-  # @return [ String, nil ] the content of the selected file or nil if no file
-  #   was chosen
+  # @return [String] a concatenated string of file contents with filenames as headers
   def input(pattern)
     pattern ||= '**/*'
-    if filename = choose_filename(pattern)
-      File.read(filename)
+    files = Set[]
+    while filename = choose_filename(pattern, chosen: files)
+      files << filename
     end
+    result = ''
+    files.each do |filename|
+      result << ("%s:\n\n%s\n\n" % [ filename, File.read(filename) ])
+    end
+    result.full?
   end
 
-  # The choose_filename method selects a file from a list of matching files.
+  # The choose_filename method selects a file from a list of matching files. It
+  # searches for files matching the given pattern, excludes already chosen
+  # files, and presents them in an interactive chooser menu.
   #
-  # This method searches for files matching the given glob pattern, presents
-  # them in an interactive chooser menu, and returns the selected filename. If
-  # the user chooses to exit or no file is selected, the method returns nil.
+  # @param pattern [ String ] the glob pattern to search for files
+  # @param chosen [ Set ] a set of already chosen filenames to exclude from
+  #   selection
   #
-  # @param pattern [ String ] the glob pattern to search for files (defaults to '**/*')
-  #
-  # @return [ String, nil ] the path to the selected file or nil if no file was chosen
-  def choose_filename(pattern)
-    files = Dir.glob(pattern).select { File.file?(_1) }
+  # @return [ String, nil ] the selected filename or nil if no file was chosen or user exited
+  def choose_filename(pattern, chosen: nil)
+    files = Dir.glob(pattern).reject { chosen&.member?(_1) }.
+      select { File.file?(_1) }
     files.unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(files)
     when '[EXIT]', nil
