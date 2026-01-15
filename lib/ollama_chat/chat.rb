@@ -88,15 +88,7 @@ class OllamaChat::Chat
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
     setup_switches(config)
-    base_url         = @opts[?u] || OllamaChat::EnvConfig::OLLAMA::URL
-    @ollama          = Ollama::Client.new(
-      connect_timeout: config.timeouts.connect_timeout?,
-      read_timeout:    config.timeouts.read_timeout?,
-      write_timeout:   config.timeouts.write_timeout?,
-      base_url:        base_url,
-      debug:           ,
-      user_agent:
-    )
+    @ollama = connect_ollama
     if server_version.version < '0.9.0'.version
       raise ArgumentError, 'require ollama API version 0.9.0 or higher'
     end
@@ -213,6 +205,11 @@ class OllamaChat::Chat
   #   the content to be processed, or nil for no action needed
   def handle_input(content)
     case content
+    when %r(^/reconnect)
+      STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
+      @ollama = connect_ollama
+      STDERR.puts green { " Done." }
+      :next
     when %r(^/copy$)
       copy_to_clipboard
       :next
@@ -679,6 +676,21 @@ class OllamaChat::Chat
   end
 
   private
+
+  def base_url
+    @opts[?u] || OllamaChat::EnvConfig::OLLAMA::URL
+  end
+
+  def connect_ollama
+    Ollama::Client.new(
+      connect_timeout: config.timeouts.connect_timeout?,
+      read_timeout:    config.timeouts.read_timeout?,
+      write_timeout:   config.timeouts.write_timeout?,
+      base_url:        base_url,
+      debug:           ,
+      user_agent:
+    )
+  end
 
   # The setup_documents method initializes the document processing pipeline by
   # configuring the embedding model and database connection.

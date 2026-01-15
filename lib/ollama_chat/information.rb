@@ -118,6 +118,7 @@ module OllamaChat::Information
   # interface.
   private def display_chat_help_message
     <<~EOT
+      /reconnect                      reconnect to current ollama server
       /copy                           to copy last response to clipboard
       /paste                          to paste content
       /markdown                       toggle markdown output

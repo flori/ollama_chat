@@ -28,6 +28,11 @@ describe OllamaChat::Chat, protect_env: true do
   describe 'handle_input' do
     connect_to_ollama_server
 
+    it 'returns :next when input is "/reconnect"' do
+      expect(chat).to receive(:connect_ollama).and_return double('ollama')
+      expect(chat.handle_input("/reconnect")).to eq :next
+    end
+
     it 'returns :next when input is "/copy"' do
       expect(chat).to receive(:copy_to_clipboard)
       expect(chat.handle_input("/copy")).to eq :next

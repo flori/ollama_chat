@@ -151,6 +151,7 @@ subject - the young, blue-eyed cat.
 The following commands can be given inside the chat, if prefixed by a `/`:
 
 ```
+/reconnect                      reconnect to current ollama server
 /copy                           to copy last response to clipboard
 /paste                          to paste content
 /markdown                       toggle markdown output
