@@ -43,6 +43,8 @@ stream: true
 document_policy: importing
 think: false
 think_loud: true
+context:
+  format: JSON
 embedding:
   enabled: true
   paused: false

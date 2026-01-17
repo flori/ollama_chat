@@ -80,8 +80,9 @@ module OllamaChat::InputContent
   # @example Load default context
   #   context_spook(nil)
   def context_spook(patterns)
+    format = config.context.format
     if patterns
-      ContextSpook::generate_context(verbose: true) do |context|
+      ContextSpook::generate_context(verbose: true, format:) do |context|
         context do
           Dir.glob(patterns).each do |filename|
             File.file?(filename) or next
@@ -91,7 +92,7 @@ module OllamaChat::InputContent
       end.to_json
     else
       if context_filename = choose_filename('.contexts/*.rb')
-        ContextSpook.generate_context(context_filename, verbose: true).to_json
+        ContextSpook.generate_context(context_filename, verbose: true, format:).to_json
       end
     end
   end
