@@ -50,5 +50,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<bigdecimal>.freeze, ["~> 3.1".freeze])
   s.add_runtime_dependency(%q<csv>.freeze, ["~> 3.0".freeze])
   s.add_runtime_dependency(%q<const_conf>.freeze, ["~> 0.3".freeze])
-  s.add_runtime_dependency(%q<context_spook>.freeze, ["~> 1.4".freeze])
+  s.add_runtime_dependency(%q<context_spook>.freeze, ["~> 1.5".freeze])
 end

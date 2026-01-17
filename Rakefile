@@ -58,7 +58,7 @@ GemHadar do
   dependency             'bigdecimal',            '~> 3.1'
   dependency             'csv',                   '~> 3.0'
   dependency             'const_conf',            '~> 0.3'
-  dependency             'context_spook',         '~> 1.4'
+  dependency             'context_spook',         '~> 1.5'
   development_dependency 'all_images',            '~> 0.6'
   development_dependency 'rspec',                 '~> 3.2'
   development_dependency 'kramdown',              '~> 2.0'
