@@ -1,5 +1,32 @@
 # Changes
 
+## 2026-01-17 v0.0.56
+
+- Updated `context_spook` dependency from version **1.4** to **1.5**
+- Expanded context file inclusion to support YAML files
+- Updated `context_spook` method to pass `format` parameter to
+  `ContextSpook::generate_context` calls
+    - Added `context` section to default configuration with `format: JSON` setting
+- Added `/reconnect` command to reset Ollama connection
+    - Introduced `connect_ollama` method to create new Ollama client instances with
+      current configuration
+    - Added `base_url` method to resolve connection URL from command-line or
+      environment config
+    - Updated `handle_input` to process `/reconnect` command and trigger
+      reconnection
+- Enhanced `OllamaChat::InputContent#input` method to select and read multiple
+  files matching a glob pattern
+    - Updated `OllamaChat::InputContent#choose_filename` to accept a `chosen`
+      parameter for tracking selections
+    - Modified test cases in `spec/ollama_chat/input_content_spec.rb` to verify
+      multiple file selection behavior
+    - Files are now concatenated with filename headers in the output
+    - Maintains backward compatibility with single file selection
+    - Uses `Set` for efficient duplicate prevention during selection
+- Removed specialized CSV parsing functionality from `OllamaChat::Parsing`
+  module
+- Handle nil from `STDIN.gets` to prevent `NoMethodError`
+
 ## 2026-01-08 v0.0.55
 
 - Added `OllamaChat::Vim` class for inserting text into Vim buffers using the
