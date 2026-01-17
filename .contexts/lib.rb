@@ -10,7 +10,7 @@ context do
   end
 
   namespace "lib" do
-    Dir['lib/**/*.rb'].each do |filename|
+    Dir['lib/**/*.{rb,yml}'].each do |filename|
       file filename, tags: 'lib'
     end
   end
