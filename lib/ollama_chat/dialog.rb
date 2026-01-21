@@ -166,8 +166,7 @@ module OllamaChat::Dialog
   #
   # @return [ String ] the full name of the chosen voice
   def change_voice
-    chosen  = OllamaChat::Utils::Chooser.choose(config.voice.list)
-    @current_voice = chosen.full? || config.voice.default
+    @voices.choose
   end
 
   # The message_list method creates and returns a new MessageList instance

@@ -103,9 +103,7 @@ module OllamaChat::Information
     think_loud.show
     location.show
     voice.show
-    if @voice.on?
-      STDOUT.puts "  Using voice #{bold{@current_voice}} to speak."
-    end
+    @voice.on? and @voices.show
     STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
     STDOUT.puts "Document policy for references in user text: #{bold{document_policy}}"
     STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."

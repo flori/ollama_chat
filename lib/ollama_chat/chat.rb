@@ -111,7 +111,6 @@ class OllamaChat::Chat
     end
     @documents            = setup_documents
     @cache                = setup_cache
-    @current_voice        = config.voice.default
     @images               = []
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
     init_chat_history
@@ -629,7 +628,7 @@ class OllamaChat::Chat
       handler = OllamaChat::FollowChat.new(
         chat:     self,
         messages:,
-        voice:    (@current_voice if voice.on?)
+        voice:    (@voices.selected if voice.on?)
       )
       begin
         retried = false

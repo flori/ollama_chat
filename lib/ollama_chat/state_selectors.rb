@@ -91,7 +91,7 @@ module OllamaChat::StateSelectors
     # This method displays the name of the state selector along with its
     # currently selected state in a formatted message to standard output.
     def show
-      STDOUT.puts "#{@name} is #{bold(to_s)}"
+      STDOUT.puts "#{@name} is #{bold(to_s)}."
     end
 
     # The to_s method returns the string representation of the selected state.
@@ -120,6 +120,11 @@ module OllamaChat::StateSelectors
       default: config.think.mode,
       states: %w[ enabled disabled low medium high ],
       off: %w[ disabled ],
+    )
+    @voices = StateSelector.new(
+      name: 'Voice',
+      default: config.voice.default,
+      states: config.voice.list
     )
   end
 end
