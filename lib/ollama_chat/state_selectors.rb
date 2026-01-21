@@ -18,14 +18,19 @@ module OllamaChat::StateSelectors
     # @param default [String, nil] The default state to select (must be one of +states+)
     # @param off [Array<String>, nil] The list of states that should be considered "off"
     # @raise [ArgumentError] If +states+ is empty or +default+ is not in +states+
-    def initialize(name:, states:, default: nil, off: nil)
-      @name = name.to_s
-      @states = Set.new(states.map(&:to_s))
-      @states.empty? and raise ArgumentError, 'states cannot be empty'
+    def initialize(name:, states:, default: nil, off: nil, allow_empty: false)
+      @name        = name.to_s
+      @states      = Set.new(states.map(&:to_s))
+      @allow_empty = allow_empty
+      unless allow_empty
+        @states.empty? and raise ArgumentError, 'states cannot be empty'
+      end
       if default
         @default  = default.to_s
-        @states.member?(@default) or raise ArgumentError,
-          "default has to be one of #{@states.to_a * ', '}."
+        unless allow_empty?
+          @states.member?(@default) or raise ArgumentError,
+            "default has to be one of #{@states.to_a * ', '}."
+        end
         @selected = @default
       else
         @selected = @states.first
@@ -46,9 +51,19 @@ module OllamaChat::StateSelectors
     # @raise [ArgumentError] if the provided value is not one of the valid states
     def selected=(value)
       value = value.to_s
-      @states.member?(value) or raise ArgumentError,
-        "value has to be one of #{@states.to_a * ', '}."
+      unless allow_empty?
+        @states.member?(value) or raise ArgumentError,
+          "value has to be one of #{@states.to_a * ', '}."
+      end
       @selected = value
+    end
+
+    # The allow_empty? method checks if the switch is allowed to be empty.
+    #
+    # @return [ TrueClass, FalseClass ] true if the switch is allowed to be
+    #   empty, false otherwise
+    def allow_empty?
+      !!@allow_empty
     end
 
     # The off? method checks if the current state is in the off set.
@@ -124,7 +139,8 @@ module OllamaChat::StateSelectors
     @voices = StateSelector.new(
       name: 'Voice',
       default: config.voice.default,
-      states: config.voice.list
+      states: config.voice.list,
+      allow_empty: true
     )
   end
 end
