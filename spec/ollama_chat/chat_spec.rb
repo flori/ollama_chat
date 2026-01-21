@@ -1,12 +1,8 @@
 require 'spec_helper'
 
 describe OllamaChat::Chat, protect_env: true do
-  use_default_config = -> a {
-    a << '-f' << 'lib/ollama_chat/ollama_chat_config/default_config.yml'
-  }
-
   let :argv do
-    use_default_config.(%w[ -C test ])
+    chat_default_config(%w[ -C test ])
   end
 
   before do
@@ -134,7 +130,7 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/document_policy"' do
-      expect(chat).to receive(:choose_document_policy)
+      expect_any_instance_of(OllamaChat::StateSelectors::StateSelector).to receive(:choose)
       expect(chat.handle_input("/document_policy")).to eq :next
     end
 
@@ -235,7 +231,7 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
     let :argv do
-      use_default_config.(%w[ -C test -c ] << asset('conversation.json'))
+      chat_default_config(%w[ -C test -c ] << asset('conversation.json'))
     end
 
     it 'dispays the last exchange of the converstation' do
@@ -252,7 +248,7 @@ describe OllamaChat::Chat, protect_env: true do
     context 'with MemoryCache' do
 
       let :argv do
-        use_default_config.(%w[ -M ])
+        chat_default_config(%w[ -M ])
       end
 
       it 'can use MemoryCache' do
@@ -274,7 +270,7 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
       let :argv do
-        use_default_config.(%w[ -C test -D ] << asset('example.html'))
+        chat_default_config(%w[ -C test -D ] << asset('example.html'))
       end
 
       it 'Adds documents passed to app via -D option' do

@@ -245,7 +245,7 @@ module OllamaChat::Parsing
         when 'image'
           add_image(images, source_io, source)
         when 'text', 'application', nil
-          case @document_policy
+          case document_policy.selected
           when 'ignoring'
             nil
           when 'importing'

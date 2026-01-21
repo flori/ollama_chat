@@ -36,6 +36,7 @@ class OllamaChat::Chat
   include Term::ANSIColor
   include OllamaChat::DocumentCache
   include OllamaChat::Switches
+  include OllamaChat::StateSelectors
   include OllamaChat::ModelHandling
   include OllamaChat::Parsing
   include OllamaChat::SourceFetching
@@ -88,14 +89,13 @@ class OllamaChat::Chat
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
     setup_switches(config)
+    setup_state_selectors(config)
     @ollama = connect_ollama
     if server_version.version < '0.9.0'.version
       raise ArgumentError, 'require ollama API version 0.9.0 or higher'
     end
-    @document_policy = config.document_policy
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
-    @think           = config.think
     model_system     = pull_model_unless_present(@model, @model_options)
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     if @opts[?c]
@@ -119,6 +119,18 @@ class OllamaChat::Chat
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
+
+  # The document_policy reader returns the document policy selector for the chat session.
+  #
+  # @return [ OllamaChat::StateSelector ] the document policy selector object
+  #   that manages the policy for handling document references in user text
+  attr_reader :document_policy
+
+  # The think_mode reader returns the think mode selector for the chat session.
+  #
+  # @return [ OllamaChat::StateSelector ] the think mode selector object
+  #   that manages the thinking mode setting for the Ollama model interactions
+  attr_reader :think_mode
 
   # The debug method accesses the debug configuration setting.
   #
@@ -304,10 +316,10 @@ class OllamaChat::Chat
       info
       :next
     when %r(^/document_policy$)
-      choose_document_policy
+      document_policy.choose
       :next
     when %r(^/think$)
-      choose_think_mode
+      think_mode.choose
       :next
     when %r(^/think_loud$)
       think_loud.toggle
@@ -385,9 +397,9 @@ class OllamaChat::Chat
   # the specified number of URLs. The processing approach varies based on the current
   # document policy and embedding status:
   #
-  # - **Embedding mode**: When `@document_policy == 'embedding'` AND `@embedding.on?` is true,
+  # - **Embedding mode**: When `document_policy.selected == 'embedding'` AND `@embedding.on?` is true,
   #   each result is embedded and the query is interpolated into the `web_embed` prompt.
-  # - **Summarizing mode**: When `@document_policy == 'summarizing'`,
+  # - **Summarizing mode**: When `document_policy.selected == 'summarizing'`,
   #   each result is summarized and both query and results are interpolated into the
   #   `web_summarize` prompt.
   # - **Importing mode**: For all other cases, each result is imported and both query and
@@ -403,11 +415,11 @@ class OllamaChat::Chat
   #   web('3', 'ruby programming tutorials')
   #
   # @example Web search with embedding policy
-  #   # With @document_policy == 'embedding' and @embedding.on?
+  #   # With document_policy.selected == 'embedding' and @embedding.on?
   #   # Processes results through embedding pipeline
   #
   # @example Web search with summarizing policy
-  #   # With @document_policy == 'summarizing'
+  #   # With document_policy.selected == 'summarizing'
   #   # Processes results through summarization pipeline
   #
   # @see #search_web
@@ -417,13 +429,13 @@ class OllamaChat::Chat
   # @see #summarize
   def web(count, query)
     urls = search_web(query, count.to_i) or return :next
-    if @document_policy == 'embedding' && @embedding.on?
+    if document_policy.selected == 'embedding' && @embedding.on?
       prompt = config.prompts.web_embed
       urls.each do |url|
         fetch_source(url) { |url_io| embed_source(url_io, url) }
       end
       prompt.named_placeholders_interpolate({query:})
-    elsif @document_policy == 'summarizing'
+    elsif document_policy.selected == 'summarizing'
       prompt = config.prompts.web_import
       results = urls.each_with_object('') do |url, content|
         summarize(url).full? do |c|
@@ -633,7 +645,7 @@ class OllamaChat::Chat
         if think? && !retried
           STDOUT.puts "#{bold('Error')}: in think mode, switch thinking off and retry."
           sleep 1
-          @think  = false
+          think_mode.selected  = 'disabled'
           retried = true
           retry
         else

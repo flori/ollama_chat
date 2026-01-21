@@ -2,6 +2,15 @@ require 'const_conf'
 require 'pathname'
 
 module OllamaChat
+  # Environment configuration module for OllamaChat
+  #
+  # This module provides a structured way to manage environment variables and
+  # configuration settings for the OllamaChat application. It uses the
+  # ConstConf library to define and manage configuration parameters with
+  # default values, descriptions, and decoding logic.
+  #
+  # The module organizes configuration into logical sections including general
+  # settings, Ollama-specific configurations, and chat-specific options.
   module EnvConfig
     include ConstConf
 

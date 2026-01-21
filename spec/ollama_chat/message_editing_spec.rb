@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe OllamaChat::MessageEditing do
   let :chat do
-    OllamaChat::Chat.new
+    OllamaChat::Chat.new argv: chat_default_config
   end
 
   connect_to_ollama_server

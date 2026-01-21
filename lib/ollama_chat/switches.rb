@@ -192,7 +192,7 @@ module OllamaChat::Switches
     )
 
     @think_loud = Switch.new(
-      value: config.think_loud,
+      value: config.think.loud,
       msg: {
         true  => "Thinking out loud, show thinking annotations.",
         false => "Thinking silently, don't show thinking annotations.",

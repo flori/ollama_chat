@@ -3,8 +3,8 @@ require 'pathname'
 
 describe OllamaChat::Parsing do
   let :chat do
-    OllamaChat::Chat.new.tap do |chat|
-      chat.document_policy = 'importing'
+    OllamaChat::Chat.new(argv: chat_default_config).tap do |chat|
+      chat.document_policy.selected = 'importing'
     end
   end
 
@@ -233,14 +233,14 @@ describe OllamaChat::Parsing do
 
     context 'document_policy' do
       it 'can be ignoring' do
-        chat.document_policy = 'ignoring'
+        chat.document_policy.selected = 'ignoring'
         c = "see #{Dir.pwd}/spec/assets/example.html"
         content, = chat.parse_content(c, [])
         expect(content).to eq(c)
       end
 
       it 'can be importing' do
-        chat.document_policy = 'importing'
+        chat.document_policy.selected = 'importing'
         c = "see #{Dir.pwd}/spec/assets/example.html"
         content, = chat.parse_content(c, [])
         expect(content).to include(<<~EOT)
@@ -253,7 +253,7 @@ describe OllamaChat::Parsing do
       end
 
       it 'can be embedding' do
-        chat.document_policy = 'embedding'
+        chat.document_policy.selected = 'embedding'
         c = "see #{Dir.pwd}/spec/assets/example.html"
         expect(chat).to receive(:embed_source).with(
           kind_of(IO),
@@ -264,7 +264,7 @@ describe OllamaChat::Parsing do
       end
 
       it 'can be summarizing' do
-        chat.document_policy = 'summarizing'
+        chat.document_policy.selected = 'summarizing'
         c = "see #{Dir.pwd}/spec/assets/example.html"
         content, = chat.parse_content(c, [])
         expect(content).to start_with(<<~EOT)

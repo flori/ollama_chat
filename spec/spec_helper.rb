@@ -86,6 +86,10 @@ module AssetHelpers
   end
 end
 
+def chat_default_config(a = [])
+  a + %w[ -f lib/ollama_chat/ollama_chat_config/default_config.yml ]
+end
+
 # A module that provides functionality for stubbing Ollama server responses.
 #
 # The StubOllamaServer module enables developers to simulate Ollama API

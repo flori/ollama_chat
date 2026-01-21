@@ -41,8 +41,9 @@ voice:
 markdown: true
 stream: true
 document_policy: importing
-think: false
-think_loud: true
+think:
+  mode: disabled
+  loud: true
 context:
   format: JSON
 embedding:

@@ -99,7 +99,7 @@ module OllamaChat::Information
     end
     markdown.show
     stream.show
-    think_show
+    think_mode.show
     think_loud.show
     location.show
     voice.show
@@ -107,7 +107,7 @@ module OllamaChat::Information
       STDOUT.puts "  Using voice #{bold{@current_voice}} to speak."
     end
     STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
-    STDOUT.puts "Document policy for references in user text: #{bold{@document_policy}}"
+    STDOUT.puts "Document policy for references in user text: #{bold{document_policy}}"
     STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
     STDOUT.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     nil
@@ -144,7 +144,7 @@ module OllamaChat::Information
       /summarize [n] source           summarize the source's content in n words
       /embedding                      toggle embedding paused or not
       /embed source                   embed the source's content
-      /web [n] query                  query web & for n(=1) results (policy: #@document_policy)
+      /web [n] query                  query web & for n(=1) results (policy: #{document_policy})
       /links [clear]                  display (or clear) links used in the chat
       /save filename                  store conversation messages
       /load filename                  load conversation messages

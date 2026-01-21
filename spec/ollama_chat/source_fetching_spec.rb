@@ -2,9 +2,7 @@ require 'spec_helper'
 
 describe OllamaChat::SourceFetching do
   let :chat do
-    OllamaChat::Chat.new(
-      argv: %w[ -f lib/ollama_chat/ollama_chat_config/default_config.yml ]
-    )
+    OllamaChat::Chat.new(argv: chat_default_config)
   end
 
   connect_to_ollama_server
