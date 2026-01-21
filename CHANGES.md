@@ -1,5 +1,38 @@
 # Changes
 
+## 2026-01-21 v0.0.57
+
+- Introduce `OllamaChat::StateSelectors` module with `StateSelector` class for
+  managing configurable states
+- Replace simple string-based document policy and think mode with
+  `StateSelector` objects
+- Add `allow_empty` parameter to `StateSelector#initialize` method to allow
+  empty states in voice output
+- Update `StateSelector#selected=` to conditionally validate states based on
+  `allow_empty?`
+- Refactor voice handling to use `StateSelector` by replacing `@current_voice`
+  with `@voices` `StateSelector`
+- Update `FollowChat` to use `@voices.selected` instead of `@current_voice` for
+  voice selection
+- Simplify `change_voice` method in `dialog.rb` to delegate to `@voices.choose`
+- Update voice display in `information.rb` to use `@voices.show` instead of raw
+  voice name
+- Update configuration format to support nested `think` settings with `mode`
+  and `loud` sub-properties
+- Modify command handlers to use `document_policy.choose` and
+  `think_mode.choose` instead of legacy methods
+- Update `OllamaChat::Chat` initialization to use `setup_state_selectors`
+  method
+- Refactor `OllamaChat::ThinkControl` to use new state selector system
+- Update `OllamaChat::Parsing` to reference `@document_policy.selected` instead
+  of `@document_policy`
+- Update default configuration file to use format with nested think settings
+- Add proper `attr_reader` for `document_policy` and `think_mode` state
+  selectors
+- Update help text to reference new state selector system
+- Update `OllamaChat::Switches` to handle nested think configuration
+- Add `OllamaChat::StateSelectors` to required files in `lib/ollama_chat.rb`
+
 ## 2026-01-17 v0.0.56
 
 - Updated `context_spook` dependency from version **1.4** to **1.5**
