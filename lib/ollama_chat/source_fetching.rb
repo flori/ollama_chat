@@ -32,7 +32,7 @@ module OllamaChat::SourceFetching
   # @param url [ String ] the URL for which HTTP options are being prepared
   #
   # @return [ Hash ] a hash containing HTTP options such as ssl_verify_peer and
-  # proxy settings
+  #   proxy settings
   def http_options(url)
     options = {}
     if ssl_no_verify = config.ssl_no_verify?
@@ -49,7 +49,8 @@ module OllamaChat::SourceFetching
   # including commands, URLs, and file paths. It processes the source based on
   # its type and yields a temporary file handle for further processing.
   #
-  # @param source [ String ] the source identifier which can be a command, URL, or file path
+  # @param source [ String ] the source identifier which can be a command, URL,
+  #   or file path
   #
   # @yield [ tmp ]
   def fetch_source(source, check_exist: false, &block)
@@ -135,7 +136,7 @@ module OllamaChat::SourceFetching
   # @param source [ String ] the source identifier or path
   #
   # @return [ String ] a formatted message indicating the import result and the
-  # parsed content
+  #   parsed content
   def import_source(source_io, source)
     source        = source.to_s
     document_type = source_io&.content_type.full? { |ct| italic { ct } + ' ' }
@@ -150,7 +151,7 @@ module OllamaChat::SourceFetching
   # passes the resulting IO object to the import_source method for processing.
   #
   # @param source [String] The source identifier which can be a command, URL,
-  # or file path
+  #   or file path
   #
   # @return [String, nil] A formatted message indicating the import result and
   #                       parsed content, #   or nil if the operation fails
@@ -208,7 +209,7 @@ module OllamaChat::SourceFetching
   # @param count [Integer, nil] An optional counter for tracking processing order
   #
   # @return [Array, String, nil] The embedded chunks or processed content, or
-  # nil if embedding is disabled or fails
+  #   nil if embedding is disabled or fails
   def embed_source(source_io, source, count: nil)
     @embedding.on? or return parse_source(source_io)
     m = "Embedding #{italic { source_io&.content_type }} document #{source.to_s.inspect}."
@@ -263,10 +264,10 @@ module OllamaChat::SourceFetching
   # disabled, it falls back to generating a summary instead.
   #
   # @param source [String] The source identifier which can be a command, URL,
-  # or file path
+  #   or file path
   #
   # @return [String, nil] The formatted embedding result or summary message, or
-  # nil if the operation fails
+  #   nil if the operation fails
   def embed(source)
     if @embedding.on?
       STDOUT.puts "Now embedding #{source.to_s.inspect}."

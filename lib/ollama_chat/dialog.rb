@@ -109,7 +109,7 @@ module OllamaChat::Dialog
   #
   # @param default [ String ] the default system prompt to fall back to
   # @param system [ String ] the system prompt identifier or pattern to
-  # search for
+  #   search for
   def change_system_prompt(default, system: nil)
     selector = case system
                when /\A\?(.+)\z/

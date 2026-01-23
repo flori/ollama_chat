@@ -80,7 +80,7 @@ module OllamaChat::Information
   # configurations, embedding settings, and various operational switches.
   #
   # @return [ nil ] This method does not return a value; it outputs information
-  # directly to standard output.
+  #   directly to standard output.
   def info
     STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
     STDOUT.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"

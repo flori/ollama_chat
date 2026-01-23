@@ -688,10 +688,18 @@ class OllamaChat::Chat
 
   private
 
+  # The base_url method returns the Ollama server URL from command-line options
+  # or environment configuration.
+  #
+  # @return [String] the base URL used for connecting to the Ollama API
   def base_url
     @opts[?u] || OllamaChat::EnvConfig::OLLAMA::URL
   end
 
+  # The connect_ollama method creates and returns a new Ollama::Client instance
+  # configured with timeout settings, base URL, debug flag, and user agent
+  #
+  # @return [Ollama::Client] a configured Ollama API client instance
   def connect_ollama
     Ollama::Client.new(
       connect_timeout: config.timeouts.connect_timeout?,

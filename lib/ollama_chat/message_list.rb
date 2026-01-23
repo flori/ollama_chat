@@ -35,7 +35,7 @@ class OllamaChat::MessageList
   # The initialize method sets up the message list for an OllamaChat session.
   #
   # @param chat [ OllamaChat::Chat ] the chat object that this message list
-  # belongs to
+  #   belongs to
   def initialize(chat)
     @chat     = chat
     @messages = []
@@ -54,7 +54,7 @@ class OllamaChat::MessageList
   # OllamaChat::MessageList instance.
   #
   # @attr_reader [OllamaChat::MessageList] A MessageList object containing all
-  # messages associated with this instance
+  #   messages associated with this instance
   attr_reader :messages
 
   # Returns the number of messages stored in the message list.
@@ -202,9 +202,11 @@ class OllamaChat::MessageList
 
   # Sets the system prompt for the chat session.
   #
-  # @param system [String, nil] The new system prompt. If `nil` or `false`, clears the system prompt.
+  # @param system [String, nil] The new system prompt. If `nil` or `false`,
+  #   clears the system prompt.
   #
-  # @return [OllamaChat::MessageList] Returns `self` to allow chaining of method calls.
+  # @return [OllamaChat::MessageList] Returns `self` to allow chaining of
+  #   method calls.
   #
   # @note This method:
   #   - Removes all existing system prompts from the message list
@@ -252,7 +254,7 @@ class OllamaChat::MessageList
   # curent location, time, and unit preferences.
   #
   # @return [Array] An array of Ollama::Message objects representing the
-  # messages in the list.
+  #   messages in the list.
   def to_ary
     location = at_location.full?
     add_system = !!location

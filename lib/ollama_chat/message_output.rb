@@ -18,7 +18,7 @@ module OllamaChat::MessageOutput
   #
   # @return [ OllamaChat::Chat ] returns self
   # @return [ nil ] returns nil if the command is not provided or if there is
-  # no assistant message
+  #   no assistant message
   def pipe(cmd)
     cmd.present? or return
     if message = @messages.last and message.role == 'assistant'
@@ -44,7 +44,7 @@ module OllamaChat::MessageOutput
   # The output method writes the last assistant message to a file.
   #
   # @param filename [ String ] the path to the file where the last assistant
-  # message should be written
+  #   message should be written
   #
   # @return [ OllamaChat::Chat ] returns self
   def output(filename)
@@ -72,11 +72,14 @@ module OllamaChat::MessageOutput
   # doesn't exist, the method returns early without writing. Otherwise, it
   # opens the file in write mode and writes the message content to it.
   #
-  # @param filename [ String ] the path to the file where the content should be written
-  # @param message [ Ollama::Message ] the message object containing the content to write
+  # @param filename [ String ] the path to the file where the content should be
+  #   written
+  # @param message [ Ollama::Message ] the message object containing the
+  #   content to write
   #
   # @return [ TrueClass ] returns true if the file was successfully written
-  # @return [ nil ] returns nil if the user chose not to overwrite or if an error occurred
+  # @return [ nil ] returns nil if the user chose not to overwrite or if an
+  #   error occurred
   def attempt_to_write_file(filename, message)
     path = Pathname.new(filename.to_s).expand_path
     if !path.exist? ||

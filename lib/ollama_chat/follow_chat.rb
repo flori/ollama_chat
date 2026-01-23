@@ -19,12 +19,12 @@ class OllamaChat::FollowChat
   # Initializes a new instance of OllamaChat::FollowChat.
   #
   # @param [OllamaChat::Chat] chat The chat object, which represents the
-  # conversation context.
+  #   conversation context.
   # @param [#to_a] messages A collection of message objects, representing the
-  # conversation history.
+  #   conversation history.
   # @param [String] voice (optional) to speek with if any.
   # @param [IO] output (optional) The output stream where terminal output
-  # should be printed. Defaults to STDOUT.
+  #   should be printed. Defaults to STDOUT.
   #
   # @return [OllamaChat::FollowChat] A new instance of OllamaChat::FollowChat.
   def initialize(chat:, messages:, voice: nil, output: STDOUT)
@@ -39,7 +39,7 @@ class OllamaChat::FollowChat
   # Returns the conversation history (an array of message objects).
   #
   # @return [OllamaChat::MessageList<Ollama::Message>] The array of messages in
-  # the conversation.
+  #   the conversation.
   attr_reader :messages
 
   # Invokes the chat flow based on the provided Ollama server response.
@@ -59,7 +59,7 @@ class OllamaChat::FollowChat
   # outputs evaluation statistics (if applicable).
   #
   # @param [Ollama::Response] response The parsed JSON response from the Ollama
-  # server.
+  #   server.
   #
   # @return [OllamaChat::FollowChat] The current instance for method chaining.
   def call(response)
@@ -128,7 +128,7 @@ class OllamaChat::FollowChat
   # last message if thinking is enabled and thinking content is present.
   #
   # @param response [ Object ] the response object containing message content
-  # and thinking
+  #   and thinking
   def update_last_message(response)
     @messages.last.content << response.message&.content
     if @chat.think_loud? and response_thinking = response.message&.thinking.full?
@@ -212,8 +212,8 @@ class OllamaChat::FollowChat
   # @param response [ Object ] the response object containing evaluation metrics
   #
   # @return [ String ] a formatted string with statistical information about
-  # the evaluation process including durations, counts, and rates, styled with
-  # colors and formatting
+  #   the evaluation process including durations, counts, and rates, styled
+  #   with colors and formatting
   def eval_stats(response)
     eval_duration        = response.eval_duration / 1e9
     prompt_eval_duration = response.prompt_eval_duration / 1e9

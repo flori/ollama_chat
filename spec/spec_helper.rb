@@ -58,7 +58,7 @@ module AssetHelpers
   # @yield [ io ] yields the IO object for the asset file to the provided block
   #
   # @return [ File, nil ] returns the IO object for the asset file, or nil if a
-  # block is provided and the block does not return a value
+  #   block is provided and the block does not return a value
   def asset_io(name, &block)
     io = File.new(File.join(__dir__, 'assets', name))
     if block
@@ -130,7 +130,7 @@ module ProtectEnvVars
   # during test execution.
   #
   # @return [Proc] a lambda that wraps test execution with environment variable
-  # preservation
+  #   preservation
   def self.apply
     -> example do
       if example.metadata[:protect_env]

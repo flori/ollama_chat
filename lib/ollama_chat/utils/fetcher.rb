@@ -127,7 +127,7 @@ class OllamaChat::Utils::Fetcher
   #
   # @return [ nil ] returns nil if the file does not exist
   # @return [ Object ] returns the result of the block execution if the file
-  # exists
+  #   exists
   def self.read(filename, &block)
     if File.exist?(filename)
       File.open(filename) do |file|

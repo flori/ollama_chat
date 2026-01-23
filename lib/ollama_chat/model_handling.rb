@@ -21,7 +21,7 @@ module OllamaChat::ModelHandling
   # @param model [ String ] the name of the Ollama model
   #
   # @return [ String, FalseClass ] the system prompt if the model is present,
-  # false otherwise
+  #   false otherwise
   def model_present?(model)
     ollama.show(model:) { return _1.system.to_s }
   rescue Ollama::Errors::NotFoundError
@@ -32,8 +32,6 @@ module OllamaChat::ModelHandling
   # remote server if it is not found locally.
   #
   # @param model [ String ] the name of the model to be pulled
-  #
-  # @return [ nil ]
   def pull_model_from_remote(model)
     STDOUT.puts "Model #{bold{model}} not found locally, attempting to pull it from remote now…"
     ollama.pull(model:)
@@ -54,7 +52,7 @@ module OllamaChat::ModelHandling
   # @param options [ Hash ] Options for the pull_model_from_remote method.
   #
   # @return [ String, FalseClass ] the system prompt if the model and it are
-  # present, false otherwise.
+  #   present, false otherwise.
   def pull_model_unless_present(model, options)
     if system = model_present?(model)
       return system.full?

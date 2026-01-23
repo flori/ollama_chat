@@ -75,7 +75,7 @@ class OllamaChat::OllamaChatConfig
   # configuration file.
   #
   # @return [ Pathname ] a Pathname object representing the path to the
-  # config.yml file within the configuration directory
+  #   config.yml file within the configuration directory
   def default_path
     config_dir_path + 'config.yml'
   end
@@ -85,7 +85,7 @@ class OllamaChat::OllamaChatConfig
   # 'ollama_chat' subdirectory.
   #
   # @return [ Pathname ] the pathname object representing the configuration
-  # directory
+  #   directory
   def config_dir_path
     OllamaChat::EnvConfig::XDG_CONFIG_HOME
   end

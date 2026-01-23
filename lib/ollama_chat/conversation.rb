@@ -19,7 +19,7 @@ module OllamaChat::Conversation
   # format.
   #
   # @param filename [String] The path to the file where the conversation should
-  # be saved
+  #   be saved
   #
   # @example Save conversation with explicit filename
   #   chat.save_conversation('conversations/2023-10-15_my_session.json')
@@ -43,7 +43,7 @@ module OllamaChat::Conversation
   # for confirmation.
   #
   # @param filename [String] The path to the file containing the conversation
-  # to load
+  #   to load
   #
   # @example Load a conversation from a specific file
   #   chat.load_conversation('conversations/2023-10-15_my_session.json')

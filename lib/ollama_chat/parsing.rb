@@ -18,7 +18,7 @@ module OllamaChat::Parsing
   # @param source_io [IO] the input source to be parsed
   #
   # @return [ String, nil ] the parsed content as a string or nil if the
-  # content type is not supported
+  #   content type is not supported
   def parse_source(source_io)
     case source_io&.content_type
     when 'text/html'
@@ -79,7 +79,7 @@ module OllamaChat::Parsing
   # @param source_io [IO] the input stream containing the RSS feed data
   #
   # @return [String] a formatted string representation of the RSS feed with
-  # channel title and item details
+  #   channel title and item details
   def parse_rss(source_io)
     feed = RSS::Parser.parse(source_io, false, false)
     title = <<~EOT
@@ -109,7 +109,7 @@ module OllamaChat::Parsing
   # @param source_io [IO] the input stream containing the Atom feed data
   #
   # @return [String] a formatted string representation of the Atom feed with
-  # title, items, links, update dates, and content
+  #   title, items, links, update dates, and content
   def parse_atom(source_io)
     feed = RSS::Parser.parse(source_io, false, false)
     title = <<~EOT
@@ -147,7 +147,8 @@ module OllamaChat::Parsing
   # If Ghostscript is not available in the system path, it outputs an error message.
   #
   # @param io [IO] An IO object containing PDF data to be processed
-  # @return [String, nil] The processed PDF content as a string, or nil if processing fails
+  # @return [String, nil] The processed PDF content as a string, or nil if
+  #   processing fails
   def ps_read(io)
     gs = `which gs`.chomp
     if gs.present?

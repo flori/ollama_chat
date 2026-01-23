@@ -24,7 +24,7 @@ module OllamaChat::History
   # reliably for reading from or writing to the chat history file.
   #
   # @return [String] the absolute file path to the chat history file as
-  # specified in the configuration
+  #   specified in the configuration
   def chat_history_filename
     File.expand_path(OllamaChat::EnvConfig::OLLAMA::CHAT::HISTORY)
   end

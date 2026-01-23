@@ -64,8 +64,6 @@ module OllamaChat::Switches
     #
     # @param msg [ Hash ] a hash containing true and false messages
     # @param value [ Object ] the default state of the switch
-    #
-    # @return [ void ]
     def initialize(msg:, value:)
       @value = !!value
       @msg   = msg
@@ -78,9 +76,9 @@ module OllamaChat::Switches
     # and optionally displays it.
     #
     # @param value [ Object ] the value to be converted to a boolean and
-    # assigned
+    #   assigned
     # @param show [ TrueClass, FalseClass ] determines whether to display the
-    # value after setting
+    #   value after setting
     def set(value, show: false)
       @value = !!value
       show && self.show
@@ -90,7 +88,7 @@ module OllamaChat::Switches
     # optionally displays it.
     #
     # @param show [ TrueClass, FalseClass ] determines whether to show the
-    # value after toggling
+    #   value after toggling
     def toggle(show: true)
       @value = !@value
       show && self.show
@@ -154,13 +152,13 @@ module OllamaChat::Switches
   # The embedding attribute reader returns the embedding switch object.
   #
   # @return [ OllamaChat::Switches::CombinedSwitch ] the embedding switch
-  # instance
+  #   instance
   attr_reader :embedding
 
   # The embedding_enabled reader returns the embedding enabled switch instance.
   #
   # @return [ OllamaChat::Switches::Switch ] the embedding enabled switch
-  # instance
+  #   instance
   attr_reader :embedding_enabled
 
   # The embedding_paused method returns the current state of the embedding pause flag.
@@ -181,7 +179,7 @@ module OllamaChat::Switches
   # output, voice output, embedding, and location settings.
   #
   # @param config [ ComplexConfig::Settings ] the configuration object
-  # containing settings for the switches
+  #   containing settings for the switches
   def setup_switches(config)
     @stream = Switch.new(
       value: config.stream,

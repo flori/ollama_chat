@@ -90,7 +90,7 @@ module OllamaChat::StateSelectors
     # or exiting the chooser if the user selects '[EXIT]' or cancels the selection.
     #
     # @return [ nil ] This method does not return a value; it updates the instance
-    # variable @selected based on user input.
+    #   variable @selected based on user input.
     def choose
       states = @states + [ '[EXIT]' ]
       case chosen = OllamaChat::Utils::Chooser.choose(states)

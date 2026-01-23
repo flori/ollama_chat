@@ -43,7 +43,7 @@ module OllamaChat::ServerSocket
     # @param parse [ TrueClass, FalseClass ] whether to parse the response, defaults to false
     #
     # @return [ UnixSocks::Message, nil ] the response from transmit_with_response if type
-    # is :socket_input_with_response, otherwise nil
+    #   is :socket_input_with_response, otherwise nil
     def send_to_server_socket(content, config:, type: :socket_input, runtime_dir: nil, working_dir: nil, parse: false)
       server  = create_socket_server(config:, runtime_dir:, working_dir:)
       message = { content:, type:, parse: }
@@ -66,12 +66,12 @@ module OllamaChat::ServerSocket
     # for Unix domain sockets.
     #
     # @param config [ComplexConfig::Settings] the configuration object
-    # containing server settings
+    #   containing server settings
     # @param runtime_dir [ String ] pathname to runtime_dir of socket file
     # @param working_dir [ String ] pathname to working_dir used for deriving socket file
     #
     # @return [UnixSocks::DomainSocketServer] a configured Unix domain socket server
-    # instance ready to receive messages
+    #   instance ready to receive messages
     def create_socket_server(config:, runtime_dir: nil, working_dir: nil)
       working_dir ||= Dir.pwd
       if runtime_dir
@@ -91,7 +91,7 @@ module OllamaChat::ServerSocket
   # the server socket message instance variable.
   #
   # @return [ Object, nil ] the current server socket message object or nil if
-  # not set
+  #   not set
   attr_accessor :server_socket_message
 
   # Initializes the server socket to receive messages from the Ollama Chat

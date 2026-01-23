@@ -16,7 +16,7 @@ module OllamaChat::KramdownANSI
   # falling back to default styles.
   #
   # @return [ Hash ] a hash of ANSI styles configured either from environment
-  # variables or using default settings
+  #   variables or using default settings
   def configure_kramdown_ansi_styles
     if json = OllamaChat::EnvConfig::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES?
       Kramdown::ANSI::Styles.from_json(json).ansi_styles
@@ -37,7 +37,7 @@ module OllamaChat::KramdownANSI
   #   If nil, returns an empty string.
   #
   # @return [ String ] the content formatted with ANSI escape sequences
-  # according to the configured styles
+  #   according to the configured styles
   def kramdown_ansi_parse(content)
     content.nil? and return ''
     Kramdown::ANSI.parse(content, ansi_styles: @kramdown_ansi_styles)

@@ -21,7 +21,7 @@ module OllamaChat::WebSearching
   # @param n [ Integer ] the maximum number of results to return
   #
   # @return [ Array<String>, nil ] an array of URLs from the search results or
-  # nil if the search engine is not implemented
+  #   nil if the search engine is not implemented
   def search_web(query, n = nil)
     l     = @messages.at_location.full? and query += " #{l}"
     n     = n.to_i.clamp(1..)
@@ -70,10 +70,10 @@ module OllamaChat::WebSearching
   #
   # @param query [ String ] the search query string to be used
   # @param n [ Integer ] the maximum number of URLs to extract from the search
-  # results
+  #   results
   #
   # @return [ Array<String> ] an array of URL strings extracted from the search
-  # results
+  #   results
   def search_web_with_duckduckgo(query, n)
     url = config.web_search.engines.duckduckgo.url % { query: }
     OllamaChat::Utils::Fetcher.get(
