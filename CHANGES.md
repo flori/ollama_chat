@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-02-02 v0.0.58
+
+- Updated Redis image to version to valkey **9.0.1** in docker-compose.yml
+- Added `errors.lst` to `.gitignore` and updated packaging to ignore this file
+- Added `utils` gem as a development dependency in `Rakefile` and
+  `ollama_chat.gemspec`
+- Enhanced documentation consistency with standardized leading spaces for doc
+  comment continuation lines
+    - Standardized parameter and return value descriptions for methods to align
+      with YARD documentation standards
+    - Ensured all method signatures and descriptions comply with YARD documentation
+      standards
+
 ## 2026-01-21 v0.0.57
 
 - Introduce `OllamaChat::StateSelectors` module with `StateSelector` class for
