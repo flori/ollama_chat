@@ -22,7 +22,7 @@ GemHadar do
   test_dir    'spec'
   ignore      '.*.sw[pon]', 'pkg', 'Gemfile.lock', '.AppleDouble', '.bundle',
     '.yardoc', 'doc', 'tags', 'corpus', 'coverage', '/config/searxng/*',
-    '.starscope.db', 'cscope.out'
+    '.starscope.db', 'cscope.out', 'errors.lst'
   package_ignore '.all_images.yml', '.tool-versions', '.gitignore', 'VERSION',
     '.rspec', '.github', '.contexts', '.envrc', '.yardopts'
 
@@ -66,6 +66,7 @@ GemHadar do
   development_dependency 'debug'
   development_dependency 'simplecov'
   development_dependency 'context_spook'
+  development_dependency 'utils'
 
   licenses << 'MIT'
   
