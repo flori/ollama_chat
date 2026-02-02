@@ -79,7 +79,7 @@ class OllamaChat::Chat
   #
   # @param argv [Array<String>] Command-line arguments to parse (defaults to ARGV.dup)
   #
-  # @raise [ArgumentError] If the Ollama API version is less than 0.9.0, indicating
+  # @raise [RuntimeError] If the Ollama API version is less than 0.9.0, indicating
   #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
     @opts               = go 'f:u:m:s:c:C:D:MESVh', argv
@@ -90,10 +90,7 @@ class OllamaChat::Chat
     self.config         = @ollama_chat_config.config
     setup_switches(config)
     setup_state_selectors(config)
-    @ollama = connect_ollama
-    if server_version.version < '0.9.0'.version
-      raise ArgumentError, 'require ollama API version 0.9.0 or higher'
-    end
+    connect_ollama
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
     model_system     = pull_model_unless_present(@model, @model_options)
@@ -218,7 +215,7 @@ class OllamaChat::Chat
     case content
     when %r(^/reconnect)
       STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
-      @ollama = connect_ollama
+      connect_ollama
       STDERR.puts green { " Done." }
       :next
     when %r(^/copy$)
@@ -696,12 +693,19 @@ class OllamaChat::Chat
     @opts[?u] || OllamaChat::EnvConfig::OLLAMA::URL
   end
 
-  # The connect_ollama method creates and returns a new Ollama::Client instance
-  # configured with timeout settings, base URL, debug flag, and user agent
+  # The connect_ollama method establishes a connection to the Ollama API server.
   #
-  # @return [Ollama::Client] a configured Ollama API client instance
+  # This method initializes a new Ollama::Client instance with configured timeouts
+  # and connection parameters, then verifies that the connected server meets
+  # the minimum required API version (0.9.0). It sets the @ollama instance
+  # variable to the configured client and stores the server version in @server_version.
+  #
+  # @return [Ollama::Client] the configured Ollama client instance
+  # @raise [RuntimeError] if the connected Ollama server API version is less
+  #   than 0.9.0
   def connect_ollama
-    Ollama::Client.new(
+    @server_version = nil
+    @ollama = Ollama::Client.new(
       connect_timeout: config.timeouts.connect_timeout?,
       read_timeout:    config.timeouts.read_timeout?,
       write_timeout:   config.timeouts.write_timeout?,
@@ -709,6 +713,10 @@ class OllamaChat::Chat
       debug:           ,
       user_agent:
     )
+    if server_version.version < '0.9.0'.version
+      raise 'require ollama API version 0.9.0 or higher'
+    end
+    @ollama
   end
 
   # The setup_documents method initializes the document processing pipeline by
