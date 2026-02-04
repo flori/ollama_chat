@@ -113,7 +113,7 @@ class OllamaChat::Chat
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
     init_chat_history
     @opts[?S] and init_server_socket
-    @tools = OllamaChat::Tools.registered.slice(*config.tools&.attribute_names&.map(&:to_s)).values.map(&:to_hash)
+    @enabled_tools = []
     @tool_call_results = {}
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
@@ -373,6 +373,16 @@ class OllamaChat::Chat
         OllamaChat::Vim.new($1, clientserver:).insert message.content
       else
         STDERR.puts "Warning: No message found to insert into Vim"
+      end
+      :next
+    when %r(^/tools(?:\s+(enable|disable))?$)
+      case $1
+      when nil
+        list_tools
+      when 'enable'
+        enable_tool
+      when 'disable'
+        disable_tool
       end
       :next
     when %r(^/config$)

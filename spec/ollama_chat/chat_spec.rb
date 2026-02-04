@@ -177,6 +177,23 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/load ./some_file")).to eq :next
     end
 
+    describe 'tools' do
+      it 'returns :next when input is "/tools"' do
+        expect(chat).to receive(:list_tools)
+        expect(chat.handle_input("/tools")).to eq :next
+      end
+
+      it 'returns :next when input is "/tools enable"' do
+        expect(chat).to receive(:enable_tool)
+        expect(chat.handle_input("/tools enable")).to eq :next
+      end
+
+      it 'returns :next when input is "/tools disable"' do
+        expect(chat).to receive(:disable_tool)
+        expect(chat.handle_input("/tools disable")).to eq :next
+      end
+    end
+
     it 'returns :next when input is "/config"' do
       expect(chat).to receive(:display_config)
       expect(chat.handle_input("/config")).to eq :next
