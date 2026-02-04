@@ -84,3 +84,6 @@ web_search:
       url: <%= OllamaChat::EnvConfig::OLLAMA::SEARXNG_URL %>
 vim:
   clientserver: socket
+tools:
+  get_current_weather:
+    station_id: '00433'

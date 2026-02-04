@@ -53,6 +53,7 @@ class OllamaChat::Chat
   include OllamaChat::Conversation
   include OllamaChat::InputContent
   include OllamaChat::MessageEditing
+  include OllamaChat::ToolCalling
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -112,6 +113,8 @@ class OllamaChat::Chat
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
     init_chat_history
     @opts[?S] and init_server_socket
+    @tools = OllamaChat::Tools.registered.slice(*config.tools&.attribute_names&.map(&:to_s)).values.map(&:to_hash)
+    @tool_call_results = {}
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
@@ -563,16 +566,19 @@ class OllamaChat::Chat
       type           = :terminal_input
       input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
       begin
-        content = enable_command_completion do
-          if prefill_prompt = @prefill_prompt.full?
-            Reline.pre_input_hook = -> {
-              Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
-              @prefill_prompt = nil
-            }
-          else
-            Reline.pre_input_hook = nil
+        if content = handle_tool_call_results?
+        else
+          content = enable_command_completion do
+            if prefill_prompt = @prefill_prompt.full?
+              Reline.pre_input_hook = -> {
+                Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
+                @prefill_prompt = nil
+              }
+            else
+              Reline.pre_input_hook = nil
+            end
+            Reline.readline(input_prompt, true)&.chomp
           end
-          Reline.readline(input_prompt, true)&.chomp
         end
       rescue Interrupt
         if message = server_socket_message
@@ -635,6 +641,7 @@ class OllamaChat::Chat
           options:  @model_options,
           stream:   stream.on?,
           think:    ,
+          tools:    ,
           &handler
         )
       rescue Ollama::Errors::BadRequestError

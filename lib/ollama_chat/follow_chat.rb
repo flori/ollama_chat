@@ -9,7 +9,7 @@
 #
 # @example Processing a chat response
 #   follow_chat = OllamaChat::FollowChat.new(chat: chat_instance, messages: message_list)
-#   follow_chat.call(response)
+#   follow_chat.tool_call(response)
 class OllamaChat::FollowChat
   include Ollama
   include Ollama::Handlers::Concern
@@ -80,10 +80,32 @@ class OllamaChat::FollowChat
 
     output_eval_stats(response)
 
+    handle_tool_calls(response)
+
     self
   end
 
   private
+
+  # The handle_tool_calls method processes tool calls from a response and
+  # executes them.
+  #
+  # This method checks if the response contains tool calls, and if so, iterates
+  # through each tool call to execute the corresponding tool from the
+  # registered tools. The results of the tool execution are stored in the
+  # chat's tool_call_results hash using the tool name as the key.
+  #
+  # @param response [Object] the response object containing tool calls to
+  #   process
+  def handle_tool_calls(response)
+    return unless response.message.ask_and_send(:tool_calls)
+
+    response.message.tool_calls.each do |tool_call|
+      name = tool_call.function.name
+      @chat.tool_call_results[name] = OllamaChat::Tools.registered[name].
+        execute(tool_call, config: @chat.config)
+    end
+  end
 
   # The truncate_for_terminal method processes text to fit within a specified
   # number of lines.
