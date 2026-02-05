@@ -1,5 +1,43 @@
 # Changes
 
+## 2026-02-06 v0.0.60
+
+### New Features
+- Added `OllamaChat::LocationHandling` module for location data management
+- Introduced `get_location`, `file_context`, and `directory_structure` tools
+- Implemented recursive directory traversal with depth limiting and hidden file
+  skipping
+
+### Tool Enhancements
+- Enhanced tool calling system to pass `chat: @chat` to tool execution
+- Updated `@enabled_tools` initialization to use default tool configurations
+- Implemented automatic tool class instantiation in the `register` method
+- Configured new tools to be disabled by default in `default_config.yml`
+
+### Technical Improvements
+- Added dynamic format conversion with `send("to_#{format.downcase}")`
+- Updated `MessageList#at_location` to use the new location handling approach
+- Enhanced `list_tools` output with visual enabled/disabled indicators
+- Integrated location data into system prompts via `location_description`
+  method
+
+### Documentation & Testing
+- Added comprehensive YARD documentation for location handling and tools
+- Added new tool files and test files to gemspec's `s.files`, `s.test_files`,
+  and `s.extra_rdoc_files`
+- Added comprehensive test coverage for new tools and location handling
+
+### Configuration
+- Updated default tool configuration to use `config.tools.to_h.map` for tool
+  registration
+- Configured new tools to be disabled by default in `default_config.yml`
+
+### Code Structure
+- Updated gemspec to include new files and test files
+- Refactored `InputContent` to use dynamic format conversion
+- Enhanced `FollowChat` to pass chat instance to tool execution
+- Updated `MessageList#at_location` to use new location handling approach
+
 ## 2026-02-05 v0.0.59
 
 ### New Features
