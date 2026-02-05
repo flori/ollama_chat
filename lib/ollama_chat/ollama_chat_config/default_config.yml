@@ -87,7 +87,12 @@ vim:
 tools:
   get_current_weather:
     station_id: '00433'
+    default: false
   get_cve:
     url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'
+    default: false
   get_endoflife:
     url: "https://endoflife.date/api/v1/products/%{product}"
+    default: false
+  get_location:
+    default: true

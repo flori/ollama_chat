@@ -30,3 +30,5 @@ require 'ollama_chat/tools/cve'
 OllamaChat::Tools.register OllamaChat::Tools::CVE.new
 require 'ollama_chat/tools/endoflife'
 OllamaChat::Tools.register OllamaChat::Tools::EndOfLife.new
+require 'ollama_chat/tools/location'
+OllamaChat::Tools.register OllamaChat::Tools::Location.new

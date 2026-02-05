@@ -37,7 +37,10 @@ module OllamaChat::ToolCalling
   # This method outputs to standard output the alphabetically sorted list of
   # tool names that are currently enabled in the chat session.
   def list_tools
-    puts @enabled_tools.sort
+    configured_tools.each do |tool|
+      enabled = @enabled_tools.member?(tool) ? ?✓ : ?☐
+      printf "%s %s\n", enabled, (enabled ? bold { tool } : tool)
+    end
   end
 
   # The enable_tool method allows the user to select and enable a tool from a
@@ -57,7 +60,7 @@ module OllamaChat::ToolCalling
     when *select_tools
       @enabled_tools << chosen
       @enabled_tools.sort!
-      puts "Enabled tool %s" % bold(chosen)
+      puts "Enabled tool %s" % bold { chosen }
     end
   end
 
@@ -78,7 +81,7 @@ module OllamaChat::ToolCalling
       return
     when *select_tools
       @enabled_tools.delete chosen
-      puts "Disabled tool %s" % bold(chosen)
+      puts "Disabled tool %s" % bold { chosen }
     end
   end
 

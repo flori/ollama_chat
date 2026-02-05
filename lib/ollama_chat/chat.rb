@@ -53,6 +53,7 @@ class OllamaChat::Chat
   include OllamaChat::Conversation
   include OllamaChat::InputContent
   include OllamaChat::MessageEditing
+  include OllamaChat::LocationHandling
   include OllamaChat::ToolCalling
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
@@ -113,7 +114,7 @@ class OllamaChat::Chat
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
     init_chat_history
     @opts[?S] and init_server_socket
-    @enabled_tools = []
+    @enabled_tools = config.tools.to_h.map { |n, v| n.to_s if v[:default] }.compact
     @tool_call_results = {}
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)

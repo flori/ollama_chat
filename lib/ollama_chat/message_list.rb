@@ -281,15 +281,7 @@ class OllamaChat::MessageList
   #
   # @return [ String ] the location information
   def at_location
-    if @chat.location.on?
-      location_name            = config.location.name
-      location_decimal_degrees = config.location.decimal_degrees * ', '
-      localtime                = Time.now.iso8601
-      units                    = config.location.units
-      config.prompts.location % {
-        location_name:, location_decimal_degrees:, localtime:, units:,
-      }
-    end.to_s
+    @chat.location_description if @chat.location.on?
   end
 
   # The use_pager method wraps the given block with a pager context.

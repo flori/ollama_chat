@@ -103,7 +103,7 @@ class OllamaChat::FollowChat
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
       @chat.tool_call_results[name] = OllamaChat::Tools.registered[name].
-        execute(tool_call, config: @chat.config)
+        execute(tool_call, chat: @chat, config: @chat.config)
     end
   end
 
