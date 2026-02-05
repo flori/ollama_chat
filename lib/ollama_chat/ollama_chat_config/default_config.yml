@@ -96,3 +96,7 @@ tools:
     default: false
   get_location:
     default: true
+  file_context:
+    default: false
+  directory_structure:
+    default: false

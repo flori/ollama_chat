@@ -43,14 +43,14 @@ describe OllamaChat::InputContent do
   describe '#choose_filename' do
     it 'can select a file from matching patterns' do
       # Test with a pattern that matches existing files
-      files = Dir.glob('spec/assets/*')
+      files = Dir.glob('spec/assets/**/*.txt')
       expect(files).to_not be_empty
 
       # Mock the selection process
       expect(OllamaChat::Utils::Chooser).to receive(:choose).
         with(files.unshift('[EXIT]')).and_return(files[1])
 
-      result = chat.choose_filename('spec/assets/*')
+      result = chat.choose_filename('spec/assets/**/*.txt')
       expect(result).to eq files[1]
     end
 

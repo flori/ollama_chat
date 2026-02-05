@@ -24,6 +24,10 @@ describe OllamaChat::MessageList do
   end
 
   before do
+    chat.extend OllamaChat::LocationHandling
+  end
+
+  before do
     allow(chat).to receive(:kramdown_ansi_parse) do |content|
       Kramdown::ANSI.parse(content)
     end
