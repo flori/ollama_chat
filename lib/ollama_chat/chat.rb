@@ -577,6 +577,7 @@ class OllamaChat::Chat
       input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
       begin
         if content = handle_tool_call_results?
+          @parse_content = false
         else
           content = enable_command_completion do
             if prefill_prompt = @prefill_prompt.full?

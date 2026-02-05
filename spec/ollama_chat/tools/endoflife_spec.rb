@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::CVE do
+describe OllamaChat::Tools::EndOfLife do
   let :chat do
     OllamaChat::Chat.new argv: chat_default_config
   end
@@ -8,7 +8,7 @@ describe OllamaChat::Tools::CVE do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_cve'
+    expect(described_class.new.name).to eq 'get_endoflife'
   end
 
   it 'can have tool' do
@@ -16,53 +16,54 @@ describe OllamaChat::Tools::CVE do
   end
 
   it 'can be executed successfully' do
-    # Mock the fetcher to return a valid CVE response
-    cve_id = 'CVE-2023-12345'
+    # Mock the fetcher to return a valid endoflife response
+    product = 'ruby'
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'get_cve',
+        name: 'get_endoflife',
         arguments: double(
-          cve_id: cve_id
+          product: product
         )
       )
     )
 
-    url = chat.config.tools.get_cve.url
+    url = chat.config.tools.get_endoflife.url
 
     # Stub the HTTP request
-    stub_request(:get, url % { cve_id: cve_id })
+    stub_request(:get, url % { product: })
       .to_return(
         status: 200,
-        body: '{"id": "CVE-2023-12345", "description": "Test vulnerability description"}',
+        body: '{ "cycle": "3.1", "releaseDate": "2023-05-01", "eol": "2026-05-01" }',
         headers: { 'Content-Type' => 'application/json' }
       )
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    expect(result.id).to eq 'CVE-2023-12345'
-    expect(result.description).to include('Test vulnerability description')
+    expect(result.cycle).to eq '3.1'
+    expect(result.releaseDate).to eq '2023-05-01'
+    expect(result.eol).to eq '2026-05-01'
   end
 
   it 'can handle execution errors gracefully' do
-    cve_id = 'CVE-2023-99999'
+    product = 'nonexistent-product'
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'get_cve',
+        name: 'get_endoflife',
         arguments: double(
-          cve_id: cve_id
+          product: product
         )
       )
     )
 
-    url = chat.config.tools.get_cve.url
+    url = chat.config.tools.get_endoflife.url
 
-    stub_request(:get, url % { cve_id: })
+    stub_request(:get, url % { product: product })
       .to_return(status: 404, body: 'Not Found')
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    expect(result).to include('Failed to fetch CVE')
-    expect(result).to include(cve_id)
+    expect(result).to include('Failed to fetch endoflife data')
+    expect(result).to include(product)
   end
 
   it 'can be converted to hash' do
