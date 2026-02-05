@@ -49,7 +49,7 @@ module OllamaChat::ToolCalling
   # list of enabled tools and sorting the list.
   def enable_tool
     select_tools = configured_tools - @enabled_tools
-    select_tools.unshift('[EXIT]')
+    select_tools += [ '[EXIT]' ]
     case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
@@ -71,7 +71,7 @@ module OllamaChat::ToolCalling
   # afterwards.
   def disable_tool
     select_tools = @enabled_tools
-    select_tools.unshift('[EXIT]')
+    select_tools += [ '[EXIT]' ]
     case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
