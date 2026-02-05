@@ -17,6 +17,7 @@ module OllamaChat::Tools
     #
     # @return [Class] the class itself
     def register(tool)
+      tool = tool.new if tool.is_a?(Class)
       registered[tool.name] = tool
       self
     end
@@ -25,10 +26,14 @@ module OllamaChat::Tools
   self.registered = {}
 end
 require 'ollama_chat/tools/weather'
-OllamaChat::Tools.register OllamaChat::Tools::Weather.new
+OllamaChat::Tools.register OllamaChat::Tools::Weather
 require 'ollama_chat/tools/cve'
-OllamaChat::Tools.register OllamaChat::Tools::CVE.new
+OllamaChat::Tools.register OllamaChat::Tools::CVE
 require 'ollama_chat/tools/endoflife'
-OllamaChat::Tools.register OllamaChat::Tools::EndOfLife.new
+OllamaChat::Tools.register OllamaChat::Tools::EndOfLife
 require 'ollama_chat/tools/location'
-OllamaChat::Tools.register OllamaChat::Tools::Location.new
+OllamaChat::Tools.register OllamaChat::Tools::Location
+require 'ollama_chat/tools/file_context'
+OllamaChat::Tools.register OllamaChat::Tools::FileContext
+require 'ollama_chat/tools/directory_structure'
+OllamaChat::Tools.register OllamaChat::Tools::DirectoryStructure
