@@ -1,5 +1,49 @@
 # Changes
 
+## 2026-02-05 v0.0.59
+
+### New Features
+
+- **Dynamic Tool Management**: Added `/tools` command with subcommands `/tools
+  enable` and `/tools disable` for listing, enabling, or disabling tools
+  dynamically
+
+- **Three Built-in Tools**:
+  - `get_current_weather` - Fetches real-time temperature from German Weather
+    Service (DWD)
+  - `get_cve` - Retrieves CVE details from MITRE API
+  - `get_endoflife` - Queries endoflife.date API for software lifecycle
+    information
+
+### Technical Improvements
+
+- **Tool Calling System**: Implemented comprehensive tool management using
+  `@enabled_tools` array
+- **Configuration Support**: Added tool configurations in `default_config.yml`
+- **Integration**: Enhanced `Ollama::Chat` with proper tool calling integration
+  and `Ollama::Tool` support
+- **Error Handling**: Robust error handling for external API calls with proper
+  fallbacks
+
+### Documentation & Testing
+
+- Updated README with new tool management commands
+- Added comprehensive RSpec tests for all three new tools
+- Enhanced gemspec with updated file listings and dependencies
+- Implemented caching for HTTP responses using
+  `OllamaChat::Utils::CacheFetcher`
+
+### Code Structure
+
+- **New Modules**: `OllamaChat::ToolCalling`, `OllamaChat::Tools::CVE`,
+  `OllamaChat::Tools::EndOfLife`, `OllamaChat::Tools::Weather`
+- **Enhanced Classes**: `OllamaChat::Chat` with tool management and `DWDSensor`
+  for weather data retrieval
+- **Dependency**: Added `rubyzip` for DWD data processing
+
+This release transforms OllamaChat from a chat interface into a smart assistant
+capable of executing external tools and accessing real-world data.
+
 ## 2026-02-02 v0.0.58
 
 - Updated Redis image to version to valkey **9.0.1** in docker-compose.yml
