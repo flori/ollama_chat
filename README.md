@@ -187,6 +187,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /revise_last                    edit the last response in an external editor
 /output filename                save last response to filename
 /pipe command                   write last response to command's stdin
+/tools [enable|disable]         list enabled, enable, or disable tools
 /vim                            insert the last message into a vim server
 /quit                           to quit
 /help                           to view this help
