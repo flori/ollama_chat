@@ -87,3 +87,5 @@ vim:
 tools:
   get_current_weather:
     station_id: '00433'
+  get_cve:
+    url_template: 'https://cveawg.mitre.org/api/cve/%{cve_id}'

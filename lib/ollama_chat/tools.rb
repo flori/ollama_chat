@@ -26,3 +26,5 @@ module OllamaChat::Tools
 end
 require 'ollama_chat/tools/weather'
 OllamaChat::Tools.register OllamaChat::Tools::Weather.new
+require 'ollama_chat/tools/cve'
+OllamaChat::Tools.register OllamaChat::Tools::CVE.new
