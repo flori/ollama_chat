@@ -92,7 +92,8 @@ module OllamaChat::InputContent
       end.to_json
     else
       if context_filename = choose_filename('.contexts/*.rb')
-        ContextSpook.generate_context(context_filename, verbose: true, format:).to_json
+        ContextSpook.generate_context(context_filename, verbose: true, format:).
+          send("to_#{format.downcase}")
       end
     end
   end
