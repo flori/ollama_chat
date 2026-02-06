@@ -98,8 +98,10 @@ tools:
     default: true
   file_context:
     default: false
+    confirm: true
   directory_structure:
     default: false
+    confirm: true
   execute_grep:
     default: true
     cmd: 'grep -m %{max_results} -r %{pattern} %{path}'

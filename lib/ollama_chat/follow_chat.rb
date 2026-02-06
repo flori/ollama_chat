@@ -102,18 +102,35 @@ class OllamaChat::FollowChat
 
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
+      STDOUT.puts
+      confirmed = true
+      if @chat.config.tools[name].confirm?
+        prompt = "I want to execute tool %s(%s)\n\nConfirm? (y/n) " % [
+          bold { name },
+          italic { JSON(tool_call.function.arguments) },
+        ]
+        confirmed = @chat.ask?(prompt:) =~ /\Ay/i
+      end
       Infobar.busy(
         label: 'Executing tool %s' % name,
         frames: :braille7,
         output: STDOUT,
       ) do
-        infobar.printf(
-          "Executing tool %s(%s)\n",
+        prompt = "Trying to execute tool %s(%s)\nConfirm? (y/n) " % [
           bold { name },
           italic { JSON(tool_call.function.arguments) },
-        )
-        @chat.tool_call_results[name] = OllamaChat::Tools.registered[name].
-          execute(tool_call, chat: @chat, config: @chat.config)
+        ]
+        result = nil
+        if confirmed
+          result = OllamaChat::Tools.registered[name].
+            execute(tool_call, chat: @chat, config: @chat.config)
+        else
+          result = JSON(
+            message: 'User denied confirmation!',
+            resolve: 'You **MUST** ask the user for instructions on how to proceed!!!',
+          )
+        end
+        @chat.tool_call_results[name] = result
       end
       infobar.finish message: "Executed tool #{bold { name }} %te %s"
       infobar.newline
