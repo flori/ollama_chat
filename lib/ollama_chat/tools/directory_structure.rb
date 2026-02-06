@@ -4,8 +4,8 @@
 # hierarchy for a given path. It integrates with the Ollama tool calling system
 # to provide detailed directory information to the language model.
 #
-# The tool supports traversing directories up to a specified depth and returns
-# a structured representation of the file system hierarchy.
+# The tool supports traversing directories and returns a structured
+# representation of the file system hierarchy.
 class OllamaChat::Tools::DirectoryStructure
   include Ollama
 
@@ -24,8 +24,8 @@ class OllamaChat::Tools::DirectoryStructure
   # Creates and returns a tool definition for retrieving directory structure.
   #
   # This method constructs the function signature that describes what the tool
-  # does, its parameters, and required fields. The tool accepts path and depth
-  # parameters for directory traversal.
+  # does, its parameters, and required fields. The tool accepts a path
+  # parameter for directory traversal.
   #
   # @return [Ollama::Tool] a tool definition for retrieving directory structure
   def tool
@@ -41,10 +41,6 @@ class OllamaChat::Tools::DirectoryStructure
               type: 'string',
               description: 'Path to directory to list (defaults to current directory)'
             ),
-            depth: Tool::Function::Parameters::Property.new(
-              type: 'integer',
-              description: 'Depth of directory traversal (defaults to 2)'
-            )
           },
           required: []
         )
@@ -55,7 +51,7 @@ class OllamaChat::Tools::DirectoryStructure
   # Executes the directory structure retrieval operation.
   #
   # This method traverses the directory structure starting from the specified
-  # path up to the given depth and returns a structured representation of
+  # path and returns a structured representation of
   # the file system hierarchy.
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
@@ -64,9 +60,8 @@ class OllamaChat::Tools::DirectoryStructure
   # @raise [StandardError] if there's an issue with directory traversal or JSON serialization
   def execute(tool_call, **opts)
     path = Pathname.new(tool_call.function.arguments.path || '.')
-    depth = (tool_call.function.arguments.depth || 2).to_i
 
-    structure = generate_structure(path, depth)
+    structure = generate_structure(path)
     structure.to_json
   end
 
@@ -82,31 +77,43 @@ class OllamaChat::Tools::DirectoryStructure
 
   private
 
-  # Generates the directory structure recursively.
+  # Generates a directory structure representation with files and
+  # subdirectories.
   #
-  # This method traverses the directory tree recursively up to the specified depth
-  # and builds a structured representation of files and directories.
+  # @param path [String] the path to start generating the structure from,
+  # defaults to current directory
   #
-  # @param path [Pathname] the path to traverse
-  # @param depth [Integer] the maximum depth to traverse
-  # @param current_depth [Integer] the current traversal depth (used internally)
-  # @return [Array<Hash>, Hash] an array of directory and file entries, or an
-  #   error hash if an exception occurs
-  def generate_structure(path, depth, current_depth = 0)
-    return [] if current_depth > depth
-
+  # @return [Array<Hash>, Hash] an array of hashes representing files and
+  # directories, or a hash with error information if an exception occurs
+  # @return [Array] an empty array if the path is invalid or has no children
+  # @return [Hash] a hash with error details if an exception is raised during processing
+  #
+  # @example Generate structure for current directory
+  #   generate_structure
+  #
+  # @example Generate structure for a specific path
+  #   generate_structure('/path/to/directory')
+  #
+  # @note Hidden files and directories (starting with '.') are skipped
+  # @note Symbolic links are skipped
+  # @note The method uses recursive calls to traverse subdirectories
+  # @note If an error occurs during traversal, it returns a hash with error details
+  def generate_structure(path = ?.)
+    path = Pathname.new(path).expand_path
     entries = []
     path.children.sort.each do |child|
       # Skip hidden files/directories
       next if child.basename.to_s.start_with?('.')
+      # Skip symlinks
+      next if child.symlink?
 
       if child.directory?
         entries << {
           type: 'directory',
           name: child.basename.to_s,
-          children: generate_structure(child, depth, current_depth + 1)
+          children: generate_structure(child)
         }
-      else
+      elsif child.file?
         entries << {
           type: 'file',
           name: child.basename.to_s

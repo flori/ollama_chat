@@ -15,14 +15,13 @@ describe OllamaChat::Tools::DirectoryStructure do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
-  it 'can be executed successfully with path and depth' do
+  it 'can be executed successfully with path' do
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'directory_structure',
         arguments: double(
           path: 'spec/assets',
-          depth: 3
         )
       )
     )
@@ -42,7 +41,6 @@ describe OllamaChat::Tools::DirectoryStructure do
         name: 'directory_structure',
         arguments: double(
           path: nil,  # Should default to '.'
-          depth: nil  # Should default to 2
         )
       )
     )
@@ -62,7 +60,6 @@ describe OllamaChat::Tools::DirectoryStructure do
         name: 'directory_structure',
         arguments: double(
           path: '/nonexistent/path',
-          depth: 2
         )
       )
     )
