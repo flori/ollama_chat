@@ -116,12 +116,12 @@ class OllamaChat::FollowChat
         frames: :braille7,
         output: STDOUT,
       ) do
-        prompt = "Trying to execute tool %s(%s)\nConfirm? (y/n) " % [
-          bold { name },
-          italic { JSON(tool_call.function.arguments) },
-        ]
         result = nil
         if confirmed
+          infobar.puts "✅ Execution of tool %s(%s) confirmed." % [
+            bold { name },
+            italic { JSON(tool_call.function.arguments) },
+          ]
           result = OllamaChat::Tools.registered[name].
             execute(tool_call, chat: @chat, config: @chat.config)
         else
