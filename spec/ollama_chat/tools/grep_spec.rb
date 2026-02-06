@@ -32,11 +32,11 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string
     expect(result).to be_a String
-    parsed_result = JSON.parse(result, object_class: JSON::GenericObject)
-    expect(parsed_result.cmd).to include('grep')
-    expect(parsed_result.cmd).to include('Hello\\ World')
-    expect(parsed_result.cmd).to include('spec/assets')
-    expect(parsed_result.result).to include('Hello World!')
+    json = JSON.parse(result, object_class: JSON::GenericObject)
+    expect(json.cmd).to include('grep')
+    expect(json.cmd).to include('Hello\\ World')
+    expect(json.cmd).to include('spec/assets')
+    expect(json.result).to include('Hello World!')
   end
 
   it 'can be executed successfully with max_results parameter' do
@@ -56,10 +56,10 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string
     expect(result).to be_a String
-    parsed_result = JSON.parse(result, object_class: JSON::GenericObject)
-    expect(parsed_result.cmd).to include('grep')
-    expect(parsed_result.cmd).to include('-m 5')
-    expect(parsed_result.result).to match(/class="body--html"/)
+    json = JSON.parse(result, object_class: JSON::GenericObject)
+    expect(json.cmd).to include('grep')
+    expect(json.cmd).to include('-m 5')
+    expect(json.result).to match(/class="body--html"/)
   end
 
   it 'can handle execution errors gracefully' do
@@ -80,9 +80,9 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string even with no matches
     expect(result).to be_a String
-    parsed_result = JSON.parse(result, object_class: JSON::GenericObject)
-    expect(parsed_result.cmd).to include('grep')
-    expect(parsed_result.result).to be_a String
+    json = JSON.parse(result, object_class: JSON::GenericObject)
+    expect(json.cmd).to include('grep')
+    expect(json.result).to be_a String
   end
 
   it 'can handle non-existent paths gracefully' do
@@ -103,8 +103,31 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string with error information
     expect(result).to be_a String
-    parsed_result = JSON.parse(result, object_class: JSON::GenericObject)
-    expect(parsed_result.result).to match(%r(grep: /nonexistent/path/that/does/not/exist))
+    json = JSON.parse(result, object_class: JSON::GenericObject)
+    expect(json.result).to match(%r(grep: /nonexistent/path/that/does/not/exist))
+  end
+
+  it 'can handle thrown exceptions' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'execute_grep',
+        arguments: double(
+          pattern: 'test',
+          path: '/nonexistent/path/that/does/not/exist',
+          max_results: nil
+        )
+      )
+    )
+
+    expect(OllamaChat::Utils::Fetcher).to receive(:execute).
+      and_raise('my error')
+    result = described_class.new.execute(tool_call, config: chat.config)
+
+    expect(result).to be_a String
+    json = JSON.parse(result, object_class: JSON::GenericObject)
+    expect(json.error).to eq 'RuntimeError'
+    expect(json.message).to eq 'my error'
   end
 
   it 'can be converted to hash' do
@@ -128,9 +151,9 @@ describe OllamaChat::Tools::Grep do
       result = described_class.new.execute(tool_call, config: chat.config)
 
       # Should find the example content
-      parsed_result = JSON.parse(result, object_class: JSON::GenericObject)
-      expect(parsed_result.result).to include('Hello World!')
-      expect(parsed_result.result).to include('example.rb')
+      json = JSON.parse(result, object_class: JSON::GenericObject)
+      expect(json.result).to include('Hello World!')
+      expect(json.result).to include('example.rb')
     end
   end
 end
