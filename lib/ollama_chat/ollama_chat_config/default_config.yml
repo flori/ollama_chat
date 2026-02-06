@@ -104,6 +104,7 @@ tools:
     confirm: true
     exclude:
       - corpus
+      - pkg
   execute_grep:
     default: true
     cmd: 'grep -m %{max_results} -r %{pattern} %{path}'
