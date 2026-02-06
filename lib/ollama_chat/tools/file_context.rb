@@ -60,7 +60,7 @@ class OllamaChat::Tools::FileContext
     config      = opts[:config]
     pattern     = tool_call.function.arguments.pattern
     path        = tool_call.function.arguments.path
-    unless pattern.nil? ^ path.nil?
+    unless pattern.blank? ^ path.blank?
       raise ArgumentError, "require either pattern or path argument"
     end
     format      = config.context.format
