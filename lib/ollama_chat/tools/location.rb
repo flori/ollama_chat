@@ -7,19 +7,15 @@
 # The tool returns structured JSON data containing location coordinates, time,
 # and unit system information.
 class OllamaChat::Tools::Location
-  include Ollama
+  include OllamaChat::Tools::Concern
 
-  # Initializes a new get_location tool instance.
+  # Creates and returns a tool definition for getting location information.
   #
-  # @return [OllamaChat::Tools::Location] a new get_location tool instance
-  def initialize
-    @name = 'get_location'
-  end
-
-  # Returns the name of the tool.
+  # This method constructs the function signature that describes what the tool
+  # does, its parameters, and required fields. The tool takes no parameters.
   #
-  # @return [String] the name of the tool ('get_location')
-  attr_reader :name
+  # @return [Ollama::Tool] a tool definition for retrieving location information
+  def self.register_name = 'get_location'
 
   # Creates and returns a tool definition for getting location information.
   #
@@ -57,13 +53,5 @@ class OllamaChat::Tools::Location
     chat.location_data.to_json
   end
 
-  # Converts the tool to a hash representation.
-  #
-  # This method provides a standardized way to serialize the tool definition
-  # for use in tool calling systems.
-  #
-  # @return [Hash] a hash representation of the tool
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register

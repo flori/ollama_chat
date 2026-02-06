@@ -3,26 +3,10 @@
 # This tool allows the chat client to retrieve CVE details by ID from a configured
 # API endpoint. It integrates with the Ollama tool calling system to provide
 # security-related information to the language model.
-#
-# @example Using the CVE tool
-#   # The tool can be invoked with a CVE ID
-#   { "name": "get_cve", "arguments": { "cve_id": "CVE-2023-12345" } }
-#
-# @see OllamaChat::Tools
 class OllamaChat::Tools::CVE
-  include Ollama
+  include OllamaChat::Tools::Concern
 
-  # Initializes a new CVE tool instance.
-  #
-  # @return [OllamaChat::Tools::CVE] a new CVE tool instance
-  def initialize
-    @name = 'get_cve'
-  end
-
-  # Returns the name of the tool.
-  #
-  # @return [String] the name of the tool ('get_cve')
-  attr_reader :name
+  def self.register_name = 'get_cve'
 
   # Creates and returns a tool definition for getting CVE information.
   #
@@ -80,13 +64,5 @@ class OllamaChat::Tools::CVE
     { error: e.class, message: e.message }.to_json
   end
 
-  # Converts the tool to a hash representation.
-  #
-  # This method provides a standardized way to serialize the tool definition
-  # for use in tool calling systems.
-  #
-  # @return [Hash] a hash representation of the tool
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register

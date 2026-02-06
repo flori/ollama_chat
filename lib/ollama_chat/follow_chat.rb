@@ -102,6 +102,10 @@ class OllamaChat::FollowChat
 
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
+      unless @chat.config.tools.attribute_set?(name)
+        STDERR.printf("Unknown tool named %s ignored => Skip.\n", name)
+        next
+      end
       STDOUT.puts
       confirmed = true
       if @chat.config.tools[name].confirm?
@@ -118,10 +122,12 @@ class OllamaChat::FollowChat
       ) do
         result = nil
         if confirmed
-          infobar.puts "✅ Execution of tool %s(%s) confirmed." % [
+          infobar.printf(
+            "%s Execution of tool %s(%s) confirmed.\n",
+            ?✅,
             bold { name },
-            italic { JSON(tool_call.function.arguments) },
-          ]
+            italic { JSON(tool_call.function.arguments) }
+          )
           result = OllamaChat::Tools.registered[name].
             execute(tool_call, chat: @chat, config: @chat.config)
         else

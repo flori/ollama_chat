@@ -1,3 +1,11 @@
+# A module that provides functionality for analyzing directory structures and
+# generating file listings.
+#
+# The AnalyzeDirectory module offers methods to traverse directory hierarchies
+# and create structured representations of file systems. It supports recursive
+# directory traversal, filtering of hidden files and symbolic links, and
+# generation of detailed file and directory information including paths, names,
+# and metadata.
 module OllamaChat::Utils::AnalyzeDirectory
   module_function
 
@@ -22,14 +30,17 @@ module OllamaChat::Utils::AnalyzeDirectory
   # @note Symbolic links are skipped
   # @note The method uses recursive calls to traverse subdirectories
   # @note If an error occurs during traversal, it returns a hash with error details
-  def generate_structure(path = ?.)
-    path = Pathname.new(path).expand_path
+  def generate_structure(path = ?., exclude: [])
+    exclude = Array(exclude).map { Pathname.new(it).expand_path }
+    path    = Pathname.new(path).expand_path
     entries = []
     path.children.sort.each do |child|
       # Skip hidden files/directories
       next if child.basename.to_s.start_with?('.')
       # Skip symlinks
       next if child.symlink?
+      # Skip if excluded
+      next if exclude.any? { child.fnmatch?(it.to_s, File::FNM_PATHNAME) }
 
       if child.directory?
         entries << {

@@ -3,26 +3,10 @@
 # This tool allows the chat client to retrieve endoflife.date information
 # for software products by ID. It integrates with the Ollama tool calling
 # system to provide lifecycle and support information to the language model.
-#
-# @example Using the endoflife tool
-#   # The tool can be invoked with a product name
-#   { "name": "get_endoflife", "arguments": { "product": "mysql" } }
-#
-# @see OllamaChat::Tools
 class OllamaChat::Tools::EndOfLife
-  include Ollama
+  include OllamaChat::Tools::Concern
 
-  # Initializes a new endoflife tool instance.
-  #
-  # @return [OllamaChat::Tools::EndOfLife] a new endoflife tool instance
-  def initialize
-    @name = 'get_endoflife'
-  end
-
-  # Returns the name of the tool.
-  #
-  # @return [String] the name of the tool ('get_endoflife')
-  attr_reader :name
+  def self.register_name = 'get_endoflife'
 
   # Creates and returns a tool definition for getting endoflife information.
   #
@@ -86,13 +70,5 @@ class OllamaChat::Tools::EndOfLife
     "Failed to fetch endoflife data for #{product}: #{e.class}: #{e.message}"
   end
 
-  # Converts the tool to a hash representation.
-  #
-  # This method provides a standardized way to serialize the tool definition
-  # for use in tool calling systems.
-  #
-  # @return [Hash] a hash representation of the tool
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register

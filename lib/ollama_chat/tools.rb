@@ -18,27 +18,22 @@ module OllamaChat::Tools
     # @param tool [ Object ] the tool to be registered
     # @return [ OllamaChat::Tools ] the current instance after registration
     def register(tool)
-      tool = tool.new
-      registered.key?(tool.name) and
-        raise ArgumentError, 'tool %s already registered' % tool.name
-      registered[tool.name] = tool
+      name = tool.register_name
+      name.present? or raise ArgumentError, 'tool needs a name'
+      registered.key?(name) and
+        raise ArgumentError, 'tool %s already registered' % name
+      registered[name] = tool.new
       self
     end
   end
 
   self.registered = {}
 end
+require 'ollama_chat/tools/concern'
 require 'ollama_chat/tools/weather'
-OllamaChat::Tools.register OllamaChat::Tools::Weather
 require 'ollama_chat/tools/cve'
-OllamaChat::Tools.register OllamaChat::Tools::CVE
 require 'ollama_chat/tools/endoflife'
-OllamaChat::Tools.register OllamaChat::Tools::EndOfLife
 require 'ollama_chat/tools/location'
-OllamaChat::Tools.register OllamaChat::Tools::Location
 require 'ollama_chat/tools/file_context'
-OllamaChat::Tools.register OllamaChat::Tools::FileContext
 require 'ollama_chat/tools/directory_structure'
-OllamaChat::Tools.register OllamaChat::Tools::DirectoryStructure
 require 'ollama_chat/tools/grep'
-OllamaChat::Tools.register OllamaChat::Tools::Grep

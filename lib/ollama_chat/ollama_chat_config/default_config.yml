@@ -102,6 +102,8 @@ tools:
   directory_structure:
     default: false
     confirm: true
+    exclude:
+      - corpus
   execute_grep:
     default: true
     cmd: 'grep -m %{max_results} -r %{pattern} %{path}'

@@ -8,17 +8,9 @@ require_relative 'weather/dwd_sensor'
 # accessing the complete set of available tools for use in chat
 # interactions.
 class OllamaChat::Tools::Weather
-  include Ollama
+  include OllamaChat::Tools::Concern
 
-  # The initialize method sets up the weather tool with its name.
-  def initialize
-    @name = 'get_current_weather'
-  end
-
-  # The name reader returns the name of the tool.
-  #
-  # @return [ String ] the name of the tool
-  attr_reader :name
+  def self.register_name = 'get_current_weather'
 
   # The tool method creates and returns a tool definition for getting
   # current weather information.
@@ -99,10 +91,5 @@ class OllamaChat::Tools::Weather
     }.to_json
   end
 
-  # The to_hash method converts the tool to a hash representation.
-  #
-  # @return [ Hash ] a hash representation of the tool
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register

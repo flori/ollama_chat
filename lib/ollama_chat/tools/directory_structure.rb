@@ -7,21 +7,10 @@
 # The tool supports traversing directories and returns a structured
 # representation of the file system hierarchy.
 class OllamaChat::Tools::DirectoryStructure
-  include Ollama
+  include OllamaChat::Tools::Concern
   include OllamaChat::Utils::AnalyzeDirectory
 
-  # Initializes a new directory_structure tool instance.
-  #
-  # @return [OllamaChat::Tools::DirectoryStructure] a new directory_structure
-  #   tool instance
-  def initialize
-    @name = 'directory_structure'
-  end
-
-  # Returns the name of the tool.
-  #
-  # @return [String] the name of the tool ('directory_structure')
-  attr_reader :name
+  def self.register_name = 'directory_structure'
 
   # Creates and returns a tool definition for retrieving directory structure.
   #
@@ -63,19 +52,12 @@ class OllamaChat::Tools::DirectoryStructure
   # @raise [StandardError] if there's an issue with directory traversal or JSON
   #   serialization
   def execute(tool_call, **opts)
-    path = Pathname.new(tool_call.function.arguments.path || '.')
+    config = opts[:config]
+    path   = Pathname.new(tool_call.function.arguments.path || '.')
 
-    structure = generate_structure(path)
+    structure = generate_structure(path, exclude: config.tools.directory_structure.exclude?)
     structure.to_json
   end
 
-  # Converts the tool to a hash representation.
-  #
-  # This method provides a standardized way to serialize the tool definition
-  # for use in tool calling systems.
-  #
-  # @return [Hash] a hash representation of the tool
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register

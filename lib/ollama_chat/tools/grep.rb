@@ -4,20 +4,9 @@
 # patterns in files. It integrates with the Ollama tool calling system to
 # provide file search capabilities within the language model's context.
 class OllamaChat::Tools::Grep
-  include Ollama
+  include OllamaChat::Tools::Concern
 
-  # Initializes a new Grep tool instance
-  def initialize
-    @name = 'execute_grep'
-  end
-
-  # Returns the tool definition for use with the Ollama API
-  #
-  # This method returns a tool definition that describes the grep tool's
-  # capabilities, parameters, and usage for the LLM.
-  #
-  # @return [OllamaChat::Tool] The tool definition
-  attr_reader :name
+  def self.register_name = 'execute_grep'
 
   # Returns the tool definition for use with the Ollama API
   #
@@ -60,7 +49,7 @@ class OllamaChat::Tools::Grep
   # OllamaChat::Utils::Fetcher to execute the command.
   #
   # @example
-  #   result = grep_tool.execute(tool_call, config: config)
+  #   result = grep_tool.execute(tool_call, config:, chat:)
   #
   # @param tool_call [OllamaChat::Tool::Call] The tool call with arguments
   # @param opts [Hash] Additional options
@@ -80,16 +69,5 @@ class OllamaChat::Tools::Grep
     { error: e.class, message: e.message }.to_json
   end
 
-  # Converts the tool to a hash representation
-  #
-  # This method returns the tool definition as a hash, which is useful for
-  # serialization or when working with APIs that expect hash representations.
-  #
-  # @example
-  #   tool_hash = grep_tool.to_hash
-  #
-  # @return [Hash] The tool definition as a hash
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register

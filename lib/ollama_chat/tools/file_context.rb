@@ -8,19 +8,9 @@
 # The tool searches for files using the provided glob pattern and generates
 # structured context data that includes file contents, sizes, and metadata.
 class OllamaChat::Tools::FileContext
-  include Ollama
+  include OllamaChat::Tools::Concern
 
-  # Initializes a new file_context tool instance.
-  #
-  # @return [OllamaChat::Tools::FileContext] a new file_context tool instance
-  def initialize
-    @name = 'file_context'
-  end
-
-  # Returns the name of the tool.
-  #
-  # @return [String] the name of the tool ('file_context')
-  attr_reader :name
+  def self.register_name = 'file_context'
 
   def tool
     Tool.new(
@@ -83,13 +73,5 @@ class OllamaChat::Tools::FileContext
     { error: e.class, message: e.message }.to_json
   end
 
-  # Converts the tool to a hash representation.
-  #
-  # This method provides a standardized way to serialize the tool definition
-  # for use in tool calling systems.
-  #
-  # @return [Hash] a hash representation of the tool
-  def to_hash
-    tool.to_hash
-  end
-end
+  self
+end.register
