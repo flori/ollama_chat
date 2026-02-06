@@ -82,7 +82,7 @@ class OllamaChat::Tools::EndOfLife
       data = JSON.parse(tmp.read, object_class: JSON::GenericObject)
       return data
     end
-  rescue StandardError => e
+  rescue => e
     "Failed to fetch endoflife data for #{product}: #{e.class}: #{e.message}"
   end
 

@@ -92,8 +92,11 @@ class OllamaChat::Tools::Weather
     end
 
     "The temperature was %s %s at the time of %s" % [ temp, unit, time ]
-  rescue StandardError => e
-    "Failed to fetch weather for station #{station_id} #{e.class}: #{e.message}"
+  rescue => e
+    {
+      error: e.class,
+      message: "Failed to fetch weather for station #{station_id}: #{e.message}"
+    }.to_json
   end
 
   # The to_hash method converts the tool to a hash representation.

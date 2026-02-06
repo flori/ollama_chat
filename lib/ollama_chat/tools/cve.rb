@@ -76,7 +76,7 @@ class OllamaChat::Tools::CVE
       data = JSON.parse(tmp.read, object_class: JSON::GenericObject)
       return data
     end
-  rescue StandardError => e
+  rescue => e
     { error: e.class, message: e.message }.to_json
   end
 

@@ -76,7 +76,7 @@ class OllamaChat::Tools::Grep
     cmd         = config.tools.execute_grep.cmd % { max_results:, path:, pattern: }
     result      = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
     { cmd:, result: }.to_json
-  rescue StandardError => e
+  rescue => e
     { error: e.class, message: e.message }.to_json
   end
 
