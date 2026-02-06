@@ -219,6 +219,10 @@ module OllamaChat::Parsing
     tags = Documentrix::Utils::Tags.new valid_tag: /\A#*([\w\]\[]+)/
     contents = [ content ]
     content.scan(CONTENT_REGEXP).each { |url, tag, file_url, quoted_file, file|
+      if file && File.directory?(file)
+        contents << OllamaChat::Utils::AnalyzeDirectory.generate_structure(file)
+        next
+      end
       check_exist = false
       case
       when tag
