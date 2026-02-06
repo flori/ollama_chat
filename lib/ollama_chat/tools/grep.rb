@@ -77,7 +77,7 @@ class OllamaChat::Tools::Grep
     result      = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
     { cmd:, result: }.to_json
   rescue StandardError => e
-    { error: e, message: e.message }.to_json
+    { error: e.class, message: e.message }.to_json
   end
 
   # Converts the tool to a hash representation

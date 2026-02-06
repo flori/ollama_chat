@@ -80,7 +80,7 @@ class OllamaChat::Tools::FileContext
       end
     end.send("to_#{format.downcase}")
   rescue => e
-    { error: e, message: e.message }.to_json
+    { error: e.class, message: e.message }.to_json
   end
 
   # Converts the tool to a hash representation.
