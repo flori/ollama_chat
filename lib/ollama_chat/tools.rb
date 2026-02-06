@@ -19,6 +19,8 @@ module OllamaChat::Tools
     # @return [ OllamaChat::Tools ] the current instance after registration
     def register(tool)
       tool = tool.new
+      registered.key?(tool.name) and
+        raise ArgumentError, 'tool %s already registered' % tool.name
       registered[tool.name] = tool
       self
     end
