@@ -71,6 +71,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     expect(result).to be_a(String)
     json = JSON.parse(result, object_class: JSON::GenericObject)
     expect(json.error).to eq 'Errno::ENOENT'
+    expect(json.message).to eq 'No such file or directory @ dir_initialize - /nonexistent/path'
   end
 
   it 'can be converted to hash' do

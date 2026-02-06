@@ -61,8 +61,9 @@ describe OllamaChat::Tools::CVE do
       .to_return(status: 404, body: 'Not Found')
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    expect(result).to include('Failed to fetch CVE')
-    expect(result).to include(cve_id)
+    json = JSON.parse(result, object_class: JSON::GenericObject)
+    expect(json.error).to eq 'JSON::ParserError'
+    expect(json.message).to eq 'unexpected end of input at line 1 column 1'
   end
 
   it 'can be converted to hash' do

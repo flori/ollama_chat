@@ -77,7 +77,7 @@ class OllamaChat::Tools::CVE
       return data
     end
   rescue StandardError => e
-    "Failed to fetch CVE for #{cve_id} #{e.class}: #{e.message}"
+    { error: e.class, message: e.message }.to_json
   end
 
   # Converts the tool to a hash representation.
