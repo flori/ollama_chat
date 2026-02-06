@@ -35,11 +35,13 @@ module OllamaChat::Utils::AnalyzeDirectory
         entries << {
           type: 'directory',
           name: child.basename.to_s,
+          path: child.expand_path.to_s,
           children: generate_structure(child)
         }
       elsif child.file?
         entries << {
           type: 'file',
+          path: child.expand_path.to_s,
           name: child.basename.to_s
         }
       end

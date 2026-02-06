@@ -22,20 +22,18 @@ class OllamaChat::Tools::FileContext
   # @return [String] the name of the tool ('file_context')
   attr_reader :name
 
-  # Creates and returns a tool definition for generating file context.
-  #
-  # This method constructs the function signature that describes what the tool
-  # does, its parameters, and required fields. The tool expects a pattern parameter
-  # to be provided for file searching.
-  #
-  # @return [Ollama::Tool] a tool definition for generating file context
   def tool
     Tool.new(
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Create a context that provides information about files '\
-          'and their content in order to give more accurate answers for a query',
+        description: <<~EOT,
+          Create a context that provides information about files and their
+          content in order to give more accurate answers for a query. You can either
+          query (maybe) multiple files by combining the directory and pattern
+          arguments **OR** using an exact path as argument to get a single file
+          context.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
@@ -47,29 +45,31 @@ class OllamaChat::Tools::FileContext
               type: 'string',
               description: 'Directory to search in (defaults to current directory)'
             ),
+            path: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'Exact path to a file (alternative to glob pattern)'
+            ),
           },
-          required: ['pattern']
+          required: []
         )
       )
     )
   end
 
-  # Executes the file context generation operation.
-  #
-  # This method searches for files matching the provided glob pattern and
-  # generates structured context data including file contents, sizes, and metadata.
-  #
-  # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
-  # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
-  # @return [String] the formatted context data as a string in the configured format
-  # @raise [StandardError] if there's an issue with file searching or context generation
   def execute(tool_call, **opts)
     config      = opts[:config]
     pattern     = tool_call.function.arguments.pattern
-    directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
+    path        = tool_call.function.arguments.path
+    unless pattern.nil? ^ path.nil?
+      raise ArgumentError, "require either pattern or path argument"
+    end
     format      = config.context.format
-    search_path = directory + pattern
+    if pattern
+      directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
+      search_path = directory + pattern
+    else
+      search_path = path
+    end
 
     ContextSpook::generate_context(verbose: true, format:) do |context|
       context do
@@ -79,6 +79,8 @@ class OllamaChat::Tools::FileContext
         end
       end
     end.send("to_#{format.downcase}")
+  rescue => e
+    { error: e, message: e.message }.to_json
   end
 
   # Converts the tool to a hash representation.

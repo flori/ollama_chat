@@ -26,7 +26,8 @@ describe OllamaChat::Tools::FileContext do
         name: 'file_context',
         arguments: double(
           pattern: '**/*.rb',
-          directory: 'spec/assets'
+          directory: 'spec/assets',
+          path: nil
         )
       )
     )
@@ -45,7 +46,8 @@ describe OllamaChat::Tools::FileContext do
         name: 'file_context',
         arguments: double(
           pattern: '**/*.nonexistent',
-          directory: 'spec/assets'
+          directory: 'spec/assets',
+          path: nil
         )
       )
     )
