@@ -13,6 +13,7 @@ end
 require 'ollama'
 require 'documentrix'
 require 'unix_socks'
+require 'infobar'
 require 'ollama_chat/version'
 require 'ollama_chat/utils'
 require 'ollama_chat/redis_cache'

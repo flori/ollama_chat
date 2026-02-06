@@ -102,8 +102,21 @@ class OllamaChat::FollowChat
 
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
-      @chat.tool_call_results[name] = OllamaChat::Tools.registered[name].
-        execute(tool_call, chat: @chat, config: @chat.config)
+      Infobar.busy(
+        label: 'Executing tool %s' % name,
+        frames: :braille7,
+        output: STDOUT,
+      ) do
+        infobar.printf(
+          "Executing tool %s(%s)\n",
+          bold { name },
+          italic { JSON(tool_call.function.arguments) },
+        )
+        @chat.tool_call_results[name] = OllamaChat::Tools.registered[name].
+          execute(tool_call, chat: @chat, config: @chat.config)
+      end
+      infobar.finish message: "Executed tool #{bold { name }} %te %s"
+      infobar.newline
     end
   end
 
