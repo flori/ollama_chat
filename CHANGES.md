@@ -1,5 +1,52 @@
 # Changes
 
+## 2026-02-06 v0.0.61
+
+### New Features
+- Added new `OllamaChat::Tools::Grep` tool to enable grep command execution
+- Introduced `execute_grep` tool configuration with `default: true` and `cmd`
+  template
+
+### Tool Improvements
+- Updated `tools.rb` to always call `.new` on tool classes during registration
+- Removed `depth` parameter from `DirectoryStructure` tool
+- Simplified `generate_structure` method to recursively build directory
+  structure without depth handling
+
+### Security Enhancements
+- Added `require 'shellwords'` for secure argument handling
+- Implemented `execute` method in `Grep` tool using `Shellwords.escape` for
+  security and `OllamaChat::Utils::Fetcher`
+
+### Documentation & Testing
+- Updated tests for `DirectoryStructure` tool to use only `path` argument and
+  test defaulting to `.` (current directory)
+- Added `lib/ollama_chat/tools/grep.rb` and
+  `spec/ollama_chat/tools/grep_spec.rb` to test files and extra rdoc files
+- Updated `ollama_chat.gemspec` version to **0.0.61**
+
+### Implementation Details
+- Implemented `execute` method in `Grep` tool using `Shellwords.escape` for
+  security and `OllamaChat::Utils::Fetcher`
+- Updated `tools.rb` to always call `.new` on tool classes during registration
+- Enhanced `DirectoryStructure` tool documentation and method signatures
+- Improved error handling in `Grep` tool with proper rescue blocks
+
+## 2026-02-06 v0.0.60
+
+### New Features
+- Added `directory_structure` tool to provide directory listing capabilities
+- Added `file_context` tool to provide file content context
+- Added `execute_grep` tool to provide grep command execution capability
+
+### Core Functionality
+- Implemented `OllamaChat::Tools` module for tool registration and management
+- Added `OllamaChat::Tools::FileContext` tool for file content retrieval
+- Added `OllamaChat::Tools::DirectoryStructure` tool for directory listing
+- Added `OllamaChat::Tools::Grep` tool for grep command execution
+- Implemented `OllamaChat::Chat` class for chat interaction with Ollama
+- Added `
+
 ## 2026-02-06 v0.0.60
 
 ### New Features
