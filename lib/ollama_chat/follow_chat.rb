@@ -103,43 +103,41 @@ class OllamaChat::FollowChat
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
       unless @chat.config.tools.attribute_set?(name)
-        STDERR.printf("Unknown tool named %s ignored => Skip.\n", name)
+        STDERR.printf("Unconfigured tool named %s ignored => Skip.\n", name)
+        next
+      end
+      unless OllamaChat::Tools.registered?(name)
+        STDERR.printf("Unregistered tool named %s ignored => Skip.\n", name)
         next
       end
       STDOUT.puts
       confirmed = true
       if @chat.config.tools[name].confirm?
-        prompt = "I want to execute tool %s(%s)\n\nConfirm? (y/n) " % [
+        args = JSON.pretty_generate(tool_call.function.arguments)
+        prompt = "I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
-          italic { JSON(tool_call.function.arguments) },
+          italic { args  },
         ]
         confirmed = @chat.ask?(prompt:) =~ /\Ay/i
       end
-      Infobar.busy(
-        label: 'Executing tool %s' % name,
-        frames: :braille7,
-        output: STDOUT,
-      ) do
-        result = nil
-        if confirmed
-          infobar.printf(
-            "%s Execution of tool %s(%s) confirmed.\n",
-            ?✅,
-            bold { name },
-            italic { JSON(tool_call.function.arguments) }
-          )
-          result = OllamaChat::Tools.registered[name].
-            execute(tool_call, chat: @chat, config: @chat.config)
-        else
-          result = JSON(
-            message: 'User denied confirmation!',
-            resolve: 'You **MUST** ask the user for instructions on how to proceed!!!',
-          )
-        end
-        @chat.tool_call_results[name] = result
+      result = nil
+      if confirmed
+        STDOUT.printf(
+          "\n%s Execution of tool %s confirmed.\n", ?✅, bold { name }
+        )
+        result = OllamaChat::Tools.registered[name].
+          execute(tool_call, chat: @chat, config: @chat.config)
+      else
+        result = JSON(
+          message: 'User denied confirmation!',
+          resolve: 'You **MUST** ask the user for instructions on how to proceed!!!',
+        )
+        STDOUT.printf(
+          "\n%s Execution of tool %s denied by user.\n", ?🚫, bold { name }
+        )
+        sleep 1
       end
-      infobar.finish message: "Executed tool #{bold { name }} %te %s"
-      infobar.newline
+      @chat.tool_call_results[name] = result
     end
   end
 
