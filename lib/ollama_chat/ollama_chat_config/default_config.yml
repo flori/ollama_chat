@@ -110,6 +110,11 @@ tools:
     cmd: 'grep -m %{max_results} -r %{pattern} %{path}'
   browse:
     default: false
+  write_file:
+    default: false
+    confirm: true
+    allowed:
+      - ./tmp
   search_web:
     default: true
   import_url:
