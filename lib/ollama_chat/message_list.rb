@@ -113,7 +113,9 @@ class OllamaChat::MessageList
     end
     @messages =
       File.open(filename, 'r') do |output|
-        JSON(output.read).map { Ollama::Message.from_hash(_1) }
+        JSON(output.read).map {
+          Ollama::Message.from_hash(_1 | { 'content' => nil })
+        }
       end
     self
   end
