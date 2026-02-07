@@ -34,7 +34,7 @@ describe OllamaChat::Tools::DirectoryStructure do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.size).to eq 18
   end
 
@@ -53,7 +53,7 @@ describe OllamaChat::Tools::DirectoryStructure do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.size).to be > 18
   end
 
@@ -73,7 +73,7 @@ describe OllamaChat::Tools::DirectoryStructure do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'Errno::ENOENT'
     expect(json.message).to eq 'No such file or directory @ dir_initialize - /nonexistent/path'
   end

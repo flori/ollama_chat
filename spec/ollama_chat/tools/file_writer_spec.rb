@@ -36,7 +36,7 @@ describe OllamaChat::Tools::FileWriter do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.success).to eq true
     expect(json.path).to include('test_write_file.txt')
 
@@ -69,7 +69,7 @@ describe OllamaChat::Tools::FileWriter do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.success).to be true
     expect(json.path).to include('test_append_file.txt')
 
@@ -100,7 +100,7 @@ describe OllamaChat::Tools::FileWriter do
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'ArgumentError'
     expect(json.message).to include('is not within allowed directories')
   end

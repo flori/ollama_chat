@@ -35,7 +35,7 @@ describe OllamaChat::Tools::FileContext do
     # Test with actual files in spec/assets
     result = described_class.new.execute(tool_call, config: config)
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.files['spec/assets/example.rb'].content).to include 'Hello World!'
   end
 
@@ -75,7 +75,7 @@ describe OllamaChat::Tools::FileContext do
     # Test with exact file path
     result = described_class.new.execute(tool_call, config: config)
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.files['spec/assets/example.rb'].content).to include 'Hello World!'
   end
 
@@ -97,7 +97,7 @@ describe OllamaChat::Tools::FileContext do
     expect(result).to be_a(String)
 
     # Should return a valid JSON string even if file doesn't exist
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.files.to_h).to be_empty
   end
 
@@ -117,7 +117,7 @@ describe OllamaChat::Tools::FileContext do
     # When path is provided, it should use that exact file regardless of pattern/directory
     result = described_class.new.execute(tool_call, config: config)
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'ArgumentError'
     expect(json.message).to eq 'require either pattern or path argument'
   end
@@ -138,7 +138,7 @@ describe OllamaChat::Tools::FileContext do
     # Test with nested file path
     result = described_class.new.execute(tool_call, config: config)
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.files['spec/assets/deep/deeper/not-empty.txt'].content).to include 'not-empty'
   end
 

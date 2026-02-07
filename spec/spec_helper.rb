@@ -86,8 +86,43 @@ module AssetHelpers
   end
 end
 
-def chat_default_config(a = [])
-  a + %w[ -f lib/ollama_chat/ollama_chat_config/default_config.yml ]
+# A module that provides helper methods for application functionality.
+#
+# The AppHelper module encapsulates various utility methods that support core
+# application operations, including JSON object parsing and chat configuration
+# management.
+#
+# @example Using the json_object method
+#   json_object('{"key": "value"}')
+#
+# @example Using the chat_default_config method
+#   chat_default_config(['-m', 'llama3.1'])
+module AppHelper
+  # The json_object method parses a JSON string into a structured object.
+  #
+  # @param json_string [ String ] a JSON formatted string to be parsed
+  #
+  # @return [ JSON::GenericObject ] the parsed JSON object with generic object
+  #   class
+  def json_object(json_string)
+    json_string.full? or return
+    JSON.parse(json_string, object_class: JSON::GenericObject)
+  end
+
+  # The chat_default_config method constructs a default configuration array for
+  # chat sessions.
+  #
+  # This method initializes a configuration array with a default config file
+  # path and any additional arguments provided.
+  #
+  # @param a [Array<String>] an array of additional arguments to prepend to the
+  #   default config
+  #
+  # @return [Array<String>] a new array containing the default config file path
+  #   and any additional arguments
+  def chat_default_config(argv = [])
+    argv + %w[ -f lib/ollama_chat/ollama_chat_config/default_config.yml ]
+  end
 end
 
 # A module that provides functionality for stubbing Ollama server responses.
@@ -119,12 +154,13 @@ module StubOllamaServer
   end
 end
 
-# A module that provides functionality for protecting environment variables during tests.
+# A module that provides functionality for protecting environment variables
+# during tests.
 #
-# This module ensures that environment variable changes made during test execution
-# are automatically restored to their original values after the test completes.
-# It is designed to prevent side effects between tests that modify environment
-# variables, maintaining a clean testing environment.
+# This module ensures that environment variable changes made during test
+# execution are automatically restored to their original values after the test
+# completes. It is designed to prevent side effects between tests that modify
+# environment variables, maintaining a clean testing environment.
 module ProtectEnvVars
   # The apply method creates a lambda that protects environment variables
   # during test execution.
@@ -148,6 +184,7 @@ module ProtectEnvVars
 end
 
 RSpec.configure do |config|
+  config.include AppHelper
   config.include AssetHelpers
   config.extend StubOllamaServer
 

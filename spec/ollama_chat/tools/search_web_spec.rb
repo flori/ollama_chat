@@ -41,7 +41,7 @@ describe OllamaChat::Tools::SearchWeb do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.query).to eq 'Ruby programming'
     expect(json.url).to be_a(Array)
     expect(json.url.length).to be >= 1
@@ -68,7 +68,7 @@ describe OllamaChat::Tools::SearchWeb do
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.query).to eq 'Ruby programming'
     expect(json.url).to be_a(Array)
     expect(json.url.length).to eq 1
@@ -93,7 +93,7 @@ describe OllamaChat::Tools::SearchWeb do
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'Network error'
   end

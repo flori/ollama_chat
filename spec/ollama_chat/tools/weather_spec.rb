@@ -71,7 +71,7 @@ describe OllamaChat::Tools::Weather do
     result = described_class.new.execute(tool_call, config: chat.config)
 
     # Parse the JSON result to verify structured error format
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
 
     # Verify the structured error response
     expect(json.error).to be_a(String)

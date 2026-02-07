@@ -39,8 +39,9 @@ describe OllamaChat::Tools::CVE do
       )
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    expect(result.id).to eq 'CVE-2023-12345'
-    expect(result.description).to include('Test vulnerability description')
+    json = json_object(result)
+    expect(json.id).to eq 'CVE-2023-12345'
+    expect(json.description).to include('Test vulnerability description')
   end
 
   it 'can handle execution errors gracefully' do
@@ -61,9 +62,9 @@ describe OllamaChat::Tools::CVE do
       .to_return(status: 404, body: 'Not Found')
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'JSON::ParserError'
-    expect(json.message).to eq 'unexpected end of input at line 1 column 1'
+    expect(json.message).to eq 'require JSON data'
   end
 
   it 'can be converted to hash' do

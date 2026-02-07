@@ -44,8 +44,7 @@ class OllamaChat::Tools::CVE
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
   # @option opts [ComplexConfig::Settings] :config the configuration object
-  # @return [Hash, String] the parsed CVE data as a hash or an error message
-  # @raise [StandardError] if there's an issue with the HTTP request or JSON parsing
+  # @return [String] the parsed CVE data or an error message as JSON string
   def execute(tool_call, **opts)
     config = opts[:config]
     cve_id = tool_call.function.arguments.cve_id
@@ -55,11 +54,9 @@ class OllamaChat::Tools::CVE
       headers: {
         'Accept' => 'application/json',
       },
-      debug: OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG
-    ) do |tmp|
-      data = JSON.parse(tmp.read, object_class: JSON::GenericObject)
-      return data
-    end
+      debug: OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG,
+      &valid_json?
+    )
   rescue => e
     { error: e.class, message: e.message }.to_json
   end

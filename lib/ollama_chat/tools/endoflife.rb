@@ -44,8 +44,7 @@ class OllamaChat::Tools::EndOfLife
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
   # @option opts [ComplexConfig::Settings] :config the configuration object
-  # @return [Hash, String] the parsed endoflife data as a hash or an error message
-  # @raise [StandardError] if there's an issue with the HTTP request or JSON parsing
+  # @return [String] the parsed endoflife data or an error as a JSON string
   def execute(tool_call, **opts)
     config = opts[:config]
     product = tool_call.function.arguments.product
@@ -60,14 +59,15 @@ class OllamaChat::Tools::EndOfLife
         'Accept' => 'application/json',
         'User-Agent' => OllamaChat::Chat.user_agent
       },
-      debug: OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG
-    ) do |tmp|
-      # Parse the JSON response
-      data = JSON.parse(tmp.read, object_class: JSON::GenericObject)
-      return data
-    end
+      debug: OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG,
+      &valid_json?
+    )
   rescue => e
-    "Failed to fetch endoflife data for #{product}: #{e.class}: #{e.message}"
+    {
+      product:,
+      error: e.class,
+      message: e.message,
+    }.to_json
   end
 
   self

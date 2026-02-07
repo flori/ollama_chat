@@ -39,9 +39,10 @@ describe OllamaChat::Tools::EndOfLife do
       )
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    expect(result.cycle).to eq '3.1'
-    expect(result.releaseDate).to eq '2023-05-01'
-    expect(result.eol).to eq '2026-05-01'
+    json = json_object(result)
+    expect(json.cycle).to eq '3.1'
+    expect(json.releaseDate).to eq '2023-05-01'
+    expect(json.eol).to eq '2026-05-01'
   end
 
   it 'can handle execution errors gracefully' do
@@ -62,8 +63,9 @@ describe OllamaChat::Tools::EndOfLife do
       .to_return(status: 404, body: 'Not Found')
 
     result = described_class.new.execute(tool_call, config: chat.config)
-    expect(result).to include('Failed to fetch endoflife data')
-    expect(result).to include(product)
+    json = json_object(result)
+    expect(json.error).to eq 'JSON::ParserError'
+    expect(json.message).to eq 'require JSON data'
   end
 
   it 'can be converted to hash' do

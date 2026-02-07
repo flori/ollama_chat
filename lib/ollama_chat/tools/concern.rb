@@ -34,6 +34,22 @@ module OllamaChat::Tools::Concern
     self.class.register_name
   end
 
+  # The valid_json? method returns a proc that validates JSON data from a
+  # temporary file.
+  #
+  # @return [Proc] a proc that takes a temporary file and returns its JSON
+  #   content or raises an error
+  def valid_json?
+    -> tmp {
+      if data = tmp.read.full?
+        JSON.parse(data)
+        return data
+      else
+        raise JSON::ParserError, 'require JSON data'
+      end
+    }
+  end
+
   # The to_hash method converts the tool to a hash representation.
   #
   # @return [ Hash ] a hash representation of the tool

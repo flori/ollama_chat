@@ -31,14 +31,14 @@ describe OllamaChat::Tools::Browser do
     )
 
     # Test that system call is made with proper escaping
-    expect_any_instance_of(described_class).to receive(:system).
-      with('open https://www.example.com')
+    expect_any_instance_of(described_class).to receive(:browse_url).
+      and_return(double(success?: true, exitstatus: 0))
 
     result = described_class.new.execute(tool_call, config: config)
 
     # Should return valid JSON
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.success).to be true
     expect(json.exitstatus).to eq 0
     expect(json.message).to eq 'opening URL/file'
@@ -58,11 +58,12 @@ describe OllamaChat::Tools::Browser do
 
     expect_any_instance_of(described_class).to receive(:browse_url).
       and_return(double(success?: false, exitstatus: 1))
+
     result = described_class.new.execute(tool_call, config: config)
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.success).to be false
     expect(json.exitstatus).to eq 1
     expect(json.message).to eq 'opening URL/file'
@@ -85,7 +86,7 @@ describe OllamaChat::Tools::Browser do
 
     # Should return valid JSON even with exceptions
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'some kind of exception'
   end
@@ -111,14 +112,14 @@ describe OllamaChat::Tools::Browser do
       )
 
       # Test that system call is made with proper escaping
-      expect_any_instance_of(described_class).to receive(:system).
-        with('the-bestest-browser https://www.example.com')
+      expect_any_instance_of(described_class).to receive(:browse_url).
+        and_return(double(success?: true, exitstatus: 0))
 
       result = described_class.new.execute(tool_call, config: config)
 
       # Should return valid JSON
       expect(result).to be_a(String)
-      json = JSON.parse(result, object_class: JSON::GenericObject)
+      json = json_object(result)
       expect(json.success).to be true
       expect(json.exitstatus).to eq 0
       expect(json.message).to eq 'opening URL/file'

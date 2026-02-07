@@ -58,7 +58,7 @@ describe OllamaChat::Tools::ImportURL do
     result = described_class.new.execute(tool_call, chat:)
 
     expect(result).to be_a(String)
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'it somehow failed'
   end

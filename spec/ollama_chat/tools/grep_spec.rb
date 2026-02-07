@@ -32,7 +32,7 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string
     expect(result).to be_a String
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.cmd).to include('grep')
     expect(json.cmd).to include('Hello\\ World')
     expect(json.cmd).to include('spec/assets')
@@ -56,7 +56,7 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string
     expect(result).to be_a String
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.cmd).to include('grep')
     expect(json.cmd).to include('-m 5')
     expect(json.result).to match(/class="body--html"/)
@@ -80,7 +80,7 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string even with no matches
     expect(result).to be_a String
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.cmd).to include('grep')
     expect(json.result).to be_a String
   end
@@ -103,7 +103,7 @@ describe OllamaChat::Tools::Grep do
 
     # Should return a JSON string with error information
     expect(result).to be_a String
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.result).to match(%r(grep: /nonexistent/path/that/does/not/exist))
   end
 
@@ -125,7 +125,7 @@ describe OllamaChat::Tools::Grep do
     result = described_class.new.execute(tool_call, config: chat.config)
 
     expect(result).to be_a String
-    json = JSON.parse(result, object_class: JSON::GenericObject)
+    json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'my error'
   end
@@ -151,7 +151,7 @@ describe OllamaChat::Tools::Grep do
       result = described_class.new.execute(tool_call, config: chat.config)
 
       # Should find the example content
-      json = JSON.parse(result, object_class: JSON::GenericObject)
+      json = json_object(result)
       expect(json.result).to include('Hello World!')
       expect(json.result).to include('example.rb')
     end
