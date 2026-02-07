@@ -95,19 +95,13 @@ class OllamaChat::Chat
     connect_ollama
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
-    model_system     = pull_model_unless_present(@model, @model_options)
-    embedding_enabled.set(config.embedding.enabled && !@opts[?E])
+    @model_system    = pull_model_unless_present(@model, @model_options)
     if @opts[?c]
       messages.load_conversation(@opts[?c])
     else
-      default = config.system_prompts.default? || model_system
-      if @opts[?s] =~ /\A\?/
-        change_system_prompt(default, system: @opts[?s])
-      else
-        system = OllamaChat::Utils::FileArgument.get_file_argument(@opts[?s], default:)
-        system.present? and messages.set_system_prompt(system)
-      end
+      setup_system_prompt
     end
+    embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @documents            = setup_documents
     @cache                = setup_cache
     @images               = []
@@ -736,6 +730,16 @@ class OllamaChat::Chat
       raise 'require ollama API version 0.9.0 or higher'
     end
     @ollama
+  end
+
+  def setup_system_prompt
+    default = config.system_prompts.default? || @model_system
+    if @opts[?s] =~ /\A\?/
+      change_system_prompt(default, system: @opts[?s])
+    else
+      system = OllamaChat::Utils::FileArgument.get_file_argument(@opts[?s], default:)
+      system.present? and messages.set_system_prompt(system)
+    end
   end
 
   # The setup_documents method initializes the document processing pipeline by
