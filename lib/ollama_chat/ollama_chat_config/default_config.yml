@@ -110,3 +110,5 @@ tools:
     cmd: 'grep -m %{max_results} -r %{pattern} %{path}'
   browse:
     default: false
+  search_web:
+    default: true
