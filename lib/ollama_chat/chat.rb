@@ -242,7 +242,7 @@ class OllamaChat::Chat
       messages.list_conversation(n)
       :next
     when %r(^/last(?:\s+(\d*))?$)
-      n = $1.to_i if $1
+      n = $1.to_i.clamp(1..)
       messages.show_last(n)
       :next
     when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
