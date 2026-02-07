@@ -10,13 +10,19 @@ class OllamaChat::Tools::Browser
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Open a URL/file in the default browser',
+        description: <<~EOT,
+          Open a URL in the user\'s default browser application so they can
+          view the content directly
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
             url: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The URL or file to open'
+              description: <<~EOT,
+                The URL to open in the user\'s browser for them to view
+                directly
+              EOT
             ),
           },
           required: %w[url]
