@@ -51,6 +51,14 @@ module OllamaChat
       end
     end
 
+    BROWSER = set do
+      description 'Browser to use'
+
+      default do
+        %w[ open xdg-open ].find { `which #{_1}` }.full?(:chomp)
+      end
+    end
+
     DIFF_TOOL = set do
       description 'Diff tool to apply changes with'
 
