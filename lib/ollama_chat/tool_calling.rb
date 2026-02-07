@@ -13,6 +13,27 @@ module OllamaChat::ToolCalling
     @enabled_tools.map { OllamaChat::Tools.registered[it]&.to_hash }.compact
   end
 
+  # The default_enabled_tools method returns an array of tool names that are
+  # configured as default tools.
+  #
+  # This method iterates through the configured tools and collects those that
+  # are registered and have the default flag set to true. Unregistered tools
+  # are skipped with a warning message.
+  #
+  # @return [Array<String>] a sorted array of tool names that are configured as
+  #   default tools
+  def default_enabled_tools
+    result = []
+    config.tools.each { |n, v|
+      if OllamaChat::Tools.registered?(n)
+        result << n.to_s if v.default
+      else
+        STDERR.puts "Skipping configuration for unregistered tool %s" % bold { n }
+      end
+    }
+    result
+  end
+
   # The configured_tools method returns an array of tool names configured for
   # the chat session.
   #

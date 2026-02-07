@@ -18,12 +18,22 @@ module OllamaChat::Tools
     # @param tool [ Object ] the tool to be registered
     # @return [ OllamaChat::Tools ] the current instance after registration
     def register(tool)
-      name = tool.register_name
+      name = tool.register_name.to_s
       name.present? or raise ArgumentError, 'tool needs a name'
       registered.key?(name) and
         raise ArgumentError, 'tool %s already registered' % name
       registered[name] = tool.new
       self
+    end
+
+    # Checks if a tool with the given name is registered.
+    #
+    # @param register_name [ String, #to_s ] the name of the tool to check
+    #
+    # @return [ TrueClass, FalseClass ] true if the tool is registered, false
+    #   otherwise
+    def registered?(register_name)
+      registered.key?(register_name.to_s)
     end
   end
 

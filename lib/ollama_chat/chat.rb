@@ -112,10 +112,10 @@ class OllamaChat::Chat
     @cache                = setup_cache
     @images               = []
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
+    @enabled_tools        = default_enabled_tools
+    @tool_call_results    = {}
     init_chat_history
     @opts[?S] and init_server_socket
-    @enabled_tools = config.tools.to_h.map { |n, v| n.to_s if v[:default] }.compact
-    @tool_call_results = {}
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
