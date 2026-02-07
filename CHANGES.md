@@ -1,5 +1,48 @@
 # Changes
 
+## 2026-02-07 v0.0.62
+
+**Tool Execution**  
+- All tools now return structured JSON errors (`error` + `message`).  
+- Confirmation prompts (`confirm?`) added to `OllamaChat::FollowChat`.  
+- `infobar` displays a busy indicator and status messages during tool runs.  
+- Tool methods accept `config:` and `chat:` keyword arguments.
+
+**Tool Registration**  
+- Centralized logic via `OllamaChat::Tools::Concern` to prevent duplicate
+  registrations.
+
+**File Context Tool (`file_context`)**  
+- Supports an exact `path:` argument in addition to `directory:` + `pattern:`.  
+- Uses `blank?` for argument validation.  
+- YARD documentation added.
+
+**Directory Structure Tool (`directory_structure`)**  
+- Delegates to `OllamaChat::Utils::AnalyzeDirectory.generate_structure`.  
+- Excludes hidden files, symlinks, and the `pkg` directory by default.  
+- `exclude` option configurable in `default_config.yml`.
+
+**Utility Module**  
+- New `OllamaChat::Utils::AnalyzeDirectory` containing the `generate_structure`
+  method.
+
+**Error Handling**  
+- `CVE`, `EndOfLife`, `Grep`, and `Weather` tools now catch all exceptions and return structured JSON errors.
+
+**Testing**  
+- Added comprehensive specs for `AnalyzeDirectory` (traversal, exclusions,
+  error handling).  
+- Tests for exact `path` usage in `file_context` with conflict detection.  
+- Updated `test_files` list in the gemspec.
+
+**Configuration**  
+- `directory_structure` accepts an `exclude` option via `default_config.yml`.  
+- Tool signatures updated to accept `config:` and `chat:`.
+
+**Gem Specification**  
+- Updated `test_files`, `extra_rdoc_files`, and `files` arrays to include new
+  utilities, tests, and documentation.
+
 ## 2026-02-06 v0.0.61
 
 ### New Features
