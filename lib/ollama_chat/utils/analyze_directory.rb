@@ -31,7 +31,7 @@ module OllamaChat::Utils::AnalyzeDirectory
   # @note The method uses recursive calls to traverse subdirectories
   # @note If an error occurs during traversal, it returns a hash with error details
   def generate_structure(path = ?., exclude: [])
-    exclude = Array(exclude).map { Pathname.new(it).expand_path }
+    exclude = Array(exclude).map { Pathname.new(_1).expand_path }
     path    = Pathname.new(path).expand_path
     entries = []
     path.children.sort.each do |child|
@@ -40,7 +40,7 @@ module OllamaChat::Utils::AnalyzeDirectory
       # Skip symlinks
       next if child.symlink?
       # Skip if excluded
-      next if exclude.any? { child.fnmatch?(it.to_s, File::FNM_PATHNAME) }
+      next if exclude.any? { child.fnmatch?(_1.to_s, File::FNM_PATHNAME) }
 
       if child.directory?
         entries << {
