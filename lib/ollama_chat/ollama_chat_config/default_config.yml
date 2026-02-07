@@ -112,3 +112,6 @@ tools:
     default: false
   search_web:
     default: true
+  import_url:
+    default: true
+    confirm: true
