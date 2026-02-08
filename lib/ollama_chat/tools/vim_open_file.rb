@@ -1,8 +1,20 @@
+# A tool for opening files in a remote Vim server.
+#
+# This tool allows the chat client to open files in a remote Vim server at
+# specific line numbers or line ranges. It integrates with the Ollama tool calling
+# system to provide file editing capabilities.
 class OllamaChat::Tools::VimOpenFile
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'vim_open_file'
 
+  # The tool method defines the Ollama tool specification for Vim file opening.
+  #
+  # This method creates a Tool object that describes the Vim open file
+  # functionality to the Ollama system. It specifies the tool's name,
+  # description, and parameters that can be used when calling the tool.
+  #
+  # @return [Ollama::Tool] the tool specification object
   def tool
     Tool.new(
       type: 'function',
@@ -31,6 +43,18 @@ class OllamaChat::Tools::VimOpenFile
     )
   end
 
+  # The execute method processes a tool call to open a file in Vim.
+  #
+  # This method handles the actual execution of opening a file in the remote
+  # Vim server at the specified line or line range. It validates that the file
+  # exists and then calls the chat's vim.open_file method.
+  #
+  # @param tool_call [Ollama::Tool::Call] the tool call containing function details
+  # @param opts [Hash] additional options
+  # @option opts [OllamaChat::Chat] :chat the chat instance
+  #
+  # @return [String] a JSON string containing the result of the operation
+  # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
     chat       = opts[:chat]
     args       = tool_call.function.arguments

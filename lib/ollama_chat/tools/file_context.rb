@@ -12,6 +12,13 @@ class OllamaChat::Tools::FileContext
 
   def self.register_name = 'file_context'
 
+  # Returns the tool definition for the Ollama tool calling system
+  #
+  # This method constructs and returns the tool definition that describes
+  # the file context tool's capabilities to the LLM. It defines the tool's
+  # name, description, and parameters for the function calling interface.
+  #
+  # @return [Ollama::Tool] the tool definition for the Ollama system
   def tool
     Tool.new(
       type: 'function',
@@ -46,6 +53,20 @@ class OllamaChat::Tools::FileContext
     )
   end
 
+  # The execute method processes a tool call to generate context information
+  # for files matching a pattern or specific path.
+  #
+  # This method handles both glob pattern matching and exact path queries to
+  # collect file context using the ContextSpook library.
+  # It supports both directory traversal with patterns and direct file access,
+  # returning structured context data in the configured format.
+  #
+  # @param tool_call [Ollama::Tool::Call] the tool call containing function details
+  # @param opts [Hash] additional options
+  # @option opts [ComplexConfig::Settings] :config the configuration object
+  #
+  # @return [String] the generated context data in the configured format (JSON by default)
+  # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
     config      = opts[:config]
     pattern     = tool_call.function.arguments.pattern
