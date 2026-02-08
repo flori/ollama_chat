@@ -43,6 +43,7 @@ describe OllamaChat::Tools::Browser do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
+    expect(json.error).to be_nil # No excception was raised
     expect(json.success).to be true
     expect(json.exitstatus).to eq 0
     expect(json.message).to eq 'opening URL/file'
@@ -68,6 +69,7 @@ describe OllamaChat::Tools::Browser do
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
     json = json_object(result)
+    expect(json.error).to be_nil # No excception was raised
     expect(json.success).to be false
     expect(json.exitstatus).to eq 1
     expect(json.message).to eq 'opening URL/file'
