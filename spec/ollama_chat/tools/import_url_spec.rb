@@ -38,10 +38,38 @@ describe OllamaChat::Tools::ImportURL do
       expect(chat).to receive(:import).with('https://www.example.com/foo').
         and_return('bar')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new.execute(tool_call, chat:, config:)
 
       expect(result).to be_a(String)
       expect(result).to eq('bar')
+    end
+  end
+
+  context 'with an invalid scheme' do
+    it 'rejects URLs whose scheme is not whitelisted' do
+      url = 'file:///etc/passwd'
+
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'import_url',
+          arguments: double(
+            url:
+          )
+        )
+      )
+
+      # Import should never be called
+      expect(chat).not_to receive(:import)
+
+      result = described_class.new.execute(tool_call, chat:, config:)
+
+      expect(result).to be_a(String)
+
+      json = json_object(result)
+      expect(json.error).to eq 'ArgumentError'
+      expect(json.message).to match(/scheme "file" not allowed/)
+      expect(json.url).to eq url
     end
   end
 
@@ -59,7 +87,7 @@ describe OllamaChat::Tools::ImportURL do
     expect(chat).to receive(:import).with('https://www.example.com/foo').
       and_raise('it somehow failed')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new.execute(tool_call, chat:, config:)
 
     expect(result).to be_a(String)
     json = json_object(result)

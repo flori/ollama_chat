@@ -25,7 +25,7 @@ class OllamaChat::Tools::ImportURL
           tool retrieves web content from the specified URL and makes it
           available for the language model to reference and use in responses.
           It supports various content types including HTML, Markdown, and plain
-          text, and integrates with the chat\'s document processing pipeline.
+          text, and integrates with the chat's document processing pipeline.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -57,19 +57,24 @@ class OllamaChat::Tools::ImportURL
   # @return [String] the fetched content as a JSON string
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
   def execute(tool_call, **opts)
-    chat = opts[:chat]
-    args = tool_call.function.arguments
-    url = args.url
+    chat   = opts[:chat]
+    config = opts[:config]
+    args   = tool_call.function.arguments
+    url    = args.url.to_s
+
+    allowed_schemes = Array(config.tools.import_url.schemes?).map(&:to_s)
+
+    uri = URI.parse(args.url.to_s)
+    unless allowed_schemes.include?(uri.scheme)
+      raise ArgumentError, "scheme #{uri.scheme.inspect} not allowed "\
+        "(allowed: #{allowed_schemes.join(', ')})"
+    end
 
     chat.import(url).full? do |c|
       return c.ask_and_send_or_self(:read)
     end
   rescue => e
-    {
-      error:   e.class,
-      message: e.message,
-      url:     ,
-    }.to_json
+    { error: e.class, message: e.message, url: }.to_json
   end
 
   self
