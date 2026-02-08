@@ -202,6 +202,11 @@ class OllamaChat::Chat
     interact_with_user
   end
 
+  def vim(server_name = nil)
+    clientserver = config.vim?&.clientserver
+    OllamaChat::Vim.new(server_name, clientserver:)
+  end
+
   private
 
   # Handles user input commands and processes chat interactions.
@@ -364,8 +369,7 @@ class OllamaChat::Chat
       :next
     when %r(^/vim(?:\s+(.+))?$)
       if message = messages.last
-        clientserver = config.vim?&.clientserver
-        OllamaChat::Vim.new($1, clientserver:).insert message.content
+        vim($1).insert message.content
       else
         STDERR.puts "Warning: No message found to insert into Vim"
       end
@@ -695,8 +699,6 @@ class OllamaChat::Chat
   ensure
     save_history
   end
-
-  private
 
   # The base_url method returns the Ollama server URL from command-line options
   # or environment configuration.

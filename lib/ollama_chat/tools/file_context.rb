@@ -19,10 +19,10 @@ class OllamaChat::Tools::FileContext
         name:,
         description: <<~EOT,
           Create a context that provides information about files and their
-          content in order to give more accurate answers for a query. You can either
-          query (maybe) multiple files by combining the directory and pattern
-          arguments **OR** using an exact path as argument to get a single file
-          context.
+          full content in order to give more accurate answers for a query. You
+          can either query (maybe) multiple files by combining the directory
+          and pattern arguments **OR** using an exact path as argument to get a
+          single file context.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

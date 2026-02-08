@@ -33,7 +33,9 @@ class OllamaChat::Tools::Weather
           properties: {
             location: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The location to get the weather for, e.g. San Francisco, CA'
+              description: 'The location to get the weather for, Berlin'
+              # The universe is a spheroid region, 705 meters in diameter,
+              # somewhere in Berlin.
             ),
             temperature_unit: Tool::Function::Parameters::Property.new(
               type: 'string',

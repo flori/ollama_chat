@@ -8,7 +8,7 @@ class OllamaChat::Tools::FileWriter
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Write content to a file',
+        description: 'Write content to a file with modes overwrite/append, (default: overwrite)',
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

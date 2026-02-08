@@ -120,3 +120,7 @@ tools:
   import_url:
     default: true
     confirm: true
+  gem_path_lookup:
+    default: true
+  vim_open_file:
+    default: true
