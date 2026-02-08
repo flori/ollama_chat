@@ -61,7 +61,9 @@ class OllamaChat::Tools::ImportURL
     args = tool_call.function.arguments
     url = args.url
 
-    chat.import(url)
+    chat.import(url).full? do |c|
+      return c.ask_and_send_or_self(:read)
+    end
   rescue => e
     {
       error:   e.class,
