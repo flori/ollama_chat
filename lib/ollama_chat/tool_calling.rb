@@ -60,7 +60,11 @@ module OllamaChat::ToolCalling
   def list_tools
     configured_tools.each do |tool|
       enabled = @enabled_tools.member?(tool) ? ?✓ : ?☐
-      printf "%s %s\n", enabled, (enabled ? bold { tool } : tool)
+      require_confirmation = config.tools[tool].require_confirmation? ? ?? : ?☐
+      printf(
+        "%s %s %s\n",
+        enabled, require_confirmation, (enabled ? bold { tool } : tool)
+      )
     end
   end
 

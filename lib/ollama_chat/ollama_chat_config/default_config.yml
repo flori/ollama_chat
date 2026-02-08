@@ -98,10 +98,10 @@ tools:
     default: true
   file_context:
     default: false
-    confirm: true
+    require_confirmation: true
   directory_structure:
     default: false
-    confirm: true
+    require_confirmation: true
     exclude:
       - corpus
       - pkg
@@ -112,12 +112,12 @@ tools:
     default: false
   write_file:
     default: false
-    confirm: true
+    require_confirmation: true
     allowed:
       - ./tmp
   read_file:
     default: false
-    confirm: false
+    require_confirmation: false
     allowed:
       - ./tmp
       - ./lib
@@ -126,7 +126,7 @@ tools:
     default: true
   import_url:
     default: true
-    confirm: true
+    require_confirmation: true
     schemes:
       - http
       - https
@@ -135,5 +135,5 @@ tools:
   vim_open_file:
     default: true
   run_tests:
-    confirm: true
+    require_confirmation: true
     default: true
