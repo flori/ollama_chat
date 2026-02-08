@@ -124,3 +124,6 @@ tools:
     default: true
   vim_open_file:
     default: true
+  run_tests:
+    confirm: true
+    default: true

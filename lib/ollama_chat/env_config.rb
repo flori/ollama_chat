@@ -136,6 +136,16 @@ module OllamaChat
           description 'File to save the chat history in'
           default     XDG_CACHE_HOME + 'history.json'
         end
+
+        module TOOLS
+          description 'Tool specific configuration settings'
+
+          RUN_TESTS_TEST_RUNNER = set do
+            description 'Configured test runner for run_tests tool function'
+            default     'rspec'
+            required     true
+          end
+        end
       end
     end
   end
