@@ -15,13 +15,14 @@ class OllamaChat::Vim
   # method.
   #
   # @param server_name [String, nil] The name of the Vim server to connect to.
-  #   If nil or empty, defaults to a server name derived from the current working
-  #   directory using {default_server_name}
-  # @param clientserver [String] The clientserver protocol to use, defaults to 'socket'
+  #   If nil or empty, defaults to a server name derived from the current
+  #   working directory using {default_server_name}
+  # @param clientserver [String] The clientserver protocol to use, defaults to
+  #   'socket'
   #
   # @return [OllamaChat::Vim] A new Vim instance configured with the specified
   #   server name
-  def initialize(server_name, clientserver: nil)
+  def initialize(server_name = nil, clientserver: nil)
     server_name.full? or server_name = self.class.default_server_name
     @server_name  = server_name
     @clientserver = clientserver || 'socket'
@@ -76,12 +77,7 @@ class OllamaChat::Vim
       result = system %{
         vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"
       }
-      unless result
-        STDERR.puts <<~EOT
-          Failed! vim is required in path and running with server name "#@server_name".
-        EOT
-        return
-      end
+      report_error(result) and return
     end
     self
   end
@@ -94,5 +90,83 @@ class OllamaChat::Vim
   # of the cursor position.
   def col
     `vim --clientserver "#@clientserver" --servername "#@server_name" --remote-expr "col('.')"`.chomp.to_i
+  end
+
+  # The server_running? method checks if a Vim server is currently running and
+  # accessible.
+  #
+  # This method determines whether a Vim server with the configured server name
+  # is active by attempting to retrieve the current cursor column position. If
+  # the column position is greater than zero, it indicates that Vim is running
+  # and the server is accessible.
+  #
+  # @return [Boolean] true if the Vim server is running and accessible, false otherwise
+  def server_running?
+    col > 0
+  end
+
+  # The open_file method opens a file in Vim at a specified line and optionally
+  # marks a range.
+  #
+  # This method sends a command to a running Vim server to open a file at a
+  # given line number. If an end line is provided, it also marks the range
+  # between start and end lines. The method ensures the Vim server is running
+  # before attempting to send commands.
+  #
+  # @param file_path [ String ] the path to the file to be opened in Vim
+  # @param start_line [ Integer ] the line number to start at (defaults to 1)
+  # @param end_line [ Integer, nil ] the line number to end at, if marking a range
+  #
+  # @return [ OllamaChat::Vim, nil ] returns self if successful, nil if failed
+  # @return [ nil ] returns nil if the Vim server is not running
+  # @return [ nil ] returns nil if the system command fails
+  def open_file(file_path, start_line = nil, end_line = nil)
+    start_line ||= 1
+    unless server_running?
+      STDERR.puts <<~EOT
+          Failed! Vim has to be running with server name "#@server_name"!
+      EOT
+      return
+    end
+    cmd = %{
+      vim --clientserver "#@clientserver" --servername "#@server_name" --remote +#{start_line} "#{file_path}"
+    }
+    result = system(cmd)
+    report_error(result) and return
+    if end_line
+      mark_range = "<ESC>:normal #{start_line}GV#{end_line}G<CR>"
+      cmd = %{
+        vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send #{mark_range.inspect}
+      }
+      result = system(cmd)
+      report_error(result) and return
+    else
+      center = "<ESC>zz"
+      cmd = %{
+        vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send #{center.inspect}
+      }
+      result = system(cmd)
+      report_error(result) and return
+    end
+    self
+  end
+
+  # The report_error method handles error reporting for Vim server operations.
+  #
+  # This method checks if a system command result indicates failure and outputs
+  # an appropriate error message to standard error when the command fails.
+  #
+  # @param result [Boolean] the result of a system command execution
+  #
+  # @return [Boolean] returns true if the command failed, false otherwise
+  # @return [Boolean] returns false if the command succeeded
+  def report_error(result)
+    unless result
+      STDERR.puts <<~EOT
+          Failed! vim is required in path and running with server name "#@server_name".
+      EOT
+      true
+    end
+    false
   end
 end
