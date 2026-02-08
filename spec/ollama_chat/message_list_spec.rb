@@ -189,6 +189,7 @@ describe OllamaChat::MessageList do
     end
 
     it 'can list conversations' do
+      skip 'no tty' unless STDOUT.tty?
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think?).and_return(false).at_least(:once)
