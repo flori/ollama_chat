@@ -115,7 +115,7 @@ module AppHelper
   # This method initializes a configuration array with a default config file
   # path and any additional arguments provided.
   #
-  # @param a [Array<String>] an array of additional arguments to prepend to the
+  # @param argv [Array<String>] an array of additional arguments to prepend to the
   #   default config
   #
   # @return [Array<String>] a new array containing the default config file path

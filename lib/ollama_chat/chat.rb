@@ -202,6 +202,20 @@ class OllamaChat::Chat
     interact_with_user
   end
 
+  # The vim method creates and returns a new Vim instance for interacting with
+  # a Vim server.
+  #
+  # This method initializes a Vim client that can be used to insert text into
+  # Vim buffers or open files in a running Vim server. It derives the server
+  # name from the provided argument or uses a default server name based on the
+  # current working directory.
+  #
+  # @param server_name [ String, nil ] the name of the Vim server to connect to
+  #   If nil or empty, a default server name is derived from the current
+  #   working directory
+  #
+  # @return [ OllamaChat::Vim ] a new Vim instance configured with the
+  #   specified server name
   def vim(server_name = nil)
     clientserver = config.vim?&.clientserver
     OllamaChat::Vim.new(server_name, clientserver:)
@@ -734,6 +748,16 @@ class OllamaChat::Chat
     @ollama
   end
 
+  # Sets up the system prompt for the chat session.
+  #
+  # This method determines whether to use a default system prompt or a custom
+  # one specified via command-line options. If a custom system prompt is
+  # provided with a regex selector (starting with ?), it invokes the
+  # change_system_prompt method to handle the selection. Otherwise, it
+  # retrieves the system prompt from a file or uses the default value, then
+  # sets it in the message history.
+  #
+  # @return [ void ] this method returns nil after setting up the system prompt
   def setup_system_prompt
     default = config.system_prompts.default? || @model_system
     if @opts[?s] =~ /\A\?/

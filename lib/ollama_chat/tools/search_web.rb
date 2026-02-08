@@ -1,3 +1,9 @@
+# A tool for searching the web using configured search engines.
+#
+# This tool enables the chat client to perform web searches using either
+# DuckDuckGo or SearxNG search engines, depending on the configuration. It
+# integrates with the Ollama tool calling system to provide web search
+# capabilities to language models.
 class OllamaChat::Tools::SearchWeb
   include OllamaChat::Tools::Concern
 
@@ -63,18 +69,6 @@ class OllamaChat::Tools::SearchWeb
       error: e.class,
       message: e.message,
     }.to_json
-  end
-
-  private
-
-  # Extract a title from a URL (simplified approach)
-  # In a real implementation, this might make HTTP requests to fetch actual titles
-  def extract_title_from_url(url)
-    # Extract domain name as title if we can't get actual title
-    uri = URI.parse(url)
-    uri.host || url
-  rescue
-    url
   end
 
   self
