@@ -7,7 +7,7 @@ require_relative 'weather/dwd_sensor'
 # registered tools and provides methods for registering new tools and
 # accessing the complete set of available tools for use in chat
 # interactions.
-class OllamaChat::Tools::Weather
+class OllamaChat::Tools::GetCurrentWeather
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'get_current_weather'

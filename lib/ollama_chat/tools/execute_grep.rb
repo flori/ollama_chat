@@ -3,7 +3,7 @@
 # This tool allows the chat client to execute grep commands to search for
 # patterns in files. It integrates with the Ollama tool calling system to
 # provide file search capabilities within the language model's context.
-class OllamaChat::Tools::Grep
+class OllamaChat::Tools::ExecuteGrep
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'execute_grep'

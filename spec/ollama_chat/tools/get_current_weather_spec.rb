@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::Weather do
+describe OllamaChat::Tools::GetCurrentWeather do
   let :chat do
     OllamaChat::Chat.new argv: chat_default_config
   end

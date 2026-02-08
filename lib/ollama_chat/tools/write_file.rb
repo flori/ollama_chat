@@ -4,7 +4,7 @@
 # filesystem. It supports both overwriting existing files and appending content
 # to them, with configurable file permissions and safety checks to prevent
 # writing to unauthorized locations.
-class OllamaChat::Tools::FileWriter
+class OllamaChat::Tools::WriteFile
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'write_file'

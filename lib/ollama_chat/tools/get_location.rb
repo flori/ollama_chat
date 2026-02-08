@@ -6,7 +6,7 @@
 #
 # The tool returns structured JSON data containing location coordinates, time,
 # and unit system information.
-class OllamaChat::Tools::Location
+class OllamaChat::Tools::GetLocation
   include OllamaChat::Tools::Concern
 
   # Creates and returns a tool definition for getting location information.

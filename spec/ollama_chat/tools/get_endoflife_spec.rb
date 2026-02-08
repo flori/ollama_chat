@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::EndOfLife do
+describe OllamaChat::Tools::GetEndoflife do
   let :chat do
     OllamaChat::Chat.new argv: chat_default_config
   end

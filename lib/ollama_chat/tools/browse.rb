@@ -7,7 +7,7 @@ require "shellwords"
 # browser environment. It integrates with the Ollama tool calling system to
 # provide
 # seamless web browsing capabilities during chat interactions.
-class OllamaChat::Tools::Browser
+class OllamaChat::Tools::Browse
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'browse'

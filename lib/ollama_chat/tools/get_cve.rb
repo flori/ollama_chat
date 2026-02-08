@@ -3,7 +3,7 @@
 # This tool allows the chat client to retrieve CVE details by ID from a configured
 # API endpoint. It integrates with the Ollama tool calling system to provide
 # security-related information to the language model.
-class OllamaChat::Tools::CVE
+class OllamaChat::Tools::GetCVE
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'get_cve'

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::Grep do
+describe OllamaChat::Tools::ExecuteGrep do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end

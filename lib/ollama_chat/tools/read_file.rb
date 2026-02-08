@@ -1,4 +1,4 @@
-class OllamaChat::Tools::FileReader
+class OllamaChat::Tools::ReadFile
   include OllamaChat::Tools::Concern
 
   def self.register_name = 'read_file'

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::Browser do
+describe OllamaChat::Tools::Browse do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
