@@ -23,6 +23,10 @@ describe OllamaChat::Tools::RunTests do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   context 'switchable test runner' do
     it 'supports rspec' do
       const_conf_as(
@@ -105,9 +109,5 @@ describe OllamaChat::Tools::RunTests do
     json = json_object(result)
     expect(json.success).to be false
     expect(json.status).to eq 'failed'
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 end

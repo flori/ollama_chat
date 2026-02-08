@@ -15,6 +15,10 @@ describe OllamaChat::Tools::CVE do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully' do
     # Mock the fetcher to return a valid CVE response
     cve_id = 'CVE-2023-12345'
@@ -65,9 +69,5 @@ describe OllamaChat::Tools::CVE do
     json = json_object(result)
     expect(json.error).to eq 'JSON::ParserError'
     expect(json.message).to eq 'require JSON data'
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 end

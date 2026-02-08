@@ -15,6 +15,10 @@ describe OllamaChat::Tools::EndOfLife do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully' do
     # Mock the fetcher to return a valid endoflife response
     product = 'ruby'
@@ -66,9 +70,5 @@ describe OllamaChat::Tools::EndOfLife do
     json = json_object(result)
     expect(json.error).to eq 'JSON::ParserError'
     expect(json.message).to eq 'require JSON data'
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 end

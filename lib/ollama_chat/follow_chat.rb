@@ -119,11 +119,16 @@ class OllamaChat::FollowChat
           italic { args  },
         ]
         confirmed = @chat.ask?(prompt:) =~ /\Ay/i
+      else
+        STDOUT.puts "Executing tool %s\n%s" % [
+          bold { name },
+          italic { args  },
+        ]
       end
       result = nil
       if confirmed
         STDOUT.printf(
-          "\n%s Execution of tool %s confirmed.\n", ?✅, bold { name }
+          "\n%s Execution of tool %s confirmed.\n\n", ?✅, bold { name }
         )
         result = OllamaChat::Tools.registered[name].
           execute(tool_call, chat: @chat, config: @chat.config)

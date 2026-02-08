@@ -9,6 +9,10 @@ describe OllamaChat::Tools::GemPathLookup do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   context 'when gem is found in bundle' do
     it 'returns JSON with gem information' do
       tool_call = double(

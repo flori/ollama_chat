@@ -115,6 +115,13 @@ tools:
     confirm: true
     allowed:
       - ./tmp
+  read_file:
+    default: false
+    confirm: false
+    allowed:
+      - ./tmp
+      - ./lib
+      - ./spec
   search_web:
     default: true
   import_url:

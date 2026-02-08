@@ -94,6 +94,7 @@ class OllamaChat::Tools::FileWriter
   rescue => e
     {
       error: e.class,
+      path:,
       message: "Failed to write to file: #{e.message}"
     }.to_json
   end

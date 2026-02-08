@@ -15,6 +15,10 @@ describe OllamaChat::Tools::Grep do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully with pattern and path in spec/assets' do
     tool_call = double(
       'ToolCall',
@@ -128,10 +132,6 @@ describe OllamaChat::Tools::Grep do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'my error'
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 
   context 'when searching in spec/assets directory' do

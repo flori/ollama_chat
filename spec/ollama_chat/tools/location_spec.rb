@@ -15,6 +15,10 @@ describe OllamaChat::Tools::Location do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully' do
     # Mock the chat instance with location_data
     location_data = {
@@ -60,10 +64,6 @@ describe OllamaChat::Tools::Location do
     expect {
       described_class.new.execute(tool_call, chat: chat_instance)
     }.to_not raise_error
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 
   context 'when location_data is not available' do

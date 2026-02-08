@@ -19,6 +19,10 @@ describe OllamaChat::Tools::SearchWeb do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully with a query' do
     tool_call = double(
       'ToolCall',
@@ -96,9 +100,5 @@ describe OllamaChat::Tools::SearchWeb do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'Network error'
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 end

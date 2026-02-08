@@ -19,6 +19,10 @@ describe OllamaChat::Tools::Browser do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully with a URL' do
     tool_call = double(
       'ToolCall',
@@ -89,10 +93,6 @@ describe OllamaChat::Tools::Browser do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'some kind of exception'
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 
   context 'when browser is configured' do

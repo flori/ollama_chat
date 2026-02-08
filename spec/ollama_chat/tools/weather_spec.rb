@@ -15,6 +15,10 @@ describe OllamaChat::Tools::Weather do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed for celsius' do
     expect(DWDSensor).to receive(:new).and_return(
       double(measure: [ Time.now, 23.0 ])
@@ -80,9 +84,5 @@ describe OllamaChat::Tools::Weather do
     # Verify it's a proper JSON structure that can be parsed
     expect(json.error).to eq 'RuntimeError'  # or whatever the actual exception class is
     expect(json.message).to include('Network error occurred')
-  end
-
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
   end
 end

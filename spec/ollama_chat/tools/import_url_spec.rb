@@ -1,14 +1,6 @@
 require 'spec_helper'
 
 describe OllamaChat::Tools::ImportURL do
-  it 'can have name' do
-    expect(described_class.new.name).to eq 'import_url'
-  end
-
-  it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
-  end
-
   let(:chat) do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -17,6 +9,18 @@ describe OllamaChat::Tools::ImportURL do
 
   let(:config) do
     chat.config
+  end
+
+  it 'can have name' do
+    expect(described_class.new.name).to eq 'import_url'
+  end
+
+  it 'can have tool' do
+    expect(described_class.new.tool).to be_a Ollama::Tool
+  end
+
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
   end
 
   context "with a valid URL" do

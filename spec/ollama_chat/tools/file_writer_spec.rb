@@ -19,6 +19,10 @@ describe OllamaChat::Tools::FileWriter do
     expect(described_class.new.tool).to be_a Ollama::Tool
   end
 
+  it 'can be converted to hash' do
+    expect(described_class.new.to_hash).to be_a Hash
+  end
+
   it 'can be executed successfully with overwrite mode' do
     tool_call = double(
       'ToolCall',
@@ -102,10 +106,31 @@ describe OllamaChat::Tools::FileWriter do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'ArgumentError'
+    expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
   end
 
-  it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+  it 'can handle exceptions gracefully' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'write_file',
+        arguments: double(
+          path: 'tmp/fake.txt',
+          content: 'some content',
+          mode: 'overwrite'
+        )
+      )
+    )
+
+    expect(File).to receive(:secure_write).and_raise 'some error'
+    result = described_class.new.execute(tool_call, config: config)
+
+    # Should return valid JSON with error
+    expect(result).to be_a(String)
+    json = json_object(result)
+    expect(json.error).to eq 'RuntimeError'
+    expect(json.path).to include('tmp/fake.txt')
+    expect(json.message).to eq 'Failed to write to file: some error'
   end
 end
