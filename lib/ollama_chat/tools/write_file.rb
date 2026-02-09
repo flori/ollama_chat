@@ -6,6 +6,7 @@
 # writing to unauthorized locations.
 class OllamaChat::Tools::WriteFile
   include OllamaChat::Tools::Concern
+  include OllamaChat::Utils::PathValidator
 
   def self.register_name = 'write_file'
 
@@ -62,20 +63,7 @@ class OllamaChat::Tools::WriteFile
     config = opts[:config]
     args = tool_call.function.arguments
 
-    # Get allowed directories from configuration
-    allowed_dirs = Array(config.tools.write_file.allowed?).map {
-      Pathname.new(_1).expand_path
-    }
-    path = Pathname.new(args.path).expand_path
-
-    # Validate that the path is within allowed directories
-    unless valid_path?(path, allowed_dirs)
-      raise ArgumentError, "Path #{args.path.inspect} is not within allowed "\
-        "directories: #{allowed_dirs&.join(', ') || ?∅}"
-    end
-
-    # Resolve the full path
-    target_path = Pathname.pwd.join(path).cleanpath
+    target_path = assert_valid_path(args.path, config.tools.write_file.allowed?)
 
     # Ensure the parent directory exists
     target_path.parent.mkpath
@@ -93,34 +81,10 @@ class OllamaChat::Tools::WriteFile
     }.to_json
   rescue => e
     {
-      error: e.class,
-      path:,
+      error:   e.class,
+      path:    e.ask_and_send(:path),
       message: "Failed to write to file: #{e.message}"
     }.to_json
-  end
-
-  private
-
-  # The valid_path? method checks if a given path is within any of the allowed
-  # directories.
-  #
-  # This method takes a path and a set of allowed directories, converts both to
-  # absolute paths, and determines whether the given path is located within any
-  # of the allowed directories.
-  #
-  # @param path [Pathname] the path to check
-  # @param allowed_dirs [Array<Pathname>] an array of allowed directory paths
-  #
-  # @return [TrueClass, FalseClass] true if the path is within any allowed
-  #   directory, false otherwise
-  def valid_path?(path, allowed_dirs)
-    # Convert to absolute paths for comparison
-    absolute_path = Pathname.pwd.join(path).cleanpath
-
-    # Check if path is within any allowed directory
-    allowed_dirs.any? do |allowed_path|
-      absolute_path.to_s.start_with?(allowed_path.to_s)
-    end
   end
 
   self

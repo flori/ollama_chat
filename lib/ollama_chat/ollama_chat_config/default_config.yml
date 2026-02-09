@@ -99,6 +99,8 @@ tools:
   file_context:
     default: false
     require_confirmation: true
+    allowed:
+      - ./spec
   directory_structure:
     default: false
     require_confirmation: true

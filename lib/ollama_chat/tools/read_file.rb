@@ -1,5 +1,6 @@
 class OllamaChat::Tools::ReadFile
   include OllamaChat::Tools::Concern
+  include OllamaChat::Utils::PathValidator
 
   def self.register_name = 'read_file'
 
@@ -27,34 +28,15 @@ class OllamaChat::Tools::ReadFile
     config = opts[:config]
     args   = tool_call.function.arguments
 
-    # Get allowed directories from configuration
-    allowed_dirs = Array(config.tools.read_file.allowed?).map {
-      Pathname.new(_1).expand_path
-    }
-    path = Pathname.new(args.path).expand_path
+    target_path = assert_valid_path(args.path, config.tools.read_file.allowed?)
 
-    # Validate that the path is within allowed directories
-    unless valid_path?(path, allowed_dirs)
-      raise ArgumentError, "Path #{args.path.inspect} is not within allowed "\
-        "directories: #{allowed_dirs&.join(', ') || ?∅}"
-    end
-
-    # Resolve the full path
-    target_path = Pathname.pwd.join(path).cleanpath
     File.read(target_path)
   rescue => e
     {
       error:   e.class,
-      path:,
+      path:    e.ask_and_send(:path),
       message: "Failed to read file: #{e.message}"
     }.to_json
-  end
-
-  private
-
-  def valid_path?(path, allowed_dirs)
-    absolute_path = Pathname.pwd.join(path).cleanpath
-    allowed_dirs.any? { |allowed| absolute_path.to_s.start_with?(allowed.to_s) }
   end
 
   self

@@ -34,7 +34,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 100 -r Hello\\ World /Users/flori/scm/ollama_chat/spec/assets"
+      "grep  -m 100 -r Hello\\ World #{Dir.pwd}/spec/assets"
     ).and_return 'Hello World!'
 
     result = described_class.new.execute(tool_call, config: chat.config)
@@ -63,7 +63,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 5 -r class /Users/flori/scm/ollama_chat/spec/assets"
+      "grep  -m 5 -r class #{Dir.pwd}/spec/assets"
     ).and_return 'blub class blob'
 
     result = described_class.new.execute(tool_call, config: chat.config)
@@ -91,7 +91,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep -i -m 5 -r class /Users/flori/scm/ollama_chat/spec/assets"
+      "grep -i -m 5 -r class #{Dir.pwd}/spec/assets"
     ).and_return 'blub class blob'
 
     result = described_class.new.execute(tool_call, config: chat.config)
@@ -122,7 +122,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 100 -r nonexistent_pattern /Users/flori/scm/ollama_chat/spec/assets"
+      "grep  -m 100 -r nonexistent_pattern #{Dir.pwd}/spec/assets"
     ).and_return ''
 
     result = described_class.new.execute(tool_call, config: chat.config)

@@ -6,7 +6,7 @@ describe OllamaChat::Tools::FileContext do
   end
 
   let :config do
-    double('Config', context: double(format: 'JSON'))
+    chat.config
   end
 
   connect_to_ollama_server
@@ -35,7 +35,8 @@ describe OllamaChat::Tools::FileContext do
     result = described_class.new.execute(tool_call, config: config)
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.files['spec/assets/example.rb'].content).to include 'Hello World!'
+    content_file = json.files[Pathname.pwd.join('spec/assets/example.rb').to_s].content
+    expect(content_file).to include 'Hello World!'
   end
 
   it 'can handle execution errors gracefully' do

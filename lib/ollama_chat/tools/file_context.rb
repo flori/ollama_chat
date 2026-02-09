@@ -9,6 +9,7 @@
 # structured context data that includes file contents, sizes, and metadata.
 class OllamaChat::Tools::FileContext
   include OllamaChat::Tools::Concern
+  include OllamaChat::Utils::PathValidator
 
   def self.register_name = 'file_context'
 
@@ -69,12 +70,15 @@ class OllamaChat::Tools::FileContext
 
     directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
     search_path = directory + pattern
-
+    check_path = -> filename {
+      assert_valid_path(filename, config.tools.file_context.allowed?)
+    }
     ContextSpook::generate_context(verbose: true, format:) do |context|
       context do
         Dir.glob(search_path).each do |filename|
-          File.file?(filename) or next
-          file filename
+          target_path = check_path.(filename)
+          File.file?(target_path) or next
+          file target_path.to_s
         end
       end
     end.send("to_#{format.downcase}")

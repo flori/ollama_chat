@@ -105,7 +105,7 @@ describe OllamaChat::Tools::WriteFile do
     # Should return valid JSON with error
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.error).to eq 'ArgumentError'
+    expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
   end
@@ -130,7 +130,7 @@ describe OllamaChat::Tools::WriteFile do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
-    expect(json.path).to include('tmp/fake.txt')
+    expect(json.path).to be_nil
     expect(json.message).to eq 'Failed to write to file: some error'
   end
 end

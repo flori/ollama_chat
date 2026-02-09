@@ -23,7 +23,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(described_class.new.to_hash).to be_a Hash
   end
 
-  it 'can be executed successfully with overwrite mode' do
+  it 'can be executed successfully' do
     tool_call = double(
       'ToolCall',
       function: double(
@@ -58,7 +58,8 @@ describe OllamaChat::Tools::ReadFile do
     # Should return valid JSON with error
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.error).to eq 'ArgumentError'
+    expect(json.error).to eq 'OllamaChat::InvalidPathError'
+    expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
   end
 
