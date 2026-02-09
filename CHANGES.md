@@ -1,5 +1,40 @@
 # Changes
 
+## 2026-02-09 v0.0.63
+
+- Added `OllamaChat::Utils::PathValidator` module with `assert_valid_path`
+  helper and `OllamaChat::InvalidPathError` exception
+- Refactored `FileContext`, `ReadFile`, and `WriteFile` tools to use new path
+  validation logic
+- Simplified `OllamaChat::Tools::FileContext` to use glob pattern only,
+  removing the `path` parameter
+- Added `ignore_case` flag to `execute_grep` tool with dynamic command
+  construction using `eval_template`
+- Renamed tool classes and files to more descriptive names:
+  - `browser.rb` → `browse.rb` (class `Browser` → `Browse`)
+  - `grep.rb` → `execute_grep.rb` (class `Grep` → `ExecuteGrep`)
+  - `weather.rb` → `get_current_weather.rb` (class `Weather` → `GetCurrentWeather`)
+  - `cve.rb` → `get_cve.rb` (class `CVE` → `GetCVE`)
+  - `endoflife.rb` → `get_endoflife.rb` (class `EndOfLife` → `GetEndoflife`)
+  - `location.rb` → `get_location.rb` (class `Location` → `GetLocation`)
+  - `file_reader.rb` → `read_file.rb` (class `FileReader` → `ReadFile`)
+  - `file_writer.rb` → `write_file.rb` (class `FileWriter` → `WriteFile`)
+- Updated `follow_chat.rb` to use `require_confirmation?` instead of `confirm?`
+  when checking tool confirmation
+- Added scheme whitelist to `ImportURL` tool with `schemes: [http, https]`
+  configuration
+- Introduced `read_file` tool with path validation and error handling
+- Added `run_tests` tool for executing RSpec or Test-Unit test suites with
+  configurable runner and coverage reporting
+- Added `vim_open_file` tool for remote Vim file opening with line range
+  support
+- Enhanced `OllamaChat::Vim` class with file opening and line/range selection
+  capabilities
+- Added `GemPathLookup` tool to find gem installation paths using Bundler
+- Added `valid_json?` method to `OllamaChat::Tools::Concern` for consistent
+  JSON validation
+- Implemented `ImportURL` tool for fetching web content
+
 ## 2026-02-07 v0.0.62
 
 **Tool Execution**  
