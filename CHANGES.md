@@ -1,5 +1,20 @@
 # Changes
 
+## 2026-02-09 v0.0.64
+
+- Added new `OllamaChat::Tools::GetJiraIssue` tool for fetching JIRA issue
+  information
+- Introduced `ConfigMissingError` exception for handling missing configuration
+- Added JIRA tool configuration in `OllamaChat::EnvConfig` with `URL`, `USER`,
+  and `API_TOKEN` settings
+- Updated `default_config.yml` to include `get_jira_issue` tool with `default:
+  false`
+- Enhanced `OllamaChat::Utils::Fetcher` to support additional options and
+  middleware
+- Added comprehensive tests for the new `get_jira_issue` tool in
+  `spec/ollama_chat/tools/get_jira_issue_spec.rb`
+- Updated tool registration to include the new `get_jira_issue` tool
+
 ## 2026-02-09 v0.0.63
 
 - Added `OllamaChat::Utils::PathValidator` module with `assert_valid_path`
