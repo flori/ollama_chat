@@ -11,7 +11,7 @@ describe OllamaChat::MessageList do
       ),
       prompts: double(
         location: 'You are at %{location_name} (%{location_decimal_degrees}),' \
-        ' on %{localtime}, preferring %{units}'
+        ' preferring %{units}'
       ),
       system_prompts: double(
         assistant?: 'You are a helpful assistant.'
@@ -257,7 +257,7 @@ describe OllamaChat::MessageList do
   it 'can determine location for system prompt' do
     expect(chat).to receive(:location).and_return(double(on?: true))
     expect(list.send(:at_location)).to match(
-      %r(You are at Berlin \(52.514127, 13.475211\), on))
+      %r(You are at Berlin \(52.514127, 13.475211\), ))
   end
 
   it 'can be converted int an Ollama::Message array' do
@@ -275,7 +275,7 @@ describe OllamaChat::MessageList do
     first = list.to_ary.first
     expect(first.role).to eq 'system'
     expect(first.content).to match(
-      %r(You are at Berlin \(52.514127, 13.475211\), on))
+      %r(You are at Berlin \(52.514127, 13.475211\), ))
   end
 
   it 'can be converted int an Ollama::Message array with location without a system prompt' do
@@ -287,7 +287,7 @@ describe OllamaChat::MessageList do
     first = list.to_ary.first
     expect(first.role).to eq 'system'
     expect(first.content).to match(
-      %r(You are a helpful assistant.\n\nYou are at Berlin \(52.514127, 13.475211\), on))
+      %r(You are a helpful assistant.\n\nYou are at Berlin \(52.514127, 13.475211\), ))
   end
 
 

@@ -30,7 +30,7 @@ prompts:
     Answer the the query %{query} using these summarized sources:
 
     %{results}
-  location: You are at %{location_name}, %{location_decimal_degrees}, on %{localtime}, preferring %{units}
+  location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
 system_prompts:
   default: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::SYSTEM || 'null' %>
   assistant: You are a helpful assistant.
@@ -94,6 +94,8 @@ tools:
   get_endoflife:
     url: "https://endoflife.date/api/v1/products/%{product}"
     default: false
+  get_time:
+    default: true
   get_location:
     default: true
   file_context:

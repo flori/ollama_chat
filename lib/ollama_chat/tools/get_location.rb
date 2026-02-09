@@ -1,11 +1,11 @@
-# A tool for retrieving the current location, time, and system of units.
+# A tool for retrieving the current location, and system of units.
 #
 # This tool allows the chat client to get the current location information,
-# including time and system of units for the user. It integrates with the
-# Ollama tool calling system to provide contextual location data to the language model.
+# and system of units for the user. It integrates with the Ollama tool calling
+# system to provide contextual location data to the language model.
 #
-# The tool returns structured JSON data containing location coordinates, time,
-# and unit system information.
+# The tool returns structured JSON data containing location coordinates, and
+# unit system information.
 class OllamaChat::Tools::GetLocation
   include OllamaChat::Tools::Concern
 
@@ -28,7 +28,7 @@ class OllamaChat::Tools::GetLocation
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Get the current location, time and system of units of the user as JSON',
+        description: 'Get the current location and system of units of the user as JSON',
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {},

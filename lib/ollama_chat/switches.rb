@@ -240,8 +240,8 @@ module OllamaChat::Switches
     @location = Switch.new(
       value: config.location.enabled,
       msg: {
-        true  => "Location and localtime enabled.",
-        false => "Location and localtime disabled.",
+        true  => "Location enabled.",
+        false => "Location disabled.",
       }
     )
   end

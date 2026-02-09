@@ -6,10 +6,6 @@
 # voice synthesis for spoken responses. It acts as a handler for streaming
 # responses and ensures proper formatting and display of both regular content
 # and thinking annotations.
-#
-# @example Processing a chat response
-#   follow_chat = OllamaChat::FollowChat.new(chat: chat_instance, messages: message_list)
-#   follow_chat.tool_call(response)
 class OllamaChat::FollowChat
   include Ollama
   include Ollama::Handlers::Concern
