@@ -1,5 +1,26 @@
 # Changes
 
+## 2026-02-10 v0.0.65
+
+- Updated `location_handling.rb` to return only `location_name`,
+  `location_decimal_degrees`, and `units`
+- Removed `localtime` from `location_data` and prompt template in
+  `lib/ollama_chat/location_handling.rb`
+- Updated `default_config.yml` location prompt to exclude `on %{localtime}`
+- Simplified location switch messages in `switches.rb`
+- Added new tool `GetTime` in `lib/ollama_chat/tools/get_time.rb` returning
+  ISO8601 time
+- Updated `tools.rb` to require `get_time`
+- Updated `tools/get_location.rb` comments and description
+- Added `get_time_spec.rb` to `test_files` listing
+- Added `get_time.rb` to `extra_rdoc_files` and `files` listings
+- Removed duplicate `get_time.rb` entries from `extra_rdoc_files` and `files`
+  listings
+- Updated specs: `message_list_spec.rb`, `tools/get_location_spec.rb`, added
+  `tools/get_time_spec.rb`
+- Adjusted regexes in specs to match new prompt format
+- Removed unused `time` field from `location_data` in tests
+
 ## 2026-02-09 v0.0.64
 
 - Added new `OllamaChat::Tools::GetJiraIssue` tool for fetching JIRA issue
