@@ -86,7 +86,7 @@ class OllamaChat::Tools::ExecuteGrep
   #
   # @return [String] the evaluated template string with substituted variables
   def eval_template(config, pattern, path, max_results, ignore_case)
-    eval(config.tools.execute_grep.cmd.chomp.inspect)
+    eval('"%s"' % config.tools.execute_grep.cmd.chomp)
   end
 
   self

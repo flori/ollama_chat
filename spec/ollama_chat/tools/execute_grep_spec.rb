@@ -33,6 +33,10 @@ describe OllamaChat::Tools::ExecuteGrep do
       )
     )
 
+    expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
+      "grep  -m 100 -r Hello\\ World /Users/flori/scm/ollama_chat/spec/assets"
+    ).and_return 'Hello World!'
+
     result = described_class.new.execute(tool_call, config: chat.config)
 
     # Should return a JSON string
@@ -58,6 +62,10 @@ describe OllamaChat::Tools::ExecuteGrep do
       )
     )
 
+    expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
+      "grep  -m 5 -r class /Users/flori/scm/ollama_chat/spec/assets"
+    ).and_return 'blub class blob'
+
     result = described_class.new.execute(tool_call, config: chat.config)
 
     # Should return a JSON string
@@ -65,7 +73,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     json = json_object(result)
     expect(json.cmd).to include('grep')
     expect(json.cmd).to include(' -m 5 ')
-    expect(json.result).to match(/class="body--html"/)
+    expect(json.result).to match(/blub class blob/)
   end
 
   it 'can be executed successfully with max_results and ignore_case parameter' do
@@ -82,6 +90,10 @@ describe OllamaChat::Tools::ExecuteGrep do
       )
     )
 
+    expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
+      "grep -i -m 5 -r class /Users/flori/scm/ollama_chat/spec/assets"
+    ).and_return 'blub class blob'
+
     result = described_class.new.execute(tool_call, config: chat.config)
 
     # Should return a JSON string
@@ -90,7 +102,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include('grep')
     expect(json.cmd).to include(' -m 5 ')
     expect(json.cmd).to include(' -i ')
-    expect(json.result).to match(/class="body--html"/)
+    expect(json.result).to match(/blub class blob/)
   end
 
 
@@ -109,13 +121,17 @@ describe OllamaChat::Tools::ExecuteGrep do
       )
     )
 
+    expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
+      "grep  -m 100 -r nonexistent_pattern /Users/flori/scm/ollama_chat/spec/assets"
+    ).and_return ''
+
     result = described_class.new.execute(tool_call, config: chat.config)
 
     # Should return a JSON string even with no matches
     expect(result).to be_a String
     json = json_object(result)
     expect(json.cmd).to include('grep')
-    expect(json.result).to be_a String
+    expect(json.result).to eq ''
   end
 
   it 'can handle non-existent paths gracefully' do
@@ -132,6 +148,10 @@ describe OllamaChat::Tools::ExecuteGrep do
         )
       )
     )
+
+    expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
+      "grep  -m 100 -r test /nonexistent/path/that/does/not/exist"
+    ).and_return 'grep: /nonexistent/path/that/does/not/exist'
 
     result = described_class.new.execute(tool_call, config: chat.config)
 

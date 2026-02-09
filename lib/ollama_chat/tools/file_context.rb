@@ -27,9 +27,8 @@ class OllamaChat::Tools::FileContext
         description: <<~EOT,
           Create a context that provides information about files and their
           semantic content in order to give more accurate answers for a query.
-          You can either query (maybe) multiple files by combining the
-          directory and pattern arguments **OR** using an exact path as
-          argument to get a single file context.
+          You can query (maybe) multiple files by using a glob pattern
+          argument.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -41,11 +40,7 @@ class OllamaChat::Tools::FileContext
             directory: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: 'Directory to search in (defaults to current directory)'
-            ),
-            path: Tool::Function::Parameters::Property.new(
-              type: 'string',
-              description: 'Exact path to a file (alternative to glob pattern)'
-            ),
+            )
           },
           required: []
         )
@@ -57,8 +52,8 @@ class OllamaChat::Tools::FileContext
   # for files matching a pattern or specific path.
   #
   # This method handles both glob pattern matching and exact path queries to
-  # collect file context using the ContextSpook library.
-  # It supports both directory traversal with patterns and direct file access,
+  # collect file context using the ContextSpook library. It supports both
+  # directory traversal with patterns and direct file access,
   # returning structured context data in the configured format.
   #
   # @param tool_call [Ollama::Tool::Call] the tool call containing function details
@@ -70,17 +65,10 @@ class OllamaChat::Tools::FileContext
   def execute(tool_call, **opts)
     config      = opts[:config]
     pattern     = tool_call.function.arguments.pattern
-    path        = tool_call.function.arguments.path
-    unless pattern.blank? ^ path.blank?
-      raise ArgumentError, "require either pattern or path argument"
-    end
     format      = config.context.format
-    if pattern
-      directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
-      search_path = directory + pattern
-    else
-      search_path = path
-    end
+
+    directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
+    search_path = directory + pattern
 
     ContextSpook::generate_context(verbose: true, format:) do |context|
       context do
