@@ -140,10 +140,32 @@ module OllamaChat
         module TOOLS
           description 'Tool specific configuration settings'
 
+          # Run Tests tool configuration
           RUN_TESTS_TEST_RUNNER = set do
             description 'Configured test runner for run_tests tool function'
             default     'rspec'
             required     true
+          end
+
+          module JIRA
+            description 'Jira tool configuration'
+
+            URL = set do
+              description 'Base URL for Jira instance'
+              sensitive   true
+            end
+
+            USER = set do
+              description 'Username for Jira authentication'
+              sensitive   true
+              required { OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::URL? }
+            end
+
+            API_TOKEN = set do
+              description 'API token for Jira authentication'
+              sensitive   true
+              required { OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::URL? }
+            end
           end
         end
       end

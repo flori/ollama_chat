@@ -185,23 +185,6 @@ class OllamaChat::Utils::Fetcher
     @http_options = http_options
   end
 
-  private
-
-  # The excon method creates a new Excon client instance configured with the
-  # specified URL and options.
-  #
-  # @param url [ String ] the URL to be used for the Excon client
-  # @param options [ Hash ] additional options to be merged with http_options
-  #
-  # @return [ Excon ] a new Excon client instance
-  #
-  # @see #normalize_url
-  # @see #http_options
-  def excon(url, **options)
-    url = self.class.normalize_url(url)
-    Excon.new(url, options.merge(@http_options))
-  end
-
   # Makes an HTTP GET request to the specified URL with optional headers and
   # processing block.
   #
@@ -211,24 +194,25 @@ class OllamaChat::Utils::Fetcher
   # being passed to the provided block.
   #
   # @param url [String] The URL to make the GET request to
-  # @param headers [Hash] Optional headers to include in the request (keys will
-  #                       be converted to strings)
   # @yield [Tempfile] The temporary file containing the response body, after
   #                   decoration
-  def get(url, headers: {}, &block)
+  def get(url, **opts, &block)
+    opts.delete(:response_block) and raise ArgumentError, 'response_block not allowed'
+    middlewares = (self.middlewares | Array((opts.delete(:middlewares)))).uniq
+    headers = opts.delete(:headers) || {}
     headers |= self.headers
     headers = headers.transform_keys(&:to_s)
     response = nil
     Tempfile.open do |tmp|
       infobar.label = 'Getting'
       if @streaming
-        response = excon(url, headers:, response_block: callback(tmp)).request(method: :get)
+        response = excon(url, headers:, response_block: callback(tmp), **opts).request(method: :get)
         response.status != 200 || !@started and raise RetryWithoutStreaming
         decorate_io(tmp, response)
         infobar.finish
         block.(tmp)
       else
-        response = excon(url, headers:, middlewares:).request(method: :get)
+        response = excon(url, headers:, middlewares:, **opts).request(method: :get)
         if response.status != 200
           raise "invalid response status code"
         end
@@ -249,6 +233,23 @@ class OllamaChat::Utils::Fetcher
       STDERR.puts "#{e.backtrace * ?\n}"
     end
     yield HeaderExtension.failed
+  end
+
+  private
+
+  # The excon method creates a new Excon client instance configured with the
+  # specified URL and options.
+  #
+  # @param url [ String ] the URL to be used for the Excon client
+  # @param options [ Hash ] additional options to be merged with http_options
+  #
+  # @return [ Excon ] a new Excon client instance
+  #
+  # @see #normalize_url
+  # @see #http_options
+  def excon(url, **options)
+    url = self.class.normalize_url(url)
+    Excon.new(url, options.merge(@http_options))
   end
 
   # The headers method returns a hash containing the default HTTP headers

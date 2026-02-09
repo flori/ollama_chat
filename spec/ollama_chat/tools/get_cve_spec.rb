@@ -27,7 +27,7 @@ describe OllamaChat::Tools::GetCVE do
       function: double(
         name: 'get_cve',
         arguments: double(
-          cve_id: cve_id
+          cve_id:
         )
       )
     )
@@ -35,7 +35,7 @@ describe OllamaChat::Tools::GetCVE do
     url = chat.config.tools.get_cve.url
 
     # Stub the HTTP request
-    stub_request(:get, url % { cve_id: cve_id })
+    stub_request(:get, url % { cve_id: })
       .to_return(
         status: 200,
         body: '{"id": "CVE-2023-12345", "description": "Test vulnerability description"}',
@@ -55,7 +55,7 @@ describe OllamaChat::Tools::GetCVE do
       function: double(
         name: 'get_cve',
         arguments: double(
-          cve_id: cve_id
+          cve_id:
         )
       )
     )

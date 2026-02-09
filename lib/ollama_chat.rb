@@ -25,6 +25,13 @@ module OllamaChat
   class InvalidPathError < OllamaChatError
     attr_accessor :path
   end
+
+  # Error raised when a path is outside the allowed whitelist.
+  #
+  # The error carries the offending `#path` as an attribute so that callers can
+  # log or display the problematic location.
+  class ConfigMissingError < OllamaChatError
+  end
 end
 
 require 'ollama'

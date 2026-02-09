@@ -140,3 +140,5 @@ tools:
   run_tests:
     require_confirmation: true
     default: true
+  get_jira_issue:
+    default: false
