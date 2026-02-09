@@ -27,7 +27,8 @@ describe OllamaChat::Tools::ExecuteGrep do
         arguments: double(
           pattern: 'Hello World',
           path: 'spec/assets',
-          max_results: nil
+          max_results: nil,
+          ignore_case: nil
         )
       )
     )
@@ -51,7 +52,8 @@ describe OllamaChat::Tools::ExecuteGrep do
         arguments: double(
           pattern: 'class',
           path: 'spec/assets',
-          max_results: 5
+          max_results: 5,
+          ignore_case: nil
         )
       )
     )
@@ -62,9 +64,35 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(result).to be_a String
     json = json_object(result)
     expect(json.cmd).to include('grep')
-    expect(json.cmd).to include('-m 5')
+    expect(json.cmd).to include(' -m 5 ')
     expect(json.result).to match(/class="body--html"/)
   end
+
+  it 'can be executed successfully with max_results and ignore_case parameter' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'execute_grep',
+        arguments: double(
+          pattern: 'class',
+          path: 'spec/assets',
+          max_results: 5,
+          ignore_case: true
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, config: chat.config)
+
+    # Should return a JSON string
+    expect(result).to be_a String
+    json = json_object(result)
+    expect(json.cmd).to include('grep')
+    expect(json.cmd).to include(' -m 5 ')
+    expect(json.cmd).to include(' -i ')
+    expect(json.result).to match(/class="body--html"/)
+  end
+
 
   it 'can handle execution errors gracefully' do
     # Test with a non-existent pattern
@@ -75,7 +103,8 @@ describe OllamaChat::Tools::ExecuteGrep do
         arguments: double(
           pattern: 'nonexistent_pattern',
           path: 'spec/assets',
-          max_results: nil
+          max_results: nil,
+          ignore_case: nil
         )
       )
     )
@@ -98,7 +127,8 @@ describe OllamaChat::Tools::ExecuteGrep do
         arguments: double(
           pattern: 'test',
           path: '/nonexistent/path/that/does/not/exist',
-          max_results: nil
+          max_results: nil,
+          ignore_case: nil
         )
       )
     )
@@ -119,7 +149,8 @@ describe OllamaChat::Tools::ExecuteGrep do
         arguments: double(
           pattern: 'test',
           path: '/nonexistent/path/that/does/not/exist',
-          max_results: nil
+          max_results: nil,
+          ignore_case: nil
         )
       )
     )
@@ -143,7 +174,8 @@ describe OllamaChat::Tools::ExecuteGrep do
           arguments: double(
             pattern: 'Hello World!',
             path: 'spec/assets',
-            max_results: nil
+            max_results: nil,
+            ignore_case: nil
           )
         )
       )

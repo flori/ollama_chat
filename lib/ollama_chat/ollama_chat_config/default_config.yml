@@ -107,7 +107,8 @@ tools:
       - pkg
   execute_grep:
     default: true
-    cmd: 'grep -m %{max_results} -r %{pattern} %{path}'
+    cmd: |
+      grep #{'-i' if ignore_case} -m #{max_results} -r #{pattern} #{path}
   browse:
     default: false
   write_file:
