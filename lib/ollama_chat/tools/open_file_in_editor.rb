@@ -1,12 +1,12 @@
-# A tool for opening files in a remote Vim server.
+# A tool for opening files in a the Vim Editor.
 #
-# This tool allows the chat client to open files in a remote Vim server at
-# specific line numbers or line ranges. It integrates with the Ollama tool calling
+# This tool allows the chat client to open files in vim at specific line
+# numbers or line ranges. It integrates with the Ollama tool calling
 # system to provide file editing capabilities.
-class OllamaChat::Tools::VimOpenFile
+class OllamaChat::Tools::OpenFileInEditor
   include OllamaChat::Tools::Concern
 
-  def self.register_name = 'vim_open_file'
+  def self.register_name = 'open_file_in_editor'
 
   # The tool method defines the Ollama tool specification for Vim file opening.
   #
@@ -20,7 +20,7 @@ class OllamaChat::Tools::VimOpenFile
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Open a file in the remote Vim server at a specific line or range',
+        description: 'Open a file in the vim editor at a specific line or range',
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
@@ -45,9 +45,9 @@ class OllamaChat::Tools::VimOpenFile
 
   # The execute method processes a tool call to open a file in Vim.
   #
-  # This method handles the actual execution of opening a file in the remote
-  # Vim server at the specified line or line range. It validates that the file
-  # exists and then calls the chat's vim.open_file method.
+  # This method handles the actual execution of opening a file in the Vim  at
+  # the specified line or line range. It validates that the file exists and
+  # then calls the chat's vim.open_file method.
   #
   # @param tool_call [Ollama::Tool::Call] the tool call containing function details
   # @param opts [Hash] additional options
@@ -58,7 +58,7 @@ class OllamaChat::Tools::VimOpenFile
   def execute(tool_call, **opts)
     chat       = opts[:chat]
     args       = tool_call.function.arguments
-    file_path  = args.path
+    file_path  = Pathname.new(args.path).expand_path
     start_line = args.start_line
     end_line   = args.end_line
 

@@ -137,7 +137,7 @@ tools:
       - https
   gem_path_lookup:
     default: true
-  vim_open_file:
+  open_file_in_editor:
     default: true
   run_tests:
     require_confirmation: true

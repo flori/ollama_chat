@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::VimOpenFile do
+describe OllamaChat::Tools::OpenFileInEditor do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -12,7 +12,7 @@ describe OllamaChat::Tools::VimOpenFile do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'vim_open_file'
+    expect(described_class.new.name).to eq 'open_file_in_editor'
   end
 
   it 'can have tool' do
@@ -23,7 +23,7 @@ describe OllamaChat::Tools::VimOpenFile do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'vim_open_file',
+        name: 'open_file',
         arguments: double(
           path: asset('example.rb'),
           start_line: 42,
@@ -43,7 +43,7 @@ describe OllamaChat::Tools::VimOpenFile do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'vim_open_file',
+        name: 'open_file',
         arguments: double(
           path: asset('example.rb'),
           start_line: 23,
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::VimOpenFile do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'vim_open_file',
+        name: 'open_file',
         arguments: double(
           path: '/non/existent',
           start_line: 1,

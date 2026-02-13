@@ -37,7 +37,9 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, config: config)
 
     expect(result).to be_a(String)
-    expect(result).to eq <<~EOT
+    json = json_object(result)
+    expect(json.path).to include 'example.rb'
+    expect(json.content).to eq <<~EOT
       puts "Hello World!"
     EOT
   end

@@ -28,9 +28,12 @@ class OllamaChat::Tools::ReadFile
     config = opts[:config]
     args   = tool_call.function.arguments
 
-    target_path = assert_valid_path(args.path, config.tools.read_file.allowed?)
+    path = assert_valid_path(args.path, config.tools.read_file.allowed?)
 
-    File.read(target_path)
+    {
+      path:,
+      content: File.read(path),
+    }.to_json
   rescue => e
     {
       error:   e.class,
