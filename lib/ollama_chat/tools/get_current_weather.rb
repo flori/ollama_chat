@@ -75,7 +75,7 @@ class OllamaChat::Tools::GetCurrentWeather
     measurement_time, temperature = sensor.measure
 
     unless measurement_time && temperature
-      return "Could not retrieve temperature for station #{station_id}"
+      raise "could not retrieve temperature"
     end
 
     unit = ?℃
