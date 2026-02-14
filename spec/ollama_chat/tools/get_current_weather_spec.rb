@@ -33,9 +33,12 @@ describe OllamaChat::Tools::GetCurrentWeather do
         )
       )
     )
-    expect(
-      described_class.new.execute(tool_call, config: chat.config)
-    ).to match(/The temperature was 23.0 ℃ at the time of /)
+    result = described_class.new.execute(tool_call, config: chat.config)
+    json = json_object(result)
+    expect(json.measurement_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
+    expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
+    expect(json.temperature).to be_within(0.01).of(23.0)
+    expect(json.unit).to eq "℃"
   end
 
   it 'can be executed for fahrenheit' do
@@ -52,9 +55,12 @@ describe OllamaChat::Tools::GetCurrentWeather do
         )
       )
     )
-    expect(
-      described_class.new.execute(tool_call, config: chat.config)
-    ).to match(/The temperature was 73.4 ℉ at the time of /)
+    result = described_class.new.execute(tool_call, config: chat.config)
+    json = json_object(result)
+    expect(json.measurement_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
+    expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
+    expect(json.temperature).to be_within(0.01).of(73.4)
+    expect(json.unit).to eq "℉"
   end
 
   it 'can handle execution errors with structured JSON error response' do
@@ -78,11 +84,9 @@ describe OllamaChat::Tools::GetCurrentWeather do
     json = json_object(result)
 
     # Verify the structured error response
-    expect(json.error).to be_a(String)
-    expect(json.message).to be_a(String)
-
-    # Verify it's a proper JSON structure that can be parsed
-    expect(json.error).to eq 'RuntimeError'  # or whatever the actual exception class is
+    expect(json.error).to be_a String
+    expect(json.message).to be_a String
+    expect(json.error).to eq 'RuntimeError'
     expect(json.message).to include('Network error occurred')
   end
 end

@@ -61,7 +61,7 @@ class OllamaChat::Tools::GetCurrentWeather
   # @param opts [Hash] additional options
   # @option opts [ComplexConfig::Settings] :config the configuration object
   #
-  # @return [String] a formatted weather report or error message
+  # @return [String] a JSON string containing the retrieved weather data
   # @return [String] an error message if the weather data could not be
   #   retrieved
   def execute(tool_call, **opts)
@@ -72,20 +72,25 @@ class OllamaChat::Tools::GetCurrentWeather
       logger:      Logger.new(STDOUT)
     )
 
-    time, temp = sensor.measure
+    measurement_time, temperature = sensor.measure
 
-    unless time && temp
+    unless measurement_time && temperature
       return "Could not retrieve temperature for station #{station_id}"
     end
 
     unit = ?℃
 
     if tool_call.function.arguments.temperature_unit == 'fahrenheit'
-      unit = ?℉
-      temp = temp * 9.0 / 5 + 32
+      unit        = ?℉
+      temperature = temperature * 9.0 / 5 + 32
     end
 
-    "The temperature was %s %s at the time of %s" % [ temp, unit, time ]
+    {
+      current_time: Time.now,
+      measurement_time:,
+      temperature:,
+      unit:,
+    }.to_json
   rescue => e
     {
       error: e.class,
