@@ -52,6 +52,16 @@ class OllamaChat::Tools::GetJiraIssue
     { error: e.class, message: e.message }.to_json
   end
 
+  # The fetch_issue method retrieves JIRA issue data by key from the configured
+  # JIRA instance.
+  #
+  # This method constructs the appropriate API endpoint URL using the base URL,
+  # user, and API token configured in the environment, then fetches the issue
+  # data using the configured fetcher.
+  #
+  # @param issue_key [ String ] the JIRA issue key to retrieve
+  #
+  # @return [ String ] the JSON response containing the JIRA issue data
   def fetch_issue(issue_key)
     # Construct the JIRA API URL
     env          = OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA

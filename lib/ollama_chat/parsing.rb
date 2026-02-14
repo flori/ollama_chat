@@ -188,6 +188,7 @@ module OllamaChat::Parsing
     )
   end
 
+  # Regular expression to scan content for url/file references
   CONTENT_REGEXP = %r{
     (https?://\S+)                         # Match HTTP/HTTPS URLs
     |                                      # OR
