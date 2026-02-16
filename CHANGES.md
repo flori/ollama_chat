@@ -1,5 +1,39 @@
 # Changes
 
+## 2026-02-16 v0.0.66
+
+- Updated `OllamaChat::Tools::GetCurrentWeather.execute` to return a JSON
+  string with keys `current_time`, `measurement_time`, `temperature`, and
+  `unit`
+- Renamed tool class `OllamaChat::Tools::VimOpenFile` to
+  `OllamaChat::Tools::OpenFileInEditor`
+- Updated `register_name` from `vim_open_file` to `open_file_in_editor` for the
+  file opening tool
+- Changed `execute` method in `OpenFileInEditor` to resolve `args.path` with
+  `Pathname.new(...).expand_path` and call `chat.vim.open_file`
+- Updated `OllamaChat::Tools::ReadFile` to return a JSON string containing
+  `path` and `content` instead of raw content
+- Updated `default_config.yml` to use `open_file_in_editor` instead of
+  `vim_open_file`
+- Updated gemspec `s.version` to **0.0.66** and adjusted file references from
+  `vim_open_file` to `open_file_in_editor`
+- Updated `s.extra_rdoc_files`, `s.files`, and `s.test_files` to include
+  `open_file_in_editor.rb` and remove `vim_open_file.rb`
+- Improved error handling in weather tool with JSON error messages that are
+  more consistent with Ruby exception handling patterns
+- Enhanced documentation for `fetch_issue` method in
+  `OllamaChat::Tools::GetJiraIssue` class with detailed parameter and return
+  value descriptions
+- Added regular expression documentation in `OllamaChat::Parsing` module
+- Improved maintainability by adding comprehensive comments to JIRA tool
+  implementation
+- Replaced `STDERR.printf` calls for unconfigured and unregistered tools with
+  assignments to `@chat.tool_call_results[name]`
+- Updated error strings to include the `"Error: "` prefix and use string
+  interpolation with `%` formatting
+- Removed all direct stderr output, centralizing error handling in the chat
+  object
+
 ## 2026-02-10 v0.0.65
 
 - Updated `location_handling.rb` to return only `location_name`,
