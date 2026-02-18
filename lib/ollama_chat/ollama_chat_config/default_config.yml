@@ -139,6 +139,7 @@ tools:
     default: true
   open_file_in_editor:
     default: true
+    require_confirmation: true
   run_tests:
     require_confirmation: true
     default: true
