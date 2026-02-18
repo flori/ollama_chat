@@ -26,6 +26,7 @@ describe OllamaChat::Tools::DirectoryStructure do
         name: 'directory_structure',
         arguments: double(
           path: 'spec/assets',
+          max_depth: nil,
         )
       )
     )
@@ -45,6 +46,7 @@ describe OllamaChat::Tools::DirectoryStructure do
         name: 'directory_structure',
         arguments: double(
           path: nil,  # Should default to '.'
+          max_depth: nil,
         )
       )
     )
@@ -64,6 +66,7 @@ describe OllamaChat::Tools::DirectoryStructure do
         name: 'directory_structure',
         arguments: double(
           path: '/nonexistent/path',
+          max_depth: nil,
         )
       )
     )

@@ -3,7 +3,11 @@ require 'tmpdir'
 require 'fileutils'
 
 describe OllamaChat::Utils::AnalyzeDirectory do
-  let(:generate) { described_class.method(:generate_structure) }
+  let :generate do
+    obj = double
+    obj.extend(described_class)
+    obj.method(:generate_structure)
+  end
 
   context 'basic directory structure' do
     before do
@@ -28,9 +32,24 @@ describe OllamaChat::Utils::AnalyzeDirectory do
       expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'b.rb', 'sub')
 
       sub = result.find { |e| e[:name] == 'sub' }
+      expect(sub[:depth]).to eq 0
       expect(sub[:type]).to eq('directory')
       expect(sub[:children]).to be_an(Array)
       expect(sub[:children].map { |e| e[:name] }).to contain_exactly('c.md')
+      expect(sub[:children].map { |e| e[:depth] }).to eq [ 1 ]
+    end
+
+    it 'returns an array of entries with depth max_depth' do
+      result = generate.call(@tmp_dir, max_depth: 0)
+
+      expect(result).to be_an(Array)
+      expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'b.rb', 'sub')
+
+      sub = result.find { |e| e[:name] == 'sub' }
+      expect(sub[:depth]).to eq 0
+      expect(sub[:type]).to eq('directory')
+      expect(sub[:children]).to be_an(Array)
+      expect(sub[:children]).to be_empty
     end
   end
 

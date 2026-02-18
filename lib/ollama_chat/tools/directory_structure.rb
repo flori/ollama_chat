@@ -24,13 +24,23 @@ class OllamaChat::Tools::DirectoryStructure
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Retrieve the directory structure and file hierarchy for a given path',
+        description: <<~EOT,
+          Retrieve the directory structure and file hierarchy for a given path,
+          for depth of max_depth (if given).
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: 'Path to directory to list (defaults to current directory)'
+            ),
+            max_depth: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: <<~EOT,
+                Maximum depth of directory structure to return upto the total
+                height of the directory structure (defaults to disabled)
+              EOT
             ),
           },
           required: []
@@ -52,10 +62,11 @@ class OllamaChat::Tools::DirectoryStructure
   # @raise [StandardError] if there's an issue with directory traversal or JSON
   #   serialization
   def execute(tool_call, **opts)
-    config = opts[:config]
-    path   = Pathname.new(tool_call.function.arguments.path || '.')
+    config    = opts[:config]
+    path      = Pathname.new(tool_call.function.arguments.path || '.')
+    max_depth = tool_call.function.arguments.max_depth
 
-    structure = generate_structure(path, exclude: config.tools.directory_structure.exclude?)
+    structure = generate_structure(path, max_depth:, exclude: config.tools.directory_structure.exclude?)
     structure.to_json
   end
 
