@@ -32,6 +32,13 @@ module OllamaChat
   # log or display the problematic location.
   class ConfigMissingError < OllamaChatError
   end
+
+  # Error raised when an HTTP request returns a non‑200 status code.
+  class HTTPError < OllamaChatError
+    # @!attribute [r] status
+    #   @return [Integer] the HTTP status code that caused the error.
+    attr_accessor :status
+  end
 end
 
 require 'ollama'

@@ -93,11 +93,24 @@ describe OllamaChat::Utils::Fetcher do
       with(headers: fetcher.headers).
       to_return(status: 500)
     expect(STDERR).to receive(:puts).with(/cannot.*get.*#{url}/i)
-      fetcher.get(url) do |tmp|
+    fetcher.get(url) do |tmp|
+      expect(tmp).to be_a StringIO
+      expect(tmp.read).to eq ''
+      expect(tmp.content_type).to eq 'text/plain'
+    end
+  end
+
+  it 'can #get and finally fail with reraise' do
+    stub_request(:get, url).
+      with(headers: fetcher.headers).
+      to_return(status: 500)
+    expect {
+      fetcher.get(url, reraise: true) do |tmp|
         expect(tmp).to be_a StringIO
         expect(tmp.read).to eq ''
         expect(tmp.content_type).to eq 'text/plain'
       end
+    }.to raise_error OllamaChat::HTTPError, /request failed: 500/
   end
 
   it 'can redirect' do

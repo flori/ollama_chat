@@ -69,34 +69,75 @@ class OllamaChat::Utils::Fetcher
   #   rescue RetryWithoutStreaming
   #     # Handle retry with non-streaming method
   #   end
-  class RetryWithoutStreaming < StandardError; end
+  class RetryWithoutStreaming < OllamaChat::OllamaChatError; end
 
-  # The get method retrieves content from a URL, using caching when available.
-  # It processes the URL with optional headers and additional options,
-  # then yields a temporary file containing the retrieved content.
-  # If caching is enabled and content is found in the cache,
-  # it returns the cached result instead of fetching again.
-  # The method handles both cached and fresh fetches,
-  # ensuring that cache is updated when new content is retrieved.
+  # Fetches the content located at +url+ and optionally caches it.
   #
-  # @param url [ String ] the URL to fetch content from
-  # @param headers [ Hash ] optional headers to include in the request
-  # @param options [ Hash ] additional options for the fetch operation
+  # This is a convenience wrapper around an instance of
+  # `OllamaChat::Utils::Fetcher`.  It accepts the same options as the
+  # instance method, with the following additions:
   #
-  # @yield [ tmp ]
+  # * `:cache` – an object that responds to `get` and `put` (see
+  #   `OllamaChat::Utils::CacheFetcher`).  If a cached value exists,
+  #   it is returned immediately and the network is not contacted.
+  # * `:reraise` – if true, any exception raised during the fetch
+  #   will be re‑raised after a failed temporary file has been yielded.
+  #   The exception type `OllamaChat::HTTPError` is raised only when
+  #   `:reraise` is true; otherwise the error is swallowed and the
+  #   caller receives a failed `StringIO` via the block.
   #
-  # @return [ Object ] the result of the block execution
-  # @return [ nil ] if no block is given or if the fetch fails
+  # The method streams the HTTP response into a temporary file (or a
+  # `StringIO` in the event of a failure).  The temporary file is
+  # extended with `HeaderExtension`, so the block can inspect
+  # `tmp.content_type` and `tmp.ex`.  After the block returns the
+  # temporary file is closed and discarded.  If a cache is supplied
+  # and the response is not a `StringIO`, the temporary file is written
+  # back to the cache for future requests.
+  #
+  # @param url [String] the URL to fetch
+  # @param headers [Hash] optional HTTP headers to send with the request
+  # @param options [Hash] additional options
+  #   * `:cache`          – a cache object (see above)
+  #   * `:reraise`        – see description above
+  #   * `:middlewares`    – array of Excon middleware classes
+  #   * `:http_options`   – hash of options forwarded to the Excon client
+  #
+  # @yield [tmp] Gives the caller a `Tempfile` (or a `StringIO` in case of
+  #   failure) that contains the fetched content.  The yielded object
+  #   is already extended with `HeaderExtension`, so the block can read
+  #   `tmp.content_type` and `tmp.ex`.
+  #
+  # @return [Object] the value returned by the block.  If no block is
+  #   given, the method returns `nil`.  If a cached value is returned,
+  #   the cached object (typically a `StringIO`) is returned directly.
+  #
+  # @raise [OllamaChat::HTTPError] when the HTTP response status is not
+  #   200 **and** the `:reraise` option is true.  The error is raised
+  #   after the failed `StringIO` has been yielded to the caller.
+  # @raise [OllamaChat::OllamaChatError] (or subclasses) for other
+  #   network or I/O errors.  If `:reraise` is true, the original
+  #   exception is re‑raised after yielding the failed `StringIO`.
+  #
+  # @example Fetch a URL with caching
+  #   cache = RedisCache.new
+  #   fetcher = OllamaChat::Utils::Fetcher
+  #   fetcher.get('https://example.com/data.json', cache: cache) do |tmp|
+  #     JSON.parse(tmp.read)
+  #   end
+  #
+  # @see OllamaChat::Utils::CacheFetcher
+  # @see HeaderExtension
   def self.get(url, headers: {}, **options, &block)
     cache = options.delete(:cache) and
       cache = OllamaChat::Utils::CacheFetcher.new(cache)
+    reraise = options.delete(:reraise)
     cache and infobar.puts "Getting #{url.to_s.inspect} via cache…"
     if result = cache&.get(url, &block)
       content_type = result&.content_type || 'unknown'
       infobar.puts "…hit, found #{content_type} content in cache."
       return result
     else
-      new(**options).send(:get, url, headers:) do |tmp|
+      new(**options).send(:get, url, headers:, reraise:) do |tmp|
         result = block.(tmp)
         if cache && !tmp.is_a?(StringIO)
           tmp.rewind
@@ -185,19 +226,67 @@ class OllamaChat::Utils::Fetcher
     @http_options = http_options
   end
 
-  # Makes an HTTP GET request to the specified URL with optional headers and
-  # processing block.
+  # Fetches the content located at +url+.
   #
-  # This method handles both streaming and non-streaming HTTP requests, using
-  # Excon for the actual HTTP communication. The response body is written to a
-  # temporary file which is then decorated with additional behavior before
-  # being passed to the provided block.
+  # The method first checks an optional cache (passed via the `:cache` option).
+  # If a cached response is found, it is returned immediately.  Otherwise the
+  # URL is fetched over HTTP using Excon.  Two modes are supported:
   #
-  # @param url [String] The URL to make the GET request to
-  # @yield [Tempfile] The temporary file containing the response body, after
-  #                   decoration
+  # * **Streaming** – the response body is streamed directly into a temporary
+  #   file.  Progress is reported via `infobar`.  If the first request
+  #   fails with a non‑200 status or the streaming mode is not supported,
+  #   the method falls back to a non‑streaming request.
+  # * **Non‑streaming** – the entire body is read into memory before
+  #   being written to the temporary file.
+  #
+  # The temporary file is yielded to the caller.  The file is extended
+  # with `HeaderExtension`, so the block can inspect `content_type` and
+  # `ex` (cache‑expiry in seconds).  After the block returns, the
+  # temporary file is closed and discarded.
+  #
+  # If a cache is supplied and the response is not a `StringIO`, the
+  # temporary file is written back to the cache for future requests.
+  #
+  # @param url [String] the URL to fetch
+  # @param headers [Hash] optional HTTP headers to send with the request
+  # @param options [Hash] additional options
+  #   * `:cache`   – an object that responds to `get` and `put` (see
+  #     `OllamaChat::Utils::CacheFetcher`).  When present, the method
+  #     will attempt to read from the cache before making a network
+  #     request.
+  #   * `:reraise` – if true, any exception raised during the fetch
+  #     will be re‑raised after a failed temporary file is yielded.
+  #   * `:middlewares` – an array of Excon middleware classes to apply.
+  #   * `:http_options` – hash of options forwarded to the Excon client.
+  #
+  # @yield [tmp] Gives the caller a `Tempfile` (or a `StringIO` in the
+  #   unlikely event of a failure) that contains the fetched content.
+  #   The yielded object is already extended with `HeaderExtension`,
+  #   so the block can read `tmp.content_type` and `tmp.ex`.
+  #
+  # @return [Object] the value returned by the block.  If no block is
+  #   given, the method returns `nil`.  If a cached value is returned,
+  #   the cached object (typically a `StringIO`) is returned directly.
+  #
+  # @raise [OllamaChat::HTTPError] when the HTTP response status is not
+  #   200 **and** the `:reraise` option is true.  The error is raised
+  #   after the failed `StringIO` has been yielded to the caller.
+  # @raise [OllamaChat::OllamaChatError] (or subclasses) for other
+  #   network or I/O errors.  If `:reraise` is true, the original
+  #   exception is re‑raised after yielding the failed `StringIO`.
+  #
+  # @example Fetch a URL with caching
+  #   cache = RedisCache.new
+  #   fetcher = OllamaChat::Utils::Fetcher
+  #   fetcher.get('https://example.com/data.json', cache: cache) do |tmp|
+  #     JSON.parse(tmp.read)
+  #   end
+  #
+  # @see OllamaChat::Utils::CacheFetcher
+  # @see HeaderExtension
   def get(url, **opts, &block)
     opts.delete(:response_block) and raise ArgumentError, 'response_block not allowed'
+    reraise ||= opts.delete(:reraise)
     middlewares = (self.middlewares | Array((opts.delete(:middlewares)))).uniq
     headers = opts.delete(:headers) || {}
     headers |= self.headers
@@ -213,8 +302,11 @@ class OllamaChat::Utils::Fetcher
         block.(tmp)
       else
         response = excon(url, headers:, middlewares:, **opts).request(method: :get)
-        if response.status != 200
-          raise "invalid response status code"
+        if status = response.status and status != 200
+          message = "request failed: %u %s" % [ status, response.reason_phrase ]
+          error = OllamaChat::HTTPError.new(message)
+          error.status = status
+          raise error
         end
         body = response.body
         tmp.print body
@@ -233,6 +325,7 @@ class OllamaChat::Utils::Fetcher
       STDERR.puts "#{e.backtrace * ?\n}"
     end
     yield HeaderExtension.failed
+    reraise and raise e
   end
 
   private
