@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-02-18 v0.0.67
+
+- Added `max_depth` option to directory listing tool
+    - Updated `OllamaChat::Tools::DirectoryStructure#execute` to accept `max_depth` parameter
+    - Enhanced `OllamaChat::Utils::AnalyzeDirectory#generate_structure` to handle `max_depth` limit
+    - Implemented depth and height computation for directory entries
+    - Added depth pruning functionality to remove children beyond the specified depth limit
+    - Attached `:depth` and `:height` metadata to each directory entry in JSON output
+    - Refactored internal helper method `recurse_generate_structure` to track entry depth
+    - Updated documentation comments to reflect new behavior
+    - Added comprehensive test coverage for `max_depth` functionality
+    - Added depth-pruning test cases in specification files
+
 ## 2026-02-16 v0.0.66
 
 - Updated `OllamaChat::Tools::GetCurrentWeather.execute` to return a JSON
