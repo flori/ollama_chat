@@ -39,7 +39,7 @@ class OllamaChat::OllamaChatConfig
   # @param filename [ String, nil ] the path to the configuration file
   def initialize(filename = nil)
     @filename = filename || default_path
-    unless File.directory?(cache_dir_path)
+    unless cache_dir_path.directory?
       mkdir_p cache_dir_path.to_s
     end
     @config = Provider.config(@filename, '⚙️')

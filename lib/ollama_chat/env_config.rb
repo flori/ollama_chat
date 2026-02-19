@@ -20,13 +20,13 @@ module OllamaChat
     XDG_CONFIG_HOME = set do
       description 'XDG Configuration directory path'
       default { '~/.config' }
-      decode  { Pathname.new(_1) + 'ollama_chat' }
+      decode  { Pathname.new(_1).join('ollama_chat').expand_path }
     end
 
     XDG_CACHE_HOME = set do
       description 'XDG Cache directory path'
       default { '~/.cache' }
-      decode  { Pathname.new(_1) + 'ollama_chat' }
+      decode  { Pathname.new(_1).join('ollama_chat').expand_path }
     end
 
     PAGER = set do
