@@ -279,5 +279,18 @@ describe OllamaChat::Parsing do
         EOT
       end
     end
+
+    it 'generates a readable directory‑structure string for directories' do
+      content, = chat.parse_content("look at #{asset}", [])
+      json_data = content.lines[2..-1].join('')
+      json = JSON(json_data)
+      expect(json.map { _1['name'] }.sort).to eq(
+        ["api_show.json", "api_tags.json", "api_version.json",
+         "conversation.json", "deep", "duckduckgo.html", "example.atom",
+         "example.csv", "example.html", "example.pdf", "example.ps",
+         "example.rb", "example.rss", "example.xml", "example_with_quote.html",
+         "kitten.jpg", "prompt.txt", "searxng.json"]
+      )
+    end
   end
 end

@@ -33,8 +33,8 @@ module AssetHelpers
   # @param name [String] the name of the asset file
   #
   # @return [String] the full path to the asset file
-  def asset(name)
-    File.join(__dir__, 'assets', name)
+  def asset(name = nil)
+    File.join(*[__dir__, 'assets', name ].compact)
   end
 
   # Reads and returns the content of an asset file from the assets directory.

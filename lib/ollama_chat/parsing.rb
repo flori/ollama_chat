@@ -223,7 +223,7 @@ module OllamaChat::Parsing
     contents = [ content ]
     content.scan(CONTENT_REGEXP).each { |url, tag, file_url, quoted_file, file|
       if file && File.directory?(file)
-        contents << generate_structure(file)
+        contents << generate_structure(file).to_json
         next
       end
       check_exist = false
