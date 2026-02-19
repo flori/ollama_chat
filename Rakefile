@@ -61,7 +61,7 @@ GemHadar do
   dependency             'context_spook',         '~> 1.5'
   dependency             'infobar',               '>= 0.13.1'
   dependency             'rubyzip',               '~> 3.0'
-  development_dependency 'all_images',            '~> 0.6'
+  development_dependency 'all_images',            '~> 0.12'
   development_dependency 'rspec',                 '~> 3.2'
   development_dependency 'kramdown',              '~> 2.0'
   development_dependency 'webmock'

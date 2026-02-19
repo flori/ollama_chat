@@ -7,9 +7,23 @@ script: &script |-
   echo -e "\e[1m"
   ruby -v
   echo -e "\e[0m"
-  bundle update --all
   bundle install --jobs=$(getconf _NPROCESSORS_ONLN)
   bundle exec rake spec
+
+before: |-
+  echo 🏁 Preparing…
+  echo Deleting Gemfile.lock
+  rm -f Gemfile.lock
+
+after: |-
+  if [[ "$RESULT" = "1" ]]
+  then
+    echo 😵 Some tests failed!
+  else
+    echo 🥳 All tests passed!
+  fi
+  echo Deleting Gemfile.lock
+  rm -f Gemfile.lock
 
 fail_fast: true
 
