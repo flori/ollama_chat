@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-02-19 v0.0.68
+
+- Added JSON serialization for directory structure in `OllamaChat::Parsing`
+  using `generate_structure(file).to_json`
+- Introduced `OllamaChat::HTTPError` exception with `status` attribute for
+  better error handling
+- Enhanced `OllamaChat::Utils::Fetcher` to handle `reraise` option and raise
+  `HTTPError` on non-200 HTTP responses
+- Added `require_confirmation: true` option for `open_file_in_editor` tool in
+  default configuration to provide additional safety check
+- Updated `AssetHelpers.asset` in `spec/spec_helper.rb` to accept optional name
+  parameter
+- Included `OllamaChat::Utils::AnalyzeDirectory` mixin in `OllamaChat::Parsing`
+  to simplify method calls
+- Replaced fully-qualified
+  `OllamaChat::Utils::AnalyzeDirectory.generate_structure(file)` calls with
+  local `generate_structure(file)` after including the module
+- Added specs to verify JSON output contains expected file names in
+  `spec/ollama_chat/parsing_spec.rb`
+- Updated tools (`get_cve`, `get_endoflife`, `get_jira_issue`) to pass
+  `reraise: true` to Excon for improved error propagation
+
 ## 2026-02-18 v0.0.67
 
 - Added `max_depth` option to directory listing tool
