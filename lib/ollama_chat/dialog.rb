@@ -13,51 +13,6 @@
 # @example Changing the system prompt
 #   chat.change_system_prompt('default_prompt', system: '?sherlock')
 module OllamaChat::Dialog
-  # The model_with_size method formats a model's size for display
-  # by creating a formatted string that includes the model name and its size
-  # in a human-readable format with appropriate units.
-  #
-  # @param model [ Object ] the model object that has name and size attributes
-  #
-  # @return [ Object ] a result object with an overridden to_s method
-  #                     that combines the model name and formatted size
-  private def model_with_size(model)
-    result = model.name
-    formatted_size = Term::ANSIColor.bold {
-      Tins::Unit.format(model.size, unit: ?B, prefix: 1024, format: '%.1f %U')
-    }
-    result.singleton_class.class_eval do
-      define_method(:to_s) { "%s %s" % [ model.name, formatted_size ] }
-    end
-    result
-  end
-
-  # The choose_model method selects a model from the available list based on
-  # CLI input or user interaction.
-  # It processes the provided CLI model parameter to determine if a regex
-  # selector is used, filters the models accordingly, and prompts the user to
-  # choose from the filtered list if needed.
-  # The method ensures that a model is selected and displays a connection
-  # message with the chosen model and base URL.
-  def choose_model(cli_model, current_model)
-    selector = if cli_model =~ /\A\?+(.*)\z/
-                 cli_model = ''
-                 Regexp.new($1)
-               end
-    models = ollama.tags.models.sort_by(&:name).map { |m| model_with_size(m) }
-    selector and models = models.grep(selector)
-    model =
-      if models.size == 1
-        models.first
-      elsif cli_model == ''
-        OllamaChat::Utils::Chooser.choose(models) || current_model
-      else
-        cli_model || current_model
-      end
-  ensure
-    connect_message(model, ollama.base_url)
-  end
-
   # The connect_message method displays a connection status message.
   #
   # @param model [String] the model name to connect to
