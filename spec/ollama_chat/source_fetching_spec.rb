@@ -78,7 +78,7 @@ describe OllamaChat::SourceFetching do
       it 'handles tilde expansion in filename' do
         source = '~/test.txt'
         expect(chat).to receive(:fetch_source_as_filename).
-          with(File.expand_path(source))
+          with(File.expand_path(source)).and_call_original
         chat.fetch_source(source)
       end
 
