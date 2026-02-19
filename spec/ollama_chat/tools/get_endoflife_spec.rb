@@ -32,7 +32,7 @@ describe OllamaChat::Tools::GetEndoflife do
       )
     )
 
-    url = chat.config.tools.get_endoflife.url
+    url = chat.config.tools.functions.get_endoflife.url
 
     # Stub the HTTP request
     stub_request(:get, url % { product: })
@@ -61,7 +61,7 @@ describe OllamaChat::Tools::GetEndoflife do
       )
     )
 
-    url = chat.config.tools.get_endoflife.url
+    url = chat.config.tools.functions.get_endoflife.url
 
     stub_request(:get, url % { product: product })
       .to_return(status: 404, body: 'Not Found')

@@ -48,7 +48,7 @@ class OllamaChat::Tools::GetCVE
   def execute(tool_call, **opts)
     config = opts[:config]
     cve_id = tool_call.function.arguments.cve_id
-    url    = config.tools.get_cve.url % { cve_id: }
+    url    = config.tools.functions.get_cve.url % { cve_id: }
     OllamaChat::Utils::Fetcher.get(
       url,
       headers: {

@@ -338,7 +338,8 @@ describe OllamaChat::Chat, protect_env: true do
             Thinking\ out\ loud|
             Voice\ output|
             Currently\ selected\ search\ engine|
-            Conversation\ length
+            Conversation\ length|
+            Tools\ Support\ enabled
           /x
         ).at_least(1)
       expect(chat.info).to be_nil

@@ -66,7 +66,7 @@ class OllamaChat::Tools::DirectoryStructure
     path      = Pathname.new(tool_call.function.arguments.path || '.')
     max_depth = tool_call.function.arguments.max_depth
 
-    structure = generate_structure(path, max_depth:, exclude: config.tools.directory_structure.exclude?)
+    structure = generate_structure(path, max_depth:, exclude: config.tools.functions.directory_structure.exclude?)
     structure.to_json
   end
 

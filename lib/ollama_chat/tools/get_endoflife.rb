@@ -50,7 +50,7 @@ class OllamaChat::Tools::GetEndoflife
     product = tool_call.function.arguments.product
 
     # Construct the URL for the endoflife API
-    url = config.tools.get_endoflife.url % { product: }
+    url = config.tools.functions.get_endoflife.url % { product: }
 
     # Fetch the data from endoflife.date API
     OllamaChat::Utils::Fetcher.get(

@@ -62,7 +62,7 @@ class OllamaChat::Tools::ImportURL
     args   = tool_call.function.arguments
     url    = args.url.to_s
 
-    allowed_schemes = Array(config.tools.import_url.schemes?).map(&:to_s)
+    allowed_schemes = Array(config.tools.functions.import_url.schemes?).map(&:to_s)
 
     uri = URI.parse(args.url.to_s)
     unless allowed_schemes.include?(uri.scheme)

@@ -63,7 +63,7 @@ class OllamaChat::Tools::WriteFile
     config = opts[:config]
     args = tool_call.function.arguments
 
-    target_path = assert_valid_path(args.path, config.tools.write_file.allowed?)
+    target_path = assert_valid_path(args.path, config.tools.functions.write_file.allowed?)
 
     # Ensure the parent directory exists
     target_path.parent.mkpath

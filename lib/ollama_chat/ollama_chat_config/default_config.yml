@@ -37,7 +37,7 @@ system_prompts:
 voice:
   enabled: false
   default: Samantha
-  list: <%= `say -v '?' 2>/dev/null`.lines.map { |l| l.force_encoding('ASCII-8BIT'); l[/^(.+?)\s+[a-z]{2}_[a-zA-Z0-9]{2,}/, 1] }.uniq.sort.to_s %>
+  list: <%= defined?(RSpec) ? '[]' : `say -v '?' 2>/dev/null`.lines.map { |l| l.force_encoding('ASCII-8BIT'); l[/^(.+?)\s+[a-z]{2}_[a-zA-Z0-9]{2,}/, 1] }.uniq.sort.to_s %>
 markdown: true
 stream: true
 document_policy: importing
@@ -85,63 +85,65 @@ web_search:
 vim:
   clientserver: socket
 tools:
-  get_current_weather:
-    station_id: '00433'
-    default: false
-  get_cve:
-    url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'
-    default: false
-  get_endoflife:
-    url: "https://endoflife.date/api/v1/products/%{product}"
-    default: false
-  get_time:
-    default: true
-  get_location:
-    default: true
-  file_context:
-    default: false
-    require_confirmation: true
-    allowed:
-      - ./spec
-  directory_structure:
-    default: false
-    require_confirmation: true
-    exclude:
-      - corpus
-      - pkg
-  execute_grep:
-    default: true
-    cmd: |
-      grep #{'-i' if ignore_case} -m #{max_results} -r #{pattern} #{path}
-  browse:
-    default: false
-  write_file:
-    default: false
-    require_confirmation: true
-    allowed:
-      - ./tmp
-  read_file:
-    default: false
-    require_confirmation: false
-    allowed:
-      - ./tmp
-      - ./lib
-      - ./spec
-  search_web:
-    default: true
-  import_url:
-    default: true
-    require_confirmation: true
-    schemes:
-      - http
-      - https
-  gem_path_lookup:
-    default: true
-  open_file_in_editor:
-    default: true
-    require_confirmation: true
-  run_tests:
-    require_confirmation: true
-    default: true
-  get_jira_issue:
-    default: false
+  enabled: true
+  functions:
+    get_current_weather:
+      station_id: '00433'
+      default: false
+    get_cve:
+      url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'
+      default: false
+    get_endoflife:
+      url: "https://endoflife.date/api/v1/products/%{product}"
+      default: false
+    get_time:
+      default: true
+    get_location:
+      default: true
+    file_context:
+      default: false
+      require_confirmation: true
+      allowed:
+        - ./spec
+    directory_structure:
+      default: false
+      require_confirmation: true
+      exclude:
+        - corpus
+        - pkg
+    execute_grep:
+      default: true
+      cmd: |
+        grep #{'-i' if ignore_case} -m #{max_results} -r #{pattern} #{path}
+    browse:
+      default: false
+    write_file:
+      default: false
+      require_confirmation: true
+      allowed:
+        - ./tmp
+    read_file:
+      default: false
+      require_confirmation: false
+      allowed:
+        - ./tmp
+        - ./lib
+        - ./spec
+    search_web:
+      default: true
+    import_url:
+      default: true
+      require_confirmation: true
+      schemes:
+        - http
+        - https
+    gem_path_lookup:
+      default: true
+    open_file_in_editor:
+      default: true
+      require_confirmation: true
+    run_tests:
+      require_confirmation: true
+      default: true
+    get_jira_issue:
+      default: false

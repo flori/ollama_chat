@@ -32,7 +32,7 @@ describe OllamaChat::Tools::GetCVE do
       )
     )
 
-    url = chat.config.tools.get_cve.url
+    url = chat.config.tools.functions.get_cve.url
 
     # Stub the HTTP request
     stub_request(:get, url % { cve_id: })
@@ -60,7 +60,7 @@ describe OllamaChat::Tools::GetCVE do
       )
     )
 
-    url = chat.config.tools.get_cve.url
+    url = chat.config.tools.functions.get_cve.url
 
     stub_request(:get, url % { cve_id: })
       .to_return(status: 404, body: 'Not Found')

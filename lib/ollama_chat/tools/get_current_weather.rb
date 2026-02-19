@@ -65,7 +65,7 @@ class OllamaChat::Tools::GetCurrentWeather
   # @return [String] an error message if the weather data could not be
   #   retrieved
   def execute(tool_call, **opts)
-    station_id = opts[:config].tools.get_current_weather.station_id
+    station_id = opts[:config].tools.functions.get_current_weather.station_id
     sensor = DWDSensor.new(
       sensor_id:   "dwd_#{station_id}",
       station_id:  ,

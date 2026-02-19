@@ -71,7 +71,7 @@ class OllamaChat::Tools::FileContext
     directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
     search_path = directory + pattern
     check_path = -> filename {
-      assert_valid_path(filename, config.tools.file_context.allowed?)
+      assert_valid_path(filename, config.tools.functions.file_context.allowed?)
     }
     ContextSpook::generate_context(verbose: true, format:) do |context|
       context do

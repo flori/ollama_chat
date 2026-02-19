@@ -98,7 +98,7 @@ class OllamaChat::FollowChat
 
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
-      unless @chat.config.tools.attribute_set?(name)
+      unless @chat.config.tools.functions.attribute_set?(name)
         @chat.tool_call_results[name] =
           "Error: Unconfigured tool named %s ignored => Skip.\n" % name
         next
@@ -111,7 +111,7 @@ class OllamaChat::FollowChat
       STDOUT.puts
       confirmed = true
       args = JSON.pretty_generate(tool_call.function.arguments)
-      if @chat.config.tools[name].require_confirmation?
+      if @chat.config.tools.functions[name].require_confirmation?
         prompt = "I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
           italic { args  },

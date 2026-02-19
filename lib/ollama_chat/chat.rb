@@ -388,7 +388,7 @@ class OllamaChat::Chat
         STDERR.puts "Warning: No message found to insert into Vim"
       end
       :next
-    when %r(^/tools(?:\s+(enable|disable))?$)
+    when %r(^/tools(?:\s+(enable|disable|on|off))?$)
       case $1
       when nil
         list_tools
@@ -396,6 +396,10 @@ class OllamaChat::Chat
         enable_tool
       when 'disable'
         disable_tool
+      when 'on'
+        tools_support.set(true, show: true)
+      when 'off'
+        tools_support.set(false, show: true)
       end
       :next
     when %r(^/config$)

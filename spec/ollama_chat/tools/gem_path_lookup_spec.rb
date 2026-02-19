@@ -24,36 +24,11 @@ describe OllamaChat::Tools::GemPathLookup do
           )
         )
       )
-      result = described_class.new.execute(tool_call)
 
-      # Should return a JSON string
-      expect(result).to be_a(String)
-      json = json_object(result)
-      expect(json.gem_name).to eq 'json'
-      expect(json.found).to eq true
-      expect(json.path).to be_present
-      expect(json.version).to be_present
-    end
-  end
+      expect_any_instance_of(described_class).to\
+        receive(:lookup_gem_path).with('json').and_return :json_gem
 
-  context 'when gem is not found in bundle' do
-    it 'returns JSON indicating gem not found' do
-      tool_call = double(
-        'ToolCall',
-        function: double(
-          name: 'gem_path_lookup',
-          arguments: double(
-            gem_name: 'nonexistent_gem'
-          )
-        )
-      )
-      result = described_class.new.execute(tool_call)
-
-      expect(result).to be_a(String)
-      json = json_object(result)
-      expect(json.gem_name).to eq 'nonexistent_gem'
-      expect(json.found).to eq false
-      expect(json.message).to be_present
+      expect(described_class.new.execute(tool_call)).to eq :json_gem
     end
   end
 

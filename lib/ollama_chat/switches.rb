@@ -171,6 +171,11 @@ module OllamaChat::Switches
   # @return [ OllamaChat::Switches::Switch ] the location setting object
   attr_reader :location
 
+  # Switch tools support on/off (off → skip all, on → honour per‑tool state)
+  #
+  # @return [OllamaChat::Switch] the tools_support setting object
+  attr_reader :tools_support
+
   # The setup_switches method initializes various switches for configuring the
   # application's behavior.
   #
@@ -242,6 +247,14 @@ module OllamaChat::Switches
       msg: {
         true  => "Location enabled.",
         false => "Location disabled.",
+      }
+    )
+
+    @tools_support = Switch.new(
+      value: config.tools.enabled,
+      msg: {
+        true  => "Tools Support enabled.",
+        false => "Tools Support disabled.",
       }
     )
   end

@@ -58,7 +58,7 @@ class OllamaChat::Tools::SearchWeb
     args = tool_call.function.arguments
 
     query = args.query
-    max_results = config.tools.search_web?.max_results? || 10
+    max_results = config.tools.functions.search_web?.max_results? || 10
     num_results = (args.num_results || 5).clamp(..max_results)
     {
       query: ,
