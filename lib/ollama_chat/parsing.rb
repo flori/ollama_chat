@@ -12,6 +12,8 @@
 #   chat.parse_source(pdf_io)     # Extracts text from PDF files
 #   chat.parse_source(csv_io)     # Formats CSV data into readable strings
 module OllamaChat::Parsing
+  include OllamaChat::Utils::AnalyzeDirectory
+
   # The parse_source method processes different types of input sources and
   # converts them into a standardized text representation.
   #
@@ -221,7 +223,7 @@ module OllamaChat::Parsing
     contents = [ content ]
     content.scan(CONTENT_REGEXP).each { |url, tag, file_url, quoted_file, file|
       if file && File.directory?(file)
-        contents << OllamaChat::Utils::AnalyzeDirectory.generate_structure(file)
+        contents << generate_structure(file)
         next
       end
       check_exist = false
