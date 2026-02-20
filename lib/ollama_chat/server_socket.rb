@@ -87,6 +87,8 @@ module OllamaChat::ServerSocket
     end
   end
 
+  private
+
   # The server_socket_message accessor method provides read and write access to
   # the server socket message instance variable.
   #

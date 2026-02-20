@@ -11,6 +11,8 @@
 # @example Pasting content from input
 #   content = chat.paste_from_input
 module OllamaChat::Clipboard
+  private
+
   # Copy the last assistant's message to the system clipboard.
   #
   # This method checks if there is a last message from an assistant in the

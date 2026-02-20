@@ -16,6 +16,8 @@
 # @example Ensuring a model is available locally
 #   chat.pull_model_unless_present('phi3', {})
 module OllamaChat::ModelHandling
+  private
+
   # The model_present? method checks if the specified Ollama model is available.
   #
   # @param model [ String ] the name of the Ollama model

@@ -8,6 +8,8 @@ require 'tempfile'
 # interactive file selection and context collection for enhancing chat
 # interactions with local or remote content.
 module OllamaChat::InputContent
+  private
+
   # The input method selects and reads content from files matching a pattern.
   #
   # This method prompts the user to select files matching the given glob

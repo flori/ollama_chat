@@ -15,6 +15,8 @@
 # @example Clearing chat history
 #   chat.clear_history
 module OllamaChat::History
+  private
+
   # The chat_history_filename method constructs and returns the full file path
   # for the chat history file.
   #

@@ -6,6 +6,8 @@
 # document management system to enable efficient storage, retrieval, and
 # similarity-based searching of documents using vector embeddings.
 module OllamaChat::DocumentCache
+  private
+
   # Retrieves the cache class specified in the configuration.
   #
   # This method resolves the cache class name from the application's

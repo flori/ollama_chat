@@ -6,8 +6,6 @@
 # interact with external systems or perform specialized tasks beyond simple
 # text generation.
 module OllamaChat::ToolCalling
-  private
-
   # Checks whether a tool is configured in the chat configuration.
   #
   # @param [String] name the name of the tool

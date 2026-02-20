@@ -12,6 +12,8 @@
 # @example Load a conversation
 #   chat.load_conversation('my_chat.json')
 module OllamaChat::Conversation
+  private
+
   # Saves the current conversation to a JSON file.
   #
   # This method delegates to the `messages` object's `save_conversation`

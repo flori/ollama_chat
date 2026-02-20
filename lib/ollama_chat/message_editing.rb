@@ -5,6 +5,8 @@
 # in the conversation, whether it's a system prompt, user message, or assistant
 # response.
 module OllamaChat::MessageEditing
+  private
+
   # The revise_last method opens the last message in an external editor for
   # modification.
   #

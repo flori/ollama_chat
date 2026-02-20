@@ -13,6 +13,8 @@
 # @example Changing the system prompt
 #   chat.change_system_prompt('default_prompt', system: '?sherlock')
 module OllamaChat::Dialog
+  private
+
   # The connect_message method displays a connection status message.
   #
   # @param model [String] the model name to connect to
