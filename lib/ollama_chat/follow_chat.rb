@@ -98,17 +98,17 @@ class OllamaChat::FollowChat
 
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
-      unless @chat.config.tools.functions.attribute_set?(name)
+      unless @chat.tool_configured?(name)
         @chat.tool_call_results[name] =
           "Error: Unconfigured tool named %s ignored => Skip.\n" % name
         next
       end
-      unless OllamaChat::Tools.registered?(name)
+      unless @chat.tool_registered?(name)
         @chat.tool_call_results[name] =
           "Error: Unregistered tool named %s ignored => Skip.\n" % name
         next
       end
-      unless @chat.enabled_tools.member?(name)
+      unless @chat.tool_enabled?(name)
         @chat.tool_call_results[name] =
           "Error: Disabled tool named %s ignored => Skip.\n" % name
         next

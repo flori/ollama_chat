@@ -6,10 +6,34 @@
 # interact with external systems or perform specialized tasks beyond simple
 # text generation.
 module OllamaChat::ToolCalling
+  # Checks whether a tool is configured in the chat configuration.
+  #
+  # @param [String] name the name of the tool
+  # @return [Boolean] true if the tool is configured
+  def tool_configured?(name)
+    config.tools.functions.attribute_set?(name)
+  end
+
+  # Determines whether a tool has been registered in the tool registry.
+  #
+  # @param [String] name the name of the tool
+  # @return [Boolean] true if the tool is registered
+  def tool_registered?(name)
+    OllamaChat::Tools.registered?(name)
+  end
+
   # Provides access to the list of enabled tools for the chat session.
   #
   # @return [Array<String>] an Array containing the enabled tools
   attr_reader :enabled_tools
+
+  # Checks if a tool is currently enabled for the chat session.
+  #
+  # @param [String] name the name of the tool
+  # @return [Boolean] true if the tool is enabled
+  def tool_enabled?(name)
+    enabled_tools.member?(name)
+  end
 
   # The tools reader returns the registered tools for the chat session.
   #
@@ -31,7 +55,7 @@ module OllamaChat::ToolCalling
   def default_enabled_tools
     result = []
     config.tools.functions.each { |n, v|
-      if OllamaChat::Tools.registered?(n)
+      if tool_registered?(n)
         result << n.to_s if v.default
       else
         STDERR.puts "Skipping configuration for unregistered tool %s" % bold { n }
@@ -66,7 +90,7 @@ module OllamaChat::ToolCalling
   def list_tools
     STDOUT.puts "Registered tools:"
     configured_tools.each do |tool|
-      enabled = enabled_tools.member?(tool) ? ?✓ : ?☐
+      enabled = tool_enabled?(tool) ? ?✓ : ?☐
       require_confirmation = config.tools.functions[tool].require_confirmation? ? ?? : ?☐
       printf(
         "%s %s %s\n",

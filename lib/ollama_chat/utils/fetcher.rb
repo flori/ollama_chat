@@ -248,8 +248,7 @@ class OllamaChat::Utils::Fetcher
   # temporary file is written back to the cache for future requests.
   #
   # @param url [String] the URL to fetch
-  # @param headers [Hash] optional HTTP headers to send with the request
-  # @param options [Hash] additional options
+  # @param opts [Hash] additional options
   #   * `:cache`   – an object that responds to `get` and `put` (see
   #     `OllamaChat::Utils::CacheFetcher`).  When present, the method
   #     will attempt to read from the cache before making a network
@@ -258,6 +257,7 @@ class OllamaChat::Utils::Fetcher
   #     will be re‑raised after a failed temporary file is yielded.
   #   * `:middlewares` – an array of Excon middleware classes to apply.
   #   * `:http_options` – hash of options forwarded to the Excon client.
+  #   * `:headers` - optional HTTP headers
   #
   # @yield [tmp] Gives the caller a `Tempfile` (or a `StringIO` in the
   #   unlikely event of a failure) that contains the fetched content.
