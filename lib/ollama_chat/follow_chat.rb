@@ -108,6 +108,11 @@ class OllamaChat::FollowChat
           "Error: Unregistered tool named %s ignored => Skip.\n" % name
         next
       end
+      unless @chat.enabled_tools.member?(name)
+        @chat.tool_call_results[name] =
+          "Error: Disabled tool named %s ignored => Skip.\n" % name
+        next
+      end
       STDOUT.puts
       confirmed = true
       args = JSON.pretty_generate(tool_call.function.arguments)
