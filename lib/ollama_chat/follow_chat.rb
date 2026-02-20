@@ -116,7 +116,7 @@ class OllamaChat::FollowChat
       STDOUT.puts
       confirmed = true
       args = JSON.pretty_generate(tool_call.function.arguments)
-      if @chat.config.tools.functions[name].require_confirmation?
+      if @chat.tool_function(name).require_confirmation?
         prompt = "I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
           italic { args  },

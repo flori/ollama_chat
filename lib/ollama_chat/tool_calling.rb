@@ -6,12 +6,24 @@
 # interact with external systems or perform specialized tasks beyond simple
 # text generation.
 module OllamaChat::ToolCalling
+  private
+
   # Checks whether a tool is configured in the chat configuration.
   #
   # @param [String] name the name of the tool
   # @return [Boolean] true if the tool is configured
   def tool_configured?(name)
     config.tools.functions.attribute_set?(name)
+  end
+
+  # The tool_function method retrieves a tool configuration by name from the
+  # chat's configuration.
+  #
+  # @param name [String] the name of the tool to retrieve
+  # @return [ ComplexConfig::Settings ] the tool configuration object
+  #   corresponding to the given name
+  def tool_function(name)
+    config.tools.functions[name]
   end
 
   # Determines whether a tool has been registered in the tool registry.
@@ -91,7 +103,7 @@ module OllamaChat::ToolCalling
     STDOUT.puts "Registered tools:"
     configured_tools.each do |tool|
       enabled = tool_enabled?(tool) ? ?✓ : ?☐
-      require_confirmation = config.tools.functions[tool].require_confirmation? ? ?? : ?☐
+      require_confirmation = tool_function(tool).require_confirmation? ? ?? : ?☐
       printf(
         "%s %s %s\n",
         enabled, require_confirmation, (enabled ? bold { tool } : tool)

@@ -253,8 +253,8 @@ module OllamaChat::Switches
     @tools_support = Switch.new(
       value: config.tools.enabled,
       msg: {
-        true  => "Tools Support enabled.",
-        false => "Tools Support disabled.",
+        true  => "Tools support enabled.",
+        false => "Tools support disabled.",
       }
     )
   end
