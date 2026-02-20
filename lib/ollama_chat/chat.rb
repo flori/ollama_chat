@@ -55,6 +55,7 @@ class OllamaChat::Chat
   include OllamaChat::MessageEditing
   include OllamaChat::LocationHandling
   include OllamaChat::ToolCalling
+  include OllamaChat::ConfigHandling
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -402,8 +403,13 @@ class OllamaChat::Chat
         tools_support.set(false, show: true)
       end
       :next
-    when %r(^/config$)
-      display_config
+    when %r(^/config(?:\s+(edit))?$)
+      case $1
+      when 'edit'
+        edit_config
+      else
+        display_config
+      end
       :next
     when %r(^/quit$), nil
       STDOUT.puts "Goodbye."
@@ -556,22 +562,6 @@ class OllamaChat::Chat
       else
         STDOUT.puts 'Cancelled.'
       end
-    end
-  end
-
-  # The display_config method renders the configuration and displays it using a
-  # pager.
-  # It determines an appropriate pager command based on environment variables
-  # and available system commands, then uses Kramdown::ANSI::Pager to show the
-  # formatted configuration output.
-  def display_config
-    command  = OllamaChat::EnvConfig::PAGER?
-    rendered = config.to_s
-    Kramdown::ANSI::Pager.pager(
-      lines: rendered.count(?\n),
-      command:
-    ) do |output|
-      output.puts rendered
     end
   end
 
@@ -760,8 +750,6 @@ class OllamaChat::Chat
   # change_system_prompt method to handle the selection. Otherwise, it
   # retrieves the system prompt from a file or uses the default value, then
   # sets it in the message history.
-  #
-  # @return [ void ] this method returns nil after setting up the system prompt
   def setup_system_prompt
     default = config.system_prompts.default? || @model_system
     if @opts[?s] =~ /\A\?/
@@ -867,33 +855,6 @@ class OllamaChat::Chat
         url:,
         ex:
       )
-    end
-  end
-
-  # The fix_config method handles configuration file errors by informing the
-  # user about the exception and prompting them to fix it.
-  # It then executes a diff tool to compare the current config file with the
-  # default one.
-  # This method exits the program after handling the configuration error
-  #
-  # @param exception [ Exception ] the exception that occurred while reading
-  #   the config file
-  def fix_config(exception)
-    save_conversation('backup.json')
-    STDOUT.puts "When reading the config file, a #{exception.class} "\
-      "exception was caught: #{exception.message.inspect}"
-    unless diff_tool = OllamaChat::EnvConfig::DIFF_TOOL?
-      exit 1
-    end
-    if ask?(prompt: 'Do you want to fix the config? (y/n) ') =~ /\Ay/i
-      system Shellwords.join([
-        diff_tool,
-        @ollama_chat_config.filename,
-        @ollama_chat_config.default_config_path,
-      ])
-      exit 0
-    else
-      exit 1
     end
   end
 
