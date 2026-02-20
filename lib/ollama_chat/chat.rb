@@ -127,13 +127,6 @@ class OllamaChat::Chat
   #   that manages the thinking mode setting for the Ollama model interactions
   attr_reader :think_mode
 
-  # The debug method accesses the debug configuration setting.
-  #
-  # @return [TrueClass, FalseClass] the current debug mode status
-  def debug
-    OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG
-  end
-
   # The ollama reader returns the Ollama API client instance.
   #
   # @return [Ollama::Client] the configured Ollama API client
@@ -158,37 +151,6 @@ class OllamaChat::Chat
   # @return [OllamaChat::MessageList] A MessageList object containing all
   #   messages associated with this instance
   attr_reader :messages
-
-  # Returns the links set for this object, initializing it lazily if needed.
-  #
-  # The links set is memoized, meaning it will only be created once per object
-  # instance and subsequent calls will return the same Set instance.
-  #
-  # @return [Set] A Set object containing all links associated with this instance
-  def links
-    @links ||= Set.new
-  end
-
-  class << self
-    # The config attribute accessor provides read and write access to the
-    # configuration object associated with this instance.
-    attr_accessor :config
-  end
-
-  # The config= method assigns a new configuration object to the class.
-  #
-  # @param config [ ComplexConfig::Settings ] the configuration object to be set
-  def config=(config)
-    self.class.config = config
-  end
-
-  # The config method returns the configuration object associated with the
-  # class.
-  #
-  # @return [ ComplexConfig::Settings ] the configuration instance
-  def config
-    self.class.config
-  end
 
   # The start method initializes the chat session by displaying information and
   # conversation history, then prompts the user for input to begin interacting
@@ -222,7 +184,24 @@ class OllamaChat::Chat
     OllamaChat::Vim.new(server_name, clientserver:)
   end
 
+  # The debug method accesses the debug configuration setting.
+  #
+  # @return [TrueClass, FalseClass] the current debug mode status
+  def debug
+    OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG
+  end
+
   private
+
+  # Returns the links set for this object, initializing it lazily if needed.
+  #
+  # The links set is memoized, meaning it will only be created once per object
+  # instance and subsequent calls will return the same Set instance.
+  #
+  # @return [Set] A Set object containing all links associated with this instance
+  def links
+    @links ||= Set.new
+  end
 
   # Handles user input commands and processes chat interactions.
   #

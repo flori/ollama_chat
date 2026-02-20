@@ -4,7 +4,30 @@
 # The module also ensures default values are set and validates configuration
 # structure.
 module OllamaChat::ConfigHandling
+  extend Tins::Concern
+
+  class_methods do
+    # The config attribute accessor provides read and write access to the
+    # configuration object associated with this instance.
+    attr_accessor :config
+  end
+
+  # The config method returns the configuration object associated with the
+  # class.
+  #
+  # @return [ ComplexConfig::Settings ] the configuration instance
+  def config
+    self.class.config
+  end
+
   private
+
+  # The config= method assigns a new configuration object to the class.
+  #
+  # @param config [ ComplexConfig::Settings ] the configuration object to be set
+  def config=(config)
+    self.class.config = config
+  end
 
   # The display_config method renders the configuration and displays it using a
   # pager. It determines an appropriate pager command based on environment
