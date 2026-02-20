@@ -13,16 +13,6 @@
 # @example Changing the system prompt
 #   chat.change_system_prompt('default_prompt', system: '?sherlock')
 module OllamaChat::Dialog
-  private
-
-  # The connect_message method displays a connection status message.
-  #
-  # @param model [String] the model name to connect to
-  # @param base_url [String] the base URL of the connection
-  def connect_message(model, base_url)
-    STDOUT.puts green { "Connecting to #{model}@#{base_url} now…" }
-  end
-
   # The ask? method prompts the user with a question and returns their input.
   #
   # @param prompt [ String ] the message to display to the user
@@ -31,6 +21,16 @@ module OllamaChat::Dialog
   def ask?(prompt:)
     print prompt
     STDIN.gets.to_s.chomp
+  end
+
+  private
+
+  # The connect_message method displays a connection status message.
+  #
+  # @param model [String] the model name to connect to
+  # @param base_url [String] the base URL of the connection
+  def connect_message(model, base_url)
+    STDOUT.puts green { "Connecting to #{model}@#{base_url} now…" }
   end
 
   # The choose_collection method presents a menu to select or create a document
