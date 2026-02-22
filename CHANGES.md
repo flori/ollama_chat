@@ -1,5 +1,104 @@
 # Changes
 
+## 2026-02-23 v0.0.69
+
+- Reorganized access modifiers in `module OllamaChat::Dialog`, moving `ask?` to
+  be public before the `private` keyword.  
+- Moved `links`, `debug`, `config=`, and `config` from public to private in
+  `lib/ollama_chat/chat.rb`.  
+- Added a `class_methods` block in `lib/ollama_chat/config_handling.rb`
+  declaring a class‑level `config` accessor via `Tins::Concern`.  
+- Added a private `config=` method in `config_handling.rb` to write to the
+  class‑level `config`.  
+- Kept a public `config` method that returns `self.class.config`.  
+- Added `private` to modules: `OllamaChat::Clipboard`,
+  `OllamaChat::Conversation`, `OllamaChat::Dialog`,
+  `OllamaChat::DocumentCache`, `OllamaChat::History`,
+  `OllamaChat::InputContent`, `OllamaChat::MessageEditing`,
+  `OllamaChat::ModelHandling`, `OllamaChat::ServerSocket` and removed the
+  `private` declaration from `OllamaChat::ToolCalling`.  
+- Updated spec files to call `expose` on `OllamaChat::Chat.new(argv:
+  chat_default_config)` and on `Object.extend(described_class)` so that private
+  helpers can be exercised during testing.  
+- Ensured the command‑handling logic in `handle_input` continues to invoke the
+  newly private methods correctly.  
+- Added `tool_function(name)` helper to `OllamaChat::ToolCalling` for
+  centralised tool config lookup.  
+- Updated `lib/ollama_chat/follow_chat.rb` to use `@chat.tool_function(name)`
+  instead of `config.tools.functions[name]`.  
+- Modified `lib/ollama_chat/switches.rb` switch messages to lower‑case
+  “support” (`"Tools support enabled."` / `"Tools support disabled."`).  
+- In `lib/ollama_chat/tool_calling.rb`, replaced `config.tools.functions[tool]`
+  with `tool_function(tool)` when printing tools and checking
+  `require_confirmation?`.  
+- Added a `private` section header in `lib/ollama_chat/tool_calling.rb` for
+  clarity.  
+- Adjusted spec regex in `spec/ollama_chat/chat_spec.rb` to match updated
+  message (`Tools support enabled`).  
+- Added `OllamaChat::ConfigHandling` module in
+  `lib/ollama_chat/config_handling.rb` with `display_config`, `fix_config`,
+  `edit_config`.  
+- Required `ollama_chat/config_handling` in `lib/ollama_chat.rb`.  
+- Included `OllamaChat::ConfigHandling` in `OllamaChat::Chat`.  
+- Updated `/config` command regex to `^/config(?:\\s+(edit))?$` and dispatched
+  to `edit_config` or `display_config`.  
+- Removed old `display_config`, `fix_config`, `edit_config` methods from
+  `chat.rb`.  
+- Added helper methods `tool_configured?`, `tool_registered?`, `tool_enabled?`
+  to `OllamaChat::ToolCalling` for cleaner tool state checks.  
+- Updated `FollowChat` to use the new helpers instead of direct config/registry
+  lookups (`@chat.config.tools.functions.attribute_set?(name)` →
+  `@chat.tool_configured?(name)`, `OllamaChat::Tools.registered?(name)` →
+  `@chat.tool_registered?(name)`, `@chat.enabled_tools.member?(name)` →
+  `@chat.tool_enabled?(name)`).  
+- Refactored `default_enabled_tools` in `OllamaChat::ToolCalling` to call
+  `tool_registered?` and adjusted `list_tools` to use `tool_enabled?` for
+  checkbox rendering.  
+- Simplified `Fetcher#fetch` signature from `fetch(url, headers: {}, options:
+  {})` to `fetch(url, opts = {})`; updated documentation to reflect the new
+  `opts` hash and optional `:headers` key.  
+- Added guard in `lib/ollama_chat/follow_chat.rb` to skip execution of disabled
+  tools and record an error in `@chat.tool_call_results`.  
+- Added `attr_reader :enabled_tools` to `OllamaChat::ToolCalling` and replaced
+  all `@enabled_tools` references with the reader.  
+- Updated `tools`, `list_tools`, `enable_tool`, and `disable_tool` to use
+  `enabled_tools` instead of the instance variable.  
+- Updated `/tools` command to accept `on`/`off` and handle them.  
+- Added `tools_support` switch in `switches.rb` reflecting
+  `config.tools.enabled`.  
+- Refactored config to use `enabled:` and `functions:` under `tools:`.  
+- Updated all tool references to `config.tools.functions`.  
+- Guard tool calls with `@tools_support.off?` in `tool_calling.rb`.  
+- Updated `default_enabled_tools` and `list_tools` to use
+  `config.tools.functions`.  
+- Added `tools_support.show` to `information.rb`.  
+- Updated tool implementations (`directory_structure`, `execute_grep`,
+  `file_context`, `get_current_weather`, `get_cve`, `get_endoflife`,
+  `import_url`, `read_file`, `search_web`, `write_file`) to use
+  `config.tools.functions`.  
+- Adjusted specs to reference `functions` and modify `gem_path_lookup` spec to
+  return a symbol.  
+- Added `OLLAMA_CHAT_TOOLS_RUN_TESTS_TEST_RUNNER` to `.envrc` for the
+  `run_tests` tool.  
+- Removed gem system updates from Dockerfile.  
+- Removed `model_with_size` and `choose_model` from
+  `lib/ollama_chat/dialog.rb`.  
+- Added `model_with_size` and `choose_model` to
+  `lib/ollama_chat/model_handling.rb`.  
+- In `lib/ollama_chat/env_config.rb`, changed `decode` lambda to use
+  `Pathname.new(_1).join('ollama_chat').expand_path` for absolute paths.  
+- In `lib/ollama_chat/ollama_chat_config.rb`, replaced
+  `File.directory?(cache_dir_path)` with `cache_dir_path.directory?`.  
+- Updated `default_path`, `config_dir_path`, `cache_dir_path`, and
+  `database_path` to consistently return `Pathname` objects.  
+- Added `and_call_original` to source fetching test.  
+- Removed `bundle update --all` from `.all_images.yml`.  
+- Added `before:` block to `.all_images.yml` that echoes 'Preparing…' and
+  deletes `Gemfile.lock`.  
+- Added `after:` block to `.all_images.yml` that checks `$RESULT` and prints
+  success/failure messages, then deletes `Gemfile.lock`.  
+- Updated dependency `all_images` to **~>0.12**.  
+
 ## 2026-02-19 v0.0.68
 
 - Added JSON serialization for directory structure in `OllamaChat::Parsing`
