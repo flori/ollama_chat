@@ -150,3 +150,5 @@ tools:
     get_rfc:
       url: "https://www.rfc-editor.org/rfc/rfc%{rfc_id}.txt"
       default: true
+    generate_password:
+      default: true
