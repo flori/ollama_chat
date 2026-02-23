@@ -1,7 +1,7 @@
 ---
 proxy: null # http://localhost:8080
 model:
-  name: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::MODEL %>
+  name: <%= OC::OLLAMA::CHAT::MODEL %>
   options:
     num_ctx: 8192
 timeouts:
@@ -32,7 +32,7 @@ prompts:
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
 system_prompts:
-  default: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::SYSTEM || 'null' %>
+  default: <%= OC::OLLAMA::CHAT::SYSTEM || 'null' %>
   assistant: You are a helpful assistant.
 voice:
   enabled: false
@@ -57,7 +57,7 @@ embedding:
     prompt: 'Represent this sentence for searching relevant passages: %s'
   batch_size: 10
   database_filename: null # ':memory:'
-  collection: <%= OllamaChat::EnvConfig::OLLAMA::CHAT::COLLECTION %>
+  collection: <%= OC::OLLAMA::CHAT::COLLECTION %>
   found_texts_size: 4096
   found_texts_count: 10
   splitter:
@@ -66,9 +66,9 @@ embedding:
 cache: Documentrix::Documents::SQLiteCache
 redis:
   documents:
-    url: <%= OllamaChat::EnvConfig::OLLAMA::REDIS_URL %>
+    url: <%= OC::OLLAMA::REDIS_URL %>
   expiring:
-    url: <%= OllamaChat::EnvConfig::OLLAMA::REDIS_EXPIRING_URL %>
+    url: <%= OC::OLLAMA::REDIS_EXPIRING_URL %>
     ex: 86400
 working_dir_dependent_socket: true
 request_headers:
@@ -81,7 +81,7 @@ web_search:
     duckduckgo:
       url: 'https://www.duckduckgo.com/html/?q=%{query}'
     searxng:
-      url: <%= OllamaChat::EnvConfig::OLLAMA::SEARXNG_URL %>
+      url: <%= OC::OLLAMA::SEARXNG_URL %>
 vim:
   clientserver: socket
 tools:

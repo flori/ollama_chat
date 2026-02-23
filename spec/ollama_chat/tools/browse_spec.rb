@@ -99,7 +99,7 @@ describe OllamaChat::Tools::Browse do
 
   context 'when browser is configured' do
     before do
-      const_conf_as('OllamaChat::EnvConfig::BROWSER' => 'the-bestest-browser')
+      const_conf_as('OC::BROWSER' => 'the-bestest-browser')
     end
 
     it 'can be executed successfully with a URL' do

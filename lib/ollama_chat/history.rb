@@ -28,7 +28,7 @@ module OllamaChat::History
   # @return [String] the absolute file path to the chat history file as
   #   specified in the configuration
   def chat_history_filename
-    File.expand_path(OllamaChat::EnvConfig::OLLAMA::CHAT::HISTORY)
+    File.expand_path(OC::OLLAMA::CHAT::HISTORY)
   end
 
   # The init_chat_history method initializes the chat session by loading

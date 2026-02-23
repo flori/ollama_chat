@@ -1,171 +1,169 @@
 require 'const_conf'
 require 'pathname'
 
-module OllamaChat
-  # Environment configuration module for OllamaChat
-  #
-  # This module provides a structured way to manage environment variables and
-  # configuration settings for the OllamaChat application. It uses the
-  # ConstConf library to define and manage configuration parameters with
-  # default values, descriptions, and decoding logic.
-  #
-  # The module organizes configuration into logical sections including general
-  # settings, Ollama-specific configurations, and chat-specific options.
-  module EnvConfig
-    include ConstConf
+# Environment configuration module for OllamaChat
+#
+# This module provides a structured way to manage environment variables and
+# configuration settings for the OllamaChat application. It uses the
+# ConstConf library to define and manage configuration parameters with
+# default values, descriptions, and decoding logic.
+#
+# The module organizes configuration into logical sections including general
+# settings, Ollama-specific configurations, and chat-specific options.
+module OC
+  include ConstConf
 
-    description 'Environment config for OllamaChat'
-    prefix ''
+  description 'Environment config for OllamaChat'
+  prefix ''
 
-    XDG_CONFIG_HOME = set do
-      description 'XDG Configuration directory path'
-      default { '~/.config' }
-      decode  { Pathname.new(_1).join('ollama_chat').expand_path }
-    end
+  XDG_CONFIG_HOME = set do
+    description 'XDG Configuration directory path'
+    default { '~/.config' }
+    decode  { Pathname.new(_1).join('ollama_chat').expand_path }
+  end
 
-    XDG_CACHE_HOME = set do
-      description 'XDG Cache directory path'
-      default { '~/.cache' }
-      decode  { Pathname.new(_1).join('ollama_chat').expand_path }
-    end
+  XDG_CACHE_HOME = set do
+    description 'XDG Cache directory path'
+    default { '~/.cache' }
+    decode  { Pathname.new(_1).join('ollama_chat').expand_path }
+  end
 
-    PAGER = set do
-      description 'Pager command to use in case terminal lines are exceeded by output'
+  PAGER = set do
+    description 'Pager command to use in case terminal lines are exceeded by output'
 
-      default do
-        if fallback_pager = `which less`.full?(:chomp) || `which more`.full?(:chomp)
-          fallback_pager << ' -r'
-        end
+    default do
+      if fallback_pager = `which less`.full?(:chomp) || `which more`.full?(:chomp)
+        fallback_pager << ' -r'
       end
     end
+  end
 
-    EDITOR = set do
-      description 'Editor to use'
+  EDITOR = set do
+    description 'Editor to use'
 
-      default do
-        if  editor = %w[ vim vi ].find { `which #{_1}`.full?(:chomp) }
-          editor
-        else
-          warn 'Need an editor command configured via env var "EDITOR"'
-        end
+    default do
+      if  editor = %w[ vim vi ].find { `which #{_1}`.full?(:chomp) }
+        editor
+      else
+        warn 'Need an editor command configured via env var "EDITOR"'
       end
     end
+  end
 
-    BROWSER = set do
-      description 'Browser to use'
+  BROWSER = set do
+    description 'Browser to use'
 
-      default do
-        %w[ open xdg-open ].find { `which #{_1}` }.full?(:chomp)
+    default do
+      %w[ open xdg-open ].find { `which #{_1}` }.full?(:chomp)
+    end
+  end
+
+  DIFF_TOOL = set do
+    description 'Diff tool to apply changes with'
+
+    default do
+      if  diff = `which vimdiff`.full?(:chomp)
+        diff
+      else
+        warn 'Need a diff tool configured via env var "DIFF_TOOL"'
       end
     end
+  end
 
-    DIFF_TOOL = set do
-      description 'Diff tool to apply changes with'
+  KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES = set do
+    description 'Styles to use for kramdown-ansi markdown'
 
-      default do
-        if  diff = `which vimdiff`.full?(:chomp)
-          diff
-        else
-          warn 'Need a diff tool configured via env var "DIFF_TOOL"'
-        end
-      end
+    default ENV['KRAMDOWN_ANSI_STYLES'].full?
+  end
+
+  module OLLAMA
+    description 'Ollama Configuration'
+    prefix 'OLLAMA'
+
+    HOST = set do
+      description 'Ollama "host" to connect to'
+      default     'localhost:11434'
     end
 
-    KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES = set do
-      description 'Styles to use for kramdown-ansi markdown'
-
-      default ENV['KRAMDOWN_ANSI_STYLES'].full?
+    URL = set do
+      description 'Ollama base URL to connect to'
+      default     { 'http://%s' % OC::OLLAMA::HOST }
+      sensitive   true
     end
 
-    module OLLAMA
-      description 'Ollama Configuration'
-      prefix 'OLLAMA'
+    SEARXNG_URL = set do
+      description 'URL for the SearXNG service for searches'
+      default     'http://localhost:8088/search?q=%{query}&language=en&format=json'
+      sensitive   true
+    end
 
-      HOST = set do
-        description 'Ollama "host" to connect to'
-        default     'localhost:11434'
+    REDIS_URL = set do
+      description 'Redis URL for documents'
+      default     { ENV['REDIS_URL'].full?  }
+      sensitive   true
+    end
+
+    REDIS_EXPIRING_URL = set do
+      description 'Redis URL for caching'
+      default     { OC::OLLAMA::REDIS_URL? || ENV['REDIS_URL'].full? }
+      sensitive   true
+    end
+
+    module CHAT
+      description 'OllamaChat Configuration'
+
+      DEBUG = set do
+        description 'Enable debugging for chat client'
+        decode { _1.to_i == 1 }
+        default 0
       end
 
-      URL = set do
-        description 'Ollama base URL to connect to'
-        default     { 'http://%s' % OllamaChat::EnvConfig::OLLAMA::HOST }
-        sensitive   true
+      MODEL = set do
+        description 'Default model to use for the chat'
+        default 'llama3.1'
       end
 
-      SEARXNG_URL = set do
-        description 'URL for the SearXNG service for searches'
-        default     'http://localhost:8088/search?q=%{query}&language=en&format=json'
-        sensitive   true
+      SYSTEM = set do
+        description 'Default system prompt'
       end
 
-      REDIS_URL = set do
-        description 'Redis URL for documents'
-        default     { ENV['REDIS_URL'].full?  }
-        sensitive   true
+      COLLECTION = set do
+        description 'Default collection for embeddings'
       end
 
-      REDIS_EXPIRING_URL = set do
-        description 'Redis URL for caching'
-        default     { EnvConfig::OLLAMA::REDIS_URL? || ENV['REDIS_URL'].full? }
-        sensitive   true
+      HISTORY = set do
+        description 'File to save the chat history in'
+        default     XDG_CACHE_HOME + 'history.json'
       end
 
-      module CHAT
-        description 'OllamaChat Configuration'
+      module TOOLS
+        description 'Tool specific configuration settings'
 
-        DEBUG = set do
-          description 'Enable debugging for chat client'
-          decode { _1.to_i == 1 }
-          default 0
+        # Run Tests tool configuration
+        RUN_TESTS_TEST_RUNNER = set do
+          description 'Configured test runner for run_tests tool function'
+          default     'rspec'
+          required     true
         end
 
-        MODEL = set do
-          description 'Default model to use for the chat'
-          default 'llama3.1'
-        end
+        module JIRA
+          description 'Jira tool configuration'
 
-        SYSTEM = set do
-          description 'Default system prompt'
-        end
-
-        COLLECTION = set do
-          description 'Default collection for embeddings'
-        end
-
-        HISTORY = set do
-          description 'File to save the chat history in'
-          default     XDG_CACHE_HOME + 'history.json'
-        end
-
-        module TOOLS
-          description 'Tool specific configuration settings'
-
-          # Run Tests tool configuration
-          RUN_TESTS_TEST_RUNNER = set do
-            description 'Configured test runner for run_tests tool function'
-            default     'rspec'
-            required     true
+          URL = set do
+            description 'Base URL for Jira instance'
+            sensitive   true
           end
 
-          module JIRA
-            description 'Jira tool configuration'
+          USER = set do
+            description 'Username for Jira authentication'
+            sensitive   true
+            required { OC::OLLAMA::CHAT::TOOLS::JIRA::URL? }
+          end
 
-            URL = set do
-              description 'Base URL for Jira instance'
-              sensitive   true
-            end
-
-            USER = set do
-              description 'Username for Jira authentication'
-              sensitive   true
-              required { OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::URL? }
-            end
-
-            API_TOKEN = set do
-              description 'API token for Jira authentication'
-              sensitive   true
-              required { OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::URL? }
-            end
+          API_TOKEN = set do
+            description 'API token for Jira authentication'
+            sensitive   true
+            required { OC::OLLAMA::CHAT::TOOLS::JIRA::URL? }
           end
         end
       end

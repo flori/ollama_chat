@@ -12,7 +12,7 @@ describe OllamaChat::MessageEditing do
       # First add a message to work with
       chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
 
-      const_conf_as('OllamaChat::EnvConfig::EDITOR' => '/usr/bin/vim')
+      const_conf_as('OC::EDITOR' => '/usr/bin/vim')
 
       # Mock Tempfile behavior to simulate editor interaction
       tmp_double = double('tmp', write: true, flush: true, path: '/tmp/test')
@@ -36,7 +36,7 @@ describe OllamaChat::MessageEditing do
     it 'handles missing editor gracefully' do
       chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
 
-      const_conf_as('OllamaChat::EnvConfig::EDITOR' => nil)
+      const_conf_as('OC::EDITOR' => nil)
 
       expect(STDERR).to receive(:puts).with(/Editor required for revise/)
       expect(chat.revise_last).to be_nil
@@ -51,7 +51,7 @@ describe OllamaChat::MessageEditing do
     end
 
     it 'handles editor failure' do
-      const_conf_as('OllamaChat::EnvConfig::EDITOR' => '/usr/bin/vim')
+      const_conf_as('OC::EDITOR' => '/usr/bin/vim')
       chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
       tmp_double = double('tmp', write: true, flush: true, path: '/tmp/test')
       expect(Tempfile).to receive(:open).and_yield(tmp_double)

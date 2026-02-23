@@ -34,7 +34,7 @@ module OllamaChat::ConfigHandling
   # variables and available system commands, then uses Kramdown::ANSI::Pager to
   # show the formatted configuration output.
   def display_config
-    command  = OllamaChat::EnvConfig::PAGER?
+    command  = OC::PAGER?
     rendered = config.to_s
     Kramdown::ANSI::Pager.pager(
       lines: rendered.count(?\n),
@@ -55,7 +55,7 @@ module OllamaChat::ConfigHandling
     save_conversation('backup.json')
     STDOUT.puts "When reading the config file, a #{exception.class} "\
       "exception was caught: #{exception.message.inspect}"
-    unless diff_tool = OllamaChat::EnvConfig::DIFF_TOOL?
+    unless diff_tool = OC::DIFF_TOOL?
       exit 1
     end
     if ask?(prompt: 'Do you want to fix the config? (y/n) ') =~ /\Ay/i
@@ -73,7 +73,7 @@ module OllamaChat::ConfigHandling
   # Edit the current configuration file in the editor defined by the
   # environment variable `EDITOR`.
   #
-  # 1. Looks up the editor command via `OllamaChat::EnvConfig::EDITOR`.
+  # 1. Looks up the editor command via `OC::EDITOR`.
   #    If the value is `nil` or empty, it prints an error message to
   #    STDERR and returns immediately.
   # 2. Invokes the editor with the path to the active configuration
@@ -83,7 +83,7 @@ module OllamaChat::ConfigHandling
   # 3. If editing was successful, prompts the user to restart
   #    `ollama_chat` if desired.
   def edit_config
-    unless editor = OllamaChat::EnvConfig::EDITOR?
+    unless editor = OC::EDITOR?
       STDERR.puts "Need the environment variable var EDITOR defined to use an editor"
       return
     end

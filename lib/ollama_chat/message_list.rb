@@ -320,7 +320,7 @@ class OllamaChat::MessageList
   # '-r' flag for proper handling of raw control characters when a fallback
   # pager is used.
   def determine_pager_command
-    OllamaChat::EnvConfig::PAGER?
+    OC::PAGER?
   end
 
   # The message_text_for method generates formatted text representation of a

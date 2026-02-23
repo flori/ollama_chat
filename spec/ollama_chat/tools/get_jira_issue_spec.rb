@@ -22,9 +22,9 @@ describe OllamaChat::Tools::GetJiraIssue do
   context 'when configured via env var' do
     before do
       const_conf_as(
-        'OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::URL'       => 'https://foobar.atlassian.net',
-        'OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::USER'      => 'theuser',
-        'OllamaChat::EnvConfig::OLLAMA::CHAT::TOOLS::JIRA::API_TOKEN' => 'secret',
+        'OC::OLLAMA::CHAT::TOOLS::JIRA::URL'       => 'https://foobar.atlassian.net',
+        'OC::OLLAMA::CHAT::TOOLS::JIRA::USER'      => 'theuser',
+        'OC::OLLAMA::CHAT::TOOLS::JIRA::API_TOKEN' => 'secret',
       )
     end
 

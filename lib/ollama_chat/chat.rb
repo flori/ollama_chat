@@ -188,7 +188,7 @@ class OllamaChat::Chat
   #
   # @return [TrueClass, FalseClass] the current debug mode status
   def debug
-    OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG
+    OC::OLLAMA::CHAT::DEBUG
   end
 
   private
@@ -692,7 +692,7 @@ class OllamaChat::Chat
   #
   # @return [String] the base URL used for connecting to the Ollama API
   def base_url
-    @opts[?u] || OllamaChat::EnvConfig::OLLAMA::URL
+    @opts[?u] || OC::OLLAMA::URL
   end
 
   # The connect_ollama method establishes a connection to the Ollama API server.

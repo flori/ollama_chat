@@ -77,7 +77,7 @@ class OllamaChat::Tools::Browse
   # @param url [String] the URL or file path to open
   # @return [Process::Status] the process status of the system call
   def browse_url(url)
-    browser = OllamaChat::EnvConfig::BROWSER? || "open"
+    browser = OC::BROWSER? || "open"
     system %{#{browser} #{Shellwords.escape(url)}}
     $?
   end

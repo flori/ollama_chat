@@ -8,7 +8,7 @@ describe OllamaChat::KramdownANSI do
   describe '#configure_kramdown_ansi_styles', protect_env: true do
     it 'can be configured via env var' do
       const_conf_as(
-        'OllamaChat::EnvConfig::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES' => '{"foo":"bar"}'
+        'OC::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES' => '{"foo":"bar"}'
       )
       styles = { bold: '1' }
       expect(Kramdown::ANSI::Styles).to receive(:from_json).
@@ -20,7 +20,7 @@ describe OllamaChat::KramdownANSI do
 
     it 'has a default configuration' do
       const_conf_as(
-        'OllamaChat::EnvConfig::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES' => nil
+        'OC::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES' => nil
       )
       expect(chat.configure_kramdown_ansi_styles).to be_a(Hash)
     end

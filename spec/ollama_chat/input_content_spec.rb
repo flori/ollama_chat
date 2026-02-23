@@ -98,7 +98,7 @@ describe OllamaChat::InputContent do
   describe '#compose' do
     it 'can open editor to compose content' do
       # Mock editor configuration
-      const_conf_as('OllamaChat::EnvConfig::EDITOR' => '/usr/bin/vim')
+      const_conf_as('OC::EDITOR' => '/usr/bin/vim')
 
       # Mock Tempfile behavior
       tmp_double = double('tmp', path: '/tmp/test')
@@ -115,14 +115,14 @@ describe OllamaChat::InputContent do
     end
 
     it 'handles missing editor gracefully' do
-      const_conf_as('OllamaChat::EnvConfig::EDITOR' => nil)
+      const_conf_as('OC::EDITOR' => nil)
 
       expect(STDERR).to receive(:puts).with(/Editor required for compose/)
       expect(chat.compose).to be_nil
     end
 
     it 'handles editor failure' do
-      const_conf_as('OllamaChat::EnvConfig::EDITOR' => '/usr/bin/vim')
+      const_conf_as('OC::EDITOR' => '/usr/bin/vim')
 
       tmp_double = double('tmp', path: '/tmp/test')
       expect(Tempfile).to receive(:open).and_yield(tmp_double)

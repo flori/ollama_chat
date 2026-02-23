@@ -54,7 +54,7 @@ class OllamaChat::Tools::GetCVE
       headers: {
         'Accept' => 'application/json',
       },
-      debug: OllamaChat::EnvConfig::OLLAMA::CHAT::DEBUG,
+      debug: OC::OLLAMA::CHAT::DEBUG,
       reraise: true,
       &valid_json?
     )

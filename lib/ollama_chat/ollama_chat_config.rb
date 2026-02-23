@@ -87,7 +87,7 @@ class OllamaChat::OllamaChatConfig
   # @return [ Pathname ] the pathname object representing the configuration
   #   directory
   def config_dir_path
-    OllamaChat::EnvConfig::XDG_CONFIG_HOME
+    OC::XDG_CONFIG_HOME
   end
 
   # The cache_dir_path method returns the path to the ollama_chat cache
@@ -95,7 +95,7 @@ class OllamaChat::OllamaChatConfig
   #
   # @return [ Pathname ] the pathname object representing the cache directory path
   def cache_dir_path
-    OllamaChat::EnvConfig::XDG_CACHE_HOME
+    OC::XDG_CACHE_HOME
   end
 
   # The database_path method constructs the full path to the documents database
@@ -112,6 +112,6 @@ class OllamaChat::OllamaChatConfig
   #
   # @return [ String ] the command name of the diff tool to be used
   def diff_tool
-    OllamaChat::EnvConfig::DIFF_TOOL?
+    OC::DIFF_TOOL?
   end
 end

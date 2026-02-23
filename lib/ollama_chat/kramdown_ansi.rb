@@ -18,7 +18,7 @@ module OllamaChat::KramdownANSI
   # @return [ Hash ] a hash of ANSI styles configured either from environment
   #   variables or using default settings
   def configure_kramdown_ansi_styles
-    if json = OllamaChat::EnvConfig::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES?
+    if json = OC::KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES?
       Kramdown::ANSI::Styles.from_json(json).ansi_styles
     else
       Kramdown::ANSI::Styles.new.ansi_styles

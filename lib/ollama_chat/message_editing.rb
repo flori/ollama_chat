@@ -18,9 +18,9 @@ module OllamaChat::MessageEditing
   # @return [String, nil] the edited content if successful, nil otherwise
   def revise_last
     if message = @messages.last
-      unless editor = OllamaChat::EnvConfig::EDITOR?
+      unless editor = OC::EDITOR?
         STDERR.puts "Editor required for revise, set env var " \
-          "#{OllamaChat::EnvConfig::EDITOR!.env_var.inspect}."
+          "#{OC::EDITOR!.env_var.inspect}."
         return
       end
 
