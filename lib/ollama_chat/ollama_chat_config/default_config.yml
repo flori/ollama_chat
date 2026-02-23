@@ -147,3 +147,6 @@ tools:
       default: true
     get_jira_issue:
       default: false
+    get_rfc:
+      url: "https://www.rfc-editor.org/rfc/rfc%{rfc_id}.txt"
+      default: true
