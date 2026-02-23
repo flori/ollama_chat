@@ -1,5 +1,41 @@
 # Changes
 
+## 2026-02-23 v0.0.70
+
+- Added `generate_password` tool with secure password generation, supporting
+  multiple alphabet types.  
+- Updated `tins` gem dependency to **1.52**.  
+- Added comprehensive tests for `generate_password` with various parameters.  
+- Registered `generate_password` tool in the gemspec and configured it in
+  `default_config.yml`.  
+- Added `get_rfc` tool for fetching RFC documents, including URL template
+  configuration in `default_config.yml`.  
+- Implemented `OllamaChat::Tools::GetRFC` class and required it in `tools.rb`.  
+- Added comprehensive test suite for `get_rfc` in `get_rfc_spec.rb`.  
+- Implemented backup fallback for conversation loading: `chat.rb` now loads
+  from `OC::XDG_CACHE_HOME.join('backup.json')` when `-c` is not provided, and
+  deletes the backup after successful load.  
+- Updated `config_handling.rb` to save backups to
+  `OC::XDG_CACHE_HOME.join('backup.json')` instead of the current directory.  
+- Modified `message_list.rb` to print file‑existence errors using
+  `filename.to_s.inspect` and to safely remove the backup file with
+  `FileUtils.rm_f`.  
+- Renamed `OllamaChat::EnvConfig` to `OC` module alias, updating all references
+  accordingly.  
+- Added new constants: `OC::OLLAMA::SEARXNG_URL`, `OC::OLLAMA::REDIS_URL`,
+  `OC::OLLAMA::REDIS_EXPIRING_URL`.  
+- Updated nested module paths, e.g., `OC::OLLAMA::CHAT::TOOLS::JIRA` and
+  `OC::OLLAMA::CHAT::TOOLS::RUN_TESTS_TEST_RUNNER`.  
+- Refactored code to use nested class structure within the module and added
+  comprehensive YARD documentation with `@param`, `@return`, and `@example`
+  tags.  
+- Added module‑level documentation explaining tool purpose.  
+- Added YARD documentation to `read_file.rb`, including module docstring,
+  return type `[Ollama::Tool]`, and execute method parameter/return
+  documentation.  
+- Removed empty `lib/ollama_chat/tools/endoflife.rb`; the functionality is now
+  provided by the `get_endoflife` tool.
+
 ## 2026-02-23 v0.0.69
 
 - Reorganized access modifiers in `module OllamaChat::Dialog`, moving `ask?` to
