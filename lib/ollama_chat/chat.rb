@@ -97,8 +97,11 @@ class OllamaChat::Chat
     @model           = choose_model(@opts[?m], config.model.name)
     @model_options   = Ollama::Options[config.model.options]
     @model_system    = pull_model_unless_present(@model, @model_options)
-    if @opts[?c]
-      messages.load_conversation(@opts[?c])
+    if conversation_file = @opts[?c]
+      messages.load_conversation(conversation_file)
+    elsif backup_file = OC::XDG_CACHE_HOME + 'backup.json' and backup_file.exist?
+      messages.load_conversation(backup_file)
+      FileUtils.rm_f backup_file
     else
       setup_system_prompt
     end

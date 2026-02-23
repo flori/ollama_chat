@@ -52,7 +52,7 @@ module OllamaChat::ConfigHandling
   # @param exception [Exception] the exception that occurred while reading
   #   the config file
   def fix_config(exception)
-    save_conversation('backup.json')
+    save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
     STDOUT.puts "When reading the config file, a #{exception.class} "\
       "exception was caught: #{exception.message.inspect}"
     unless diff_tool = OC::DIFF_TOOL?
@@ -90,6 +90,7 @@ module OllamaChat::ConfigHandling
     result = system Shellwords.join([ editor, @ollama_chat_config.filename ])
     if result
       if ask?(prompt: "Do you want to restart #{progname}? (y/n) ") =~ /\Ay/i
+        save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
         exec($0, *ARGV)
       end
     else

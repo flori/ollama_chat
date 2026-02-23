@@ -108,7 +108,7 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] self
   def load_conversation(filename)
     unless File.exist?(filename)
-      STDERR.puts "File #{filename.inspect} doesn't exist. Choose another filename."
+      STDERR.puts "File #{filename.to_s.inspect} doesn't exist. Choose another filename."
       return
     end
     @messages =
