@@ -156,7 +156,7 @@ module OllamaChat::Information
       /tools [enable|disable|on|off]  list enabled, enable/disable tools, support on/off
       /vim                            insert the last message into a vim server
       /quit                           to quit
-      /help                           to view this help
+      /help [me]                      to view this help (me = interactive ai help)
     EOT
   end
 

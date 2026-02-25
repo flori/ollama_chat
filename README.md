@@ -190,7 +190,7 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 /tools [enable|disable|on|off]  list enabled, enable/disable tools, support on/off
 /vim                            insert the last message into a vim server
 /quit                           to quit
-/help                           to view this help
+/help [me]                      to view this help (me = interactive ai help)
 ```
 
 ### Using `ollama_chat_send` to send input to a running `ollama_chat`

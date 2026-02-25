@@ -209,6 +209,11 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/nixda")).to eq :next
     end
 
+    it 'returns :next when input is "/help me"' do
+      expect(chat).to receive(:display_chat_help_message).and_return 'the help message'
+      expect(chat.handle_input("/help me")).to include 'the help message'
+    end
+
     it 'returns :next when input is "   "' do
       expect(STDOUT).to receive(:puts).with(/to quit/)
       expect(chat.handle_input("   ")).to eq :next

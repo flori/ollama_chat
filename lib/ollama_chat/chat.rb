@@ -396,6 +396,8 @@ class OllamaChat::Chat
     when %r(^/quit$), nil
       STDOUT.puts "Goodbye."
       :return
+    when %r(^/help me$)
+      config.prompts.help % { commands: display_chat_help_message }
     when %r(^/)
       display_chat_help
       :next

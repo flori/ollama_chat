@@ -31,6 +31,14 @@ prompts:
 
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
+  help: |
+      Wait for the user to ask questions about the usage of chat commands. Just
+      list the command names separated by spaces (no descriptions yet) and
+      offer to answer any questions about any of them. Interactively help the
+      user by answering questions about the following
+      chat commands:
+
+      %{commands}
 system_prompts:
   default: <%= OC::OLLAMA::CHAT::SYSTEM || 'null' %>
   assistant: You are a helpful assistant.
