@@ -90,6 +90,39 @@ class OllamaChat::MessageList
     @messages.last
   end
 
+  # Find the *last* message that satisfies the supplied block.
+  #
+  # @param content [Boolean] If `true`, skip messages that have no content
+  #   (`m.content.present?` is `false`).  This is useful when you only care
+  #   about messages that actually contain a payload (e.g. assistant
+  #   replies, user queries, etc.).
+  #
+  # @yield [Message] yields each message in reverse order (from newest to
+  #   oldest) until the block returns a truthy value.
+  #
+  # @yieldparam [OllamaChat::Message] message the current message being inspected
+  # @yieldreturn [Boolean] whether the message matches the criteria
+  #
+  # @return [OllamaChat::Message, nil] the first message that matches the
+  #   block, or `nil` if none match.
+  #
+  # @example Find the last assistant message that contains content
+  #   last_assistant = message_list.find_last(content: true) { |m| m.role == 'assistant' }
+  #
+  # @example Find the last user message regardless of content
+  #   last_user = message_list.find_last { |m| m.role == 'user' }
+  #
+  # @note The method iterates in reverse order (`reverse_each`) so that
+  #   the *most recent* matching message is returned.  It also respects
+  #   the `content` flag to skip empty messages, which is handy when the
+  #   chat history contains empty messages e. g. when tool calling.
+  def find_last(content: false, &block)
+    @messages.reverse_each.find { |m|
+      content and !m.content.present? and next
+      block.(m)
+    }
+  end
+
   # The second_last method returns the second-to-last message from the
   # conversation if there are more than one non-system messages.
   #

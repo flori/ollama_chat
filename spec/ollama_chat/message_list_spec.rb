@@ -59,6 +59,20 @@ describe OllamaChat::MessageList do
     expect(list.last).to be_a Ollama::Message
   end
 
+  describe '#find_last' do
+    it 'can find last message' do
+      expect(list.find_last { true }.content).to eq 'hello'
+    end
+
+    it 'can find last message with or w/o content' do
+      list << Ollama::Message.new(role: 'assistant', content: 'yep')
+      list << Ollama::Message.new(role: 'user', content: 'world')
+      list << Ollama::Message.new(role: 'assistant', content: '')
+      expect(list.find_last { _1.role == 'assistant' }.content).to be_empty
+      expect(list.find_last(content: true) { _1.role == 'assistant' }.content).to eq 'yep'
+    end
+  end
+
   it 'can load conversations if existing' do
     expect(list.messages.first.role).to eq  'system'
     expect(list.load_conversation(asset('conversation-nixda.json'))).to be_nil

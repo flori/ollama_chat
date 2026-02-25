@@ -41,6 +41,7 @@ module OllamaChat::Tools
 end
 require 'ollama_chat/tools/concern'
 require 'ollama_chat/tools/browse'
+require 'ollama_chat/tools/copy_to_clipboard'
 require 'ollama_chat/tools/directory_structure'
 require 'ollama_chat/tools/execute_grep'
 require 'ollama_chat/tools/file_context'

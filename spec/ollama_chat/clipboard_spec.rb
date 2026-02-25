@@ -12,7 +12,7 @@ describe OllamaChat::Clipboard do
     expect(STDERR).to receive(:puts).with(/No response available to copy to the system clipboard/)
     expect(chat.copy_to_clipboard).to be_nil
     chat.instance_variable_get(:@messages).load_conversation(asset('conversation.json'))
-    expect(STDOUT).to receive(:puts).with(/The last response has been copied to the system clipboard/)
+    expect(STDOUT).to receive(:puts).with(/The last response has been successfully copied to the system clipboard/)
     expect(chat.copy_to_clipboard).to be_nil
   end
 
