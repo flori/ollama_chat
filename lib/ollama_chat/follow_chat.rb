@@ -195,7 +195,7 @@ class OllamaChat::FollowChat
   #   and thinking
   def update_last_message(response)
     @messages.last.content << response.message&.content
-    if @chat.think_loud? and response_thinking = response.message&.thinking.full?
+    if @chat.think? and response_thinking = response.message&.thinking.full?
       @messages.last.thinking << response_thinking
     end
   end
@@ -218,7 +218,7 @@ class OllamaChat::FollowChat
     content, thinking = @messages.last.content, @messages.last.thinking
     if @chat.markdown.on?
       content = talk_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(content) }
-      if @chat.think_loud?
+      if @chat.think?
         thinking = think_annotate { truncate_for_terminal@chat.kramdown_ansi_parse(thinking) }
       end
     else
@@ -237,7 +237,11 @@ class OllamaChat::FollowChat
   #   terminal display
   def last_message_with_user
     content, thinking = prepare_last_message
-    [ @user, ?\n, thinking, content ]
+    if thinking.present?
+      [ @user, ?\n, thinking, ?\n, content ]
+    else
+      [ @user, ?\n, content ]
+    end
   end
 
   # The display_formatted_terminal_output method formats and outputs the
@@ -302,7 +306,7 @@ class OllamaChat::FollowChat
   # @param response [ Object ] the response object containing evaluation data
   def output_eval_stats(response)
     response.done or return
-    @output.puts "", "", eval_stats(response)
+    @output.puts "", eval_stats(response)
   end
 
   # The debug_output method conditionally outputs the response object using jj

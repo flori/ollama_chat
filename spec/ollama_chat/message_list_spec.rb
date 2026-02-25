@@ -35,7 +35,7 @@ describe OllamaChat::MessageList do
 
   let :list do
     described_class.new(chat).tap do |list|
-      list << Ollama::Message.new(role: 'system', content: 'hello')
+      list << Ollama::Message.new(role: 'system', content: 'hello', thinking: 'a while')
     end
   end
 
@@ -82,10 +82,19 @@ describe OllamaChat::MessageList do
     expect(list.messages.map(&:role)).to eq %w[ system user assistant ]
   end
 
-  it 'can save conversations' do
-    expect(list.save_conversation('tmp/test-conversation.json')).to eq list
-  ensure
-    FileUtils.rm_f 'tmp/test-conversation.json'
+  describe '.save_conversation' do
+    it 'can save conversations' do
+      expect(list.save_conversation('tmp/test-conversation.json')).to eq list
+    ensure
+      FileUtils.rm_f 'tmp/test-conversation.json'
+    end
+
+    it 'can save conversations with thinking' do
+      expect(list.save_conversation('tmp/test-conversation.json')).to eq list
+      expect(JSON.load(File.new('tmp/test-conversation.json'))[0]['thinking']).to eq 'a while'
+    ensure
+      FileUtils.rm_f 'tmp/test-conversation.json'
+    end
   end
 
   describe "#last" do
@@ -121,7 +130,7 @@ describe OllamaChat::MessageList do
 
     it 'shows nothing when the last message is by the assistant' do
       list = described_class.new(chat)
-      allow(chat).to receive(:think?).and_return(false)
+      allow(chat).to receive(:think_loud?).and_return(false)
       allow(chat).to receive(:markdown).and_return(double(on?: false))
       list << Ollama::Message.new(role: 'assistant', content: 'hello')
       expect(STDOUT).to receive(:puts).
@@ -137,7 +146,7 @@ describe OllamaChat::MessageList do
     end
 
     it "shows last N messages when N is larger than available messages" do
-      allow(chat).to receive(:think?).and_return(false)
+      allow(chat).to receive(:think_loud?).and_return(false)
       allow(chat).to receive(:markdown).and_return(double(on?: false))
       list = described_class.new(chat)
       list << Ollama::Message.new(role: 'system', content: 'hello')
@@ -157,7 +166,7 @@ describe OllamaChat::MessageList do
     it 'can show last message' do
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
-      expect(chat).to receive(:think?).and_return(false).at_least(:once)
+      expect(chat).to receive(:think_loud?).and_return(false).at_least(:once)
       expect(STDOUT).to receive(:puts).
         with("📨 \e[1m\e[38;5;213msystem\e[0m\e[0m:\nhello\n")
       list.show_last
@@ -166,7 +175,7 @@ describe OllamaChat::MessageList do
     it 'can list conversations without thinking' do
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
-      expect(chat).to receive(:think?).and_return(false).at_least(:once)
+      expect(chat).to receive(:think_loud?).and_return(false).at_least(:once)
       list << Ollama::Message.new(role: 'user', content: 'world')
       expect(STDOUT).to receive(:puts).
         with(
@@ -179,7 +188,7 @@ describe OllamaChat::MessageList do
     it 'can list conversations with thinking' do
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
-      expect(chat).to receive(:think?).and_return(true).at_least(:once)
+      expect(chat).to receive(:think_loud?).and_return(true).at_least(:once)
       expect(STDOUT).to receive(:puts).
         with(
           "📨 \e[1m\e[38;5;213msystem\e[0m\e[0m:\n" \
@@ -206,7 +215,7 @@ describe OllamaChat::MessageList do
       skip 'no tty' unless STDOUT.tty?
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
-      expect(chat).to receive(:think?).and_return(false).at_least(:once)
+      expect(chat).to receive(:think_loud?).and_return(false).at_least(:once)
       list << Ollama::Message.new(role: 'user', content: 'world')
       list.list_conversation
     end
@@ -278,7 +287,7 @@ describe OllamaChat::MessageList do
     expect(chat).to receive(:location).and_return(double(on?: false))
     list << Ollama::Message.new(role: 'user', content: 'world')
     expect(list.to_ary.map(&:as_json)).to eq [
-      Ollama::Message.new(role: 'system', content: 'hello').as_json,
+      Ollama::Message.new(role: 'system', content: 'hello', thinking: 'a while').as_json,
       Ollama::Message.new(role: 'user', content: 'world').as_json,
     ]
   end

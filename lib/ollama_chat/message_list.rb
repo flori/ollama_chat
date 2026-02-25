@@ -373,7 +373,7 @@ class OllamaChat::MessageList
                  when 'system' then 213
                  else 210
                  end
-    thinking = if @chat.think?
+    thinking = if @chat.think_loud?
                  think_annotate do
                    message.thinking.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
                  end
