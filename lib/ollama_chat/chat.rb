@@ -222,7 +222,7 @@ class OllamaChat::Chat
       copy_to_clipboard
       :next
     when %r(^/paste$)
-      paste_from_input
+      paste_from_clipboard
     when %r(^/markdown$)
       markdown.toggle
       :next

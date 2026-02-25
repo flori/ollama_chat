@@ -35,7 +35,7 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/paste"' do
-      expect(chat).to receive(:paste_from_input).and_return "pasted this"
+      expect(chat).to receive(:paste_from_clipboard).and_return "pasted this"
       expect(chat.handle_input("/paste")).to eq "pasted this"
     end
 

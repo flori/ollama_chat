@@ -82,6 +82,7 @@ working_dir_dependent_socket: true
 request_headers:
   Accept: 'text/*,application/*,image/*'
 ssl_no_verify: []
+paste: pfc # Paste clipboard content to chat app
 copy: ctc # Copy stdin to clipboard app
 web_search:
   use: duckduckgo
@@ -159,4 +160,8 @@ tools:
       url: "https://www.rfc-editor.org/rfc/rfc%{rfc_id}.txt"
       default: true
     generate_password:
+      default: true
+    copy_to_clipboard:
+      default: true
+    paste_from_clipboard:
       default: true

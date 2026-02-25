@@ -8,17 +8,17 @@ describe OllamaChat::Clipboard do
   connect_to_ollama_server
 
   it 'can copy to clipboard' do
-    `which pbcopy`.full? or skip 'pbcopy not in path'
     expect(STDERR).to receive(:puts).with(/No response available to copy to the system clipboard/)
     expect(chat.copy_to_clipboard).to be_nil
     chat.instance_variable_get(:@messages).load_conversation(asset('conversation.json'))
     expect(STDOUT).to receive(:puts).with(/The last response has been successfully copied to the system clipboard/)
+    expect(chat).to receive(:perform_copy_to_clipboard).and_return nil
     expect(chat.copy_to_clipboard).to be_nil
   end
 
-  it 'can paste from input' do
-    expect(STDOUT).to receive(:puts).with(/Paste your content/)
-    expect(STDIN).to receive(:read).and_return 'test input'
-    expect(chat.paste_from_input).to eq 'test input'
+  it 'can paste from clipboard' do
+    expect(STDOUT).to receive(:puts).with(/The clipboard content has been successfully copied to the chat/)
+    expect(chat).to receive(:perform_paste_from_clipboard).and_return 'test content'
+    expect(chat.paste_from_clipboard).to eq 'test content'
   end
 end
