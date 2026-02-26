@@ -101,7 +101,7 @@ tools:
       default: false
     get_cve:
       url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'
-      default: false
+      default: true
     get_endoflife:
       url: "https://endoflife.date/api/v1/products/%{product}"
       default: false
@@ -111,12 +111,12 @@ tools:
       default: true
     file_context:
       default: false
-      require_confirmation: true
+      require_confirmation: false
       allowed:
-        - ./spec
+        - './spec'
     directory_structure:
-      default: false
-      require_confirmation: true
+      default: true
+      require_confirmation: false
       exclude:
         - corpus
         - pkg
@@ -125,21 +125,23 @@ tools:
       cmd: |
         grep #{'-i' if ignore_case} -m #{max_results} -r #{pattern} #{path}
     browse:
-      default: false
+      default: true
     write_file:
-      default: false
+      default: true
       require_confirmation: true
       allowed:
-        - ./tmp
+        - './tmp'
     read_file:
-      default: false
+      default: true
       require_confirmation: false
       allowed:
-        - ./tmp
-        - ./lib
-        - ./spec
+        - './tmp'
+        - './lib'
+        - './spec'
     search_web:
       default: true
+      require_confirmation: true
+      max_results: 25
     import_url:
       default: true
       require_confirmation: true
