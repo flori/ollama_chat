@@ -91,6 +91,7 @@ module OllamaChat::ConfigHandling
     if result
       if ask?(prompt: "Do you want to restart #{progname}? (y/n) ") =~ /\Ay/i
         save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
+        save_history
         exec($0, *ARGV)
       end
     else
