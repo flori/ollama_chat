@@ -19,7 +19,7 @@ class OllamaChat::Tools::CopyToClipboard
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Copy the last assistant response to the clipboard using the configured executable',
+        description: 'Copy the last assistant response to the system clipboard',
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {},
