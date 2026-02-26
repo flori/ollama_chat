@@ -1,5 +1,45 @@
 # Changes
 
+## 2026-02-26 v0.0.71
+
+- Add new clipboard utilities: `tools/copy_to_clipboard.rb` and
+  `tools/paste_from_clipboard.rb`.  
+- Update gemspec to include the new tools in `s.extra_rdoc_files`, `s.files`,
+  and `s.test_files`.  
+- Update stub comment in `ollama_chat.gemspec` to reflect the new version.  
+- Enable more tools by default
+- Rename `think_loud?` to `think?` in `follow_chat.rb` for storage logic;
+  update `last_message_with_user` to conditionally include thinking content;
+  remove empty string from `output_eval_stats`; add test for saving
+  conversations with thinking content in `message_list_spec.rb`; update spec
+  expectations to use `think_loud?: false` for display behavior.  
+- Replace `/paste` command to use `paste_from_clipboard`; add
+  `perform_paste_from_clipboard` method in `lib/ollama_chat/clipboard.rb`; add
+  `paste_from_clipboard` tool in
+  `lib/ollama_chat/tools/paste_from_clipboard.rb`; add `paste: pfc`
+  configuration option; update tool defaults in configuration; update existing
+  tests to use new method names; add new spec file for `paste_from_clipboard`
+  tool.  
+- Add `OllamaChat::Tools::CopyToClipboard` tool that integrates with chat tool
+  system; implement `MessageList#find_last` method with optional `content`
+  parameter to filter empty messages; enhance
+  `Clipboard#perform_copy_to_clipboard` with better YARD documentation and
+  error handling; update `Clipboard#copy_to_clipboard` with comprehensive YARD
+  documentation; add comprehensive test coverage for new clipboard tool and
+  message finding functionality; integrate clipboard functionality with
+  existing configuration system using `config.copy`; update success message
+  text from "copied to the system clipboard" to "successfully copied to the
+  system clipboard".  
+- Add interactive help mode with `/help me` command handler in
+  `lib/ollama_chat/chat.rb`; add `help` prompt template to
+  `lib/ollama_chat/ollama_chat_config/default_config.yml`; update help text in
+  `README.md` and `lib/ollama_chat/information.rb`; add test coverage in
+  `spec/ollama_chat/chat_spec.rb`.  
+- Make `Pathname` output quoted for string interpolation: replace
+  `filename.inspect` with `filename.to_s.inspect` in `save_conversation` and
+  `load_conversation` methods; update three locations in
+  `lib/ollama_chat/conversation.rb`.
+
 ## 2026-02-23 v0.0.70
 
 - Added `generate_password` tool with secure password generation, supporting
