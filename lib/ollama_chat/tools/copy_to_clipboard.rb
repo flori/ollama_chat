@@ -19,10 +19,18 @@ class OllamaChat::Tools::CopyToClipboard
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Copy the last assistant response to the system clipboard',
+        description: <<~EOT,
+          Copy a text to the clipboard (either the parameter text or the last
+          response of the assistant)
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
-          properties: {},
+          properties: {
+            text: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'Text to copy to the clipboard (nil = last response)'
+            )
+          },
           required: []
         )
       )
@@ -36,12 +44,20 @@ class OllamaChat::Tools::CopyToClipboard
   # @option opts [ComplexConfig::Settings] :config the configuration object
   # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
-  def execute(_tool_call, **opts)
+  def execute(tool_call, **opts)
+    text = tool_call.function.arguments.text
+
     chat = opts[:chat]
-    chat.perform_copy_to_clipboard(content: true)
+    chat.perform_copy_to_clipboard(text:, content: true)
+
+    message = if text.nil?
+                "The last response has been successfully copied to the system clipboard."
+              else
+                "The provided text has been successfully copied to the system clipboard."
+              end
     {
       success: true,
-      message: "The last response has been successfully copied to the system clipboard."
+      message:,
     }.to_json
   rescue => e
     {

@@ -18,18 +18,21 @@ module OllamaChat::Clipboard
   #   in config.copy is not found in the system's PATH
   # @raise [OllamaChat::OllamaChatError] if no assistant message is available
   #   to copy to the clipboard
-  def perform_copy_to_clipboard(content: false)
-    if message = @messages.find_last(content:) { _1.role == 'assistant' }
+  def perform_copy_to_clipboard(text: nil, content: false)
+    text ||= last_message_content(content:)
+    if text
       copy = `which #{config.copy}`.chomp
       if copy.present?
         IO.popen(copy, 'w') do |clipboard|
-          clipboard.write(message.content)
+          clipboard.write(text)
         end
       else
-        raise OllamaChat::OllamaChatError, "#{config.copy.inspect} command not found in system's path!"
+        raise OllamaChat::OllamaChatError,
+          "#{config.copy.inspect} command not found in system's path!"
       end
     else
-      raise OllamaChat::OllamaChatError, "No response available to copy to the system clipboard."
+      raise OllamaChat::OllamaChatError,
+        "No text available to copy to the system clipboard."
     end
   end
 
@@ -66,6 +69,26 @@ module OllamaChat::Clipboard
   end
 
   private
+
+  # Returns the content of the last assistant message.
+  #
+  # This private helper method finds the most recent message from the assistant
+  # in the messages array and returns its content. It is used by
+  # `perform_copy_to_clipboard` when no custom text is provided.
+  #
+  # @param content [Boolean] If true, returns the content of the message;
+  #   if false, returns nil if no assistant message is found (default: false)
+  #
+  # @return [String, nil] The content of the last assistant message, or nil if
+  #   no assistant message is found
+  #
+  # @example
+  #   # Assuming @messages contains assistant messages
+  #   last_message_content
+  #   # => "This is the last assistant response"
+  def last_message_content(content: false)
+    @messages.find_last(content:) { _1.role == 'assistant' }&.content
+  end
 
   # Copies the last assistant message to the system clipboard.
   #
