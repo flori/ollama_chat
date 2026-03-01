@@ -107,6 +107,7 @@ module OllamaChat::ToolCalling
         enabled, require_confirmation, (enabled ? bold { tool } : tool)
       )
     end
+    STDOUT.puts ?┉ * Tins::Terminal.columns
     tools_support.show
   end
 
