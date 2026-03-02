@@ -58,6 +58,7 @@ Usage: ollama_chat [OPTIONS]
   -u URL         the ollama base url, OLLAMA_URL
   -m MODEL       the ollama model to chat with, OLLAMA_CHAT_MODEL, ?selector
   -s SYSTEM      the system prompt to use as a file, OLLAMA_CHAT_SYSTEM, ?selector
+  -p PERSONA     load a persona via name/file for roleplay at startup
   -c CHAT        a saved chat conversation to load
   -C COLLECTION  name of the collection used in this conversation
   -D DOCUMENT    load document and add to embeddings collection (multiple)
@@ -151,46 +152,47 @@ subject - the young, blue-eyed cat.
 The following commands can be given inside the chat, if prefixed by a `/`:
 
 ```
-/reconnect                      reconnect to current ollama server
-/copy                           to copy last response to clipboard
-/paste                          to paste content
-/markdown                       toggle markdown output
-/stream                         toggle stream output
-/location                       toggle location submission
-/voice [change]                 toggle voice output or change the voice
-/last [n]                       show the last n / 1 system/assistant message
-/list [n]                       list the last n / all conversation exchanges
-/clear [what]                   clear what=messages|links|history|tags|all
-/clobber                        clear the conversation, links, and collection
-/drop [n]                       drop the last n exchanges, defaults to 1
-/model                          change the model
-/system [show]                  change/show system prompt
-/prompt                         prefill user prompt with preset prompts
-/regenerate                     the last answer message
-/collection [clear|change]      change (default) collection or clear
-/info                           show information for current session
-/config                         output current configuration ("/Users/flori/.config/ollama_chat/config.yml")
-/document_policy                pick a scan policy for document references
-/think                          choose ollama think mode setting for models
-/think_loud                     enable to think out loud instead of silently
-/import source                  import the source's content
-/summarize [n] source           summarize the source's content in n words
-/embedding                      toggle embedding paused or not
-/embed source                   embed the source's content
-/web [n] query                  query web & for n(=1) results (policy: importing)
-/links [clear]                  display (or clear) links used in the chat
-/save filename                  store conversation messages
-/load filename                  load conversation messages
-/compose                        compose content using an EDITOR
-/input [pattern]                select and read content from a file (default: **/*)
-/context [pattern...]           collect context with glob patterns
-/revise_last                    edit the last response in an external editor
-/output filename                save last response to filename
-/pipe command                   write last response to command's stdin
-/tools [enable|disable|on|off]  list enabled, enable/disable tools, support on/off
-/vim                            insert the last message into a vim server
-/quit                           to quit
-/help [me]                      to view this help (me = interactive ai help)
+/reconnect                                         reconnect to current ollama server
+/copy                                              to copy last response to clipboard
+/paste                                             to paste content
+/markdown                                          toggle markdown output
+/stream                                            toggle stream output
+/location                                          toggle location submission
+/voice [change]                                    toggle voice output or change the voice
+/last [n]                                          show the last n / 1 system/assistant message
+/list [n]                                          list the last n / all conversation exchanges
+/clear [what]                                      clear what=messages|links|history|tags|all
+/clobber                                           clear the conversation, links, and collection
+/drop [n]                                          drop the last n exchanges, defaults to 1
+/model                                             change the model
+/system [show]                                     change/show system prompt
+/prompt                                            prefill user prompt with preset prompts
+/persona add|delete|edit|file|info|list|load|play  manage and load/play personas for roleplay
+/regenerate                                        the last answer message
+/collection [clear|change]                         change (default) collection or clear
+/info                                              show information for current session
+/config                                            output current configuration ("/Users/flori/.config/ollama_chat/config.yml")
+/document_policy                                   pick a scan policy for document references
+/think                                             choose ollama think mode setting for models
+/think_loud                                        enable to think out loud instead of silently
+/import source                                     import the source's content
+/summarize [n] source                              summarize the source's content in n words
+/embedding                                         toggle embedding paused or not
+/embed source                                      embed the source's content
+/web [n] query                                     query web & for n(=1) results (policy: importing)
+/links [clear]                                     display (or clear) links used in the chat
+/save filename                                     store conversation messages
+/load filename                                     load conversation messages
+/compose                                           compose content using an EDITOR
+/input [pattern]                                   select and read content from a file (default: **/*)
+/context [pattern...]                              collect context with glob patterns
+/revise_last                                       edit the last response in an external editor
+/output filename                                   save last response to filename
+/pipe command                                      write last response to command's stdin
+/tools [enable|disable|on|off]                     list enabled, enable/disable tools, support on/off
+/vim                                               insert the last message into a vim server
+/quit                                              to quit
+/help [me]                                         to view this help (me = interactive ai help)
 ```
 
 ### Using `ollama_chat_send` to send input to a running `ollama_chat`

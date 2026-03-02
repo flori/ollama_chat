@@ -19,7 +19,7 @@ describe OllamaChat::MessageEditing do
       expect(Tempfile).to receive(:open).and_yield(tmp_double)
 
       # Mock system call to simulate successful editor execution
-      expect(chat).to receive(:system).with('/usr/bin/vim "/tmp/test"').and_return(true)
+      expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(true)
 
       # Mock file reading to return edited content
       expect(File).to receive(:read).with('/tmp/test').and_return('edited content')
@@ -38,7 +38,8 @@ describe OllamaChat::MessageEditing do
 
       const_conf_as('OC::EDITOR' => nil)
 
-      expect(STDERR).to receive(:puts).with(/Editor required for revise/)
+      expect(STDERR).to receive(:puts).with(/Need the environment variable var EDITOR/)
+      expect(STDERR).to receive(:puts).with(/Editor failed to edit message/)
       expect(chat.revise_last).to be_nil
     end
 
@@ -55,7 +56,7 @@ describe OllamaChat::MessageEditing do
       chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
       tmp_double = double('tmp', write: true, flush: true, path: '/tmp/test')
       expect(Tempfile).to receive(:open).and_yield(tmp_double)
-      expect(chat).to receive(:system).with('/usr/bin/vim "/tmp/test"').and_return(false)
+      expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)
       expect(STDERR).to receive(:puts).with(/Editor failed to edit message/)
       expect(chat.revise_last).to be_nil
     end

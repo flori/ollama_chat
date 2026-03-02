@@ -40,7 +40,7 @@ module OllamaChat::InputContent
   # @param chosen [ Set ] a set of already chosen filenames to exclude from
   #   selection
   #
-  # @return [ String, nil ] the selected filename or nil if no file was chosen or user exited
+  # @return [ Pathname, nil ] the selected filename or nil if no file was chosen or user exited
   def choose_filename(pattern, chosen: nil)
     files = Dir.glob(pattern).reject { chosen&.member?(_1) }.
       select { File.file?(_1) }
@@ -50,7 +50,7 @@ module OllamaChat::InputContent
       STDOUT.puts "Exiting chooser."
       return
     else
-      chosen
+      Pathname.new(chosen)
     end
   end
 
@@ -110,14 +110,8 @@ module OllamaChat::InputContent
   #
   # @return [ String, nil ] the composed content if successful, nil otherwise
   def compose
-    unless editor = OC::EDITOR?
-      STDERR.puts "Editor required for compose, set env var "\
-        "#{OC::EDITOR!.env_var.inspect}."
-      return
-    end
     Tempfile.open do |tmp|
-      result = system %{#{editor} #{tmp.path.inspect}}
-      if result
+      if result = edit_file(tmp.path)
         return File.read(tmp.path)
       else
         STDERR.puts "Editor failed to edit #{tmp.path.inspect}."

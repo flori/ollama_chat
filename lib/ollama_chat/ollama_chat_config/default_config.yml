@@ -39,6 +39,37 @@ prompts:
       chat commands:
 
       %{commands}
+  persona: |
+    # Persona
+
+    ## Character Profile
+
+    - **Name**: [Their name]
+    - **Occupation**: [Their job/career]
+    - **Gender**: [Their gender]
+
+    ## Personality and Behavior
+
+    - **Core Values**: [Their values]
+    - **Personality Traits**: [Key personality characteristics]
+    - **Emotional Style**: [How they express emotions]
+    - **Behavioral Patterns**: [Typical behaviors and habits]
+
+    ## Core Guidelines
+
+    - **Role definition**: [What is your primary role/identity?]
+    - **Tone**: [Describe your speaking style - formal, casual, technical, etc.]
+    - **Language**: [Natural language and any constraints]
+    - **Guideline 1**: [e.g., "Maintain consistency with character"]
+    - **Guideline 2**: [e.g., "Use appropriate communication style"]
+    - **Guideline 3**: [e.g., "Stay in character"]
+    - **Guideline 4**: [e.g., "Never mention being an AI"]
+
+    ## Communication Style
+
+    - **Format**: [Markdown, plain text, code blocks, etc.]
+    - **Vocabulary**: [Technical terms, slang, formal language]
+    - **Structure**: [How you organize your responses]
 system_prompts:
   default: <%= OC::OLLAMA::CHAT::SYSTEM || 'null' %>
   assistant: You are a helpful assistant.

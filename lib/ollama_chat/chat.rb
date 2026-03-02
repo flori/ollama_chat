@@ -47,15 +47,18 @@ class OllamaChat::Chat
   include OllamaChat::MessageOutput
   include OllamaChat::Clipboard
   include OllamaChat::MessageFormat
+  include OllamaChat::Pager
   include OllamaChat::History
   include OllamaChat::ServerSocket
   include OllamaChat::KramdownANSI
+  include OllamaChat::FileEditing
   include OllamaChat::Conversation
   include OllamaChat::InputContent
   include OllamaChat::MessageEditing
   include OllamaChat::LocationHandling
   include OllamaChat::ToolCalling
   include OllamaChat::ConfigHandling
+  include OllamaChat::PersonaeManagement
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -85,7 +88,7 @@ class OllamaChat::Chat
   # @raise [RuntimeError] If the Ollama API version is less than 0.9.0, indicating
   #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
-    @opts               = go 'f:u:m:s:c:C:D:MESVh', argv
+    @opts               = go 'f:u:m:s:p:c:C:D:MESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
     @messages           = OllamaChat::MessageList.new(self)
@@ -113,6 +116,7 @@ class OllamaChat::Chat
     @enabled_tools        = default_enabled_tools
     @tool_call_results    = {}
     init_chat_history
+    setup_personae_directory
     @opts[?S] and init_server_socket
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
@@ -155,14 +159,10 @@ class OllamaChat::Chat
   #   messages associated with this instance
   attr_reader :messages
 
-  # The start method initializes the chat session by displaying information and
-  # conversation history, then prompts the user for input to begin interacting
-  # with the chat.
+  # The start method initializes the chat session by displaying information,
+  # then prompts the user for input to begin interacting with the chat.
   def start
     info
-    if messages.size > 1
-      messages.list_conversation(2)
-    end
     STDOUT.puts "\nType /help to display the chat help."
 
     interact_with_user
@@ -222,6 +222,7 @@ class OllamaChat::Chat
       copy_to_clipboard
       :next
     when %r(^/paste$)
+      @parse_content = false
       paste_from_clipboard
     when %r(^/markdown$)
       markdown.toggle
@@ -393,10 +394,63 @@ class OllamaChat::Chat
         display_config
       end
       :next
+    when %r(^/persona(?:\s+(add|delete|edit|file|info|list|load|play))?$)
+      @parse_content = false
+      case $1
+      when 'add'
+        if result = add_persona
+          result
+        else
+          :next
+        end
+      when 'delete'
+        if result = delete_persona
+          result
+        else
+          :next
+        end
+      when 'edit'
+        if result = edit_persona
+          result
+        else
+          :next
+        end
+      when 'file'
+        if pathname = choose_filename('**/*.md')
+          pathname.read
+        else
+          :next
+        end
+      when 'info'
+        info_persona
+        :next
+      when 'list'
+        list_personae
+        :next
+      when 'load'
+        if result = load_personae
+          result
+        else
+          :next
+        end
+      when 'play'
+        if pathname = choose_filename('**/*.md')
+          play_persona_file(pathname)
+        else
+          :next
+        end
+      else
+        if result = play_persona.full?
+          result
+        else
+          :next
+        end
+      end
     when %r(^/quit$), nil
       STDOUT.puts "Goodbye."
       :return
     when %r(^/help me$)
+      @parse_content = false
       config.prompts.help % { commands: display_chat_help_message }
     when %r(^/)
       display_chat_help
@@ -563,46 +617,51 @@ class OllamaChat::Chat
   # interaction.
   def interact_with_user
     loop do
-      @parse_content = true
-      type           = :terminal_input
-      input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
-      begin
-        if content = handle_tool_call_results?
-          @parse_content = false
-        else
-          content = enable_command_completion do
-            if prefill_prompt = @prefill_prompt.full?
-              Reline.pre_input_hook = -> {
-                Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
-                @prefill_prompt = nil
-              }
-            else
-              Reline.pre_input_hook = nil
+      if persona_result = setup_persona_from_opts
+        @parse_content = false
+        content = persona_result
+      else
+        @parse_content = true
+        type           = :terminal_input
+        input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
+        begin
+          if content = handle_tool_call_results?
+            @parse_content = false
+          else
+            content = enable_command_completion do
+              if prefill_prompt = @prefill_prompt.full?
+                Reline.pre_input_hook = -> {
+                  Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
+                  @prefill_prompt = nil
+                }
+              else
+                Reline.pre_input_hook = nil
+              end
+              Reline.readline(input_prompt, true)&.chomp
             end
-            Reline.readline(input_prompt, true)&.chomp
+          end
+        rescue Interrupt
+          if message = server_socket_message
+            type           = message.type.full?(:to_sym) || :socket_input
+            content        = message.content
+            @parse_content = message.parse
+            STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
+          else
+            raise
           end
         end
-      rescue Interrupt
-        if message = server_socket_message
-          type           = message.type.full?(:to_sym) || :socket_input
-          content        = message.content
-          @parse_content = message.parse
-          STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
-        else
-          raise
-        end
-      end
 
-      if type == :terminal_input
-        case next_action = handle_input(content)
-        when :next
-          next
-        when :redo
-          redo
-        when :return
-          return
-        when String
-          content = next_action
+        if type == :terminal_input
+          case next_action = handle_input(content)
+          when :next
+            next
+          when :redo
+            redo
+          when :return
+            return
+          when String
+            content = next_action
+          end
         end
       end
 

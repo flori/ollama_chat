@@ -83,12 +83,7 @@ module OllamaChat::ConfigHandling
   # 3. If editing was successful, prompts the user to restart
   #    `ollama_chat` if desired.
   def edit_config
-    unless editor = OC::EDITOR?
-      STDERR.puts "Need the environment variable var EDITOR defined to use an editor"
-      return
-    end
-    result = system Shellwords.join([ editor, @ollama_chat_config.filename ])
-    if result
+    if result = edit_file(@ollama_chat_config.filename)
       if ask?(prompt: "Do you want to restart #{progname}? (y/n) ") =~ /\Ay/i
         save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
         save_history

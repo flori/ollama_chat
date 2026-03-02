@@ -31,6 +31,7 @@
 class OllamaChat::MessageList
   include Term::ANSIColor
   include OllamaChat::MessageFormat
+  include OllamaChat::Pager
 
   # The initialize method sets up the message list for an OllamaChat session.
   #
@@ -319,22 +320,6 @@ class OllamaChat::MessageList
     @chat.location_description if @chat.location.on?
   end
 
-  # The use_pager method wraps the given block with a pager context.
-  # If the output would exceed the terminal's line capacity, it pipes the content
-  # through an appropriate pager command (like 'less' or 'more').
-  #
-  # @yield A block that yields an IO object to write output to
-  # @yieldparam [IO] the IO object to write to
-  def use_pager
-    command       = determine_pager_command
-    output_buffer = StringIO.new
-    yield output_buffer
-    messages = output_buffer.string
-    Kramdown::ANSI::Pager.pager(command:, lines: messages.count(?\n)) do |output|
-      output.puts messages
-    end
-  end
-
   private
 
   # The config method provides access to the chat configuration object.
@@ -342,18 +327,6 @@ class OllamaChat::MessageList
   # @return [ Object ] the configuration object associated with the chat instance
   def config
     @chat.config
-  end
-
-  # The determine_pager_command method identifies an appropriate pager command
-  # for displaying content.
-  # It first checks for a default pager specified by the PAGER environment variable.
-  # If no default is found, it attempts to locate 'less' or 'more' in the
-  # system PATH as fallback options.
-  # The method returns the selected pager command, ensuring it includes the
-  # '-r' flag for proper handling of raw control characters when a fallback
-  # pager is used.
-  def determine_pager_command
-    OC::PAGER?
   end
 
   # The message_text_for method generates formatted text representation of a

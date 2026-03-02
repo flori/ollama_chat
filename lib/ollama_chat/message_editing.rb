@@ -18,19 +18,11 @@ module OllamaChat::MessageEditing
   # @return [String, nil] the edited content if successful, nil otherwise
   def revise_last
     if message = @messages.last
-      unless editor = OC::EDITOR?
-        STDERR.puts "Editor required for revise, set env var " \
-          "#{OC::EDITOR!.env_var.inspect}."
-        return
-      end
-
       Tempfile.open do |tmp|
         tmp.write(message.content)
         tmp.flush
 
-        result = system %{#{editor} #{tmp.path.inspect}}
-
-        if result
+        if result = edit_file(tmp.path)
           new_content           = File.read(tmp.path)
           old_message           = @messages.messages.pop.as_json
           old_message[:content] = new_content

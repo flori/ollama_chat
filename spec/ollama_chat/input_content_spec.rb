@@ -51,7 +51,7 @@ describe OllamaChat::InputContent do
         with(files.unshift('[EXIT]')).and_return(files[1])
 
       result = chat.choose_filename('spec/assets/**/*.txt')
-      expect(result).to eq files[1]
+      expect(result).to eq Pathname.new(files[1])
     end
 
     it 'returns nil when user exits selection' do
@@ -105,7 +105,7 @@ describe OllamaChat::InputContent do
       expect(Tempfile).to receive(:open).and_yield(tmp_double)
 
       # Mock system call to simulate successful editor execution
-      expect(chat).to receive(:system).with('/usr/bin/vim "/tmp/test"').and_return(true)
+      expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(true)
 
       # Mock file reading to return content
       expect(File).to receive(:read).with('/tmp/test').and_return('composed content')
@@ -117,7 +117,8 @@ describe OllamaChat::InputContent do
     it 'handles missing editor gracefully' do
       const_conf_as('OC::EDITOR' => nil)
 
-      expect(STDERR).to receive(:puts).with(/Editor required for compose/)
+      expect(STDERR).to receive(:puts).with(/Need the environment variable var EDITOR/)
+      expect(STDERR).to receive(:puts).with(/Editor failed to edit/)
       expect(chat.compose).to be_nil
     end
 
@@ -127,7 +128,7 @@ describe OllamaChat::InputContent do
       tmp_double = double('tmp', path: '/tmp/test')
       expect(Tempfile).to receive(:open).and_yield(tmp_double)
 
-      expect(chat).to receive(:system).with('/usr/bin/vim "/tmp/test"').and_return(false)
+      expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)
 
       expect(STDERR).to receive(:puts).with(/Editor failed to edit/)
       expect(chat.compose).to be_nil
