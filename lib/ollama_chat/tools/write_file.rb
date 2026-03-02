@@ -68,6 +68,8 @@ class OllamaChat::Tools::WriteFile
     # Ensure the parent directory exists
     target_path.parent.mkpath
 
+    bytes_written = args.content.size
+
     # Write the file
     if args.mode == 'append'
       File.open(target_path, 'a') { |f| f.write(args.content) }
@@ -76,8 +78,9 @@ class OllamaChat::Tools::WriteFile
     end
 
     {
-      success: true,
-      path: target_path.to_s
+      success:         true,
+      path:            target_path.to_s,
+      bytes_written:   ,
     }.to_json
   rescue => e
     {
