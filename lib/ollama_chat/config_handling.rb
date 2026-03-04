@@ -88,9 +88,25 @@ module OllamaChat::ConfigHandling
         save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
         save_history
         exec($0, *ARGV)
+      else
+        STDOUT.puts "Skipped reloading the config."
       end
     else
       STDERR.puts "Editor returned a non-zero status!"
+    end
+  end
+
+  # Reloads the current configuration by restarting the process.
+  #
+  # @example Restarting the app after confirmation
+  #   config.reload_config  # => restarts if user answers "y"
+  def reload_config
+    if ask?(prompt: "Do you want to restart #{progname}? (y/n) ") =~ /\Ay/i
+      save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
+      save_history
+      exec($0, *ARGV)
+    else
+      STDOUT.puts "Skipped reloading the config."
     end
   end
 end

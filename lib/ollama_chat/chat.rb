@@ -367,10 +367,12 @@ class OllamaChat::Chat
         tools_support.set(false, show: true)
       end
       :next
-    when %r(^/config(?:\s+(edit))?$)
+    when %r(^/config(?:\s+(edit|reload))?$)
       case $1
       when 'edit'
         edit_config
+      when 'reload'
+        reload_config
       else
         display_config
       end
