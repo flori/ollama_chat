@@ -136,7 +136,7 @@ module OllamaChat::Information
       /regenerate                                        the last answer message
       /collection [clear|change]                         change (default) collection or clear
       /info                                              show information for current session
-      /config                                            output current configuration (#{@ollama_chat_config.filename.to_s.inspect})
+      /config [edit|reload]                              output/edit/reload current configuration (#{@ollama_chat_config.filename.to_s.inspect})
       /document_policy                                   pick a scan policy for document references
       /think                                             choose ollama think mode setting for models
       /think_loud                                        enable to think out loud instead of silently
