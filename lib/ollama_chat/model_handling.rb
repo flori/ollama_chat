@@ -16,16 +16,39 @@
 # @example Ensuring a model is available locally
 #   chat.pull_model_unless_present('phi3', {})
 module OllamaChat::ModelHandling
+
+  # A simple data structure representing metadata about a model.
+  #
+  # @attr_reader name [String] the name of the model
+  # @attr_reader system [String] the system prompt associated with the model
+  # @attr_reader capabilities [Array<String>] the capabilities supported by the model
+  class ModelMetadata < Struct.new(:name, :system, :capabilities)
+    # Checks if the given capability is included in the object's capabilities.
+    #
+    # @param capability [String] the capability to check for
+    # @return [true, false] true if the capability is present, false otherwise
+    def can?(capability)
+      Array(capabilities).member?(capability)
+    end
+  end
+
   private
 
-  # The model_present? method checks if the specified Ollama model is available.
+  # The model_present? method checks if the specified Ollama model is
+  # available.
   #
   # @param model [ String ] the name of the Ollama model
   #
-  # @return [ String, FalseClass ] the system prompt if the model is present,
+  # @return [ ModelMetadata, FalseClass ] if the model is present,
   #   false otherwise
   def model_present?(model)
-    ollama.show(model:) { return _1.system.to_s }
+    ollama.show(model:) do |md|
+      return ModelMetadata.new(
+        model,
+        md.system,
+        md.capabilities,
+      )
+    end
   rescue Ollama::Errors::NotFoundError
     false
   end
@@ -39,37 +62,27 @@ module OllamaChat::ModelHandling
     ollama.pull(model:)
   end
 
-  # The pull_model_unless_present method checks if the specified model is
-  # present on the system.
+  # The pull_model_unless_present method ensures that a specified model is
+  # available on the Ollama server. It first checks if the model metadata
+  # exists locally; if not, it pulls the model from a remote source and
+  # verifies its presence again. If the model still cannot be found, it raises
+  # an UnknownModelError indicating the missing model name.
   #
-  # If the model is already present, it returns the system prompt if it is
-  # present.
+  # @param model [String] the name of the model to ensure is present
   #
-  # Otherwise, it attempts to pull the model from the remote server using the
-  # pull_model_from_remote method. If the model is still not found after
-  # pulling, it exits the program with a message indicating that the model was
-  # not found remotely.
-  #
-  # @param model [ String ] The name of the model to check for presence.
-  # @param options [ Hash ] Options for the pull_model_from_remote method.
-  #
-  # @return [ String, FalseClass ] the system prompt if the model and it are
-  #   present, false otherwise.
-  def pull_model_unless_present(model, options)
-    if system = model_present?(model)
-      return system.full?
+  # @return [ModelMetadata] the metadata for the available model
+  # @raise [OllamaChat::UnknownModelError] if the model cannot be found after
+  #   attempting to pull it from remote
+  def pull_model_unless_present(model)
+    if model_metadata = model_present?(model)
+      return model_metadata
     else
       pull_model_from_remote(model)
-      if system = model_present?(model)
-        return system.full?
-      else
-        STDOUT.puts "Model #{bold{model}} not found remotely. => Exiting."
-        exit 1
+      if model_metadata = model_present?(model)
+        return model_metadata
       end
+      raise OllamaChat::UnknownModelError, "unknown model named #{@model.inspect}"
     end
-  rescue Ollama::Errors::Error => e
-    warn "Caught #{e.class} while pulling model: #{e} => Exiting."
-    exit 1
   end
 
   # The model_with_size method formats a model's size for display
@@ -89,6 +102,15 @@ module OllamaChat::ModelHandling
       define_method(:to_s) { "%s %s" % [ model.name, formatted_size ] }
     end
     result
+  end
+
+  def use_model(model = nil)
+    if model.nil?
+      @model = choose_model('', @model)
+    else
+      @model = choose_model(model, config.model.name)
+    end
+    @model_metadata = pull_model_unless_present(@model)
   end
 
   # The choose_model method selects a model from the available list based on

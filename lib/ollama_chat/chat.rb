@@ -97,9 +97,12 @@ class OllamaChat::Chat
     setup_switches(config)
     setup_state_selectors(config)
     connect_ollama
-    @model           = choose_model(@opts[?m], config.model.name)
-    @model_options   = Ollama::Options[config.model.options]
-    @model_system    = pull_model_unless_present(@model, @model_options)
+    begin
+      use_model(@opts[?m].full? || config.model.name)
+    rescue OllamaChat::UnknownModelError => e
+      abort "Failed to use to model: #{e}"
+    end
+    @model_options  = Ollama::Options[config.model.options]
     if conversation_file = @opts[?c]
       messages.load_conversation(conversation_file)
     elsif backup_file = OC::XDG_CACHE_HOME + 'backup.json' and backup_file.exist?
@@ -162,6 +165,14 @@ class OllamaChat::Chat
   # The start method initializes the chat session by displaying information,
   # then prompts the user for input to begin interacting with the chat.
   def start
+    if think? && !@model_metadata.can?('thinking')
+      think_mode.selected = 'disabled'
+    end
+
+    if tools_support.on? && !@model_metadata.can?('tools')
+      tools_support.set false
+    end
+
     info
     STDOUT.puts "\nType /help to display the chat help."
 
@@ -240,7 +251,11 @@ class OllamaChat::Chat
       messages.show_last
       :next
     when %r(^/model$)
-      @model = choose_model('', @model)
+      begin
+        use_model
+      rescue OllamaChatError::UnknownModelError => e
+        STDERR.puts "Caught #{e.class}: #{e}"
+      end
       :next
     when %r(^/system(?:\s+(show))?$)
       if $1 != 'show'
@@ -689,7 +704,7 @@ class OllamaChat::Chat
           &handler
         )
       rescue Ollama::Errors::BadRequestError
-        if (think?||tools_support?) && !retried
+        if (think? || tools_support.on?) && !retried
           STDOUT.puts "#{bold('Error')}: in think mode/with tool support, switch both off and retry."
           sleep 1
           think_mode.selected  = 'disabled'
@@ -778,7 +793,7 @@ class OllamaChat::Chat
   # retrieves the system prompt from a file or uses the default value, then
   # sets it in the message history.
   def setup_system_prompt
-    default = config.system_prompts.default? || @model_system
+    default = config.system_prompts.default? || @model_metadata.system
     if @opts[?s] =~ /\A\?/
       change_system_prompt(default, system: @opts[?s])
     else
@@ -798,7 +813,7 @@ class OllamaChat::Chat
     if embedding.on?
       @embedding_model         = config.embedding.model.name
       @embedding_model_options = Ollama::Options[config.embedding.model.options]
-      pull_model_unless_present(@embedding_model, @embedding_model_options)
+      pull_model_unless_present(@embedding_model)
       collection = @opts[?C] || config.embedding.collection
       @documents = Documentrix::Documents.new(
         ollama:,

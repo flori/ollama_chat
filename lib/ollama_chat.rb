@@ -39,6 +39,11 @@ module OllamaChat
     #   @return [Integer] the HTTP status code that caused the error.
     attr_accessor :status
   end
+
+  # UnknownModelError is raised when a requested model cannot be found or does
+  # not exist on the Ollama server.
+  class UnknownModelError < OllamaChatError
+  end
 end
 
 require 'ollama'

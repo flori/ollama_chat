@@ -331,6 +331,7 @@ describe OllamaChat::Chat, protect_env: true do
             Current\ conversation\ model|
             Current\ embedding\ model|
             Options|
+            Capabilities|
             Embedding|
             Text\ splitter|
             Documents\ database\ cache|
