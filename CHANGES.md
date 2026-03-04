@@ -1,5 +1,33 @@
 # Changes
 
+## 2026-03-04 v0.0.72
+
+- Introduced `OllamaChat::PersonaeManagement` module and `/persona` command
+  with subcommands `add`, `delete`, `edit`, `list`, `play`, `file`, `info`,
+  `load`.  
+- Added `/config reload` subcommand to `OllamaChat::Chat`; handler
+  `reload_config` in `OllamaChat::ConfigHandling` prompts for confirmation,
+  calls `save_conversation`, then restarts with `exec($0,*ARGV)`.  
+- Added `-p` command‑line option (`-p PERSONA`) to load personas at startup.  
+- Created `OllamaChat::Pager` module for pager functionality.  
+- Created `OllamaChat::FileEditing` module; refactored `edit_config`,
+  `compose`, `revise_last` to use `edit_file`; added `vim(server_name = nil)`
+  returning `OllamaChat::Vim` and `perform_insert(text:, content:)`.  
+- Added LLM‑driven tool `insert_into_editor`
+  (`lib/ollama_chat/tools/insert_into_editor.rb`) with RSpec tests; default
+  config (`default_config.yml`) now enables confirmation flag for this tool.  
+- Enhanced `copy_to_clipboard` tool: accepts optional `text` parameter,
+  includes helper `last_message_content`, returns `true` on success, updated
+  error messages, added test for custom text.  
+- Added `bytes_written` tracking to `write_file` tool; fixed return hash key.  
+- Added visual separator for tool output.  
+- Renamed `env_config.rb` to `oc.rb`; updated requires accordingly.  
+- Added `save_history` call after conversation backup to persist history before
+  restart.  
+- Updated documentation and help messages to reflect new commands and options.  
+- Standardised type hints across codebase, replacing generic Boolean comments
+  with explicit `[ true, false ]`.  
+
 ## 2026-02-26 v0.0.71
 
 - Add new clipboard utilities: `tools/copy_to_clipboard.rb` and
