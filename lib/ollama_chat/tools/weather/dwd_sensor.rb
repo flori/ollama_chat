@@ -91,9 +91,9 @@ class DWDSensor
   # Determines whether fetching should be skipped based on modification time
   # comparisons.
   #
-  # @return [ Boolean ] true if the resource has not been modified since last
+  # @return [ true, false ] true if the resource has not been modified since last
   #                     fetch, false otherwise
-  # @return [ Boolean ] false if no previous modification time is available
+  # @return [ true, false ] false if no previous modification time is available
   def skip_fetching?
     @last_modified or return false
     response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|

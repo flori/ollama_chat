@@ -165,9 +165,9 @@ class OllamaChat::Tools::GeneratePassword
 
   # Builds a custom alphabet based on character set preferences.
   #
-  # @param letters [Boolean] whether to include letters
-  # @param numbers [Boolean] whether to include numbers
-  # @param symbols [Boolean] whether to include symbols
+  # @param letters [true, false] whether to include letters
+  # @param numbers [true, false] whether to include numbers
+  # @param symbols [true, false] whether to include symbols
   # @param type [String] the type of alphabet to use
   # @return [String] the constructed alphabet string
   def build_alphabet(letters:, numbers:, symbols:, uppercase:, extended:, type:)

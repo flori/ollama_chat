@@ -81,7 +81,6 @@ class OllamaChat::Tools::OpenFileInEditor
       start_line: start_line,
       end_line: end_line,
     }.to_json
-
   rescue => e
     {
       error: e.class,

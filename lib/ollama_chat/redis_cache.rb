@@ -98,7 +98,7 @@ module OllamaChat
     # Checks if a key exists in the cache
     #
     # @param key [String] The cache key to check
-    # @return [Boolean] true if the key exists, false otherwise
+    # @return [true, false] true if the key exists, false otherwise
     def key?(key)
       !!redis.exists?(pre(key))
     end
@@ -106,7 +106,7 @@ module OllamaChat
     # Deletes a key from the cache
     #
     # @param key [String] The cache key to delete
-    # @return [Boolean] true if the key was deleted, false if it didn't exist
+    # @return [true, false] true if the key was deleted, false if it didn't exist
     def delete(key)
       redis.del(pre(key)) == 1
     end

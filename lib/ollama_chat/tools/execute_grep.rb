@@ -82,7 +82,7 @@ class OllamaChat::Tools::ExecuteGrep
   # @param pattern [String] the regex pattern to search for
   # @param path [String] the file or directory path to search in
   # @param max_results [Integer] the maximum number of matches to return
-  # @param ignore_case [Boolean] whether to ignore case when searching
+  # @param ignore_case [true, false] whether to ignore case when searching
   #
   # @return [String] the evaluated template string with substituted variables
   def eval_template(config, pattern, path, max_results, ignore_case)

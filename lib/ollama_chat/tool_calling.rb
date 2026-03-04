@@ -9,7 +9,7 @@ module OllamaChat::ToolCalling
   # Checks whether a tool is configured in the chat configuration.
   #
   # @param [String] name the name of the tool
-  # @return [Boolean] true if the tool is configured
+  # @return [true, false] true if the tool is configured
   def tool_configured?(name)
     config.tools.functions.attribute_set?(name)
   end
@@ -27,7 +27,7 @@ module OllamaChat::ToolCalling
   # Determines whether a tool has been registered in the tool registry.
   #
   # @param [String] name the name of the tool
-  # @return [Boolean] true if the tool is registered
+  # @return [true, false] true if the tool is registered
   def tool_registered?(name)
     OllamaChat::Tools.registered?(name)
   end
@@ -40,7 +40,7 @@ module OllamaChat::ToolCalling
   # Checks if a tool is currently enabled for the chat session.
   #
   # @param [String] name the name of the tool
-  # @return [Boolean] true if the tool is enabled
+  # @return [true, false] true if the tool is enabled
   def tool_enabled?(name)
     enabled_tools.member?(name)
   end

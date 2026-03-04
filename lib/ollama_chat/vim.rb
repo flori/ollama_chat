@@ -100,7 +100,7 @@ class OllamaChat::Vim
   # the column position is greater than zero, it indicates that Vim is running
   # and the server is accessible.
   #
-  # @return [Boolean] true if the Vim server is running and accessible, false otherwise
+  # @return [true, false] true if the Vim server is running and accessible, false otherwise
   def server_running?
     col > 0
   end
@@ -156,10 +156,10 @@ class OllamaChat::Vim
   # This method checks if a system command result indicates failure and outputs
   # an appropriate error message to standard error when the command fails.
   #
-  # @param result [Boolean] the result of a system command execution
+  # @param result [true, false] the result of a system command execution
   #
-  # @return [Boolean] returns true if the command failed, false otherwise
-  # @return [Boolean] returns false if the command succeeded
+  # @return [true, false] returns true if the command failed, false otherwise
+  # @return [true, false] returns false if the command succeeded
   def report_error(result)
     unless result
       STDERR.puts <<~EOT

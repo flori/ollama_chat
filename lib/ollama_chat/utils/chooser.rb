@@ -28,7 +28,7 @@ module OllamaChat::Utils::Chooser
     #
     # @param entries [Array] the list of entries to present to the user
     # @param prompt [String] the prompt message to display when asking for input (default: 'Search? %s')
-    # @param return_immediately [Boolean] whether to immediately return the
+    # @param return_immediately [true, false] whether to immediately return the
     #        first entry if there is only one or nil when there is none (default: false)
     #
     # @return [Object] the selected entry, or nil if no entry was chosen

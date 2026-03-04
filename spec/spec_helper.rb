@@ -139,7 +139,7 @@ module StubOllamaServer
   # Ollama server, including API tags, show, and version endpoints. It can
   # optionally instantiate a chat session after setting up the stubs.
   #
-  # @param instantiate [Boolean] whether to instantiate a chat session after setting up stubs
+  # @param instantiate [true, false] whether to instantiate a chat session after setting up stubs
   def connect_to_ollama_server(instantiate: true)
     before do
       stub_request(:get, %r(/api/tags\z)).

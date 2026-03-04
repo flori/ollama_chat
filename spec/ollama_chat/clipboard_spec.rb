@@ -13,7 +13,7 @@ describe OllamaChat::Clipboard do
     chat.instance_variable_get(:@messages).load_conversation(asset('conversation.json'))
     expect(STDOUT).to receive(:puts).with(/The last response has been successfully copied to the system clipboard/)
     expect(chat).to receive(:perform_copy_to_clipboard).and_return nil
-    expect(chat.copy_to_clipboard).to be_nil
+    expect(chat.copy_to_clipboard).to eq true
   end
 
   it 'can paste from clipboard' do

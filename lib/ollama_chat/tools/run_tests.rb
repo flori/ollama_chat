@@ -59,8 +59,8 @@ class OllamaChat::Tools::RunTests
   # Run the test suite using the configured test runner.
   #
   # @param path [String] file or directory to test
-  # @param coverage [Boolean] whether to enable SimpleCov
-  # @return [Array(String, Boolean)] the captured output and a success flag
+  # @param coverage [true, false] whether to enable SimpleCov
+  # @return [Array(String, true, false)] the captured output and a success flag
   def run_tests(path, coverage)
     output = +''
     env = ENV.to_h | { 'START_SIMPLECOV' => coverage ? '1' : '0' }

@@ -93,7 +93,7 @@ class OllamaChat::MessageList
 
   # Find the *last* message that satisfies the supplied block.
   #
-  # @param content [Boolean] If `true`, skip messages that have no content
+  # @param content [true, false] If `true`, skip messages that have no content
   #   (`m.content.present?` is `false`).  This is useful when you only care
   #   about messages that actually contain a payload (e.g. assistant
   #   replies, user queries, etc.).
@@ -102,7 +102,7 @@ class OllamaChat::MessageList
   #   oldest) until the block returns a truthy value.
   #
   # @yieldparam [OllamaChat::Message] message the current message being inspected
-  # @yieldreturn [Boolean] whether the message matches the criteria
+  # @yieldreturn [true, false] whether the message matches the criteria
   #
   # @return [OllamaChat::Message, nil] the first message that matches the
   #   block, or `nil` if none match.

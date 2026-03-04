@@ -11,7 +11,7 @@ module OllamaChat::Clipboard
   # its content to the system clipboard using the command specified in
   # the configuration (config.copy).
   #
-  # @param content [Boolean] If true, copies the content of the message;
+  # @param content [true, false] If true, copies the content of the message;
   #   if false, copies the entire message object (default: false)
   #
   # @raise [OllamaChat::OllamaChatError] if the clipboard command specified
@@ -26,6 +26,7 @@ module OllamaChat::Clipboard
         IO.popen(copy, 'w') do |clipboard|
           clipboard.write(text)
         end
+        true
       else
         raise OllamaChat::OllamaChatError,
           "#{config.copy.inspect} command not found in system's path!"
@@ -76,7 +77,7 @@ module OllamaChat::Clipboard
   # in the messages array and returns its content. It is used by
   # `perform_copy_to_clipboard` when no custom text is provided.
   #
-  # @param content [Boolean] If true, returns the content of the message;
+  # @param content [true, false] If true, returns the content of the message;
   #   if false, returns nil if no assistant message is found (default: false)
   #
   # @return [String, nil] The content of the last assistant message, or nil if
@@ -97,8 +98,10 @@ module OllamaChat::Clipboard
   # handles any OllamaChat::OllamaChatError exceptions by printing the error
   # message to standard error and does not re-raise the exception.
   def copy_to_clipboard
+
     perform_copy_to_clipboard
     STDOUT.puts "The last response has been successfully copied to the system clipboard."
+    true
   rescue OllamaChat::OllamaChatError => e
     STDERR.puts e.message
   end
