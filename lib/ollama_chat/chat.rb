@@ -689,10 +689,11 @@ class OllamaChat::Chat
           &handler
         )
       rescue Ollama::Errors::BadRequestError
-        if think? && !retried
-          STDOUT.puts "#{bold('Error')}: in think mode, switch thinking off and retry."
+        if (think?||tools_support?) && !retried
+          STDOUT.puts "#{bold('Error')}: in think mode/with tool support, switch both off and retry."
           sleep 1
           think_mode.selected  = 'disabled'
+          tools_support.set false
           retried = true
           retry
         else
