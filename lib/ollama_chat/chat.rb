@@ -333,8 +333,10 @@ class OllamaChat::Chat
       @parse_content = false
       web($1, $2)
     when %r(^/input(?:\s+(.+))?$)
+      arg = $1
+      arg and patterns = arg.scan(/(\S+)/).flatten
       @parse_content = false
-      input($1) or :next
+      input(patterns) or :next
     when %r(^/context(?:\s+(.+))?$)
       arg = $1
       arg and patterns = arg.scan(/(\S+)/).flatten

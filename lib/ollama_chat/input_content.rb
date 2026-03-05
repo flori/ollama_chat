@@ -16,18 +16,19 @@ module OllamaChat::InputContent
   # pattern, reads their content, and returns a concatenated string with each
   # file's content preceded by its filename.
   #
-  # @param pattern [String] the glob pattern to search for files (defaults to '**/*')
+  # @param patterns [Array<String>] the glob patterns to search for files (defaults to '**/*')
   #
   # @return [String] a concatenated string of file contents with filenames as headers
-  def input(pattern)
-    pattern ||= '**/*'
+  def input(patterns)
+    patterns ||= '**/*'
+    patterns = Array(patterns)
     files = Set[]
-    while filename = choose_filename(pattern, chosen: files)
-      files << filename
+    while filename = choose_filename(patterns, chosen: files)
+      files << filename.expand_path
     end
     result = ''
     files.each do |filename|
-      result << ("%s:\n\n%s\n\n" % [ filename, File.read(filename) ])
+      result << ("%s:\n\n%s\n\n" % [ filename, filename.read ])
     end
     result.full?
   end
@@ -36,21 +37,22 @@ module OllamaChat::InputContent
   # searches for files matching the given pattern, excludes already chosen
   # files, and presents them in an interactive chooser menu.
   #
-  # @param pattern [ String ] the glob pattern to search for files
+  # @param pattern [ Array<String> ] the glob pattern to search for files
   # @param chosen [ Set ] a set of already chosen filenames to exclude from
   #   selection
   #
   # @return [ Pathname, nil ] the selected filename or nil if no file was chosen or user exited
-  def choose_filename(pattern, chosen: nil)
-    files = Dir.glob(pattern).reject { chosen&.member?(_1) }.
-      select { File.file?(_1) }
+  def choose_filename(patterns, chosen: nil)
+    patterns = Array(patterns)
+    files = patterns.flat_map { Pathname.glob(_1) }
+    files = files.reject { chosen&.member?(_1.expand_path) }.select { _1.file? }
     files.unshift('[EXIT]')
-    case chosen = OllamaChat::Utils::Chooser.choose(files)
+    case chosen_file = OllamaChat::Utils::Chooser.choose(files)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
     else
-      Pathname.new(chosen)
+      Pathname.new(chosen_file)
     end
   end
 
