@@ -97,19 +97,13 @@ class OllamaChat::Chat
     setup_switches(config)
     setup_state_selectors(config)
     connect_ollama
-    begin
-      use_model(@opts[?m].full? || config.model.name)
-    rescue OllamaChat::UnknownModelError => e
-      abort "Failed to use to model: #{e}"
-    end
-    @model_options  = Ollama::Options[config.model.options]
     if conversation_file = @opts[?c]
       messages.load_conversation(conversation_file)
     elsif backup_file = OC::XDG_CACHE_HOME + 'backup.json' and backup_file.exist?
       messages.load_conversation(backup_file)
       FileUtils.rm_f backup_file
     else
-      setup_system_prompt
+      @setup_system_prompt = true
     end
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @documents            = setup_documents
@@ -165,13 +159,14 @@ class OllamaChat::Chat
   # The start method initializes the chat session by displaying information,
   # then prompts the user for input to begin interacting with the chat.
   def start
-    if think? && !@model_metadata.can?('thinking')
-      think_mode.selected = 'disabled'
+    begin
+      use_model(@opts[?m].full? || config.model.name)
+    rescue OllamaChat::UnknownModelError => e
+      abort "Failed to use to model: #{e}"
     end
+    @model_options  = Ollama::Options[config.model.options]
 
-    if tools_support.on? && !@model_metadata.can?('tools')
-      tools_support.set false
-    end
+    @setup_system_prompt and setup_system_prompt
 
     info
     STDOUT.puts "\nType /help to display the chat help."

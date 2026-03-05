@@ -104,13 +104,38 @@ module OllamaChat::ModelHandling
     result
   end
 
+  # The use_model method selects and sets the model to be used for the chat
+  # session.
+  #
+  # It allows specifying a particular model or defaults to the current model.
+  # After selecting, it pulls the model metadata if necessary. If think? is
+  # true and the chosen model does not support thinking, the think mode
+  # selector is set to 'disabled'. If tools_support.on? is true and the chosen
+  # model does not support tools, tool support is disabled. Returns the
+  # metadata for the selected model.
+  #
+  # @param model [ String, nil ] the model name to use; if omitted, the current
+  #   model is retained
+  #
+  # @return [ ModelMetadata ] the metadata for the selected model.
   def use_model(model = nil)
     if model.nil?
       @model = choose_model('', @model)
     else
       @model = choose_model(model, config.model.name)
     end
+
     @model_metadata = pull_model_unless_present(@model)
+
+    if think? && !@model_metadata.can?('thinking')
+      think_mode.selected = 'disabled'
+    end
+
+    if tools_support.on? && !@model_metadata.can?('tools')
+      tools_support.set false
+    end
+
+    @model_metadata
   end
 
   # The choose_model method selects a model from the available list based on

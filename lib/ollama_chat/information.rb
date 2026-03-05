@@ -85,7 +85,7 @@ module OllamaChat::Information
     STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
     STDOUT.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
     STDOUT.puts "Current conversation model is #{bold{@model}}."
-    STDOUT.puts   "  Capabilities: #{Array(@model_metadata.capabilities) * ', '}"
+    STDOUT.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
     if @model_options.present?
       STDOUT.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
     end
