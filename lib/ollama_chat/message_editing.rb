@@ -1,14 +1,12 @@
 # A module that provides message editing functionality for OllamaChat.
 #
 # The MessageEditing module encapsulates methods for modifying existing chat
-# messages using an external editor. It allows users to edit the last message
-# in the conversation, whether it's a system prompt, user message, or assistant
-# response.
+# messages using an external editor.
 module OllamaChat::MessageEditing
   private
 
-  # The revise_last method opens the last message in an external editor for
-  # modification.
+  # The change_response method opens the last message (usually the assistant's
+  # response) in an external editor for modification.
   #
   # This method retrieves the last message from the conversation, writes its
   # content to a temporary file, opens that file in the configured editor,
@@ -16,7 +14,7 @@ module OllamaChat::MessageEditing
   # completion.
   #
   # @return [String, nil] the edited content if successful, nil otherwise
-  def revise_last
+  def change_response
     if message = @messages.last
       Tempfile.open do |tmp|
         tmp.write(message.content)
@@ -34,7 +32,7 @@ module OllamaChat::MessageEditing
         end
       end
     else
-      STDERR.puts "No message available to revise."
+      STDERR.puts "No message available to change."
     end
     nil
   end

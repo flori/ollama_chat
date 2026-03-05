@@ -266,10 +266,14 @@ class OllamaChat::Chat
     when %r(^/prompt)
       @prefill_prompt = choose_prompt
       :next
-    when %r(^/regenerate$)
+    when %r(^/revise(?:\s+(edit))?$)
+      subcommand = $1
       if content = messages.second_last&.content
         content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
         messages.drop(1)
+        if subcommand == 'edit'
+          content = edit_text(content)
+        end
       else
         STDOUT.puts "Not enough messages in this conversation."
         return :redo
@@ -343,8 +347,8 @@ class OllamaChat::Chat
       context_spook(patterns) or :next
     when %r(^/compose$)
       compose or :next
-    when %r(^/revise_last$)
-      revise_last
+    when %r(^/change_response$)
+      change_response
       :next
     when %r(^/save\s+(.+)$)
       save_conversation($1)

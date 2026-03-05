@@ -7,7 +7,7 @@ describe OllamaChat::MessageEditing do
 
   connect_to_ollama_server
 
-  describe '#revise_last' do
+  describe '#change_response' do
     it 'can revise the last message' do
       # First add a message to work with
       chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
@@ -25,12 +25,12 @@ describe OllamaChat::MessageEditing do
       expect(File).to receive(:read).with('/tmp/test').and_return('edited content')
 
       # The method should return the edited content
-      expect(chat.revise_last).to eq 'edited content'
+      expect(chat.change_response).to eq 'edited content'
     end
 
     it 'handles missing last message' do
-      expect(STDERR).to receive(:puts).with(/No message available to revise/)
-      expect(chat.revise_last).to be_nil
+      expect(STDERR).to receive(:puts).with(/No message available to change/)
+      expect(chat.change_response).to be_nil
     end
 
     it 'handles missing editor gracefully' do
@@ -40,15 +40,15 @@ describe OllamaChat::MessageEditing do
 
       expect(STDERR).to receive(:puts).with(/Need the environment variable var EDITOR/)
       expect(STDERR).to receive(:puts).with(/Editor failed to edit message/)
-      expect(chat.revise_last).to be_nil
+      expect(chat.change_response).to be_nil
     end
 
-    it 'handles no messages to revise' do
+    it 'handles no messages to change' do
       # Clear messages array
       chat.instance_variable_get(:@messages).clear
 
-      expect(STDERR).to receive(:puts).with(/No message available to revise/)
-      expect(chat.revise_last).to be_nil
+      expect(STDERR).to receive(:puts).with(/No message available to change/)
+      expect(chat.change_response).to be_nil
     end
 
     it 'handles editor failure' do
@@ -58,7 +58,7 @@ describe OllamaChat::MessageEditing do
       expect(Tempfile).to receive(:open).and_yield(tmp_double)
       expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)
       expect(STDERR).to receive(:puts).with(/Editor failed to edit message/)
-      expect(chat.revise_last).to be_nil
+      expect(chat.change_response).to be_nil
     end
   end
 end

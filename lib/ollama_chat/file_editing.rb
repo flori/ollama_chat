@@ -13,6 +13,27 @@ module OllamaChat::FileEditing
     system Shellwords.join([ editor, filename ])
   end
 
+  # The edit_text method temporarily writes the given text to a file,
+  # attempts to edit it using an external editor, and returns the edited
+  # content if successful.
+  #
+  # @param text [String] the text to be edited
+  #
+  # @return [String, nil] the edited text or nil if editing failed
+  def edit_text(text)
+    Tempfile.open do |tmp|
+      tmp.write(text)
+      tmp.flush
+
+      if result = edit_file(tmp.path)
+        new_text = File.read(tmp.path)
+        return new_text
+      else
+        STDERR.puts "Editor failed to edit message."
+      end
+    end
+  end
+
   # The vim method creates and returns a new Vim instance for interacting with
   # a Vim server.
   #

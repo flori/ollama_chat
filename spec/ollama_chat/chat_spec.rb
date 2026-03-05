@@ -109,9 +109,18 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/system")).to eq :next
     end
 
-    it 'returns :next when input is "/regenerate"' do
+    it 'returns :next when input is "/revise"' do
       expect(STDOUT).to receive(:puts).with(/Not enough messages/)
-      expect(chat.handle_input("/regenerate")).to eq :redo
+      expect(chat.handle_input("/revise")).to eq :redo
+    end
+
+    it 'returns :next when input is "/revise edit"' do
+      expect(STDOUT).to receive(:puts).with(/Not enough messages/)
+      expect(chat.handle_input("/revise edit")).to eq :redo
+    end
+
+    it 'returns :next when input is "/change_response"' do
+      expect(chat.handle_input("/change_response")).to eq :next
     end
 
     it 'returns :next when input is "/collection(clear|change)"' do
