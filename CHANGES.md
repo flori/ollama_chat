@@ -1,5 +1,45 @@
 # Changes
 
+## 2026-03-05 v0.0.73
+
+- Renamed the `"/regenerate"` command to `"/revise"` with an optional `edit`
+  subcommand in `chat.rb`.  
+    - Replaced the `revise_last` method with `change_response` in
+      `message_editing.rb`.  
+    - Added a new `edit_text` method that uses temporary files for external editor
+      integration.  
+    - Updated help text and documentation references throughout the codebase.  
+    - Adjusted tests in `chat_spec.rb` and `message_editing_spec.rb` accordingly.  
+- Added a `ModelMetadata` struct to encapsulate model information, including
+  capabilities.  
+    - Introduced `OllamaChat::UnknownModelError` for better error handling when
+      models are not found.  
+    - Implemented a `can?` method on `ModelMetadata` for clean capability checks,
+      e.g., `@model_metadata.can?('thinking')`.  
+    - Updated `pull_model_unless_present` to return a `ModelMetadata` instance
+      instead of a system prompt string.  
+    - Enhanced the `"/model"` command with proper error handling using the new
+      exception class.  
+    - Added a capabilities display in the information output: `STDOUT.puts
+      "Capabilities: #{Array(@model_metadata.capabilities) * ', '}"`.  
+    - Refactored the `use_model` method for cleaner model selection flow.  
+    - Updated tests to validate capability parsing from API responses (e.g.,
+      `"completion","tools"` for **8.0B** models).  
+    - Modified `setup_system_prompt` to use the new metadata system
+      (`@model_metadata.system`) instead of the old approach.  
+    - Improved error handling in chat initialization and the `"/model"` command
+      with specific model‑not‑found errors.  
+    - Removed an unused parameter from the `pull_model_unless_present` method
+      signature.  
+- Updated `OllamaChat::Chat` to handle both `think?` and `tools_support?`
+  conditions in error recovery logic.  
+    - Modified the rescue block to check `(think? || tools_support.on?)` instead of
+      just `think?`.  
+    - Added a `tools_support.set false` call alongside disabling think mode when
+      errors occur.  
+    - Improved the error message to reflect that both modes are disabled during
+      retry attempts.
+
 ## 2026-03-04 v0.0.72
 
 - Introduced `OllamaChat::PersonaeManagement` module and `/persona` command
