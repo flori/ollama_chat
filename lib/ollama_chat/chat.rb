@@ -1,5 +1,4 @@
 require 'tins'
-require 'tins/secure_write'
 require 'tins/xt/string_version'
 require 'tins/xt/full'
 require 'json'
