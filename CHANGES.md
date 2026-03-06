@@ -1,42 +1,89 @@
 # Changes
 
+## 2026-03-06 v0.0.74
+
+- Added new tool `ExecuteRI` in `lib/ollama_chat/tools/execute_ri.rb` that
+  invokes Ruby's `ri`, returning JSON with command, result, or error details.
+    - Registered `ExecuteRI` via a require in `lib/ollama_chat/tools.rb` and
+      enabled it by default in `default_config.yml`.
+    - Extended `Fetcher.execute` to accept an array of strings, joining them into a
+      shell‑safe string when needed.
+    - Added comprehensive RSpec tests for name resolution, tool creation, hash
+      conversion, successful execution with valid topics, missing/invalid topic
+      handling, and fetcher exception reporting.
+    - Updated gemspec to include `execute_ri.rb`, its spec, and related files in
+      `extra_rdoc_files`, `files`, and `test_files`.
+- Refactored `OllamaChat::Tools::GetCurrentWeather` to use the Pirate Weather
+  API, adding a new config key `PIRATEWEATHER_API_KEY` and updating the default
+  URL template in `default_config.yml`.
+    - Removed legacy DWD sensor dependency and deleted
+      `lib/ollama_chat/tools/weather/dwd_sensor.rb`.
+    - Stubbed `get_weather_data` in tests and added new asset
+      `spec/assets/pirateweather.json`.
+    - Adjusted test expectations to account for the new JSON asset and increased
+      directory‑structure count from 18 to 19 items.
+- Made `write_file` nil‑safe by assigning `bytes_written =
+  args.content&.size.to_i` and replaced the two‑branch logic with a `case…when`
+  on `args.mode` handling `'append'`, `'overwrite'`, and raising
+  `ArgumentError` for invalid modes.
+    - Updated `spec/ollama_chat/tools/write_file_spec.rb` to confirm that invalid
+      modes return JSON with an `"error": "ArgumentError"` and an informative
+      message.
+- Removed unnecessary `tins/secure_write` dependency.
+- Added support for multiple glob patterns to the `/input` command: split
+  `/input` args into an array of `patterns`, changed `InputContent#input`
+  signature to accept `Array<String>`, normalized with `Array(patterns)`,
+  passed expanded paths to `choose_filename`, refactored `choose_filename` to
+  aggregate matches via `Pathname.glob`, filter chosen files, and return a
+  single `Pathname` object.
+    - Replaced legacy `File.read(filename)` with idiomatic `filename.read` for
+      reading file contents.
+- Expanded `use_model` implementation in `model_handling.rb` to pull metadata,
+  check think tools support, update tool settings, and return updated metadata.
+    - Added system prompt flag and improved model handling: introduced
+      `@setup_system_prompt`, conditional call in `Chat#start`, block sets chosen
+      model via `use_model`, assigns options to `@model_options`, and enables think
+      mode if needed.
+    - Updated capabilities output in `information.rb` using safe navigation
+      (`Array(@model_metadata&.capabilities) * ', '`).
+
 ## 2026-03-05 v0.0.73
 
 - Renamed the `"/regenerate"` command to `"/revise"` with an optional `edit`
-  subcommand in `chat.rb`.  
+  subcommand in `chat.rb`.
     - Replaced the `revise_last` method with `change_response` in
-      `message_editing.rb`.  
+      `message_editing.rb`.
     - Added a new `edit_text` method that uses temporary files for external editor
-      integration.  
-    - Updated help text and documentation references throughout the codebase.  
-    - Adjusted tests in `chat_spec.rb` and `message_editing_spec.rb` accordingly.  
+      integration.
+    - Updated help text and documentation references throughout the codebase.
+    - Adjusted tests in `chat_spec.rb` and `message_editing_spec.rb` accordingly.
 - Added a `ModelMetadata` struct to encapsulate model information, including
-  capabilities.  
+  capabilities.
     - Introduced `OllamaChat::UnknownModelError` for better error handling when
-      models are not found.  
+      models are not found.
     - Implemented a `can?` method on `ModelMetadata` for clean capability checks,
-      e.g., `@model_metadata.can?('thinking')`.  
+      e.g., `@model_metadata.can?('thinking')`.
     - Updated `pull_model_unless_present` to return a `ModelMetadata` instance
-      instead of a system prompt string.  
+      instead of a system prompt string.
     - Enhanced the `"/model"` command with proper error handling using the new
-      exception class.  
+      exception class.
     - Added a capabilities display in the information output: `STDOUT.puts
-      "Capabilities: #{Array(@model_metadata.capabilities) * ', '}"`.  
-    - Refactored the `use_model` method for cleaner model selection flow.  
+      "Capabilities: #{Array(@model_metadata.capabilities) * ', '}"`.
+    - Refactored the `use_model` method for cleaner model selection flow.
     - Updated tests to validate capability parsing from API responses (e.g.,
-      `"completion","tools"` for **8.0B** models).  
+      `"completion","tools"` for **8.0B** models).
     - Modified `setup_system_prompt` to use the new metadata system
-      (`@model_metadata.system`) instead of the old approach.  
+      (`@model_metadata.system`) instead of the old approach.
     - Improved error handling in chat initialization and the `"/model"` command
-      with specific model‑not‑found errors.  
+      with specific model‑not‑found errors.
     - Removed an unused parameter from the `pull_model_unless_present` method
-      signature.  
+      signature.
 - Updated `OllamaChat::Chat` to handle both `think?` and `tools_support?`
-  conditions in error recovery logic.  
+  conditions in error recovery logic.
     - Modified the rescue block to check `(think? || tools_support.on?)` instead of
-      just `think?`.  
+      just `think?`.
     - Added a `tools_support.set false` call alongside disabling think mode when
-      errors occur.  
+      errors occur.
     - Improved the error message to reflect that both modes are disabled during
       retry attempts.
 
@@ -44,50 +91,50 @@
 
 - Introduced `OllamaChat::PersonaeManagement` module and `/persona` command
   with subcommands `add`, `delete`, `edit`, `list`, `play`, `file`, `info`,
-  `load`.  
+  `load`.
 - Added `/config reload` subcommand to `OllamaChat::Chat`; handler
   `reload_config` in `OllamaChat::ConfigHandling` prompts for confirmation,
-  calls `save_conversation`, then restarts with `exec($0,*ARGV)`.  
-- Added `-p` command‑line option (`-p PERSONA`) to load personas at startup.  
-- Created `OllamaChat::Pager` module for pager functionality.  
+  calls `save_conversation`, then restarts with `exec($0,*ARGV)`.
+- Added `-p` command‑line option (`-p PERSONA`) to load personas at startup.
+- Created `OllamaChat::Pager` module for pager functionality.
 - Created `OllamaChat::FileEditing` module; refactored `edit_config`,
   `compose`, `revise_last` to use `edit_file`; added `vim(server_name = nil)`
-  returning `OllamaChat::Vim` and `perform_insert(text:, content:)`.  
+  returning `OllamaChat::Vim` and `perform_insert(text:, content:)`.
 - Added LLM‑driven tool `insert_into_editor`
   (`lib/ollama_chat/tools/insert_into_editor.rb`) with RSpec tests; default
-  config (`default_config.yml`) now enables confirmation flag for this tool.  
+  config (`default_config.yml`) now enables confirmation flag for this tool.
 - Enhanced `copy_to_clipboard` tool: accepts optional `text` parameter,
   includes helper `last_message_content`, returns `true` on success, updated
-  error messages, added test for custom text.  
-- Added `bytes_written` tracking to `write_file` tool; fixed return hash key.  
-- Added visual separator for tool output.  
-- Renamed `env_config.rb` to `oc.rb`; updated requires accordingly.  
+  error messages, added test for custom text.
+- Added `bytes_written` tracking to `write_file` tool; fixed return hash key.
+- Added visual separator for tool output.
+- Renamed `env_config.rb` to `oc.rb`; updated requires accordingly.
 - Added `save_history` call after conversation backup to persist history before
-  restart.  
-- Updated documentation and help messages to reflect new commands and options.  
+  restart.
+- Updated documentation and help messages to reflect new commands and options.
 - Standardised type hints across codebase, replacing generic Boolean comments
-  with explicit `[ true, false ]`.  
+  with explicit `[ true, false ]`.
 
 ## 2026-02-26 v0.0.71
 
 - Add new clipboard utilities: `tools/copy_to_clipboard.rb` and
-  `tools/paste_from_clipboard.rb`.  
+  `tools/paste_from_clipboard.rb`.
 - Update gemspec to include the new tools in `s.extra_rdoc_files`, `s.files`,
-  and `s.test_files`.  
-- Update stub comment in `ollama_chat.gemspec` to reflect the new version.  
+  and `s.test_files`.
+- Update stub comment in `ollama_chat.gemspec` to reflect the new version.
 - Enable more tools by default
 - Rename `think_loud?` to `think?` in `follow_chat.rb` for storage logic;
   update `last_message_with_user` to conditionally include thinking content;
   remove empty string from `output_eval_stats`; add test for saving
   conversations with thinking content in `message_list_spec.rb`; update spec
-  expectations to use `think_loud?: false` for display behavior.  
+  expectations to use `think_loud?: false` for display behavior.
 - Replace `/paste` command to use `paste_from_clipboard`; add
   `perform_paste_from_clipboard` method in `lib/ollama_chat/clipboard.rb`; add
   `paste_from_clipboard` tool in
   `lib/ollama_chat/tools/paste_from_clipboard.rb`; add `paste: pfc`
   configuration option; update tool defaults in configuration; update existing
   tests to use new method names; add new spec file for `paste_from_clipboard`
-  tool.  
+  tool.
 - Add `OllamaChat::Tools::CopyToClipboard` tool that integrates with chat tool
   system; implement `MessageList#find_last` method with optional `content`
   parameter to filter empty messages; enhance
@@ -97,12 +144,12 @@
   message finding functionality; integrate clipboard functionality with
   existing configuration system using `config.copy`; update success message
   text from "copied to the system clipboard" to "successfully copied to the
-  system clipboard".  
+  system clipboard".
 - Add interactive help mode with `/help me` command handler in
   `lib/ollama_chat/chat.rb`; add `help` prompt template to
   `lib/ollama_chat/ollama_chat_config/default_config.yml`; update help text in
   `README.md` and `lib/ollama_chat/information.rb`; add test coverage in
-  `spec/ollama_chat/chat_spec.rb`.  
+  `spec/ollama_chat/chat_spec.rb`.
 - Make `Pathname` output quoted for string interpolation: replace
   `filename.inspect` with `filename.to_s.inspect` in `save_conversation` and
   `load_conversation` methods; update three locations in
@@ -111,137 +158,137 @@
 ## 2026-02-23 v0.0.70
 
 - Added `generate_password` tool with secure password generation, supporting
-  multiple alphabet types.  
-- Updated `tins` gem dependency to **1.52**.  
-- Added comprehensive tests for `generate_password` with various parameters.  
+  multiple alphabet types.
+- Updated `tins` gem dependency to **1.52**.
+- Added comprehensive tests for `generate_password` with various parameters.
 - Registered `generate_password` tool in the gemspec and configured it in
-  `default_config.yml`.  
+  `default_config.yml`.
 - Added `get_rfc` tool for fetching RFC documents, including URL template
-  configuration in `default_config.yml`.  
-- Implemented `OllamaChat::Tools::GetRFC` class and required it in `tools.rb`.  
-- Added comprehensive test suite for `get_rfc` in `get_rfc_spec.rb`.  
+  configuration in `default_config.yml`.
+- Implemented `OllamaChat::Tools::GetRFC` class and required it in `tools.rb`.
+- Added comprehensive test suite for `get_rfc` in `get_rfc_spec.rb`.
 - Implemented backup fallback for conversation loading: `chat.rb` now loads
   from `OC::XDG_CACHE_HOME.join('backup.json')` when `-c` is not provided, and
-  deletes the backup after successful load.  
+  deletes the backup after successful load.
 - Updated `config_handling.rb` to save backups to
-  `OC::XDG_CACHE_HOME.join('backup.json')` instead of the current directory.  
+  `OC::XDG_CACHE_HOME.join('backup.json')` instead of the current directory.
 - Modified `message_list.rb` to print file‑existence errors using
   `filename.to_s.inspect` and to safely remove the backup file with
-  `FileUtils.rm_f`.  
+  `FileUtils.rm_f`.
 - Renamed `OllamaChat::EnvConfig` to `OC` module alias, updating all references
-  accordingly.  
+  accordingly.
 - Added new constants: `OC::OLLAMA::SEARXNG_URL`, `OC::OLLAMA::REDIS_URL`,
-  `OC::OLLAMA::REDIS_EXPIRING_URL`.  
+  `OC::OLLAMA::REDIS_EXPIRING_URL`.
 - Updated nested module paths, e.g., `OC::OLLAMA::CHAT::TOOLS::JIRA` and
-  `OC::OLLAMA::CHAT::TOOLS::RUN_TESTS_TEST_RUNNER`.  
+  `OC::OLLAMA::CHAT::TOOLS::RUN_TESTS_TEST_RUNNER`.
 - Refactored code to use nested class structure within the module and added
   comprehensive YARD documentation with `@param`, `@return`, and `@example`
-  tags.  
-- Added module‑level documentation explaining tool purpose.  
+  tags.
+- Added module‑level documentation explaining tool purpose.
 - Added YARD documentation to `read_file.rb`, including module docstring,
   return type `[Ollama::Tool]`, and execute method parameter/return
-  documentation.  
+  documentation.
 - Removed empty `lib/ollama_chat/tools/endoflife.rb`; the functionality is now
   provided by the `get_endoflife` tool.
 
 ## 2026-02-23 v0.0.69
 
 - Reorganized access modifiers in `module OllamaChat::Dialog`, moving `ask?` to
-  be public before the `private` keyword.  
+  be public before the `private` keyword.
 - Moved `links`, `debug`, `config=`, and `config` from public to private in
-  `lib/ollama_chat/chat.rb`.  
+  `lib/ollama_chat/chat.rb`.
 - Added a `class_methods` block in `lib/ollama_chat/config_handling.rb`
-  declaring a class‑level `config` accessor via `Tins::Concern`.  
+  declaring a class‑level `config` accessor via `Tins::Concern`.
 - Added a private `config=` method in `config_handling.rb` to write to the
-  class‑level `config`.  
-- Kept a public `config` method that returns `self.class.config`.  
+  class‑level `config`.
+- Kept a public `config` method that returns `self.class.config`.
 - Added `private` to modules: `OllamaChat::Clipboard`,
   `OllamaChat::Conversation`, `OllamaChat::Dialog`,
   `OllamaChat::DocumentCache`, `OllamaChat::History`,
   `OllamaChat::InputContent`, `OllamaChat::MessageEditing`,
   `OllamaChat::ModelHandling`, `OllamaChat::ServerSocket` and removed the
-  `private` declaration from `OllamaChat::ToolCalling`.  
+  `private` declaration from `OllamaChat::ToolCalling`.
 - Updated spec files to call `expose` on `OllamaChat::Chat.new(argv:
   chat_default_config)` and on `Object.extend(described_class)` so that private
-  helpers can be exercised during testing.  
+  helpers can be exercised during testing.
 - Ensured the command‑handling logic in `handle_input` continues to invoke the
-  newly private methods correctly.  
+  newly private methods correctly.
 - Added `tool_function(name)` helper to `OllamaChat::ToolCalling` for
-  centralised tool config lookup.  
+  centralised tool config lookup.
 - Updated `lib/ollama_chat/follow_chat.rb` to use `@chat.tool_function(name)`
-  instead of `config.tools.functions[name]`.  
+  instead of `config.tools.functions[name]`.
 - Modified `lib/ollama_chat/switches.rb` switch messages to lower‑case
-  “support” (`"Tools support enabled."` / `"Tools support disabled."`).  
+  “support” (`"Tools support enabled."` / `"Tools support disabled."`).
 - In `lib/ollama_chat/tool_calling.rb`, replaced `config.tools.functions[tool]`
   with `tool_function(tool)` when printing tools and checking
-  `require_confirmation?`.  
+  `require_confirmation?`.
 - Added a `private` section header in `lib/ollama_chat/tool_calling.rb` for
-  clarity.  
+  clarity.
 - Adjusted spec regex in `spec/ollama_chat/chat_spec.rb` to match updated
-  message (`Tools support enabled`).  
+  message (`Tools support enabled`).
 - Added `OllamaChat::ConfigHandling` module in
   `lib/ollama_chat/config_handling.rb` with `display_config`, `fix_config`,
-  `edit_config`.  
-- Required `ollama_chat/config_handling` in `lib/ollama_chat.rb`.  
-- Included `OllamaChat::ConfigHandling` in `OllamaChat::Chat`.  
+  `edit_config`.
+- Required `ollama_chat/config_handling` in `lib/ollama_chat.rb`.
+- Included `OllamaChat::ConfigHandling` in `OllamaChat::Chat`.
 - Updated `/config` command regex to `^/config(?:\\s+(edit))?$` and dispatched
-  to `edit_config` or `display_config`.  
+  to `edit_config` or `display_config`.
 - Removed old `display_config`, `fix_config`, `edit_config` methods from
-  `chat.rb`.  
+  `chat.rb`.
 - Added helper methods `tool_configured?`, `tool_registered?`, `tool_enabled?`
-  to `OllamaChat::ToolCalling` for cleaner tool state checks.  
+  to `OllamaChat::ToolCalling` for cleaner tool state checks.
 - Updated `FollowChat` to use the new helpers instead of direct config/registry
   lookups (`@chat.config.tools.functions.attribute_set?(name)` →
   `@chat.tool_configured?(name)`, `OllamaChat::Tools.registered?(name)` →
   `@chat.tool_registered?(name)`, `@chat.enabled_tools.member?(name)` →
-  `@chat.tool_enabled?(name)`).  
+  `@chat.tool_enabled?(name)`).
 - Refactored `default_enabled_tools` in `OllamaChat::ToolCalling` to call
   `tool_registered?` and adjusted `list_tools` to use `tool_enabled?` for
-  checkbox rendering.  
+  checkbox rendering.
 - Simplified `Fetcher#fetch` signature from `fetch(url, headers: {}, options:
   {})` to `fetch(url, opts = {})`; updated documentation to reflect the new
-  `opts` hash and optional `:headers` key.  
+  `opts` hash and optional `:headers` key.
 - Added guard in `lib/ollama_chat/follow_chat.rb` to skip execution of disabled
-  tools and record an error in `@chat.tool_call_results`.  
+  tools and record an error in `@chat.tool_call_results`.
 - Added `attr_reader :enabled_tools` to `OllamaChat::ToolCalling` and replaced
-  all `@enabled_tools` references with the reader.  
+  all `@enabled_tools` references with the reader.
 - Updated `tools`, `list_tools`, `enable_tool`, and `disable_tool` to use
-  `enabled_tools` instead of the instance variable.  
-- Updated `/tools` command to accept `on`/`off` and handle them.  
+  `enabled_tools` instead of the instance variable.
+- Updated `/tools` command to accept `on`/`off` and handle them.
 - Added `tools_support` switch in `switches.rb` reflecting
-  `config.tools.enabled`.  
-- Refactored config to use `enabled:` and `functions:` under `tools:`.  
-- Updated all tool references to `config.tools.functions`.  
-- Guard tool calls with `@tools_support.off?` in `tool_calling.rb`.  
+  `config.tools.enabled`.
+- Refactored config to use `enabled:` and `functions:` under `tools:`.
+- Updated all tool references to `config.tools.functions`.
+- Guard tool calls with `@tools_support.off?` in `tool_calling.rb`.
 - Updated `default_enabled_tools` and `list_tools` to use
-  `config.tools.functions`.  
-- Added `tools_support.show` to `information.rb`.  
+  `config.tools.functions`.
+- Added `tools_support.show` to `information.rb`.
 - Updated tool implementations (`directory_structure`, `execute_grep`,
   `file_context`, `get_current_weather`, `get_cve`, `get_endoflife`,
   `import_url`, `read_file`, `search_web`, `write_file`) to use
-  `config.tools.functions`.  
+  `config.tools.functions`.
 - Adjusted specs to reference `functions` and modify `gem_path_lookup` spec to
-  return a symbol.  
+  return a symbol.
 - Added `OLLAMA_CHAT_TOOLS_RUN_TESTS_TEST_RUNNER` to `.envrc` for the
-  `run_tests` tool.  
-- Removed gem system updates from Dockerfile.  
+  `run_tests` tool.
+- Removed gem system updates from Dockerfile.
 - Removed `model_with_size` and `choose_model` from
-  `lib/ollama_chat/dialog.rb`.  
+  `lib/ollama_chat/dialog.rb`.
 - Added `model_with_size` and `choose_model` to
-  `lib/ollama_chat/model_handling.rb`.  
+  `lib/ollama_chat/model_handling.rb`.
 - In `lib/ollama_chat/env_config.rb`, changed `decode` lambda to use
-  `Pathname.new(_1).join('ollama_chat').expand_path` for absolute paths.  
+  `Pathname.new(_1).join('ollama_chat').expand_path` for absolute paths.
 - In `lib/ollama_chat/ollama_chat_config.rb`, replaced
-  `File.directory?(cache_dir_path)` with `cache_dir_path.directory?`.  
+  `File.directory?(cache_dir_path)` with `cache_dir_path.directory?`.
 - Updated `default_path`, `config_dir_path`, `cache_dir_path`, and
-  `database_path` to consistently return `Pathname` objects.  
-- Added `and_call_original` to source fetching test.  
-- Removed `bundle update --all` from `.all_images.yml`.  
+  `database_path` to consistently return `Pathname` objects.
+- Added `and_call_original` to source fetching test.
+- Removed `bundle update --all` from `.all_images.yml`.
 - Added `before:` block to `.all_images.yml` that echoes 'Preparing…' and
-  deletes `Gemfile.lock`.  
+  deletes `Gemfile.lock`.
 - Added `after:` block to `.all_images.yml` that checks `$RESULT` and prints
-  success/failure messages, then deletes `Gemfile.lock`.  
-- Updated dependency `all_images` to **~>0.12**.  
+  success/failure messages, then deletes `Gemfile.lock`.
+- Updated dependency `all_images` to **~>0.12**.
 
 ## 2026-02-19 v0.0.68
 
@@ -385,44 +432,44 @@
 
 ## 2026-02-07 v0.0.62
 
-**Tool Execution**  
-- All tools now return structured JSON errors (`error` + `message`).  
-- Confirmation prompts (`confirm?`) added to `OllamaChat::FollowChat`.  
-- `infobar` displays a busy indicator and status messages during tool runs.  
+**Tool Execution**
+- All tools now return structured JSON errors (`error` + `message`).
+- Confirmation prompts (`confirm?`) added to `OllamaChat::FollowChat`.
+- `infobar` displays a busy indicator and status messages during tool runs.
 - Tool methods accept `config:` and `chat:` keyword arguments.
 
-**Tool Registration**  
+**Tool Registration**
 - Centralized logic via `OllamaChat::Tools::Concern` to prevent duplicate
   registrations.
 
-**File Context Tool (`file_context`)**  
-- Supports an exact `path:` argument in addition to `directory:` + `pattern:`.  
-- Uses `blank?` for argument validation.  
+**File Context Tool (`file_context`)**
+- Supports an exact `path:` argument in addition to `directory:` + `pattern:`.
+- Uses `blank?` for argument validation.
 - YARD documentation added.
 
-**Directory Structure Tool (`directory_structure`)**  
-- Delegates to `OllamaChat::Utils::AnalyzeDirectory.generate_structure`.  
-- Excludes hidden files, symlinks, and the `pkg` directory by default.  
+**Directory Structure Tool (`directory_structure`)**
+- Delegates to `OllamaChat::Utils::AnalyzeDirectory.generate_structure`.
+- Excludes hidden files, symlinks, and the `pkg` directory by default.
 - `exclude` option configurable in `default_config.yml`.
 
-**Utility Module**  
+**Utility Module**
 - New `OllamaChat::Utils::AnalyzeDirectory` containing the `generate_structure`
   method.
 
-**Error Handling**  
+**Error Handling**
 - `CVE`, `EndOfLife`, `Grep`, and `Weather` tools now catch all exceptions and return structured JSON errors.
 
-**Testing**  
+**Testing**
 - Added comprehensive specs for `AnalyzeDirectory` (traversal, exclusions,
-  error handling).  
-- Tests for exact `path` usage in `file_context` with conflict detection.  
+  error handling).
+- Tests for exact `path` usage in `file_context` with conflict detection.
 - Updated `test_files` list in the gemspec.
 
-**Configuration**  
-- `directory_structure` accepts an `exclude` option via `default_config.yml`.  
+**Configuration**
+- `directory_structure` accepts an `exclude` option via `default_config.yml`.
 - Tool signatures updated to accept `config:` and `chat:`.
 
-**Gem Specification**  
+**Gem Specification**
 - Updated `test_files`, `extra_rdoc_files`, and `files` arrays to include new
   utilities, tests, and documentation.
 
