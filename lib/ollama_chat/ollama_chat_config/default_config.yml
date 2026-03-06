@@ -128,7 +128,7 @@ tools:
   enabled: true
   functions:
     get_current_weather:
-      station_id: '00433'
+      url: "https://api.pirateweather.net/forecast/KeyInHeader/%{lat},%{lon}?units=%{units}"
       default: false
     get_cve:
       url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'

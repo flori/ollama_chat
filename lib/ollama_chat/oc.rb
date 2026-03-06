@@ -146,6 +146,10 @@ module OC
           required     true
         end
 
+        PIRATEWEATHER_API_KEY = set do
+          description 'Pirate Weather API key'
+        end
+
         module JIRA
           description 'Jira tool configuration'
 

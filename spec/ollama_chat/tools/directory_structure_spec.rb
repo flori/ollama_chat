@@ -36,7 +36,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.size).to eq 18
+    expect(json.size).to eq 19
   end
 
   it 'can be executed successfully with no arguments (defaults)' do

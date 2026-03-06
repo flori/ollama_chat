@@ -289,7 +289,7 @@ describe OllamaChat::Parsing do
          "conversation.json", "deep", "duckduckgo.html", "example.atom",
          "example.csv", "example.html", "example.pdf", "example.ps",
          "example.rb", "example.rss", "example.xml", "example_with_quote.html",
-         "kitten.jpg", "prompt.txt", "searxng.json"]
+         "kitten.jpg", "prompt.txt", "searxng.json", "pirateweather.json"].sort
       )
     end
   end

@@ -7,6 +7,14 @@ describe OllamaChat::Tools::GetCurrentWeather do
 
   connect_to_ollama_server
 
+  let :tool do
+    described_class.new
+  end
+
+  let :weather_data do
+    asset_content('pirateweather.json')
+  end
+
   it 'can have name' do
     expect(described_class.new.name).to eq 'get_current_weather'
   end
@@ -20,65 +28,33 @@ describe OllamaChat::Tools::GetCurrentWeather do
   end
 
   it 'can be executed for celsius' do
-    expect(DWDSensor).to receive(:new).and_return(
-      double(measure: [ Time.now, 23.0 ])
-    )
+    expect(tool).to receive(:get_weather_data).and_return(weather_data)
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'get_current_weather',
-        arguments: double(
-          location:          'Berlin',
-          temperature_unit:  'celsius'
-        )
+        arguments: double()
       )
     )
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = tool.execute(tool_call, config: chat.config)
     json = json_object(result)
-    expect(json.measurement_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
     expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
-    expect(json.temperature).to be_within(0.01).of(23.0)
-    expect(json.unit).to eq "℃"
-  end
-
-  it 'can be executed for fahrenheit' do
-    expect(DWDSensor).to receive(:new).and_return(
-      double(measure: [ Time.now, 23.0 ])
-    )
-    tool_call = double(
-      'ToolCall',
-      function: double(
-        name: 'get_current_weather',
-        arguments: double(
-          location:          'Berlin',
-          temperature_unit:  'fahrenheit'
-        )
-      )
-    )
-    result = described_class.new.execute(tool_call, config: chat.config)
-    json = json_object(result)
-    expect(json.measurement_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
-    expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
-    expect(json.temperature).to be_within(0.01).of(73.4)
-    expect(json.unit).to eq "℉"
+    expect(json.currently.temperature).to be_within(0.01).of(7.74)
+    expect(json.units).to eq "si"
   end
 
   it 'can handle execution errors with structured JSON error response' do
-    # Mock the DWDSensor to raise an exception
-    expect(DWDSensor).to receive(:new).and_raise('Network error occurred')
+    expect(tool).to receive(:get_weather_data).and_raise('Network error occurred')
 
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'get_current_weather',
-        arguments: double(
-          location: 'Berlin',
-          temperature_unit: 'celsius'
-        )
+        arguments: double()
       )
     )
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = tool.execute(tool_call, config: chat.config)
 
     # Parse the JSON result to verify structured error format
     json = json_object(result)
