@@ -110,6 +110,28 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.message).to include('is not within allowed directories')
   end
 
+  it 'can handle execution errors gracefully when mode is invalid' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'write_file',
+        arguments: double(
+          path: 'tmp/foo',
+          content: 'malicious content',
+          mode: 'foobar'
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, config: config)
+
+    # Should return valid JSON with error
+    expect(result).to be_a(String)
+    json = json_object(result)
+    expect(json.error).to eq 'ArgumentError'
+    expect(json.message).to include('Invalid mode')
+  end
+
   it 'can handle exceptions gracefully' do
     tool_call = double(
       'ToolCall',

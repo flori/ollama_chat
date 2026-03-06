@@ -68,13 +68,16 @@ class OllamaChat::Tools::WriteFile
     # Ensure the parent directory exists
     target_path.parent.mkpath
 
-    bytes_written = args.content.size
+    bytes_written = args.content&.size.to_i
 
     # Write the file
-    if args.mode == 'append'
+    case args.mode
+    when 'append'
       File.open(target_path, 'a') { |f| f.write(args.content) }
-    else
+    when 'overwrite'
       File.secure_write(target_path, args.content)
+    else
+      raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
 
     {
