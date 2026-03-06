@@ -188,10 +188,11 @@ class OllamaChat::Utils::Fetcher
   # If an exception occurs during execution, it reports the error
   # and yields a failed temporary file instead.
   #
-  # @param command [ String ] the shell command to execute
+  # @param command [ String, Array<String> ] the shell command to execute
   #
   # @yield [ tmpfile ]
   def self.execute(command, &block)
+    command.is_a?(String) or command = Shellwords.join(command)
     Tempfile.open do |tmp|
       unless command =~ /2>&1/
         command += ' 2>&1'

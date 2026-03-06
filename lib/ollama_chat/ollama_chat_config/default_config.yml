@@ -201,3 +201,5 @@ tools:
     insert_into_editor:
       require_confirmation: true
       default: true
+    execute_ri:
+      default: true
