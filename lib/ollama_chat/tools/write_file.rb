@@ -74,7 +74,7 @@ class OllamaChat::Tools::WriteFile
     case args.mode
     when 'append'
       File.open(target_path, 'a') { |f| f.write(args.content) }
-    when 'overwrite'
+    when 'overwrite', nil
       File.secure_write(target_path, args.content)
     else
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
