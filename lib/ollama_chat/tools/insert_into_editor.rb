@@ -20,6 +20,8 @@ class OllamaChat::Tools::InsertIntoEditor
           assistant response. This function is intended for quick code
           snippets or edits that you want to push directly into a running
           editor session without leaving OllamaChat.
+          Do not not call this tool function unless explicitly requested by the
+          user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

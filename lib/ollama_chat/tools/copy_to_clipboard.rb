@@ -22,6 +22,8 @@ class OllamaChat::Tools::CopyToClipboard
         description: <<~EOT,
           Copy a text to the clipboard (either the parameter text or the last
           response of the assistant)
+          Do not call this tool function unless explicitly requested by the
+          user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

@@ -26,7 +26,8 @@ class OllamaChat::Tools::Browse
         name:,
         description: <<~EOT,
           Open a URL or file in the user\'s default browser application so they
-          can view the content directly
+          can view the content directly. Do not not call this tool function
+          unless explicitly requested by the user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
