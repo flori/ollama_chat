@@ -35,6 +35,9 @@ module OllamaChat::PersonaeManagement
     FileUtils.mkdir_p personae_backup_directory
   end
 
+  # The setup_persona_from_opts method initializes persona setup by checking
+  # for a provided persona option, determining the appropriate file path, and
+  # playing the persona file if it exists.
   def setup_persona_from_opts
     @persona_setup and return
     @persona_setup = true
@@ -160,7 +163,7 @@ module OllamaChat::PersonaeManagement
   # Shows the persona's profile using kramdown formatting with ansi parsing.
   def info_persona
     if persona = choose_persona
-      persona_profile = load_persona_file(persona)
+      _persona, persona_profile = load_persona_file(persona)
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
           # Persona #{persona.sub_ext('')}
@@ -247,13 +250,17 @@ module OllamaChat::PersonaeManagement
     result.to_json
   end
 
-  # Reads and returns the content of a persona file.
+  # Loads a persona file from disk.
   #
-  # @param persona [String] The persona filename to read
-  # @return [String] The content of the persona file
+  # @param persona [String] The basename of the persona (without extension)
+  #
+  # @return [Array<Pathname, String>] Returns the pathname and its content as a
+  #   string
   def load_persona_file(persona)
     pathname = personae_directory + persona
-    pathname.read if pathname.exist?
+    if pathname.exist?
+      return pathname, pathname.read
+    end
   end
 
   # Generates the roleplay prompt string for a persona.
@@ -265,7 +272,7 @@ module OllamaChat::PersonaeManagement
   # @return [String] Formatted roleplay prompt
   def play_persona_prompt(persona:, persona_profile:)
     persona_name = persona.basename.sub_ext('')
-    "Roleplay as persona %{persona_name} loaded from %{persona}\n%{persona_profile}" % {
+    "Roleplay as persona %{persona_name} loaded from %{persona}\n\n%{persona_profile}" % {
       persona_name:, persona:, persona_profile:
     }
   end
@@ -275,8 +282,8 @@ module OllamaChat::PersonaeManagement
   # Uses the persona selection and loading methods to generate the
   # appropriate roleplay prompt.
   def play_persona(pathname: nil)
-    persona         = choose_persona or return
-    persona_profile = load_persona_file(persona)
+    persona                  = choose_persona or return
+    persona, persona_profile = load_persona_file(persona)
     play_persona_prompt(persona:, persona_profile:)
   end
 
