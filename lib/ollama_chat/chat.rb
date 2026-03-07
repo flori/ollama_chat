@@ -408,7 +408,9 @@ class OllamaChat::Chat
           :next
         end
       when 'edit'
-        if result = edit_persona
+        if result = edit_persona and
+            ask?(prompt: 'Load new persona profile? (y/n) ') =~ /\Ay/i
+        then
           result
         else
           :next
