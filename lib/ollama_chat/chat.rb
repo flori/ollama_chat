@@ -219,6 +219,9 @@ class OllamaChat::Chat
     when %r(^/location$)
       location.toggle
       :next
+    when %r(^/runtime_info$)
+      runtime_info.toggle
+      :next
     when %r(^/voice(?:\s+(change))?$)
       if $1 == 'change'
         change_voice
@@ -685,6 +688,19 @@ class OllamaChat::Chat
           content += "\nConsider these chunks for your answer:\n\n"\
             "#{records.map { [ _1.text, _1.tags_set ] * ?\n }.join("\n\n---\n\n")}"
         end
+      end
+
+      if runtime_info.on? && content
+        runtime_info = {
+          languages:     config.languages * ', ',
+          location:      location.on? ? location_description.inspect : 'n/a',
+          terminal_rows: Tins::Terminal.rows,
+          terminal_cols: Tins::Terminal.cols,
+          time:          Time.now.iso8601,
+          voice:         voice.on? ? 'enabled' : 'disabled',
+          markdown:      markdown.on? ? 'enabled' : 'disabled',
+        }
+        content << config.prompts.runtime_info % runtime_info
       end
 
       messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)

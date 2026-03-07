@@ -103,6 +103,7 @@ module OllamaChat::Information
     think_mode.show
     think_loud.show
     location.show
+    runtime_info.show
     voice.show
     @voice.on? and @voices.show
     tools_support.show
@@ -124,6 +125,7 @@ module OllamaChat::Information
       /markdown                                            toggle markdown output
       /stream                                              toggle stream output
       /location                                            toggle location submission
+      /runtime_info                                        toggle runtime information in prompts
       /voice [change]                                      toggle voice output or change the voice
       /last [n]                                            show the last n / 1 system/assistant message
       /list [n]                                            list the last n / all conversation exchanges

@@ -171,6 +171,13 @@ module OllamaChat::Switches
   # @return [ OllamaChat::Switches::Switch ] the location setting object
   attr_reader :location
 
+  # Provides access to the runtime_info switch controlling the visibility of
+  # runtime information in the chat
+  #
+  # @attr_reader [ Switches::Switch ] a Switch instance that manages runtime
+  #   info visibility
+  attr_reader :runtime_info
+
   # Switch tools support on/off (off → skip all, on → honour per‑tool state)
   #
   # @return [OllamaChat::Switch] the tools_support setting object
@@ -250,6 +257,13 @@ module OllamaChat::Switches
       }
     )
 
+    @runtime_info = Switch.new(
+      value: config.runtime_info.enabled,
+      msg: {
+        true  => "Runtime Information enabled.",
+        false => "Runtime Information disabled.",
+      }
+    )
     @tools_support = Switch.new(
       value: config.tools.enabled,
       msg: {

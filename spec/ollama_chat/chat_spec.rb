@@ -54,6 +54,11 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/location")).to eq :next
     end
 
+    it 'returns :next when input is "/runtime_info"' do
+      expect(chat.runtime_info).to receive(:toggle)
+      expect(chat.handle_input("/runtime_info")).to eq :next
+    end
+
     it 'returns :next when input is "/voice(?:\s+(change))? "' do
       expect(chat.voice).to receive(:toggle)
       expect(chat.handle_input("/voice")).to eq :next
@@ -353,7 +358,8 @@ describe OllamaChat::Chat, protect_env: true do
             Voice\ output|
             Currently\ selected\ search\ engine|
             Conversation\ length|
-            Tools\ support\ enabled
+            Tools\ support\ enabled|
+            Runtime\ Information\ enabled
           /x
         ).at_least(1)
       expect(chat.info).to be_nil

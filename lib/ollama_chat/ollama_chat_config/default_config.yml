@@ -8,11 +8,15 @@ timeouts:
   connect_timeout: null
   read_timeout: 300
   write_timeout: 300
+languages:
+  - en-US
 location:
   enabled: false
   name: Berlin
   decimal_degrees: [ 52.514127, 13.475211 ]
   units: SI (International System of Units) # or USCS (United States Customary System)
+runtime_info:
+  enabled: true
 prompts:
   embed: "This source was now embedded: %{source}"
   summarize: |
@@ -31,14 +35,35 @@ prompts:
 
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
-  help: |
-      Wait for the user to ask questions about the usage of chat commands. Just
-      list the command names separated by spaces (no descriptions yet) and
-      offer to answer any questions about any of them. Interactively help the
-      user by answering questions about the following
-      chat commands:
+  runtime_info: |
 
-      %{commands}
+    ---
+
+    **Runtime Information**
+
+    There is usually no reason to mention this information to the user unless
+    asked about it.
+
+    - Languages the user prefers: %{languages}.
+    - Location is %{location}.
+    - Terminal has %{terminal_rows} rows.
+    - Terminal width is %{terminal_cols} columns. **Always** aim to stay within
+      80%% of this width in your output of responses, especially when using
+      markdown tables.
+    - Current time is %{time}.
+    - Markdown output is %{markdown}. **Never** output markdown as your
+      responses if it is disabled.
+    - Voice output is %{voice}. Speak naturally and short if voice
+      output is enabled.
+
+  help: |
+    Wait for the user to ask questions about the usage of chat commands. Just
+    list the command names separated by spaces (no descriptions yet) and
+    offer to answer any questions about any of them. Interactively help the
+    user by answering questions about the following
+    chat commands:
+
+    %{commands}
   persona: |
     # Persona
 
