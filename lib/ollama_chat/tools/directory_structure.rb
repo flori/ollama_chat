@@ -26,7 +26,8 @@ class OllamaChat::Tools::DirectoryStructure
         name:,
         description: <<~EOT,
           Retrieve the directory structure and file hierarchy for a given path,
-          for depth of max_depth (if given).
+          for depth of max_depth (if given). Call this if you want to find the
+          location of one or multiple files.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
