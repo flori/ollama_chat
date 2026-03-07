@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::ImportURL do
+describe OllamaChat::Tools::GetURL do
   let(:chat) do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -12,7 +12,7 @@ describe OllamaChat::Tools::ImportURL do
   end
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'import_url'
+    expect(described_class.new.name).to eq 'get_url'
   end
 
   it 'can have tool' do
@@ -28,14 +28,15 @@ describe OllamaChat::Tools::ImportURL do
       tool_call = double(
         'ToolCall',
         function: double(
-          name: 'import_url',
+          name: 'get_url',
           arguments: double(
             url: 'https://www.example.com/foo'
           )
         )
       )
 
-      expect(chat).to receive(:import).with('https://www.example.com/foo').
+      expect(OllamaChat::Utils::Fetcher).to receive(:get).
+        with('https://www.example.com/foo', any_args).
         and_return('bar')
 
       result = described_class.new.execute(tool_call, chat:, config:)
@@ -52,7 +53,7 @@ describe OllamaChat::Tools::ImportURL do
       tool_call = double(
         'ToolCall',
         function: double(
-          name: 'import_url',
+          name: 'get_url',
           arguments: double(
             url:
           )
@@ -77,14 +78,15 @@ describe OllamaChat::Tools::ImportURL do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'import_url',
+        name: 'get_url',
         arguments: double(
           url: 'https://www.example.com/foo'
         )
       )
     )
 
-    expect(chat).to receive(:import).with('https://www.example.com/foo').
+    expect(OllamaChat::Utils::Fetcher).to receive(:get).
+      with('https://www.example.com/foo', any_args).
       and_raise('it somehow failed')
 
     result = described_class.new.execute(tool_call, chat:, config:)

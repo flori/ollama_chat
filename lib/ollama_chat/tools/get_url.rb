@@ -3,10 +3,10 @@
 # This tool allows the chat client to retrieve content from a specified URL.
 # It integrates with the Ollama tool calling system to provide web content
 # fetching capabilities to the language model.
-class OllamaChat::Tools::ImportURL
+class OllamaChat::Tools::GetURL
   include OllamaChat::Tools::Concern
 
-  def self.register_name = 'import_url'
+  def self.register_name = 'get_url'
 
   # Creates and returns a tool definition for fetching content from URLs.
   #
@@ -21,7 +21,7 @@ class OllamaChat::Tools::ImportURL
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Fetch content from a URL and import it into the chat session. This
+          Get content from a URL and import it into the chat session. This
           tool retrieves web content from the specified URL and makes it
           available for the language model to reference and use in responses.
           It supports various content types including HTML, Markdown, and plain
@@ -33,7 +33,7 @@ class OllamaChat::Tools::ImportURL
             url: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The URL to fetch content from. This can be any valid HTTP or
+                The URL to get content from. This can be any valid HTTP or
                 HTTPS URL pointing to a web resource that can be retrieved and
                 processed by the chat system. The tool handles the HTTP request
                 and returns the content.
@@ -57,12 +57,11 @@ class OllamaChat::Tools::ImportURL
   # @return [String] the fetched content as a JSON string
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = opts[:config]
     args   = tool_call.function.arguments
     url    = args.url.to_s
 
-    allowed_schemes = Array(config.tools.functions.import_url.schemes?).map(&:to_s)
+    allowed_schemes = Array(config.tools.functions.get_url.schemes?).map(&:to_s)
 
     uri = URI.parse(args.url.to_s)
     unless allowed_schemes.include?(uri.scheme)
@@ -70,9 +69,11 @@ class OllamaChat::Tools::ImportURL
         "(allowed: #{allowed_schemes.join(', ')})"
     end
 
-    chat.import(url).full? do |c|
-      return c.ask_and_send_or_self(:read)
-    end
+    OllamaChat::Utils::Fetcher.get(
+      url,
+      debug: OC::OLLAMA::CHAT::DEBUG,
+      reraise: true,
+    &:read)
   rescue => e
     { error: e.class, message: e.message, url: }.to_json
   end
