@@ -150,6 +150,18 @@ module OC
           description 'Pirate Weather API key'
         end
 
+        CTAGS_TOOL = set do
+          description 'Tools ctags path'
+          default { `which ctags`.full?(:chomp) }
+          check   { value.blank? || File.exist?(value) }
+        end
+
+        TAGS_FILE = set do
+          description 'Tag file location'
+          default     './tags'
+          decode       { Pathname.new(_1).expand_path }
+        end
+
         module JIRA
           description 'Jira tool configuration'
 

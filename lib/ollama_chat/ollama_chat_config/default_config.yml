@@ -228,3 +228,5 @@ tools:
       default: true
     execute_ri:
       default: true
+    resolve_tag:
+      default: true
