@@ -19,24 +19,24 @@ class OllamaChat::Tools::RunTests
       function: Tool::Function.new(
         name: 'run_tests',
         description: <<~EOT,
-           Test Runner - Runs all tests/specs under *path* (default: spec/).
-           `coverage=false` by default; set to true for a coverage report.
-           Returns JSON with test counts and, if requested, coverage
-           percentage.
+           Test Runner - Runs all tests/specs under *path* the path were the
+           tests/specs are located. `coverage=false` by default; set to true
+           for a coverage report. Returns JSON with test counts and, if
+           requested, coverage percentage.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Path to file or directory to run tests for (default: spec/)'
+              description: 'Path to file or directory to run tests for (path=./ is not allowed!)'
             ),
             coverage: Tool::Function::Parameters::Property.new(
               type: 'boolean',
               description: 'True if coverage data should be created, (default: false)'
             )
           },
-          required: %w[ path ]
+          required: []
         )
       )
     )
@@ -48,18 +48,39 @@ class OllamaChat::Tools::RunTests
   # @param opts [Hash] additional options (currently unused)
   # @return [String] JSON containing ``success``, ``path``, ``output`` and ``status``
   def execute(tool_call, **opts)
-    path            = tool_call.function.arguments.path
-    coverage        = tool_call.function.arguments.coverage || false
+    path     = tool_call.function.arguments.path
+    coverage = tool_call.function.arguments.coverage || false
+    check_path path
     output, success = run_tests(path, coverage)
     {
-      success: success,
-      path: path,
-      output: output,
+      success:,
+      path:,
+      output:,
       status: success ? 'passed' : 'failed'
     }.to_json
+  rescue => e
+    { error: e.class, message: e.message }.to_json
   end
 
   private
+
+  def check_path(path)
+    if path.full?
+      Pathname.new(path).expand_path == Pathname.pwd.expand_path and
+        raise ArgumentError, 'invalid path %s' % path.inspect
+      File.exist?(path) or raise ArgumentError, 'path %s does not exist' % path.inspect
+    else
+      if File.exist?('./spec')
+        path = './spec'
+      elsif File.exist?('./test')
+        path = './test'
+      elsif File.exist?('./tests')
+        path = './tests'
+      else
+        raise ArgumentError, 'path could not be determined'
+      end
+    end
+  end
 
   # Run the test suite using the configured test runner.
   #

@@ -55,6 +55,8 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
+    expect_any_instance_of(described_class).to receive(:check_path).with(path).
+      and_return true
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['yeah', true])
 
@@ -78,6 +80,8 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
+    expect_any_instance_of(described_class).to receive(:check_path).with(path).
+      and_return true
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, true).and_return(['yeah', true])
 
@@ -101,13 +105,8 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    expect_any_instance_of(described_class).to receive(:run_tests).
-      with('nonexistent/path', false).and_return(['nope', false])
-
     result = described_class.new.execute(tool_call, config: config)
-
     json = json_object(result)
-    expect(json.success).to be false
-    expect(json.status).to eq 'failed'
+    expect(json.error).to eq 'ArgumentError'
   end
 end
