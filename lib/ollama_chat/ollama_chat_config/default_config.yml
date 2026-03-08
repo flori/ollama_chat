@@ -55,7 +55,7 @@ prompts:
       responses if it is disabled.
     - Voice output is %{voice}. Speak naturally and short if voice
       output is enabled.
-
+    - These tools have access to these allowed paths: %{tool_paths_allowed}
   help: |
     Wait for the user to ask questions about the usage of chat commands. Just
     list the command names separated by spaces (no descriptions yet) and

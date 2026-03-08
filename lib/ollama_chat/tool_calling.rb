@@ -42,7 +42,7 @@ module OllamaChat::ToolCalling
   # @param [String] name the name of the tool
   # @return [true, false] true if the tool is enabled
   def tool_enabled?(name)
-    enabled_tools.member?(name)
+    enabled_tools.member?(name.to_s)
   end
 
   # The tools reader returns the registered tools for the chat session.
@@ -151,6 +151,18 @@ module OllamaChat::ToolCalling
       enabled_tools.delete chosen
       puts "Disabled tool %s" % bold { chosen }
     end
+  end
+
+  # The tool_paths_allowed method returns a hash mapping each enabled tool name
+  # to its list of allowed paths or patterns. @return [Hash] a hash where keys
+  # are tool names and values are the allowed path lists
+  def tool_paths_allowed
+    config.tools.functions.to_h.
+      select { |name, value| tool_enabled?(name) && value[:allowed].present? }.
+      sort_by(&:first).
+      each_with_object({}) { |(name, value), hash|
+        hash[name] = value[:allowed].map { Pathname.new(_1).expand_path.to_s }
+      }
   end
 
   private

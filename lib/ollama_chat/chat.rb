@@ -692,13 +692,14 @@ class OllamaChat::Chat
 
       if runtime_info.on? && content
         runtime_info = {
-          languages:     config.languages * ', ',
-          location:      location.on? ? location_description.inspect : 'n/a',
-          terminal_rows: Tins::Terminal.rows,
-          terminal_cols: Tins::Terminal.cols,
-          time:          Time.now.iso8601,
-          voice:         voice.on? ? 'enabled' : 'disabled',
-          markdown:      markdown.on? ? 'enabled' : 'disabled',
+          languages:            config.languages * ', ',
+          location:             location.on? ? location_description.inspect : 'n/a',
+          terminal_rows:        Tins::Terminal.rows,
+          terminal_cols:        Tins::Terminal.cols,
+          time:                 Time.now.iso8601,
+          voice:                voice.on? ? 'enabled' : 'disabled',
+          markdown:             markdown.on? ? 'enabled' : 'disabled',
+          tool_paths_allowed:   JSON(tool_paths_allowed),
         }
         content << config.prompts.runtime_info % runtime_info
       end
