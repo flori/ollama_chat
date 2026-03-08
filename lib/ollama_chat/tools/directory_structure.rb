@@ -25,9 +25,9 @@ class OllamaChat::Tools::DirectoryStructure
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Retrieve the directory structure and file hierarchy for a given path,
-          for depth of max_depth (if given). Call this if you want to find the
-          location of one or multiple files.
+          Tree viewer – Returns JSON describing files/folders under path up to
+          max_depth. Handy for locating resources or presenting a project
+          layout.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

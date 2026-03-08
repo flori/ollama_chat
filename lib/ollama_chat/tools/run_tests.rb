@@ -18,7 +18,12 @@ class OllamaChat::Tools::RunTests
       type: 'function',
       function: Tool::Function.new(
         name: 'run_tests',
-        description: 'Run RSpec / Test-Unit tests for a file or directory path',
+        description: <<~EOT,
+           Test Runner - Runs all tests/specs under *path* (default: spec/).
+           `coverage=false` by default; set to true for a coverage report.
+           Returns JSON with test counts and, if requested, coverage
+           percentage.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

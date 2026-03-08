@@ -24,7 +24,11 @@ class OllamaChat::Tools::ReadFile
       type: 'function',
       function: Tool::Function.new(
         name: 'read_file',
-        description: 'Reads file content safely (path validated like write_file)',
+        description: <<~EOT,
+          File reader – Returns raw text from path if it’s within allowed
+          directories. No side effects; useful for inspecting config or source
+          files.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

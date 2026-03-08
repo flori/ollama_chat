@@ -19,7 +19,11 @@ class OllamaChat::Tools::ExecuteGrep
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Search for a pattern in files using grep',
+        description: <<~EOT,
+          Pattern searcher – Runs a regex against all files at path, optionally
+          case‑insensitive, returning matches (up to max_results). Useful for
+          quick codebase queries or finding config values.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

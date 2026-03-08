@@ -21,7 +21,11 @@ class OllamaChat::Tools::SearchWeb
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Search the web for information using a search query',
+        description: <<~EOT,
+          Web searcher – Returns top num_results URLs (default 5) matching
+          query. Useful when you need up‑to‑date info not already cached
+          locally
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

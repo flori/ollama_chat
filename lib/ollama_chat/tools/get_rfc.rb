@@ -20,7 +20,10 @@ class OllamaChat::Tools::GetRFC
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Get the RFC for id as text',
+        description: <<~EOT,
+         RFC fetcher – Downloads the full plain‑text of an Internet Standard
+         (e.g., "rfc-2616"). No arguments beyond rfc_id.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

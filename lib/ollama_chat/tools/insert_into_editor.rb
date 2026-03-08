@@ -15,13 +15,11 @@ class OllamaChat::Tools::InsertIntoEditor
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Insert the provided text into your editor (Vim). If no
-          `text` is supplied, the tool will automatically use the last
-          assistant response. This function is intended for quick code
-          snippets or edits that you want to push directly into a running
-          editor session without leaving OllamaChat.
-          Do not not call this tool function unless explicitly requested by the
-          user.
+          Editor helper – Sends a string (or last reply if omitted) straight
+          into the User’s editor buffer, optionally in insert mode.
+          If no `text` is supplied, the tool will automatically use the last assistant
+          response. No output; Do not not call this tool function unless
+          explicitly requested by the user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

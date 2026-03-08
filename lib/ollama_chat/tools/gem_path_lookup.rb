@@ -23,7 +23,11 @@ class OllamaChat::Tools::GemPathLookup
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Look up the installation path of a Ruby gem',
+        description: <<~EOT,
+          Gem locator – Returns absolute filesystem location where a named gem
+          is installed (e.g., "rails"). Handy when you need file paths inside
+          gems.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

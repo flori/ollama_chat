@@ -26,10 +26,9 @@ class OllamaChat::Tools::FileContext
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Create a context that provides information about files and their
-          semantic content in order to give more accurate answers for a query.
-          You can query (maybe) multiple files by using a glob pattern
-          argument.
+          Semantic file snapshot – Gathers AST‑style info (e.g., classes,
+          methods) from all matching files (pattern) in directory. Useful for
+          LLMs to reason about code structure
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

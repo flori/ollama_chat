@@ -20,7 +20,11 @@ class OllamaChat::Tools::GetEndoflife
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Get the endoflife information for a product as JSON',
+        description: <<~EOT,
+          EOL checker – Provides lifecycle status of software (product) in
+          machine‑readable form (JSON). Handy for compliance or upgrade
+          planning.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

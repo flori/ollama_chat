@@ -21,11 +21,9 @@ class OllamaChat::Tools::GetURL
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Get content from a URL and import it into the chat session. This
-          tool retrieves web content from the specified URL and makes it
-          available for the language model to reference and use in responses.
-          It supports various content types including HTML, Markdown, and plain
-          text, and integrates with the chat's document processing pipeline.
+         Web fetcher – Downloads any web resource (HTML, Markdown, plain text)
+         at url and makes its contents available to the model. Good for pulling
+         documentation snippets.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

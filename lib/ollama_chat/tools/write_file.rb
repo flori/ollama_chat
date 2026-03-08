@@ -20,7 +20,10 @@ class OllamaChat::Tools::WriteFile
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Write content to a file with modes overwrite/append, (default: overwrite)',
+        description: <<~EOT,
+          File writer – Saves content into path, either overwriting or
+          appending based on mode. Path must be allowed; no return value.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

@@ -24,7 +24,11 @@ class OllamaChat::Tools::GetCurrentWeather
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Get the current weather for the configured location',
+        description: <<~EOT,
+          Weather fetcher – Retrieves a short report of local meteorological
+          conditions based on your preset location coordinates. No arguments
+          needed.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {},

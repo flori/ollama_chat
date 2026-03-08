@@ -25,9 +25,9 @@ class OllamaChat::Tools::Browse
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Open a URL or file in the user\'s default browser application so they
-          can view the content directly. Do not not call this tool function
-          unless explicitly requested by the user.
+          Launch external viewer – Opens an HTTP/HTTPS link (or local file) in
+          the system’s web/browser app. Use when you want to hand off a page
+          for human inspection; no return value is expected.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -35,8 +35,7 @@ class OllamaChat::Tools::Browse
             url: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The URL or file to open in the user\'s browser for them to view
-                directly
+                The URL or file to open in the the system’s web/browser app.
               EOT
             ),
           },

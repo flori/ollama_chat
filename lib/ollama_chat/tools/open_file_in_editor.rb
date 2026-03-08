@@ -21,8 +21,9 @@ class OllamaChat::Tools::OpenFileInEditor
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Open a file in the user's vim editor at a specific line or range. Do
-          not call this tool function unless explicitly requested by the user.
+          Open a file in the user's editor, jumping to start_line (and
+          optionally ending at end_line). No return value; Do not call this
+          tool function unless explicitly requested by the user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

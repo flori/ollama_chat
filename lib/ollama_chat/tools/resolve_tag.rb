@@ -18,9 +18,10 @@ class OllamaChat::Tools::ResolveTag
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Resolve a symbol of a kind using the tags file and return its
-          location as "file.rb:<linenumber>". This tool can answer questions
-          like open class FooBar or show the location of method baz.
+          Class/Method finder - Resolve a symbol of a kind using the tags file
+          and return its location as "file.rb:<linenumber>". This tool can
+          answer prompts like "Open class FooBar" or "Show the location of
+          method baz".
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

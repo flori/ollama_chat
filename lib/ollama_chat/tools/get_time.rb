@@ -28,7 +28,10 @@ class OllamaChat::Tools::GetTime
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Get the current time as an ISO8601 string',
+        description: <<~EOT,
+          Timestamp provider – Returns UTC/ISO 8601 formatted datetime for now.
+          Useful in logs or timestamps.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {},

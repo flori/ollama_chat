@@ -17,7 +17,11 @@ class OllamaChat::Tools::PasteFromClipboard
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Paste content from the system clipboard into the chat session',
+        description: <<~EOT,
+          Clipboard reader – Inserts whatever is currently in your OS clipboard
+          as a new message to the assistant, enabling quick transfer of
+          external snippets.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {},

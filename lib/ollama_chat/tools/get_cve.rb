@@ -20,7 +20,10 @@ class OllamaChat::Tools::GetCVE
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Get the CVE for id as JSON',
+        description: <<~EOT,
+          CVE lookup – Returns detailed vulnerability data (JSON) for a given
+          cve_id ("CVE-2023‑1234"). Useful when assessing security risks.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {

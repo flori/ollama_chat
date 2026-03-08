@@ -17,7 +17,11 @@ class OllamaChat::Tools::ExecuteRI
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Look up Ruby documentation for classes, modules and methods using the `ri` command.',
+        description: <<~EOT,
+          Lookup Ruby docs using the `ri` command – Returns help text for a
+          given topic like class/module/method (Array, String#split). Good when
+          you need method signatures without leaving the chat.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
