@@ -33,15 +33,25 @@ code_indexer do
   verbose false
 
   gems = %w[
+    all_images
     amatch
     base64
     bigdecimal
     complex_config
+    const_conf
+    context_spook
+    csv
     date
     documentrix
     excon
+    fileutils
+    gem_hadar
+    infobar
+    irb
     json
+    kramdown
     kramdown-ansi
+    kramdown-parser-gfm
     mize
     more_math
     ollama-ruby
