@@ -39,8 +39,7 @@ module OllamaChat::PersonaeManagement
   # for a provided persona option, determining the appropriate file path, and
   # playing the persona file if it exists.
   def setup_persona_from_opts
-    @persona_setup and return
-    @persona_setup = true
+    @default_persona and return
     if persona = @opts[?p].full? { Pathname.new(_1) }
       if persona.extname == '.md'
         pathname = persona
@@ -48,15 +47,28 @@ module OllamaChat::PersonaeManagement
         pathname = personae_directory + (persona.to_s + '.md')
       end
       if pathname.exist?
+        @default_persona = pathname
         play_persona_file pathname
       end
+    end
+  ensure
+    @default_persona ||= :none
+  end
+
+  # Reloads the default persona file if one is set and not :none, prompting the
+  # user for confirmation before playing the persona file.
+  def reload_default_persona
+    !@default_persona || @default_persona == :none and return
+    prompt = "Reload default persona #{@default_persona.basename.sub_ext('')}? (y/n) "
+    if ask?(prompt:) =~ /\Ay/i
+      play_persona_file @default_persona
     end
   end
 
   # Returns a sorted list of available persona file names.
   #
-  # This method scans the personae directory for Markdown files and
-  # returns their basenames sorted alphabetically.
+  # This method scans the personae directory for Markdown files and returns
+  # their basenames sorted alphabetically.
   #
   # @return [Array<String>] Sorted array of persona filenames without extension
   def available_personae

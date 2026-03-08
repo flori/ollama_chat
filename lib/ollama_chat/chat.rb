@@ -238,8 +238,12 @@ class OllamaChat::Chat
       messages.show_last(n)
       :next
     when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
-      clean($1)
-      :next
+      if result = clean($1)
+        @parse_content = false
+        content = result
+      else
+        :next
+      end
     when %r(^/clobber$)
       clean('all')
       :next
@@ -580,9 +584,11 @@ class OllamaChat::Chat
   # @param what [ String, nil ] the type of data to clear, defaults to
   #   'messages' if nil
   def clean(what)
+    persona_profile = nil
     case what
     when 'messages', nil
       messages.clear
+      persona_profile = reload_default_persona
       STDOUT.puts "Cleared messages."
     when 'links'
       links.clear
@@ -599,11 +605,13 @@ class OllamaChat::Chat
         @documents.clear
         links.clear
         clear_history
+        persona_profile = reload_default_persona
         STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
       else
         STDOUT.puts 'Cancelled.'
       end
     end
+    persona_profile
   end
 
   # The interact_with_user method manages the interactive loop for user input
