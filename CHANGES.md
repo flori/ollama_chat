@@ -2,6 +2,10 @@
 
 ## 2026-03-08 v0.0.75
 
+
+- Added runtime reporting of tool allowed paths by introducing
+  `tool_paths_allowed` method and including it in chat output, updating config
+  prompt, and normalizing tool name handling.
 - Added new tool `OllamaChat::Tools::ResolveTag` with utility
   `OllamaChat::Utils::TagResolver` to parse tag files; enabled in
   `default_config.yml` and added corresponding tests.  
