@@ -192,6 +192,15 @@ class OllamaChat::Chat
     @links ||= Set.new
   end
 
+  # The disable_content_parsing method turns off content parsing by setting
+  # @parse_content to false.
+  #
+  # This prevents automatic parsing of user input content during chat
+  # processing.
+  def disable_content_parsing
+    @parse_content = false
+  end
+
   # Handles user input commands and processes chat interactions.
   #
   # @param content [String] The input content to process
@@ -208,7 +217,7 @@ class OllamaChat::Chat
       copy_to_clipboard
       :next
     when %r(^/paste$)
-      @parse_content = false
+      disable_content_parsing
       paste_from_clipboard
     when %r(^/markdown$)
       markdown.toggle
@@ -239,7 +248,7 @@ class OllamaChat::Chat
       :next
     when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
       if result = clean($1)
-        @parse_content = false
+        disable_content_parsing
         content = result
       else
         :next
@@ -279,7 +288,7 @@ class OllamaChat::Chat
         STDOUT.puts "Not enough messages in this conversation."
         return :redo
       end
-      @parse_content = false
+      disable_content_parsing
       content
     when %r(^/collection(?:\s+(clear|change))?$)
       case $1 || 'change'
@@ -323,30 +332,30 @@ class OllamaChat::Chat
       think_loud.toggle
       :next
     when %r(^/import\s+(.+))
-      @parse_content = false
+      disable_content_parsing
       import($1) or :next
     when %r(^/summarize\s+(?:(\d+)\s+)?(.+))
-      @parse_content = false
+      disable_content_parsing
       summarize($2, words: $1) or :next
     when %r(^/embedding$)
       embedding_paused.toggle(show: false)
       embedding.show
       :next
     when %r(^/embed\s+(.+))
-      @parse_content = false
+      disable_content_parsing
       embed($1) or :next
     when %r(^/web\s+(?:(\d+)\s+)?(.+))
-      @parse_content = false
+      disable_content_parsing
       web($1, $2)
     when %r(^/input(?:\s+(.+))?$)
       arg = $1
       arg and patterns = arg.scan(/(\S+)/).flatten
-      @parse_content = false
+      disable_content_parsing
       input(patterns) or :next
     when %r(^/context(?:\s+(.+))?$)
       arg = $1
       arg and patterns = arg.scan(/(\S+)/).flatten
-      @parse_content = false
+      disable_content_parsing
       context_spook(patterns) or :next
     when %r(^/compose$)
       compose or :next
@@ -400,7 +409,7 @@ class OllamaChat::Chat
       end
       :next
     when %r(^/persona(?:\s+(add|delete|edit|file|info|list|load|play))?$)
-      @parse_content = false
+      disable_content_parsing
       case $1
       when 'add'
         if result = add_persona
@@ -457,7 +466,7 @@ class OllamaChat::Chat
       STDOUT.puts "Goodbye."
       :return
     when %r(^/help me$)
-      @parse_content = false
+      disable_content_parsing
       config.prompts.help % { commands: display_chat_help_message }
     when %r(^/)
       display_chat_help
@@ -629,7 +638,7 @@ class OllamaChat::Chat
   def interact_with_user
     loop do
       if persona_result = setup_persona_from_opts
-        @parse_content = false
+        disable_content_parsing
         content = persona_result
       else
         @parse_content = true
@@ -637,7 +646,7 @@ class OllamaChat::Chat
         input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
         begin
           if content = handle_tool_call_results?
-            @parse_content = false
+            disable_content_parsing
           else
             content = enable_command_completion do
               if prefill_prompt = @prefill_prompt.full?
