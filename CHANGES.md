@@ -1,5 +1,36 @@
 # Changes
 
+## 2026-03-08 v0.0.75
+
+- Added new tool `OllamaChat::Tools::ResolveTag` with utility
+  `OllamaChat::Utils::TagResolver` to parse tag files; enabled in
+  `default_config.yml` and added corresponding tests.  
+- Introduced `runtime_info` switch in `OllamaChat::Switches`; added
+  `/runtime_info` command handling in `chat.rb`, runtime info block injection,
+  and display via `information.rb`; added `prompts/runtime_info` template and
+  `languages:` array; added `runtime_info.toggle`, `runtime_info.show`,
+  `runtime_info.on?`, `runtime_info.enabled` support.  
+- Updated `OllamaChat::Tools::DirectoryStructure` description to note it can
+  locate one or multiple files, referencing `max_depth`.  
+- Clarified usage of `browse`, `copy_to_clipboard`, `open_file_in_editor`,
+  `insert_into_editor` tools in documentation strings; fixed double‑negative
+  typo in `insert_into_editor.rb`.  
+- Renamed `import_url` tool to `get_url`: updated config key, tool
+  registration, class name `OllamaChat::Tools::GetURL`, spec file names, method
+  calls to `config.tools.functions.get_url.schemes?`, replaced all
+  `chat.import` with `OllamaChat::Utils::Fetcher.get`.  
+- Added path validation and error handling to `OllamaChat::Tools::RunTests`:
+  new private method `check_path(path)` prevents using `"./"` and validates
+  existence; wrapped execution in rescue block returning JSON with `error:` and
+  `message:`; updated function description accordingly.  
+- Refined and unified tool descriptions with consistent punctuation.  
+- Added explicit persona loading verification when editing: confirmation step
+  before applying edited personality configurations.  
+- Improved persona loading and prompt formatting: updated
+  `setup_persona_from_opts`, `info_persona`, `load_persona_file` to return
+  `[pathname, content]`, added newline in `play_persona_prompt`, adjusted
+  `play_persona` to handle new return value.
+
 ## 2026-03-06 v0.0.74
 
 - Added new tool `ExecuteRI` in `lib/ollama_chat/tools/execute_ri.rb` that
