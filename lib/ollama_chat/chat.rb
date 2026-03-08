@@ -691,7 +691,7 @@ class OllamaChat::Chat
       end
 
       if runtime_info.on? && content
-        runtime_info = {
+        runtime_info_values = {
           languages:            config.languages * ', ',
           location:             location.on? ? location_description.inspect : 'n/a',
           terminal_rows:        Tins::Terminal.rows,
@@ -701,7 +701,7 @@ class OllamaChat::Chat
           markdown:             markdown.on? ? 'enabled' : 'disabled',
           tool_paths_allowed:   JSON(tool_paths_allowed),
         }
-        content << config.prompts.runtime_info % runtime_info
+        content << config.prompts.runtime_info % runtime_info_values
       end
 
       messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)
