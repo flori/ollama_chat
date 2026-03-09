@@ -1,5 +1,24 @@
 # Changes
 
+## 2026-03-09 v0.0.77
+
+- Add runtime Git and time placeholders: added `git_current_branch` and
+  `git_remote_origin` to `runtime_info_values` in `lib/ollama_chat/chat.rb`;
+  inserted `%{time}` placeholder into prompts section of `default_config.yml`;
+  added Git placeholders (`%{git_current_branch}`, `%{git_remote_origin}`)
+  under **Git** key; reformatted terminal info under a single **Terminal**
+  heading with height and width.  
+- Extend weather tool to include six‑day forecast: updated `GetCurrentWeather`
+  description to mention a six‑day forecast; functionality unchanged; tool
+  still requires no arguments.  
+- Rename `insert_into_editor` tool to `paste_into_editor`: updated
+  `lib/ollama_chat/tools.rb` to require `paste_into_editor`; renamed and
+  updated class from `InsertIntoEditor` to `PasteIntoEditor` in
+  `paste_into_editor.rb`, changing its register name, description text, and
+  method logic; switched default config key in `default_config.yml` from
+  `insert_into_editor` to `paste_into_editor`; refactored spec files; adjusted
+  all internal references.  
+
 ## 2026-03-09 v0.0.76
 
 - Added `client:` and `current_directory:` keys to `runtime_info_values` in
