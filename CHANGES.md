@@ -1,7 +1,56 @@
 # Changes
 
-## 2026-03-08 v0.0.75
+## 2026-03-09 v0.0.76
 
+- Added `client:` and `current_directory:` keys to `runtime_info_values` in
+  `chat.rb`.  
+- Implemented `#client` method returning `"progname **0.0.75**"` in
+  `information.rb`.  
+- Introduced helper `location_description?` in `location_handling.rb`.  
+- Simplified `MessageList#to_ary` to return a duplicate of the internal array,
+  removing automatic system prompt + location injection.  
+- Updated default config placeholders for `%{client}` and
+  `%{current_directory}` in `default_config.yml`.  
+- Adjusted web searching logic to use `location_description?` instead of
+  deprecated methods.  
+- Removed tests that expected location‑augmented system prompts from
+  `spec/ollama_chat/message_list_spec.rb`.  
+- Standardized JSON output formatting across tools: aligned JSON keys, added
+  spaces after commas, and added trailing commas in tool responses such as
+  `copy_to_clipboard`, `gem_path_lookup`, `generate_password`, `get_endoflife`,
+  `get_rfc`, `insert_into_editor`, `open_file_in_editor`,
+  `paste_from_clipboard`, and `search_web`.  
+- Added trailing commas to JSON objects for consistency and easier future
+  edits.  
+- Standardized error field formatting, ensuring each error block includes a
+  space after the colon and a trailing comma where appropriate.  
+- Added helper `disable_content_parsing` in `chat.rb` that sets `@parse_content
+  = false`.  
+- Refactored command handlers to call `disable_content_parsing` instead of
+  assigning directly to `@parse_content`.  
+- Updated persona setup logic so that a returned persona result triggers
+  `disable_content_parsing`; otherwise parsing is enabled with
+  `enable_command_completion`.  
+- Added explanatory comments around the new helper for clarity.  
+- Improved clean flow: captured return value of `clean` and set `@parse_content
+  = true` when a persona profile is returned.  
+- Replaced old flag `@persona_setup` with `@default_persona`; ensured it
+  defaults to `:none` in an `ensure` block after setup.  
+- Added new method `reload_default_persona` that prompts for confirmation
+  before reloading the default persona file if one exists.  
+- Modified `clean(what)` to return the result of `reload_default_persona`,
+  enabling the caller to react to a reload.  
+- Adjusted `/clear` command handling in the chat loop to use the returned value
+  from `clean` and only proceed when nothing is returned.  
+- Renamed local variable `runtime_info` to `runtime_info_values` in `chat.rb`
+  for clarity.  
+- Updated runtime info prompt interpolation to use `runtime_info_values`
+  instead of `runtime_info`.  
+- Updated `/.utilsrc` by adding gems to the `code_indexer` configuration:
+  `all_images`, `const_conf`, `context_spook`, `csv`, `fileutils`, `gem_hadar`,
+  `infobar`, `irb`, `kramdown`, and `kramdown-parser-gfm`.
+
+## 2026-03-08 v0.0.75
 
 - Added runtime reporting of tool allowed paths by introducing
   `tool_paths_allowed` method and including it in chat output, updating config
