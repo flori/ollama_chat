@@ -45,14 +45,18 @@ prompts:
     asked about it.
 
     - Languages the user prefers: %{languages}.
+    - Current time is %{time}.
     - Location is %{location}.
     - Current directory is %{current_directory}.
+    - **Git**:
+      - Current branch is %{git_current_branch}
+      - Current remote origin is %{git_remote_origin}
     - Client is %{client}.
-    - Terminal has %{terminal_rows} rows.
-    - Terminal width is %{terminal_cols} columns. **Always** aim to stay within
-      80%% of this width in your output of responses, especially when using
-      markdown tables.
-    - Current time is %{time}.
+    - **Terminal**:
+      - The height is %{terminal_rows} rows.
+      - The width is %{terminal_cols} columns. **Always** aim to stay within
+        80%% of this width in your output of responses, especially when using
+        markdown tables.
     - Markdown output is %{markdown}. **Never** output markdown as your
       responses if it is disabled.
     - Voice output is %{voice}. Speak naturally and short if voice
