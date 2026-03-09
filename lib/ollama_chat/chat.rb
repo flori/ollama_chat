@@ -711,8 +711,8 @@ class OllamaChat::Chat
         runtime_info_values = {
           languages:            config.languages * ', ',
           location:             location.on? ? location_description.inspect : 'n/a',
-          git_current_branch:   `git rev-parse --abbrev-ref HEAD`.chomp.full? || 'n/a',
-          git_remote_origin:    `git remote get-url origin`.chomp.full? || 'n/a',
+          git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
+          git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
           client:               ,
           current_directory:    Pathname.pwd.expand_path.to_path.inspect,
           terminal_rows:        Tins::Terminal.rows,
