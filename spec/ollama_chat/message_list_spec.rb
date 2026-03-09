@@ -277,42 +277,13 @@ describe OllamaChat::MessageList do
     expect(list.size).to eq 1
   end
 
-  it 'can determine location for system prompt' do
-    expect(chat).to receive(:location).and_return(double(on?: true))
-    expect(list.send(:at_location)).to match(
-      %r(You are at Berlin \(52.514127, 13.475211\), ))
-  end
-
   it 'can be converted int an Ollama::Message array' do
-    expect(chat).to receive(:location).and_return(double(on?: false))
     list << Ollama::Message.new(role: 'user', content: 'world')
     expect(list.to_ary.map(&:as_json)).to eq [
       Ollama::Message.new(role: 'system', content: 'hello', thinking: 'a while').as_json,
       Ollama::Message.new(role: 'user', content: 'world').as_json,
     ]
   end
-
-  it 'can be converted int an Ollama::Message array with location' do
-    expect(chat).to receive(:location).and_return(double(on?: true))
-    list << Ollama::Message.new(role: 'user', content: 'world')
-    first = list.to_ary.first
-    expect(first.role).to eq 'system'
-    expect(first.content).to match(
-      %r(You are at Berlin \(52.514127, 13.475211\), ))
-  end
-
-  it 'can be converted int an Ollama::Message array with location without a system prompt' do
-    expect(chat).to receive(:location).and_return(double(on?: true))
-    list = described_class.new(chat).tap do |list|
-      list << Ollama::Message.new(role: 'user', content: 'hello')
-      list << Ollama::Message.new(role: 'assistant', content: 'world')
-    end
-    first = list.to_ary.first
-    expect(first.role).to eq 'system'
-    expect(first.content).to match(
-      %r(You are a helpful assistant.\n\nYou are at Berlin \(52.514127, 13.475211\), ))
-  end
-
 
   it 'can display messages with images' do
     expect(list.message_type([])).to eq ?📨

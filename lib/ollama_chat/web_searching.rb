@@ -23,7 +23,7 @@ module OllamaChat::WebSearching
   # @return [ Array<String>, nil ] an array of URLs from the search results or
   #   nil if the search engine is not implemented
   def search_web(query, n = nil)
-    l     = @messages.at_location.full? and query += " #{l}"
+    l     = location_description? and query += " #{l}"
     n     = n.to_i.clamp(1..)
     query = URI.encode_uri_component(query)
     search_command = :"search_web_with_#{search_engine}"

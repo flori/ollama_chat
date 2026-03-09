@@ -46,6 +46,8 @@ prompts:
 
     - Languages the user prefers: %{languages}.
     - Location is %{location}.
+    - Current directory is %{current_directory}.
+    - Client is %{client}.
     - Terminal has %{terminal_rows} rows.
     - Terminal width is %{terminal_cols} columns. **Always** aim to stay within
       80%% of this width in your output of responses, especially when using

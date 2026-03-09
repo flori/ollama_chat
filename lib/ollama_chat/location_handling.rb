@@ -24,6 +24,14 @@ module OllamaChat::LocationHandling
     config.prompts.location % location_data
   end
 
+  # The location_description? method returns the location description string if
+  # the location setting is enabled; otherwise it returns nil.
+  #
+  # @return [String, nil]
+  def location_description?
+    location_description if location.on?
+  end
+
   # Generates a hash containing current location data.
   #
   # This method collects and returns structured location information including

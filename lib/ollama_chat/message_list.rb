@@ -1,14 +1,13 @@
 # A collection class for managing chat messages with support for system
 # prompts, paged output, and conversation history.
-
+#
 # This class provides functionality for storing, retrieving, and displaying
 # chat messages in a structured manner. It handles system prompts separately
 # from regular user and assistant messages, supports pagination for displaying
 # conversations, and offers methods for manipulating message history including
 # clearing, loading, saving, and dropping exchanges. The class integrates with
-# Kramdown::ANSI for formatted output and supports location information in
-# system messages.
-
+# Kramdown::ANSI for formatted output.
+#
 # @example Creating a new message list
 #   chat = OllamaChat::Chat.new
 #   messages = OllamaChat::MessageList.new(chat)
@@ -285,39 +284,12 @@ class OllamaChat::MessageList
   end
 
   # The to_ary method converts the message list into an array of
-  # Ollama::Message objects. If location support was enabled and the message
-  # list contains a system message, the system messages is decorated with the
-  # curent location, time, and unit preferences.
+  # Ollama::Message objects.
   #
   # @return [Array] An array of Ollama::Message objects representing the
   #   messages in the list.
   def to_ary
-    location = at_location.full?
-    add_system = !!location
-    result = @messages.map do |message|
-      if message.role == 'system' && location
-        add_system = false
-        content = message.content + "\n\n#{location}"
-        Ollama::Message.new(role: message.role, content:)
-      else
-        message
-      end
-    end
-    if add_system
-      prompt = @chat.config.system_prompts.assistant?
-      content = [ prompt, location ].compact * "\n\n"
-      message = Ollama::Message.new(role: 'system', content:)
-      result.unshift message
-    end
-    result
-  end
-
-  # The at_location method returns the location/time/units information as a
-  # string if location is enabled.
-  #
-  # @return [ String ] the location information
-  def at_location
-    @chat.location_description if @chat.location.on?
+    @messages.dup
   end
 
   private

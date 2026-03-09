@@ -55,6 +55,15 @@ module OllamaChat::Information
     end
   end
 
+  # The client method returns the application name and its current version as a
+  # single string
+  #
+  # @return [ String ] the progname followed by the OllamaChat version
+  #   separated by a space
+  def client
+    [ progname, OllamaChat::VERSION ] * ' '
+  end
+
   # The collection_stats method displays statistics about the current document
   # collection.
   #

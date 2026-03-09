@@ -711,6 +711,8 @@ class OllamaChat::Chat
         runtime_info_values = {
           languages:            config.languages * ', ',
           location:             location.on? ? location_description.inspect : 'n/a',
+          client:               ,
+          current_directory:    Pathname.pwd.expand_path.to_path.inspect,
           terminal_rows:        Tins::Terminal.rows,
           terminal_cols:        Tins::Terminal.cols,
           time:                 Time.now.iso8601,
