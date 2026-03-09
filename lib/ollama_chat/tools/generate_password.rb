@@ -156,7 +156,7 @@ class OllamaChat::Tools::GeneratePassword
     result.to_json
   rescue => e
     {
-      error: e.class,
+      error:   e.class,
       message: e.message,
     }.to_json
   end

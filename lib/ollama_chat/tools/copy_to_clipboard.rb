@@ -62,8 +62,8 @@ class OllamaChat::Tools::CopyToClipboard
     }.to_json
   rescue => e
     {
-      error: e.class,
-      message: e.message
+      error:   e.class,
+      message: e.message,
     }.to_json
   end
 

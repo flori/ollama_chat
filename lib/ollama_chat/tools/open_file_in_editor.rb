@@ -79,16 +79,16 @@ class OllamaChat::Tools::OpenFileInEditor
     end
 
     {
-      success: true,
-      message: result_msg,
-      path: file_path,
+      success:    true,
+      message:    result_msg,
+      path:       file_path,
       start_line: start_line,
-      end_line: end_line,
+      end_line:   end_line,
     }.to_json
   rescue => e
     {
-      error: e.class,
-      message: e.message
+      error:   e.class,
+      message: e.message,
     }.to_json
   end
 

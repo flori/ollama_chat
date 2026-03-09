@@ -70,7 +70,7 @@ class OllamaChat::Tools::SearchWeb
     }.to_json
   rescue => e
     {
-      error: e.class,
+      error:   e.class,
       message: e.message,
     }.to_json
   end

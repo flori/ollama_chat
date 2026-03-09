@@ -63,14 +63,14 @@ class OllamaChat::Tools::GetEndoflife
         'Accept' => 'application/json',
         'User-Agent' => OllamaChat::Chat.user_agent
       },
-      debug: OC::OLLAMA::CHAT::DEBUG,
+      debug:   OC::OLLAMA::CHAT::DEBUG,
       reraise: true,
       &valid_json?
     )
   rescue => e
     {
       product:,
-      error: e.class,
+      error:   e.class,
       message: e.message,
     }.to_json
   end

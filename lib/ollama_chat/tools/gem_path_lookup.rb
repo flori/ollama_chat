@@ -75,24 +75,24 @@ class OllamaChat::Tools::GemPathLookup
 
     if gem_spec
       {
-        gem_name: gem_name,
-        path: gem_spec.gem_dir,
+        gem_name:,
+        path:    gem_spec.gem_dir,
         version: gem_spec.version,
-        found: true,
-        message: "Found gem '#{gem_name}' at #{gem_spec.gem_dir.inspect}"
+        found:   true,
+        message: "Found gem '#{gem_name}' at #{gem_spec.gem_dir.inspect}",
       }.to_json
     else
       {
-        gem_name: gem_name,
-        path: nil,
-        found: false,
-        message: "Gem '#{gem_name}' not found in bundle"
+        gem_name:,
+        path:    nil,
+        found:   false,
+        message: "Gem '#{gem_name}' not found in bundle",
       }.to_json
     end
   rescue => e
     {
-      error: e.class,
-      message: e.message
+      error:   e.class,
+      message: e.message,
     }.to_json
   end
 

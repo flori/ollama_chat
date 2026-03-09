@@ -55,12 +55,12 @@ class OllamaChat::Tools::InsertIntoEditor
 
     {
       success: true,
-      message:
+      message: ,
     }.to_json
   rescue => e
     {
       error:   e.class.to_s,
-      message: e.message
+      message: e.message,
     }.to_json
   end
 

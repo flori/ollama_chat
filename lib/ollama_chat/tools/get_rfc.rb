@@ -61,7 +61,7 @@ class OllamaChat::Tools::GetRFC
       &:read
     )
     {
-      rfc_id:,
+      rfc_id: ,
       content:,
     }.to_json
   rescue => e
