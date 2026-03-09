@@ -26,8 +26,8 @@ class OllamaChat::Tools::GetCurrentWeather
         name:,
         description: <<~EOT,
           Weather fetcher – Retrieves a short report of local meteorological
-          conditions based on your preset location coordinates. No arguments
-          needed.
+          conditions based on your preset location coordinates. This includes a
+          forecast for the next six days. No arguments needed.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
