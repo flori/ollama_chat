@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe OllamaChat::Tools::InsertIntoEditor do
+describe OllamaChat::Tools::PasteIntoEditor do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -12,7 +12,7 @@ describe OllamaChat::Tools::InsertIntoEditor do
   connect_to_ollama_server
 
   it 'has the correct name' do
-    expect(described_class.new.name).to eq('insert_into_editor')
+    expect(described_class.new.name).to eq('paste_into_editor')
   end
 
   it 'provides a Tool instance for the LLM' do
@@ -28,7 +28,7 @@ describe OllamaChat::Tools::InsertIntoEditor do
       double(
         'ToolCall',
         function: double(
-          name:   'insert_into_editor',
+          name:   'paste_into_editor',
           arguments: double(text: nil)
         )
       )
@@ -44,7 +44,7 @@ describe OllamaChat::Tools::InsertIntoEditor do
       expect(json.error).to be_nil
       expect(json.success).to eq(true)
       expect(json.message).to eq(
-        'The last response has been successfully inserted into the editor.'
+        'The last response has been successfully pasted into the editor.'
       )
     end
 
@@ -63,7 +63,7 @@ describe OllamaChat::Tools::InsertIntoEditor do
       double(
         'ToolCall',
         function: double(
-          name:   'insert_into_editor',
+          name:   'paste_into_editor',
           arguments: double(text: custom_text)
         )
       )
@@ -79,7 +79,7 @@ describe OllamaChat::Tools::InsertIntoEditor do
       expect(json.error).to be_nil
       expect(json.success).to eq(true)
       expect(json.message).to eq(
-        'The provided text has been successfully inserted into the editor.'
+        'The provided text has been successfully pasted into the editor.'
       )
     end
   end
@@ -89,7 +89,7 @@ describe OllamaChat::Tools::InsertIntoEditor do
       double(
         'ToolCall',
         function: double(
-          name: :insert_into_editor,
+          name: :paste_into_editor,
           arguments: double(text: nil)
         )
       )
@@ -118,9 +118,9 @@ describe OllamaChat::Tools::InsertIntoEditor do
     end
   end
 
-  context 'when configuration requires confirmation (insert_into_editor)' do
+  context 'when configuration requires confirmation (paste_into_editor)' do
     it 'is registered and respects the configuration' do
-      expect(OllamaChat::Tools.registered?('insert_into_editor')).to be true
+      expect(OllamaChat::Tools.registered?('paste_into_editor')).to be true
     end
   end
 end

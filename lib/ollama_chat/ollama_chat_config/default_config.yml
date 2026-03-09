@@ -229,7 +229,7 @@ tools:
       default: true
     paste_from_clipboard:
       default: true
-    insert_into_editor:
+    paste_into_editor:
       require_confirmation: true
       default: true
     execute_ri:

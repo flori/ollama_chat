@@ -1,10 +1,10 @@
-# A lightweight LLM‑driven tool that inserts a snippet directly into an open
+# A lightweight LLM‑driven tool that pastes a snippet directly into an open
 # Vim session.
-class OllamaChat::Tools::InsertIntoEditor
+class OllamaChat::Tools::PasteIntoEditor
   include OllamaChat::Tools::Concern
 
   # Name of the tool used to register it with OllamaChat's tool registry.
-  def self.register_name = 'insert_into_editor'
+  def self.register_name = 'paste_into_editor'
 
   # Returns a `OllamaChat::Tool` instance describing this function‑based tool.
   #
@@ -15,8 +15,8 @@ class OllamaChat::Tools::InsertIntoEditor
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Editor helper – Sends a string (or last reply if omitted) straight
-          into the User’s editor buffer, optionally in insert mode.
+          Editor helper – Pastes a string (or last reply if omitted) straight
+          into the User’s running editor.
           If no `text` is supplied, the tool will automatically use the last assistant
           response. No output; Do not not call this tool function unless
           explicitly requested by the user.
@@ -26,7 +26,7 @@ class OllamaChat::Tools::InsertIntoEditor
           properties: {
             text: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Text to insert into the editor (nil = last response)'
+              description: 'Text to paste into the editor (nil = last response)'
             )
           },
           required: []
@@ -35,22 +35,22 @@ class OllamaChat::Tools::InsertIntoEditor
     )
   end
 
-  # Executes the tool by inserting text into Vim.
+  # Executes the tool by pasting text into Vim.
   #
   # @param [OllamaChat::ToolCall] tool_call The LLM-generated tool call object.
   # @option opts [OllamaChat::Chat] :chat Reference to the current chat instance.
   # @return [String] JSON‑encoded response indicating success or failure.
   def execute(tool_call, **opts)
-    text = tool_call.function.arguments.text
+    text = tool_call.function.arguments.text.full?
 
     chat = opts[:chat]
     chat.perform_insert(text:, content: true)
 
     message =
       if text.nil?
-        "The last response has been successfully inserted into the editor."
+        "The last response has been successfully pasted into the editor."
       else
-        "The provided text has been successfully inserted into the editor."
+        "The provided text has been successfully pasted into the editor."
       end
 
     {
