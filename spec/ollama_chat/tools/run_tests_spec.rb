@@ -55,8 +55,8 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    expect_any_instance_of(described_class).to receive(:check_path).with(path).
-      and_return true
+    expect_any_instance_of(described_class).to receive(:check_path).
+      with(path, chat.config).and_return true
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['yeah', true])
 
@@ -80,8 +80,8 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    expect_any_instance_of(described_class).to receive(:check_path).with(path).
-      and_return true
+    expect_any_instance_of(described_class).to receive(:check_path).
+      with(path, chat.config).and_return true
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, true).and_return(['yeah', true])
 
@@ -107,6 +107,23 @@ describe OllamaChat::Tools::RunTests do
 
     result = described_class.new.execute(tool_call, config: config)
     json = json_object(result)
-    expect(json.error).to eq 'ArgumentError'
+    expect(json.error).to eq 'OllamaChat::InvalidPathError'
+  end
+
+  it 'can handle non existing paths gracefully' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'run_tests',
+        arguments: double(
+          path: './spec/nixda_spec.rb',
+          coverage: nil
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, config: config)
+    json = json_object(result)
+    expect(json.error).to eq 'Errno::ENOENT'
   end
 end

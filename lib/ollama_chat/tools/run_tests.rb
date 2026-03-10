@@ -6,6 +6,7 @@
 # runner (RSpec or Minitest) and streams its output back to the caller.
 class OllamaChat::Tools::RunTests
   include OllamaChat::Tools::Concern
+  include OllamaChat::Utils::PathValidator
 
   # Register the tool name used by the OllamaChat runtime.
   # @return [String]
@@ -29,7 +30,7 @@ class OllamaChat::Tools::RunTests
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Path to file or directory to run tests for (path=./ is not allowed!)'
+              description: 'Path to file or directory to run tests for (path has to be allowed!)'
             ),
             coverage: Tool::Function::Parameters::Property.new(
               type: 'boolean',
@@ -48,9 +49,10 @@ class OllamaChat::Tools::RunTests
   # @param opts [Hash] additional options (currently unused)
   # @return [String] JSON containing ``success``, ``path``, ``output`` and ``status``
   def execute(tool_call, **opts)
+    config   = opts[:config]
     path     = tool_call.function.arguments.path
     coverage = tool_call.function.arguments.coverage || false
-    check_path path
+    check_path(path, config)
     output, success = run_tests(path, coverage)
     {
       success:,
@@ -64,12 +66,14 @@ class OllamaChat::Tools::RunTests
 
   private
 
-  def check_path(path)
-    if path.full?
-      Pathname.new(path).expand_path == Pathname.pwd.expand_path and
-        raise ArgumentError, 'invalid path %s' % path.inspect
-      File.exist?(path) or raise ArgumentError, 'path %s does not exist' % path.inspect
-    else
+  # The check_path method determines the appropriate test directory path based
+  # on existing directories and validates it against a whitelist.
+  #
+  # @param path [ String ] the initial path to be checked
+  # @param config [ Object ] configuration object containing tool function settings
+  # @return [ String ] the validated and existing path
+  def check_path(path, config)
+    if path.blank?
       if File.exist?('./spec')
         path = './spec'
       elsif File.exist?('./test')
@@ -80,6 +84,8 @@ class OllamaChat::Tools::RunTests
         raise ArgumentError, 'path could not be determined'
       end
     end
+    assert_valid_path(path, config.tools.functions.run_tests.allowed?)
+    File.exist?(path) or raise Errno::ENOENT, 'path %s does not exist' % path.inspect
   end
 
   # Run the test suite using the configured test runner.
