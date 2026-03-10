@@ -359,7 +359,8 @@ describe OllamaChat::Chat, protect_env: true do
             Currently\ selected\ search\ engine|
             Conversation\ length|
             Tools\ support\ enabled|
-            Runtime\ Information\ enabled
+            Runtime\ Information|
+            languages:|
           /x
         ).at_least(1)
       expect(chat.info).to be_nil

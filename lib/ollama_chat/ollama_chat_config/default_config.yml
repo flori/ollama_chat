@@ -44,10 +44,10 @@ prompts:
     There is usually no reason to mention this information to the user unless
     asked about it.
 
-    - Languages the user prefers: %{languages}.
-    - Current time is %{time}.
-    - Location is %{location}.
-    - Current directory is %{current_directory}.
+    - Languages the user prefers: %{languages}
+    - Current time is %{time}
+    - Location: %{location}
+    - Current directory is "%{current_directory}"
     - **Git**:
       - Current branch is %{git_current_branch}
       - Current remote origin is %{git_remote_origin}

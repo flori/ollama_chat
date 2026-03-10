@@ -112,9 +112,15 @@ module OllamaChat::Information
     think_mode.show
     think_loud.show
     location.show
-    runtime_info.show
     voice.show
     @voice.on? and @voices.show
+    if runtime_info.on?
+      STDOUT.puts "Runtime Information:"
+      STDOUT.puts runtime_information_values.transform_keys(&:to_s).to_yaml.
+        sub(/\A---\s*\n/, '').gsub(/^/, '  ')
+    else
+      runtime_info.show
+    end
     tools_support.show
     STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
     STDOUT.puts "Document policy for references in user text: #{bold{document_policy}}"
@@ -231,5 +237,41 @@ module OllamaChat::Information
   # @return [ String ] the base URL used for communicating with the Ollama API
   def server_url
     @server_url ||= ollama.base_url
+  end
+
+  # The runtime_information_values method compiles a set of key runtime details
+  # such as languages, location description, default persona name, current git
+  # branch and remote origin, client agent string, current directory, terminal
+  # dimensions, timestamp, voice and markdown status, and allowed tool paths.
+  #
+  # @return [Hash] a hash containing runtime information values.
+  def runtime_information_values
+    {
+      languages:            config.languages * ', ',
+      time:                 Time.now.iso8601,
+      location:             location.on?.full? { location_description } || 'n/a',
+      default_persona:      default_persona_name.full? || 'n/a',
+      git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
+      git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
+      client:               ,
+      current_directory:    Pathname.pwd.expand_path.to_path,
+      terminal_rows:        Tins::Terminal.rows,
+      terminal_cols:        Tins::Terminal.cols,
+      voice:                voice.on? ? 'enabled' : 'disabled',
+      markdown:             markdown.on? ? 'enabled' : 'disabled',
+      tool_paths_allowed:   JSON.pretty_generate(tool_paths_allowed),
+    }
+  end
+
+  # The runtime_information method generates a formatted string containing
+  # various runtime values such as languages, location description, git branch
+  # and origin, client agent, current directory, terminal size, time, voice and
+  # markdown status, and allowed tool paths.
+  # It returns the result of interpolating these values into the configured
+  # runtime_info prompt template.
+  #
+  # @return [String] the formatted runtime information string.
+  def runtime_information
+    config.prompts.runtime_info % runtime_information_values
   end
 end
