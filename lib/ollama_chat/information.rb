@@ -119,6 +119,7 @@ module OllamaChat::Information
     STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
     STDOUT.puts "Document policy for references in user text: #{bold{document_policy}}"
     STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
+    name = default_persona_name and STDOUT.puts "Default persona: #{bold{name}}"
     STDOUT.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     nil
   end

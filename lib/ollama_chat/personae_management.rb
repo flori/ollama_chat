@@ -55,11 +55,22 @@ module OllamaChat::PersonaeManagement
     @default_persona ||= :none
   end
 
+  # The default_persona_name method returns the name of the currently set
+  # default persona by extracting its basename and removing the file extension,
+  # unless no persona is set.
+  #
+  # @return [ String ] the default persona name or nil if none.
+  def default_persona_name
+    if @default_persona.present? && @default_persona != :none
+      @default_persona.basename.sub_ext('').to_s
+    end
+  end
+
   # Reloads the default persona file if one is set and not :none, prompting the
   # user for confirmation before playing the persona file.
   def reload_default_persona
-    !@default_persona || @default_persona == :none and return
-    prompt = "Reload default persona #{@default_persona.basename.sub_ext('')}? (y/n) "
+    name = default_persona_name or return
+    prompt = "Reload default persona #{name}? (y/n) "
     if ask?(prompt:) =~ /\Ay/i
       play_persona_file @default_persona
     end
