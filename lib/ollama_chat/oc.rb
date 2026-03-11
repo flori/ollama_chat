@@ -17,15 +17,21 @@ module OC
   prefix ''
 
   XDG_CONFIG_HOME = set do
-    description 'XDG Configuration directory path'
+    description 'XDG Configuration home directory path'
     default { '~/.config' }
     decode  { Pathname.new(_1).join('ollama_chat').expand_path }
   end
 
   XDG_CACHE_HOME = set do
-    description 'XDG Cache directory path'
+    description 'XDG Cache home directory path'
     default { '~/.cache' }
     decode  { Pathname.new(_1).join('ollama_chat').expand_path }
+  end
+
+  XDG_STATE_HOME = set do
+    description 'XDG State home directory path'
+    default { '~/.local' }
+    decode  { Pathname.new(_1).join('state', 'ollama_chat').expand_path }
   end
 
   PAGER = set do
@@ -133,7 +139,12 @@ module OC
 
       HISTORY = set do
         description 'File to save the chat history in'
-        default     XDG_CACHE_HOME + 'history.json'
+        default     XDG_STATE_HOME + 'history.json'
+      end
+
+      LOGFILE = set do
+        description 'File to output log messages to'
+        default     XDG_STATE_HOME + 'chat.log'
       end
 
       module TOOLS

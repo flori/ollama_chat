@@ -1,10 +1,10 @@
 # A module that provides web search functionality for OllamaChat.
 #
 # The WebSearching module encapsulates the logic for performing web searches
-# using configured search engines. It handles query construction, location
-# information integration, and delegates to engine-specific implementations for
-# retrieving search results. The module supports multiple search engines
-# including SearxNG and DuckDuckGo, making it flexible for different deployment
+# using configured search engines. It handles query construction information
+# integration, and delegates to engine-specific implementations for retrieving
+# search results. The module supports multiple search engines including SearxNG
+# and DuckDuckGo, making it flexible for different deployment
 # scenarios and privacy preferences.
 #
 # @example Performing a web search
@@ -12,8 +12,7 @@
 module OllamaChat::WebSearching
   # The search_web method performs a web search using the configured search
   # engine.
-  # It appends location information to the query if available and limits the
-  # number of results.
+  # It limits the number of results.
   # The method delegates to engine-specific search methods based on the
   # configured search engine.
   #
@@ -23,7 +22,6 @@ module OllamaChat::WebSearching
   # @return [ Array<String>, nil ] an array of URLs from the search results or
   #   nil if the search engine is not implemented
   def search_web(query, n = nil)
-    l     = location_description? and query += " #{l}"
     n     = n.to_i.clamp(1..)
     query = URI.encode_uri_component(query)
     search_command = :"search_web_with_#{search_engine}"

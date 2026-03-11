@@ -235,23 +235,25 @@ describe OllamaChat::Chat, protect_env: true do
   describe 'chat history' do
     connect_to_ollama_server(instantiate: false)
 
-    it 'derives chat_history_filename' do
-      expect(chat.chat_history_filename).to_not be_nil
+    before do
+      const_conf_as(
+        'OC::OLLAMA::CHAT::HISTORY' => Pathname.pwd.join('tmp', 'history.json')
+      )
     end
 
     it 'can save chat history' do
       expect(File).to receive(:secure_write).with(
-        chat.chat_history_filename,
-        kind_of(String)
+        OC::OLLAMA::CHAT::HISTORY, kind_of(String)
       )
       chat.save_history
     end
 
     it 'can initialize chat history' do
-      expect(File).to receive(:exist?).with(chat.chat_history_filename).
-        and_return true
-      expect(File).to receive(:open).with(chat.chat_history_filename, ?r)
-      chat.init_chat_history
+      expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return true
+      expect(OC::OLLAMA::CHAT::HISTORY).to receive(:read).and_return '{}'
+      expect_any_instance_of(described_class).to receive(:init_chat_history).
+        and_call_original
+      chat
     end
 
     it 'can clear history' do

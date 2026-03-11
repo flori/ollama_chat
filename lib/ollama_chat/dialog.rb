@@ -30,7 +30,9 @@ module OllamaChat::Dialog
   # @param model [String] the model name to connect to
   # @param base_url [String] the base URL of the connection
   def connect_message(model, base_url)
-    STDOUT.puts green { "Connecting to #{model}@#{base_url} now…" }
+    msg = "Connecting to #{model}@#{base_url} now…"
+    logger.info msg
+    STDOUT.puts green { msg }
   end
 
   # The choose_collection method presents a menu to select or create a document

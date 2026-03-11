@@ -99,43 +99,46 @@ class OllamaChat::FollowChat
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
       unless @chat.tool_configured?(name)
-        @chat.tool_call_results[name] =
-          "Error: Unconfigured tool named %s ignored => Skip.\n" % name
+        msg = "Error: Unconfigured tool named %s ignored => Skip.\n" % name
+        @chat.tool_call_results[name] = msg
+        @chat.logger.error msg
         next
       end
       unless @chat.tool_registered?(name)
-        @chat.tool_call_results[name] =
-          "Error: Unregistered tool named %s ignored => Skip.\n" % name
+        msg = "Error: Unregistered tool named %s ignored => Skip.\n" % name
+        @chat.tool_call_results[name] = msg
+        @chat.logger.error msg
         next
       end
       unless @chat.tool_enabled?(name)
-        @chat.tool_call_results[name] =
-          "Error: Disabled tool named %s ignored => Skip.\n" % name
+        msg = "Error: Disabled tool named %s ignored => Skip.\n" % name
+        @chat.tool_call_results[name] = msg
+        @chat.logger.error msg
         next
       end
       STDOUT.puts
-      confirmed = true
-      args = JSON.pretty_generate(tool_call.function.arguments)
+      confirmed = :implicit
+      function = JSON.pretty_generate(tool_call.function)
+      @chat.logger.info function
       if @chat.tool_function(name).require_confirmation?
         prompt = "I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
-          italic { args  },
+          italic { function  },
         ]
-        confirmed = @chat.ask?(prompt:) =~ /\Ay/i
+        if @chat.ask?(prompt:) =~ /\Ay/i
+          confirmed = :explicit
+        else
+          confirmed = :denied
+        end
       else
         STDOUT.puts "Executing tool %s\n%s" % [
           bold { name },
-          italic { args  },
+          italic { function },
         ]
       end
       result = nil
-      if confirmed
-        STDOUT.printf(
-          "\n%s Execution of tool %s confirmed.\n\n", ?✅, bold { name }
-        )
-        result = OllamaChat::Tools.registered[name].
-          execute(tool_call, chat: @chat, config: @chat.config)
-      else
+      case confirmed
+      when :denied
         result = JSON(
           message: 'User denied confirmation!',
           resolve: 'You **MUST** ask the user for instructions on how to proceed!!!',
@@ -143,7 +146,25 @@ class OllamaChat::FollowChat
         STDOUT.printf(
           "\n%s Execution of tool %s denied by user.\n", ?🚫, bold { name }
         )
-        sleep 1
+        @chat.logger.warn "Execution of tool %s was denied by user!" % name
+      else
+        symbol = confirmed == :implicit ? '☑️ ' : '✅'
+        STDOUT.printf(
+          "\n%s Execution of tool %s confirmed.\n\n", symbol, bold { name }
+        )
+        result = OllamaChat::Tools.registered[name].
+          execute(tool_call, chat: @chat, config: @chat.config)
+        if confirmed == :explicit
+          @chat.logger.info "Execution of tool %s was explicitly confirmed." % name
+        else
+          @chat.logger.info "Execution of tool %s was implicitly confirmed." % name
+        end
+      end
+      begin
+        data = JSON.parse(result)
+        @chat.logger.info JSON.pretty_generate(data)
+      rescue
+        @chat.logger.info result
       end
       @chat.tool_call_results[name] = result
     end

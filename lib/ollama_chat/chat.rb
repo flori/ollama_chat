@@ -33,6 +33,7 @@ require 'context_spook'
 class OllamaChat::Chat
   include Tins::GO
   include Term::ANSIColor
+  include OllamaChat::Logging
   include OllamaChat::DocumentCache
   include OllamaChat::Switches
   include OllamaChat::StateSelectors
@@ -264,7 +265,9 @@ class OllamaChat::Chat
       begin
         use_model
       rescue OllamaChatError::UnknownModelError => e
-        STDERR.puts "Caught #{e.class}: #{e}"
+        msg = "Caught #{e.class}: #{e}"
+        logger.error msg
+        STDERR.puts msg
       end
       :next
     when %r(^/system(?:\s+(show))?$)
@@ -761,7 +764,9 @@ class OllamaChat::Chat
         server_socket_message&.disconnect
       end
     rescue Ollama::Errors::TimeoutError
-      STDOUT.puts "#{bold('Error')}: Currently lost connection to ollama server and cannot send command."
+      msg = "Currently lost connection to ollama server and cannot send command."
+      logger.warn msg
+      STDERR.puts "#{bold('Error')}: #{msg}"
     rescue Interrupt
       STDOUT.puts "Type /quit to quit."
     ensure
@@ -769,6 +774,7 @@ class OllamaChat::Chat
     end
     0
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
+    logger.error e
     fix_config(e)
   ensure
     save_history
@@ -805,6 +811,7 @@ class OllamaChat::Chat
     if server_version.version < '0.9.0'.version
       raise 'require ollama API version 0.9.0 or higher'
     end
+    logger.info "Connection to #{base_url} established."
     @ollama
   end
 
