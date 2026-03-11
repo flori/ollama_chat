@@ -26,8 +26,8 @@ class OllamaChat::Tools::DirectoryStructure
         name:,
         description: <<~EOT,
           Tree viewer – Returns JSON describing files/folders under path up to
-          max_depth. Handy for locating resources or presenting a project
-          layout.
+          max_depth (<= height of the tree). Handy for locating resources or
+          presenting a project layout.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
