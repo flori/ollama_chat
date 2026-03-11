@@ -20,8 +20,10 @@ class OllamaChat::Tools::PatchFile
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Patch applicator – Applies unified diff patches to existing files.
-          Path must be allowed; no return value.
+          Patch applicator – Applies **unified diff format** patches given as
+          diff_content to existing files. Path of the patched file must be
+          given and be allowed, returns JSON with success or
+          failure result.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -66,35 +68,50 @@ class OllamaChat::Tools::PatchFile
       raise Errno::ENOENT, 'file to patch does not exist %s' % path.to_s.inspect
 
     result = apply_patch(path, diff_content)
-
-    {
-      success: true,
+    message = result[:success] ?
+      "Successfully applied patch to #{path.to_s.inspect}." :
+      "Failed to apply patch to file #{path.to_s.inspect}."
+    (result | {
       path:    path.to_s,
-      message: "Successfully applied patch to #{path}",
-      result:  ,
-    }.to_json
+      message: ,
+    }).to_json
   rescue => e
     {
       error:   e.class,
-      message: "Failed to apply patch to file: #{e.message}",
-      result:  ,
+      success: false,
+      message: "Failed to apply patch to file #{path.to_s.inspect}: #{e.message}",
+      result:  '',
     }.to_json
   end
 
   private
+
+  # Computes the MD5 digest of the file located at the given path @param path [
+  # String ] the path to the file whose digest is computed
+  #
+  # @return [ Digest::MD5 ] the MD5 digest of the file
+  def digest(path)
+    Digest::MD5.file(path)
+  end
 
   # Apply the unified diff content to a target file.
   #
   # @param path [Pathname] The file path to patch
   # @param diff_content [String] Unified diff format string
   def apply_patch(path, diff_content)
-    cmd = Shellwords.join([ OC::OLLAMA::CHAT::TOOLS::PATCH_TOOL, '-u', '-f', path ])
+    old_digest = digest(path)
+    cmd = Shellwords.join(
+      [ OC::OLLAMA::CHAT::TOOLS::PATCH_TOOL, '-u', '-f', path ]
+    )
     cmd << " 2>&1"
+    result = { result: '', success: false }
     IO.popen(cmd, 'r+') do |output|
       output.puts diff_content
       output.close_write
-      return output.read
+      result[:result]  = output.read
     end
+    result[:success] = $?.success? && digest(path) != old_digest
+    result
   end
 
   self
