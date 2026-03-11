@@ -42,7 +42,19 @@ class OllamaChat::Tools::ExecuteGrep
             ignore_case: Tool::Function::Parameters::Property.new(
               type: 'boolean',
               description: 'Matches ignore case if true, (default: false)'
-            )
+            ),
+            before: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'Number of lines before match (optional)'
+            ),
+            after: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'Number of lines after match (optional)'
+            ),
+            context: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'Number of lines around match (optional)'
+            ),
           },
           required: %w[pattern]
         )
@@ -68,9 +80,12 @@ class OllamaChat::Tools::ExecuteGrep
     args        = tool_call.function.arguments
     pattern     = Shellwords.escape(args.pattern)
     path        = Shellwords.escape(Pathname.new(args.path || '.').expand_path)
-    max_results = args.max_results || 100
+    max_results = normalize_number(args.max_results) || 100
     ignore_case = args.ignore_case || false
-    cmd         = eval_template(config, pattern, path, max_results, ignore_case)
+    before      = normalize_number(args.before)
+    after       = normalize_number(args.after)
+    context     = normalize_number(args.context)
+    cmd         = eval_template(config, pattern, path, max_results, ignore_case, before, after, context)
     result      = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
     { cmd:, result: }.to_json
   rescue => e
@@ -78,6 +93,17 @@ class OllamaChat::Tools::ExecuteGrep
   end
 
   private
+
+  # Normalizes a number by converting it to an integer and returning the value
+  # only if it is greater than or equal to one.
+  #
+  # @param n [ Integer ] the number to normalize
+  # @return [ Integer, nil ] the normalized integer, or nil if the input was
+  #   less than one.
+  def normalize_number(n)
+    n = n.to_i
+    n unless n < 1
+  end
 
   # Evaluates a template string using the provided configuration and
   # parameters.
@@ -89,7 +115,7 @@ class OllamaChat::Tools::ExecuteGrep
   # @param ignore_case [true, false] whether to ignore case when searching
   #
   # @return [String] the evaluated template string with substituted variables
-  def eval_template(config, pattern, path, max_results, ignore_case)
+  def eval_template(config, pattern, path, max_results, ignore_case, before, after, context)
     eval('"%s"' % config.tools.functions.execute_grep.cmd.chomp)
   end
 

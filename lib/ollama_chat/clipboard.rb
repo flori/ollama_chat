@@ -98,7 +98,6 @@ module OllamaChat::Clipboard
   # handles any OllamaChat::OllamaChatError exceptions by printing the error
   # message to standard error and does not re-raise the exception.
   def copy_to_clipboard
-
     perform_copy_to_clipboard
     STDOUT.puts "The last response has been successfully copied to the system clipboard."
     true

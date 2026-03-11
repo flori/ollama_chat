@@ -26,7 +26,10 @@ describe OllamaChat::Tools::ExecuteGrep do
           pattern: 'Hello World',
           path: 'spec/assets',
           max_results: nil,
-          ignore_case: nil
+          ignore_case: nil,
+          after: nil,
+          before: nil,
+          context: nil,
         )
       )
     )
@@ -55,7 +58,10 @@ describe OllamaChat::Tools::ExecuteGrep do
           pattern: 'class',
           path: 'spec/assets',
           max_results: 5,
-          ignore_case: nil
+          ignore_case: nil,
+          after: nil,
+          before: nil,
+          context: nil,
         )
       )
     )
@@ -83,7 +89,10 @@ describe OllamaChat::Tools::ExecuteGrep do
           pattern: 'class',
           path: 'spec/assets',
           max_results: 5,
-          ignore_case: true
+          ignore_case: true,
+          after: nil,
+          before: nil,
+          context: nil,
         )
       )
     )
@@ -103,7 +112,6 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.result).to match(/blub class blob/)
   end
 
-
   it 'can handle execution errors gracefully' do
     # Test with a non-existent pattern
     tool_call = double(
@@ -114,7 +122,10 @@ describe OllamaChat::Tools::ExecuteGrep do
           pattern: 'nonexistent_pattern',
           path: 'spec/assets',
           max_results: nil,
-          ignore_case: nil
+          ignore_case: nil,
+          after: nil,
+          before: nil,
+          context: nil,
         )
       )
     )
@@ -142,7 +153,10 @@ describe OllamaChat::Tools::ExecuteGrep do
           pattern: 'test',
           path: '/nonexistent/path/that/does/not/exist',
           max_results: nil,
-          ignore_case: nil
+          ignore_case: nil,
+          after: nil,
+          before: nil,
+          context: nil,
         )
       )
     )
@@ -168,7 +182,10 @@ describe OllamaChat::Tools::ExecuteGrep do
           pattern: 'test',
           path: '/nonexistent/path/that/does/not/exist',
           max_results: nil,
-          ignore_case: nil
+          ignore_case: nil,
+          after: nil,
+          before: nil,
+          context: nil,
         )
       )
     )
@@ -193,7 +210,10 @@ describe OllamaChat::Tools::ExecuteGrep do
             pattern: 'Hello World!',
             path: 'spec/assets',
             max_results: nil,
-            ignore_case: nil
+            ignore_case: nil,
+            after: nil,
+            before: nil,
+            context: nil,
           )
         )
       )

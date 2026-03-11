@@ -185,7 +185,7 @@ tools:
     execute_grep:
       default: true
       cmd: |
-        grep #{'-i' if ignore_case} -m #{max_results} -r #{pattern} #{path}
+        grep #{'-i' if ignore_case} -m #{max_results} -r #{before.full? { "-B %u " % it }}#{after.full? { "-A %u " % it }}#{context.full? { "-C %u " % it }}#{pattern} #{path}
     browse:
       default: true
     write_file:
