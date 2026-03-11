@@ -110,7 +110,7 @@ class OllamaChat::Utils::TagResolver
       obj.linenumber = linenumber
       results << obj
     rescue => e
-      warn "Caught #{e.class}: #{e} for #{line}"
+      log(:error, e, warn: true)
     end
     results
   end

@@ -266,8 +266,7 @@ class OllamaChat::Chat
         use_model
       rescue OllamaChatError::UnknownModelError => e
         msg = "Caught #{e.class}: #{e}"
-        logger.error msg
-        STDERR.puts msg
+        log(:error, msg, warn: true)
       end
       :next
     when %r(^/system(?:\s+(show))?$)
@@ -765,8 +764,7 @@ class OllamaChat::Chat
       end
     rescue Ollama::Errors::TimeoutError
       msg = "Currently lost connection to ollama server and cannot send command."
-      logger.warn msg
-      STDERR.puts "#{bold('Error')}: #{msg}"
+      log(:warn, msg, warn: true)
     rescue Interrupt
       STDOUT.puts "Type /quit to quit."
     ensure
@@ -774,7 +772,7 @@ class OllamaChat::Chat
     end
     0
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
-    logger.error e
+    log(:error, e)
     fix_config(e)
   ensure
     save_history
@@ -811,7 +809,7 @@ class OllamaChat::Chat
     if server_version.version < '0.9.0'.version
       raise 'require ollama API version 0.9.0 or higher'
     end
-    logger.info "Connection to #{base_url} established."
+    log(:info, "Connection to #{base_url} established.")
     @ollama
   end
 

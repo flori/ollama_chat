@@ -235,12 +235,6 @@ describe OllamaChat::Chat, protect_env: true do
   describe 'chat history' do
     connect_to_ollama_server(instantiate: false)
 
-    before do
-      const_conf_as(
-        'OC::OLLAMA::CHAT::HISTORY' => Pathname.pwd.join('tmp', 'history.json')
-      )
-    end
-
     it 'can save chat history' do
       expect(File).to receive(:secure_write).with(
         OC::OLLAMA::CHAT::HISTORY, kind_of(String)

@@ -192,6 +192,13 @@ RSpec.configure do |config|
     infobar.show = nil
   end
 
+  config.before do
+    const_conf_as(
+      'OC::OLLAMA::CHAT::HISTORY' => Pathname.pwd.join('tmp', 'history.json'),
+      'OC::OLLAMA::CHAT::LOGFILE' => Pathname.pwd.join('tmp', 'chat.log')
+    )
+  end
+
   config.around(&ProtectEnvVars.apply)
   config.include(ConstConf::ConstConfHelper)
 end

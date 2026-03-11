@@ -33,7 +33,8 @@ module OllamaChat::History
       Readline::HISTORY.push(*history_data)
     end
   rescue => e
-    warn "Caught #{e.class} while loading #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
+    msg = "Caught #{e.class} while loading #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
+    log(:error, msg, warn: true)
   end
 
   # The save_history method persists the current command history to a file.
@@ -44,7 +45,8 @@ module OllamaChat::History
   def save_history
     File.secure_write(OC::OLLAMA::CHAT::HISTORY, JSON.dump(Readline::HISTORY))
   rescue => e
-    warn "Caught #{e.class} while saving #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
+    msg = "Caught #{e.class} while saving #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
+    log(:error, msg, warn: true)
   end
 
   # The clear_history method clears the Readline history array and ensures that

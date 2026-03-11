@@ -43,7 +43,7 @@ module OllamaChat::DocumentCache
       document_cache_class
     end
   rescue => e
-    STDERR.puts "Caught #{e.class}: #{e} => Falling back to MemoryCache."
+    log(:error, "Caught #{e.class}: #{e} => Falling back to MemoryCache.")
     Documentrix::Documents::MemoryCache
   end
 end

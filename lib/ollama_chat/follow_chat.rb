@@ -101,25 +101,25 @@ class OllamaChat::FollowChat
       unless @chat.tool_configured?(name)
         msg = "Error: Unconfigured tool named %s ignored => Skip.\n" % name
         @chat.tool_call_results[name] = msg
-        @chat.logger.error msg
+        @chat.log(:error, msg)
         next
       end
       unless @chat.tool_registered?(name)
         msg = "Error: Unregistered tool named %s ignored => Skip.\n" % name
         @chat.tool_call_results[name] = msg
-        @chat.logger.error msg
+        @chat.log(:error, msg)
         next
       end
       unless @chat.tool_enabled?(name)
         msg = "Error: Disabled tool named %s ignored => Skip.\n" % name
         @chat.tool_call_results[name] = msg
-        @chat.logger.error msg
+        @chat.log(:error, msg)
         next
       end
       STDOUT.puts
       confirmed = :implicit
       function = JSON.pretty_generate(tool_call.function)
-      @chat.logger.info function
+      @chat.log(:info, function)
       if @chat.tool_function(name).require_confirmation?
         prompt = "I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
@@ -146,7 +146,7 @@ class OllamaChat::FollowChat
         STDOUT.printf(
           "\n%s Execution of tool %s denied by user.\n", ?🚫, bold { name }
         )
-        @chat.logger.warn "Execution of tool %s was denied by user!" % name
+        @chat.log(:warn,"Execution of tool %s was denied by user!" % name)
       else
         symbol = confirmed == :implicit ? '☑️ ' : '✅'
         STDOUT.printf(
@@ -155,16 +155,16 @@ class OllamaChat::FollowChat
         result = OllamaChat::Tools.registered[name].
           execute(tool_call, chat: @chat, config: @chat.config)
         if confirmed == :explicit
-          @chat.logger.info "Execution of tool %s was explicitly confirmed." % name
+          @chat.log(:info, "Execution of tool %s was explicitly confirmed." % name)
         else
-          @chat.logger.info "Execution of tool %s was implicitly confirmed." % name
+          @chat.log(:info, "Execution of tool %s was implicitly confirmed." % name)
         end
       end
       begin
         data = JSON.parse(result)
-        @chat.logger.info JSON.pretty_generate(data)
+        @chat.log(:info, JSON.pretty_generate(data))
       rescue
-        @chat.logger.info result
+        @chat.log(:info, result)
       end
       @chat.tool_call_results[name] = result
     end
