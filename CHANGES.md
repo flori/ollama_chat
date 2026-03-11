@@ -1,5 +1,24 @@
 # Changes
 
+## 2026-03-11 v0.0.78
+
+- Added new `patch_file` tool for applying unified diff patches to files with
+  safety checks, including specs and integration into the tool system.
+- Updated `DirectoryStructure` tool description to clarify that `max_depth`
+  limits the tree height for better LLM understanding.
+- Bumped `search_ui` gem dependency from **0.0** to **0.1**, refactored model
+  handling using `SearchUI::Wrapper.new` and updated chooser logic for safer
+  method dispatch.
+- Enhanced `run_tests` tool with a path validation whitelist in
+  `default_config.yml`, introducing `OllamaChat::Utils::PathValidator` and
+  updating `check_path` method to validate against the allowed list.
+- Simplified runtime information handling by adding new helper methods:
+  `runtime_information_values`, `runtime_information`, and updated `chat.rb` to
+  use these for displaying structured runtime data.
+- Added default persona name display using the `default_persona_name` helper,
+  updating information output and refactoring `reload_default_persona` guard
+  logic.
+
 ## 2026-03-09 v0.0.77
 
 - Add runtime Git and time placeholders: added `git_current_branch` and
