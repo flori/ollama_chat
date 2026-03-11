@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Tools::GemPathLookup do
   it 'can have name' do
     expect(described_class.new.name).to eq 'gem_path_lookup'

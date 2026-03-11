@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::StateSelectors::StateSelector do
   let(:name) { 'Test Selector' }
   let(:states) { %w[ enabled disabled low high ] }

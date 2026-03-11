@@ -1,0 +1,101 @@
+# A tool for applying unified diffs to files.
+#
+# This tool enables the chat client to apply patch content (unified diff format)
+# directly to existing files on the local filesystem. It supports both overwriting
+# and appending modes, with configurable file permissions and safety checks to prevent
+# writing to unauthorized locations.
+class OllamaChat::Tools::PatchFile
+  include OllamaChat::Tools::Concern
+  include OllamaChat::Utils::PathValidator
+
+  def self.register_name = 'patch_file'
+
+  # The tool method creates and returns a tool definition for applying patches
+  # to files.
+  #
+  # @return [Ollama::Tool] a tool definition for patching content in files
+  def tool
+    Tool.new(
+      type: 'function',
+      function: Tool::Function.new(
+        name:,
+        description: <<~EOT,
+          Patch applicator – Applies unified diff patches to existing files.
+          Path must be allowed; no return value.
+        EOT
+        parameters: Tool::Function::Parameters.new(
+          type: 'object',
+          properties: {
+            path: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'The path to the file to patch (must be within allowed directories)'
+            ),
+            diff_content: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'Unified diff content to apply'
+            )
+          },
+          required: %w[path diff_content]
+        )
+      )
+    )
+  end
+
+  # The execute method processes a tool call to patch a file.
+  #
+  # This method handles applying unified diffs (like those from git) to files
+  # on the local filesystem. It validates that the target path is within
+  # allowed directories and ensures the parent directory exists before writing.
+  #
+  # @param tool_call [Ollama::Tool::Call] the tool call containing function details
+  # @param opts [Hash] additional options
+  # @option opts [ComplexConfig::Settings] :config the configuration object
+  #
+  # @return [String] the result of the patch operation as a JSON string
+  # @return [String] a JSON string containing error information if the operation fails
+  def execute(tool_call, **opts)
+    config = opts[:config]
+    args = tool_call.function.arguments
+
+    diff_content = args.diff_content.full? or
+      raise ArgumentError, 'require diff_content to patch with'
+
+    path = assert_valid_path(args.path, config.tools.functions.patch_file.allowed?)
+
+    path.exist? or
+      raise Errno::ENOENT, 'file to patch does not exist %s' % path.to_s.inspect
+
+    result = apply_patch(path, diff_content)
+
+    {
+      success: true,
+      path:    path.to_s,
+      message: "Successfully applied patch to #{path}",
+      result:  ,
+    }.to_json
+  rescue => e
+    {
+      error:   e.class,
+      message: "Failed to apply patch to file: #{e.message}",
+      result:  ,
+    }.to_json
+  end
+
+  private
+
+  # Apply the unified diff content to a target file.
+  #
+  # @param path [Pathname] The file path to patch
+  # @param diff_content [String] Unified diff format string
+  def apply_patch(path, diff_content)
+    cmd = Shellwords.join([ OC::OLLAMA::CHAT::TOOLS::PATCH_TOOL, '-u', '-f', path ])
+    cmd << " 2>&1"
+    IO.popen(cmd, 'r+') do |output|
+      output.puts diff_content
+      output.close_write
+      return output.read
+    end
+  end
+
+  self
+end.register

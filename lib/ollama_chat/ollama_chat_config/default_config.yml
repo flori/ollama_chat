@@ -11,7 +11,7 @@ timeouts:
 languages:
   - en-US
 location:
-  enabled: false
+  enabled: true
   name: Berlin
   decimal_degrees: [ 52.514127, 13.475211 ]
   units: SI (International System of Units) # or USCS (United States Customary System)
@@ -240,3 +240,8 @@ tools:
       default: true
     resolve_tag:
       default: true
+    patch_file:
+      default: true
+      require_confirmation: true
+      allowed:
+        - './tmp'

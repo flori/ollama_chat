@@ -140,7 +140,7 @@ module OC
         description 'Tool specific configuration settings'
 
         # Run Tests tool configuration
-        RUN_TESTS_TEST_RUNNER = set do
+        TEST_RUNNER = set do
           description 'Configured test runner for run_tests tool function'
           default     'rspec'
           required     true
@@ -160,6 +160,13 @@ module OC
           description 'Tag file location'
           default     './tags'
           decode       { Pathname.new(_1).expand_path }
+        end
+
+        PATCH_TOOL = set do
+          description 'Patch tool to use'
+
+          default { `which patch`.full?(:chomp) }
+          check   { value.blank? || File.exist?(value) }
         end
 
         module JIRA

@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Switches do
   describe OllamaChat::Switches::Switch do
     let :switch do

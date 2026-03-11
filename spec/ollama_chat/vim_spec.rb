@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Vim do
   let(:server_name) { 'TEST_SERVER' }
   let(:vim) { described_class.new(server_name) }

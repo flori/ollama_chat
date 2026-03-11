@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::ServerSocket do
   let :instance do
     Object.extend(described_class).expose

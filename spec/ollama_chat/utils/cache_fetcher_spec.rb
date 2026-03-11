@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Utils::CacheFetcher do
   let :url do
     'https://www.example.com/hello'

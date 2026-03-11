@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Chat, protect_env: true do
   let :argv do
     chat_default_config(%w[ -C test ])

@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Utils::FileArgument do
   it 'it can return content' do
     expect(described_class.get_file_argument('foo')).to eq 'foo'

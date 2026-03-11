@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::FollowChat do
   let :messages do
     [

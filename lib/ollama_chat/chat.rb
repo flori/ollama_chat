@@ -193,7 +193,7 @@ class OllamaChat::Chat
   end
 
   # The disable_content_parsing method turns off content parsing by setting
-  # @parse_content to false.
+  # `@parse_content` to false.
   #
   # This prevents automatic parsing of user input content during chat
   # processing.

@@ -1,7 +1,3 @@
-require 'spec_helper'
-require 'tmpdir'
-require 'fileutils'
-
 describe OllamaChat::Utils::AnalyzeDirectory do
   let :generate do
     obj = double

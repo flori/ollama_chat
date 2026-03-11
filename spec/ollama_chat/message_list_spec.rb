@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::MessageList do
   let :config do
     double(

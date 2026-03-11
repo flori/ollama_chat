@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::RedisCache do
   let :prefix do
     'test-'

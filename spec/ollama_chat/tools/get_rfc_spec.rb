@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Tools::GetRFC do
   let :chat do
     OllamaChat::Chat.new argv: chat_default_config

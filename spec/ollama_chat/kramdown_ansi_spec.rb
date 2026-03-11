@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::KramdownANSI do
   let :chat do
     double('Chat').extend(described_class)

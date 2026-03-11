@@ -37,7 +37,7 @@ module OllamaChat::InputContent
   # searches for files matching the given pattern, excludes already chosen
   # files, and presents them in an interactive chooser menu.
   #
-  # @param pattern [ Array<String> ] the glob pattern to search for files
+  # @param patterns [ Array<String> ] the glob patterns to search for files
   # @param chosen [ Set ] a set of already chosen filenames to exclude from
   #   selection
   #

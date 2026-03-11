@@ -109,7 +109,7 @@ class OllamaChat::Tools::RunTests
   #
   # @return [String] the command to invoke the test runner
   def test_runner
-    OC::OLLAMA::CHAT::TOOLS::RUN_TESTS_TEST_RUNNER
+    OC::OLLAMA::CHAT::TOOLS::TEST_RUNNER
   end
 
   self.register

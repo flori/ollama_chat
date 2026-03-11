@@ -1,6 +1,3 @@
-require 'spec_helper'
-require 'pathname'
-
 describe OllamaChat::Parsing do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config).tap do |chat|

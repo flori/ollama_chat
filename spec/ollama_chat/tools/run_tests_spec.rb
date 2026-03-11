@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe OllamaChat::Tools::RunTests do
   let(:chat) do
     OllamaChat::Chat.new(argv: chat_default_config)
@@ -30,14 +28,14 @@ describe OllamaChat::Tools::RunTests do
   context 'switchable test runner' do
     it 'supports rspec' do
       const_conf_as(
-        'OC::OLLAMA::CHAT::TOOLS::RUN_TESTS_TEST_RUNNER'  => 'rspec'
+        'OC::OLLAMA::CHAT::TOOLS::TEST_RUNNER'  => 'rspec'
       )
       expect(described_class.new.expose.test_runner).to eq 'rspec'
     end
 
     it 'supports test-unit' do
       const_conf_as(
-        'OC::OLLAMA::CHAT::TOOLS::RUN_TESTS_TEST_RUNNER'  => 'test-unit'
+        'OC::OLLAMA::CHAT::TOOLS::TEST_RUNNER'  => 'test-unit'
       )
       expect(described_class.new.expose.test_runner).to eq 'test-unit'
     end
