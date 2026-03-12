@@ -273,7 +273,7 @@ These parameters provide greater flexibility in how you interact with
 
 The homepage of this app is located at
 
-* https://github.com/flori/ollama\_chat
+* https://github.com/flori/ollama_chat
 
 ## Author
 
