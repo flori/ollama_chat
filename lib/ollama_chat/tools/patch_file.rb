@@ -62,7 +62,8 @@ class OllamaChat::Tools::PatchFile
     diff_content = args.diff_content.full? or
       raise ArgumentError, 'require diff_content to patch with'
 
-    path = assert_valid_path(args.path, config.tools.functions.patch_file.allowed?)
+    path = args.path.full? or raise ArgumentError, 'require path to file to be patched'
+    path = assert_valid_path(path, config.tools.functions.patch_file.allowed?)
 
     path.exist? or
       raise Errno::ENOENT, 'file to patch does not exist %s' % path.to_s.inspect
