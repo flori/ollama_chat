@@ -1,5 +1,59 @@
 # Changes
 
+## 2026-03-13 v0.0.79
+
+- Added `tmp/*` to Rakefile ignore list for cleaner builds.  
+- Updated gemspec: changed `s.rubygems_version` to **3.6.9**.  
+- Added `logging.rb` to `extra_rdoc_files` and `files` in gemspec.  
+- Adjusted gemspec file list to reflect new structure.  
+- Removed `Runtime Directory` (`-d`) explanation from `README.md`.  
+- Updated URL in `README.md`.  
+- Added explicit check that `args.path.full?` is true before calling
+  `assert_valid_path`, raising `ArgumentError` with message `'require path to
+  file to be patched'`.  
+- Updated path assignment to first validate presence, then assert validity
+  against `config.tools.functions.patch_file.allowed?`.  
+- Updated `OllamaChat::Tools::ExecuteGrep` to accept new options `before`,
+  `after`, and `context`.  
+- Added helper method `normalize_number` for optional integer arguments.  
+- Adjusted command template in `default_config.yml` to include `-B`, `-A`, and
+  `-C` flags based on provided values.  
+- Refactored logging: replaced `logger.error` / `logger.warn` calls with
+  `log(:error, …)` or `log(:warn, …)` across multiple files.  
+- Added optional `warn: true` flag to new helper so that critical errors also
+  trigger a user‑visible warning output while still being written to the log
+  file.  
+- Implemented `OllamaChat::Logging#log(severity, msg, warn:)` in `logging.rb`;
+  it formats exceptions with backtraces and forwards messages to the underlying
+  Ruby `Logger`.  
+- Updated `spec_helper.rb` by adding a global `config.before` hook that sets
+  temporary paths for `OC::OLLAMA::CHAT::HISTORY` and `LOGFILE` so all specs
+  run against isolated files.  
+- Added `tmp/*` to `.gitignore`.  
+- Created new module `OllamaChat::Logging` that lazily builds a Logger writing
+  to the file defined by `OC::OLLAMA::CHAT::LOGFILE` in XDG STATE.  
+- Required this logging module in `lib/ollama_chat.rb` and included it in
+  `class OllamaChat::Chat` so every chat instance has access to `logger`.  
+- Logged connection messages via `@chat.logger.info` before printing the
+  “Connecting …” line in `OllamaChat::Dialog#connect_message`.  
+- Centralized tool‑call error handling: log unconfigured, unregistered or
+  disabled tools with `@chat.logger.error`, and record each executed function
+  payload using `JSON.pretty_generate`.  
+- Introduced an explicit vs implicit confirmation flow (`:explicit`,
+  `:implicite`, `:denied`) in `OllamaChat::FollowChat#follow_chat` and log the
+  outcome accordingly.  
+- Switched chat history storage from XDG CACHE to XDG STATE by updating
+  `OC::OLLAMA::CHAT::HISTORY` path, adjusting file operations in
+  `lib/ollama_chat/history.rb`, and adding a new config entry for `LOGFILE`
+  under state home in `oc.rb`.  
+- Enhanced PatchFile tool: updated documentation to specify `unified diff
+  format` and `JSON response`.  
+- Added private method `digest` that returns `MD5` of a file path.  
+- Modified `apply_patch` to compute old digest, run patch command, compare
+  digests, set `success` flag accordingly.  
+- Improved error handling: now includes `success`, clearer messages, empty
+  result on failure.
+
 ## 2026-03-11 v0.0.78
 
 - Added new `patch_file` tool for applying unified diff patches to files with
