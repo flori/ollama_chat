@@ -47,6 +47,14 @@ describe OllamaChat::Utils::AnalyzeDirectory do
       expect(sub[:children]).to be_an(Array)
       expect(sub[:children]).to be_empty
     end
+
+    it 'filters by suffix' do
+      result = generate.call(asset, suffix: 'rb')
+
+      names  = result.map { |e| e[:name] }
+      expect(names).to include('example.rb')
+      expect(names).not_to include('examplle.json', 'example.md')
+    end
   end
 
   context 'skipping hidden files and symlinks' do

@@ -37,6 +37,10 @@ class OllamaChat::Tools::DirectoryStructure
               type: 'string',
               description: 'Path to directory to list (defaults to current directory)'
             ),
+            suffix: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'Only include files with this suffix, e. g. "rb" (defaults to all)'
+            ),
             max_depth: Tool::Function::Parameters::Property.new(
               type: 'integer',
               description: <<~EOT,
@@ -66,9 +70,15 @@ class OllamaChat::Tools::DirectoryStructure
   def execute(tool_call, **opts)
     config    = opts[:config]
     path      = Pathname.new(tool_call.function.arguments.path || '.')
-    max_depth = tool_call.function.arguments.max_depth
+    suffix    = tool_call.function.arguments.suffix.full?
+    max_depth = tool_call.function.arguments.max_depth.full?
 
-    structure = generate_structure(path, max_depth:, exclude: config.tools.functions.directory_structure.exclude?)
+    structure = generate_structure(
+      path,
+      max_depth:,
+      suffix:,
+      exclude: config.tools.functions.directory_structure.exclude?,
+    )
     structure.to_json
   end
 

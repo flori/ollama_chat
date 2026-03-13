@@ -24,7 +24,8 @@ class OllamaChat::Tools::PatchFile
           Patch applicator – Applies **unified diff format** patches given as
           diff_content to existing files. Path of the patched file must be
           given and be allowed, returns JSON with success or
-          failure result.
+          failure result. Do not not call this tool function unless explicitly
+          requested by the user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

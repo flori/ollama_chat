@@ -33,6 +33,9 @@ module OllamaChat::Utils::AnalyzeDirectory
   #   Defaults to the current working directory (`"."`).
   # @param exclude [Array<String, Pathname>] Glob patterns (relative to
   #   +path+) that should be ignored during traversal.
+  # @param suffix [String, nil] Optional file extension filter (e.g., 'rb'). If provided,
+  #   only files with this suffix are included in the result. Pass `nil` or an empty string
+  #   to include all files.
   # @param max_depth [Integer, nil] Optional depth limit. If `nil`,
   #   the entire tree is returned.  When an integer is supplied, all
   #   entries deeper than that depth are pruned.
@@ -57,8 +60,8 @@ module OllamaChat::Utils::AnalyzeDirectory
   #   )
   #
   # @api public
-  def generate_structure(path = '.', exclude: [], max_depth: nil)
-    entries = recurse_generate_structure(path, exclude:)
+  def generate_structure(path = '.', exclude: [], suffix: nil, max_depth: nil)
+    entries = recurse_generate_structure(path, exclude:, suffix:)
     height  = 0
 
     structure_each_entry(entries) do |e|
@@ -84,15 +87,18 @@ module OllamaChat::Utils::AnalyzeDirectory
   #
   # @param path [String, Pathname] Directory to traverse.
   # @param exclude [Array<Pathname>] List of absolute paths to skip.
+  # @param suffix [String, nil] Optional file extension filter. If provided,
+  #   only files with this suffix are included.
   # @param depth [Integer] Current depth (root = 0).
   #
   # @return [Array<Hash>] Array of entry hashes.
   #
   # @api private
-  def recurse_generate_structure(path = '.', exclude: [], depth: 0)
+  def recurse_generate_structure(path = '.', exclude: [], suffix: nil, depth: 0)
     exclude = Array(exclude).map { |p| Pathname.new(p).expand_path }
-    path     = Pathname.new(path).expand_path
-    entries  = []
+    extname = suffix&.sub(/\A(?<!.)/, ?.)
+    path    = Pathname.new(path).expand_path
+    entries = []
 
     path.children.sort.each do |child|
       # Skip hidden files/directories
@@ -107,10 +113,12 @@ module OllamaChat::Utils::AnalyzeDirectory
           type:     'directory',
           name:     child.basename.to_s,
           path:     child.expand_path.to_s,
-          children: recurse_generate_structure(child, exclude:, depth: depth + 1),
+          children: recurse_generate_structure(child, exclude:, suffix:, depth: depth + 1),
           depth:
         }
       elsif child.file?
+        # Skip unless suffix matches
+        next if extname.present? && child.extname != extname
         entries << {
           type:  'file',
           name:  child.basename.to_s,
