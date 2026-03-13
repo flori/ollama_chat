@@ -22,7 +22,7 @@ GemHadar do
   test_dir    'spec'
   ignore      '.*.sw[pon]', 'pkg', 'Gemfile.lock', '.AppleDouble', '.bundle',
     '.yardoc', 'doc', 'tags', 'corpus', 'coverage', '/config/searxng/*',
-    '.starscope.db', 'cscope.out', 'errors.lst'
+    '.starscope.db', 'cscope.out', 'errors.lst', 'tmp/*'
   package_ignore '.all_images.yml', '.tool-versions', '.gitignore', 'VERSION',
     '.rspec', '.github', '.contexts', '.envrc', '.yardopts'
 
