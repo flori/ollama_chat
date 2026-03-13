@@ -61,7 +61,7 @@ class OllamaChat::Tools::ReadFile
     config = opts[:config]
     args   = tool_call.function.arguments
 
-    path = assert_valid_path(args.path, config.tools.functions.read_file.allowed?)
+    path = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check_file: true)
 
     {
       path:,

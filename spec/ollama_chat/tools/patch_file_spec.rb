@@ -80,7 +80,7 @@ describe OllamaChat::Tools::PatchFile do
     # Should return valid JSON with error
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.error).to eq 'Errno::ENOENT'
+    expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.path).to be_nil
   end
 
