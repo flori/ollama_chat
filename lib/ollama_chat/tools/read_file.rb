@@ -10,6 +10,7 @@ class OllamaChat::Tools::ReadFile
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'read_file'
 
   # Creates and returns a tool definition for reading file content.

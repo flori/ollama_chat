@@ -9,12 +9,7 @@
 class OllamaChat::Tools::GetLocation
   include OllamaChat::Tools::Concern
 
-  # Creates and returns a tool definition for getting location information.
-  #
-  # This method constructs the function signature that describes what the tool
-  # does, its parameters, and required fields. The tool takes no parameters.
-  #
-  # @return [Ollama::Tool] a tool definition for retrieving location information
+  # @return [String] the registered name for this tool
   def self.register_name = 'get_location'
 
   # Creates and returns a tool definition for getting location information.

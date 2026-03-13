@@ -11,7 +11,7 @@
 class OllamaChat::Tools::GeneratePassword
   include OllamaChat::Tools::Concern
 
-  # Registration helper
+  # @return [String] the registered name for this tool
   def self.register_name = 'generate_password'
 
   # Creates and returns a tool definition for password generation.

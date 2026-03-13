@@ -6,6 +6,7 @@
 class OllamaChat::Tools::GetRFC
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'get_rfc'
 
   # Creates and returns a tool definition for getting RFC information.

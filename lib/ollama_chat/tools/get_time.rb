@@ -11,9 +11,7 @@ require 'time'
 class OllamaChat::Tools::GetTime
   include OllamaChat::Tools::Concern
 
-  # Register the tool name for the Ollama tool‑calling system.
-  #
-  # @return [String] the registered tool name 'get_time'
+  # @return [String] the registered name for this tool
   def self.register_name = 'get_time'
 
   # Build the function signature for the tool.

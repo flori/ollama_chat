@@ -3,7 +3,7 @@
 class OllamaChat::Tools::PasteIntoEditor
   include OllamaChat::Tools::Concern
 
-  # Name of the tool used to register it with OllamaChat's tool registry.
+  # @return [String] the registered name for this tool
   def self.register_name = 'paste_into_editor'
 
   # Returns a `OllamaChat::Tool` instance describing this function‑based tool.

@@ -7,7 +7,7 @@
 class OllamaChat::Tools::ExecuteRI
   include OllamaChat::Tools::Concern
 
-  # Register tool name for Ollama's function calling system
+  # @return [String] the registered name for this tool
   def self.register_name = 'execute_ri'
 
   # Returns a Tool definition that describes this functionality to

@@ -10,6 +10,7 @@ class OllamaChat::Tools::DirectoryStructure
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::AnalyzeDirectory
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'directory_structure'
 
   # Creates and returns a tool definition for retrieving directory structure.

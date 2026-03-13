@@ -11,6 +11,7 @@ class OllamaChat::Tools::FileContext
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'file_context'
 
   # Returns the tool definition for the Ollama tool calling system

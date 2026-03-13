@@ -6,6 +6,7 @@
 class OllamaChat::Tools::ExecuteGrep
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'execute_grep'
 
   # Returns the tool definition for use with the Ollama API

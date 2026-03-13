@@ -8,6 +8,7 @@ class OllamaChat::Tools::PatchFile
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'patch_file'
 
   # The tool method creates and returns a tool definition for applying patches

@@ -6,6 +6,7 @@
 class OllamaChat::Tools::GetURL
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'get_url'
 
   # Creates and returns a tool definition for fetching content from URLs.

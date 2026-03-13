@@ -8,8 +8,7 @@ class OllamaChat::Tools::RunTests
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
 
-  # Register the tool name used by the OllamaChat runtime.
-  # @return [String]
+  # @return [String] the registered name for this tool
   def self.register_name = 'run_tests'
 
   # Build the OpenAI function schema for the tool.

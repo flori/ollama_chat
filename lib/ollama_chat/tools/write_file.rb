@@ -8,6 +8,7 @@ class OllamaChat::Tools::WriteFile
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'write_file'
 
   # The tool method creates and returns a tool definition for writing content

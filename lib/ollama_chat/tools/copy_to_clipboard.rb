@@ -9,7 +9,7 @@
 class OllamaChat::Tools::CopyToClipboard
   include OllamaChat::Tools::Concern
 
-  # Register the tool name for the OllamaChat runtime.
+  # @return [String] the registered name for this tool
   def self.register_name = 'copy_to_clipboard'
 
   # Build the OpenAI function schema for the tool.

@@ -10,6 +10,7 @@ require "shellwords"
 class OllamaChat::Tools::Browse
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'browse'
 
   # Creates and returns a tool definition for opening URLs/files in the browser.

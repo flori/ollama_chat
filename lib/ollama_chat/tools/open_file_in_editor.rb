@@ -6,6 +6,7 @@
 class OllamaChat::Tools::OpenFileInEditor
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'open_file_in_editor'
 
   # The tool method defines the Ollama tool specification for Vim file opening.

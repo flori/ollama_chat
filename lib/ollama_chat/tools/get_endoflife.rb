@@ -6,6 +6,7 @@
 class OllamaChat::Tools::GetEndoflife
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'get_endoflife'
 
   # Creates and returns a tool definition for getting endoflife information.

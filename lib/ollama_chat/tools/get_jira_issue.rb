@@ -6,6 +6,7 @@
 class OllamaChat::Tools::GetJiraIssue
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'get_jira_issue'
 
   # Creates and returns a tool definition for getting JIRA issue information.

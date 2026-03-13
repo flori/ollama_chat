@@ -7,6 +7,7 @@
 class OllamaChat::Tools::SearchWeb
   include OllamaChat::Tools::Concern
 
+  # @return [String] the registered name for this tool
   def self.register_name = 'search_web'
 
   # Creates and returns a tool definition for web search functionality
