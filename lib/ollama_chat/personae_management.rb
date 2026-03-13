@@ -67,13 +67,42 @@ module OllamaChat::PersonaeManagement
   end
 
   # Reloads the default persona file if one is set and not :none, prompting the
-  # user for confirmation before playing the persona file.
+  # user for confirmation before playing the persona file or loading a new
+  # default persona and changing the default.
   def reload_default_persona
-    name = default_persona_name or return
-    prompt = "Reload default persona #{name}? (y/n) "
-    if ask?(prompt:) =~ /\Ay/i
-      play_persona_file @default_persona
+    1.times do
+      options = []
+      if name = default_persona_name
+        options << SearchUI::Wrapper.new(
+          'default',
+          display: "Reload current default persona (#{name})"
+        )
+      end
+      options << SearchUI::Wrapper.new(
+        'do_not_load',
+        display: "Keep it as‑is – do not load a persona"
+      )
+      options << SearchUI::Wrapper.new(
+        'load_new',
+        display: "Choose a different persona to become the new default and load it"
+      )
+
+      choice = OllamaChat::Utils::Chooser.choose(options)
+
+      case choice&.value
+      when nil, 'do_not_load'
+      when 'default'
+        return play_persona_file(@default_persona)
+      when 'load_new'
+        if persona = choose_persona
+          @default_persona = personae_directory + persona
+          return play_persona_file(@default_persona)
+        else
+          redo
+        end
+      end
     end
+    nil
   end
 
   # Returns a sorted list of available persona file names.
