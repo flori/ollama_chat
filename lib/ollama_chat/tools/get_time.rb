@@ -53,8 +53,6 @@ class OllamaChat::Tools::GetTime
   # @example
   #   execute(tool_call, config:)
   #   # => "{\"time\":\"2026-02-09T14:32:00+01:00\"}"
-  #
-  # @see https://en.wikipedia.org/wiki/ISO_8601 ISO 8601
   def execute(_tool_call, **_opts)
     { time: Time.now.iso8601 }.to_json
   end

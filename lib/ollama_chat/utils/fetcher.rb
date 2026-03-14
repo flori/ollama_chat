@@ -124,9 +124,6 @@ class OllamaChat::Utils::Fetcher
   #   fetcher.get('https://example.com/data.json', cache: cache) do |tmp|
   #     JSON.parse(tmp.read)
   #   end
-  #
-  # @see OllamaChat::Utils::CacheFetcher
-  # @see HeaderExtension
   def self.get(url, headers: {}, **options, &block)
     cache = options.delete(:cache) and
       cache = OllamaChat::Utils::CacheFetcher.new(cache)
@@ -282,9 +279,6 @@ class OllamaChat::Utils::Fetcher
   #   fetcher.get('https://example.com/data.json', cache: cache) do |tmp|
   #     JSON.parse(tmp.read)
   #   end
-  #
-  # @see OllamaChat::Utils::CacheFetcher
-  # @see HeaderExtension
   def get(url, **opts, &block)
     opts.delete(:response_block) and raise ArgumentError, 'response_block not allowed'
     reraise ||= opts.delete(:reraise)
@@ -338,9 +332,6 @@ class OllamaChat::Utils::Fetcher
   # @param options [ Hash ] additional options to be merged with http_options
   #
   # @return [ Excon ] a new Excon client instance
-  #
-  # @see #normalize_url
-  # @see #http_options
   def excon(url, **options)
     url = self.class.normalize_url(url)
     Excon.new(url, options.merge(@http_options))

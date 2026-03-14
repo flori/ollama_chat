@@ -39,7 +39,6 @@ module OllamaChat::WebSearching
   # to be used for online searches.
   #
   # @return [ String ] the name of the web search engine
-  # @see OllamaChat::Config::WebSearch#use
   def search_engine
     config.web_search.use
   end

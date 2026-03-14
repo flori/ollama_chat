@@ -8,8 +8,6 @@
 # @example Generating location information
 #   chat.location_data # => { location_name: "New York", location_decimal_degrees: "40.7128, -74.0060", units: "metric" }
 #   chat.location_description # => "Current location: New York (40.7128, -74.0060) at 2023-10-15T10:30:00Z in metric units"
-#
-# @see OllamaChat::Chat
 module OllamaChat::LocationHandling
   # Generates a location description string formatted with the current location
   # data.
@@ -19,7 +17,6 @@ module OllamaChat::LocationHandling
   # location prompt template.
   #
   # @return [String] a formatted location description string
-  # @see #location_data
   def location_description
     config.prompts.location % location_data
   end
