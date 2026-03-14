@@ -20,12 +20,7 @@ module OllamaChat::InputContent
   #
   # @return [String] a concatenated string of file contents with filenames as headers
   def input(patterns)
-    patterns ||= '**/*'
-    patterns = Array(patterns)
-    files = Set[]
-    while filename = choose_filename(patterns, chosen: files)
-      files << filename.expand_path
-    end
+    files = choose_file_set(patterns)
     result = ''
     files.each do |filename|
       result << ("%s:\n\n%s\n\n" % [ filename, filename.read ])

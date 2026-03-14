@@ -25,6 +25,26 @@ module OllamaChat::Dialog
 
   private
 
+  # The choose_file_set method aggregates all files matching the given patterns
+  # by repeatedly invoking choose_filename and collecting their expanded paths
+  # into a Set.
+  #
+  # @param patterns [ Array<String> ] optional glob patterns to match; defaults
+  #   to '**/*'.
+  #
+  # @return [ Set<Pathname> ] a set of expanded Pathname objects for each
+  #   selected file.
+  #
+  def choose_file_set(patterns)
+    patterns ||= '**/*'
+    patterns = Array(patterns)
+    files = Set[]
+    while filename = choose_filename(patterns, chosen: files)
+      files << filename.expand_path
+    end
+    files
+  end
+
   # The connect_message method displays a connection status message.
   #
   # @param model [String] the model name to connect to
