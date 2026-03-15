@@ -581,8 +581,8 @@ class OllamaChat::Chat
       if links.empty?
         STDOUT.puts "List is empty."
       else
-        Math.log10(links.size).ceil
-        format  = "% #{}s. %s"
+        w       = Math.log10(links.size + 1).ceil
+        format  = "%#{w}s. %s"
         connect = -> link { hyperlink(link) { link } }
         STDOUT.puts links.each_with_index.map { |x, i| format % [ i + 1, connect.(x) ] }
       end
