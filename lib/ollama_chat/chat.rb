@@ -697,7 +697,7 @@ class OllamaChat::Chat
 
       if embedding.on? && content
         records = @documents.find_where(
-          content.downcase,
+          content.downcase.first(config.embedding.model.context_length),
           tags:,
           prompt:     config.embedding.model.prompt?,
           text_size:  config.embedding.found_texts_size?,

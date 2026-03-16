@@ -122,6 +122,7 @@ embedding:
   model:
     name: mxbai-embed-large
     embedding_length: 1024
+    context_length: 1024
     options: {}
     # Retrieval prompt template:
     prompt: 'Represent this sentence for searching relevant passages: %s'
