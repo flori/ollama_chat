@@ -183,6 +183,20 @@ class OllamaChat::Chat
 
   private
 
+  # Removes lines that are JSON objects containing the given key.
+  #
+  # @param name [String, Symbol] key to look for in each line
+  # @param content [String] multiline text that may contain internal JSON markers
+  # @return [String] text with matching marker lines removed
+  def strip_internal_json_markers(name, content)
+    name = name.to_s
+    content.each_line.map do |line|
+      JSON(line).fetch(name) and next
+    rescue
+      line
+    end.compact.join
+  end
+
   # Returns the links set for this object, initializing it lazily if needed.
   #
   # The links set is memoized, meaning it will only be created once per object
@@ -281,7 +295,8 @@ class OllamaChat::Chat
     when %r(^/revise(?:\s+(edit))?$)
       subcommand = $1
       if content = messages.second_last&.content
-        content.gsub!(/\nConsider these chunks for your answer.*\z/, '')
+        content = strip_internal_json_markers(:ollama_chat_retrieval_snippets, content)
+        content = strip_internal_json_markers(:ollama_chat_runtime_information, content)
         messages.drop(1)
         if subcommand == 'edit'
           content = edit_text(content)
@@ -704,12 +719,22 @@ class OllamaChat::Chat
           text_count: config.embedding.found_texts_count?,
         )
         unless records.empty?
-          content += "\nConsider these chunks for your answer:\n\n"\
-            "#{records.map { [ _1.text, _1.tags_set ] * ?\n }.join("\n\n---\n\n")}"
+          content << ?\n << JSON(
+            prompt: "Consider these snippets generated from retrieval when formulating your response!",
+            ollama_chat_retrieval_snippets: records.map { |r|
+              {
+                text: r.text,
+                tags: r.tags_set.map { |t| { name: t.to_s(link: false), source: t.source }.compact }
+              }
+            },
+          )
         end
       end
 
-      content << runtime_information if runtime_info.on? && content
+      runtime_info.on? && content and
+        content << ?\n << {
+          ollama_chat_runtime_information: runtime_information
+        }.to_json
 
       messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)
       @images.clear
