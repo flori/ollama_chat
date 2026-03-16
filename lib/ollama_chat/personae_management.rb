@@ -40,6 +40,7 @@ module OllamaChat::PersonaeManagement
   # playing the persona file if it exists.
   def setup_persona_from_opts
     @default_persona and return
+    @opts[?c] and return
     if persona = @opts[?p].full? { Pathname.new(_1) }
       if persona.extname == '.md'
         pathname = persona
