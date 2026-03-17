@@ -75,26 +75,26 @@ module OllamaChat::PersonaeManagement
       options = []
       if name = default_persona_name
         options << SearchUI::Wrapper.new(
-          'default',
+          'reload_default',
           display: "Reload current default persona (#{name})"
         )
       end
       options << SearchUI::Wrapper.new(
-        'do_not_load',
+        'keep',
         display: "Keep it as‑is – do not load a persona"
       )
       options << SearchUI::Wrapper.new(
-        'load_new',
+        'choose_different',
         display: "Choose a different persona to become the new default and load it"
       )
 
       choice = OllamaChat::Utils::Chooser.choose(options)
 
       case choice&.value
-      when nil, 'do_not_load'
-      when 'default'
+      when nil, 'keep'
+      when 'reload_default'
         return play_persona_file(@default_persona)
-      when 'load_new'
+      when 'choose_different'
         if persona = choose_persona
           @default_persona = personae_directory + persona
           return play_persona_file(@default_persona)

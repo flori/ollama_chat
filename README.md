@@ -152,48 +152,104 @@ subject - the young, blue-eyed cat.
 The following commands can be given inside the chat, if prefixed by a `/`:
 
 ```
-/reconnect                                           reconnect to current ollama server
-/copy                                                to copy last response to clipboard
-/paste                                               to paste content
-/markdown                                            toggle markdown output
-/stream                                              toggle stream output
-/location                                            toggle location submission
-/runtime_info                                        toggle runtime information in prompts
-/voice [change]                                      toggle voice output or change the voice
-/last [n]                                            show the last n / 1 system/assistant message
-/list [n]                                            list the last n / all conversation exchanges
-/clear [what]                                        clear what=messages|links|history|tags|all
-/clobber                                             clear the conversation, links, and collection
-/drop [n]                                            drop the last n exchanges, defaults to 1
-/model                                               change the model
-/system [show]                                       change/show system prompt
-/prompt                                              prefill user prompt with preset prompts
-/persona [add|delete|edit|file|info|list|load|play]  manage and load/play personas for roleplay
-/revise [edit]                                       the last answer message
-/collection [clear|change]                           change (default) collection or clear
-/info                                                show information for current session
-/config [edit|reload]                                output/edit/reload current configuration ("/Users/flori/.config/ollama_chat/config.yml")
-/document_policy                                     pick a scan policy for document references
-/think                                               choose ollama think mode setting for models
-/think_loud                                          enable to think out loud instead of silently
-/import source                                       import the source's content
-/summarize [n] source                                summarize the source's content in n words
-/embedding                                           toggle embedding paused or not
-/embed source                                        embed the source's content
-/web [n] query                                       query web & for n(=1) results (policy: importing)
-/links [clear]                                       display (or clear) links used in the chat
-/save filename                                       store conversation messages
-/load filename                                       load conversation messages
-/compose                                             compose content using an EDITOR
-/input [pattern]                                     select and read content from a file (default: **/*)
-/context [pattern...]                                collect context with glob patterns
-/change_response                                     edit the last response in an external editor
-/output filename                                     save last response to filename
-/pipe command                                        write last response to command's stdin
-/tools [enable|disable|on|off]                       list enabled, enable/disable tools, support on/off
-/vim                                                 insert the last message into a vim server
-/quit                                                to quit
-/help [me]                                           to view this help (me = interactive ai help)
+╭──────────────────┬────────────────────┬──────────────────┬──────────────────────────────────────────────────────────╮
+│ CMD              │ SUBCMD             │ OPTS             │ HELP                                                     │
+╞══════════════════╪════════════════════╪══════════════════╪══════════════════════════════════════════════════════════╡
+│ /copy            │                    │                  │ to copy last response to clipboard                       │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /paste           │                    │                  │ to paste content from the clipboard                      │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /config          │ edit               │                  │ output/edit/reload configuration                         │
+│                  │ reload             │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /document_policy │                    │                  │ pick a scan policy for documents                         │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /toggle          │ embedding﹡        │                  │ toggle switch                                            │
+│                  │ location﹡         │                  │                                                          │
+│                  │ markdown﹡         │                  │                                                          │
+│                  │ runtime_info﹡     │                  │                                                          │
+│                  │ stream﹡           │                  │                                                          │
+│                  │ think_loud﹡       │                  │                                                          │
+│                  │ voice﹡            │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /model           │                    │                  │ change the model                                         │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /system          │ change             │                  │ change/show system prompt                                │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /think           │                    │                  │ choose ollama think mode setting for models              │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /tools           │ disable            │                  │ list enabled, enable/disable tools,                      │
+│                  │ enable             │                  │ support on/off                                           │
+│                  │ off                │                  │                                                          │
+│                  │ on                 │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /voice           │                    │                  │ change the voice                                         │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /list            │                    │ [n=1]            │ list the last n / all conversation exchanges             │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /last            │                    │ [n=1]            │ show the last n / 1 system/assistant message             │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /drop            │                    │ [n=1]            │ drop the last n exchanges, defaults to 1                 │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /clear           │ all﹡              │                  │ clear these records                                      │
+│                  │ history﹡          │                  │                                                          │
+│                  │ links﹡            │                  │                                                          │
+│                  │ messages﹡         │                  │                                                          │
+│                  │ tags﹡             │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /links           │ clear﹡            │                  │ display (or clear) links used in the chat                │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /revise          │ edit﹡             │                  │ revise the last message (and/or edit the query)          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /prompt          │                    │                  │ prefill user prompt with preset prompts                  │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /change_response │                    │                  │ edit the last response in EDITOR                         │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /save            │                    │ path             │ store conversation messages                              │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /load            │                    │ path             │ load conversation messages                               │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /collection      │ change﹡           │                  │ change (default) collection or clear                     │
+│                  │ clear﹡            │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /persona         │ add                │                  │ manage and load/play personae for roleplay               │
+│                  │ delete             │                  │                                                          │
+│                  │ edit               │                  │                                                          │
+│                  │ file               │                  │                                                          │
+│                  │ info               │                  │                                                          │
+│                  │ list               │                  │                                                          │
+│                  │ load               │                  │                                                          │
+│                  │ play               │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /compose         │                    │                  │ compose content using an EDITOR                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /web             │                    │ [number=1] query │ query web for so many results                            │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /input           │ context            │ [-w|-a] [arg…]   │ Read content from files, URLs, or glob patterns          │
+│                  │ context pattern    │                  │ and optionally transform it.                             │
+│                  │ embedding          │                  │ Use subcommands: context, embedding, path, summary,      │
+│                  │ embedding pattern  │                  │   import (the default).                                  │
+│                  │ path               │                  │ Use pattern mode for local files.                        │
+│                  │ path pattern       │                  │ Options:                                                 │
+│                  │ pattern            │                  │   -w <words> (summary subcommand only, default 100)      │
+│                  │ summary            │                  │   -a (pattern mode only, include all files for patterns) │
+│                  │ summary pattern    │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /pipe            │                    │ path             │ write last response to command's stdin                   │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /vim             │                    │                  │ insert the last message into a vim (server)              │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /output          │                    │ path             │ save last response to path                               │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /reconnect       │                    │                  │ reconnect to current ollama server                       │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /quit            │                    │                  │ quit/exit the application                                │
+│ /exit            │                    │                  │                                                          │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /info            │                    │                  │ show information for current session                     │
+├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
+│ /help            │ me                 │                  │ to view this help (me=interactive ai help)               │
+╰──────────────────┴────────────────────┴──────────────────┴──────────────────────────────────────────────────────────╯
 ```
 
 ### Using `ollama_chat_send` to send input to a running `ollama_chat`
@@ -221,10 +277,10 @@ endfunction
 
 The `ollama_chat_send` command now supports additional parameters to enhance functionality:
 
-- **Terminal Input (`-t`)**: Sends input as terminal commands, enabling special commands like `/import`.
+- **Terminal Input (`-t`)**: Sends input as terminal commands, enabling special commands like `/input`.
 
   ```bash
-  $ echo "/import https://example.com/some-content" | ollama_chat_send -t
+  $ echo "/input https://example.com/some-content" | ollama_chat_send -t
   ```
 
 - **Wait for Response (`-r`)**: Enables two-way communication by waiting for and returning the server's response.

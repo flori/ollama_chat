@@ -155,4 +155,8 @@ module OllamaChat::Dialog
   def message_list
     MessageList.new(self)
   end
+
+  def go_command(s, opt)
+    Tins::GO.go(s, opt.to_s.strip.split(/\s+/))
+  end
 end

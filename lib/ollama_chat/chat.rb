@@ -33,6 +33,7 @@ require 'context_spook'
 class OllamaChat::Chat
   include Tins::GO
   include Term::ANSIColor
+  include OllamaChat::CommandConcern
   include OllamaChat::Logging
   include OllamaChat::DocumentCache
   include OllamaChat::Switches
@@ -197,16 +198,6 @@ class OllamaChat::Chat
     end.compact.join
   end
 
-  # Returns the links set for this object, initializing it lazily if needed.
-  #
-  # The links set is memoized, meaning it will only be created once per object
-  # instance and subsequent calls will return the same Set instance.
-  #
-  # @return [Set] A Set object containing all links associated with this instance
-  def links
-    @links ||= Set.new
-  end
-
   # The disable_content_parsing method turns off content parsing by setting
   # `@parse_content` to false.
   #
@@ -216,282 +207,582 @@ class OllamaChat::Chat
     @parse_content = false
   end
 
+  # Chat commands
+
+  ## Clipboard
+
+  command(
+    name: :copy,
+    regexp: %r(/copy$),
+    help: 'to copy last response to clipboard'
+  ) do
+    copy_to_clipboard
+    :next
+  end
+
+  command(
+    name: :paste,
+    regexp: %r(^/paste$),
+    help: 'to paste content from the clipboard'
+  ) do
+    disable_content_parsing
+    paste_from_clipboard
+  end
+
+  ## Settings
+
+  command(
+    name: :config,
+    regexp: %r(^/config(?:\s+(edit|reload))?$),
+    complete: [ 'config', %w[ edit reload ] ],
+    optional: true,
+    help: 'output/edit/reload configuration'
+  ) do |subcommand|
+    case subcommand
+    when 'edit'
+      edit_config
+    when 'reload'
+      reload_config
+    else
+      display_config
+    end
+    :next
+  end
+
+  command(
+    name: :document_policy,
+    regexp: %r(^/document_policy$),
+    help: 'pick a scan policy for documents'
+  ) do
+    document_policy.choose
+    :next
+  end
+
+  command(
+    name: :toggle,
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud))?$),
+    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud embedding ] ],
+    help: 'toggle switch'
+  ) do |toggle_name|
+    if toggle_name
+      send(toggle_name).toggle
+    else
+      STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|embedding"
+    end
+    :next
+  end
+
+  command(
+    name: :toggle_embedding,
+    regexp: %r(^/toggle\s+embedding$),
+    complete: [],
+    help: nil
+  ) do
+    embedding_paused.toggle(show: false)
+    embedding.show
+    :next
+  end
+
+  command(
+    name: :model,
+    regexp: %r(^/model$),
+    help: 'change the model'
+  ) do
+    begin
+      use_model
+    rescue OllamaChatError::UnknownModelError => e
+      msg = "Caught #{e.class}: #{e}"
+      log(:error, msg, warn: true)
+    end
+    :next
+  end
+
+  command(
+    name: :system,
+    regexp: %r(^/system(?:\s+(change))?$),
+    complete: [ 'system', %w[ change ] ],
+    optional: true,
+    help: 'change/show system prompt'
+  ) do |subcommand|
+    if subcommand == 'change'
+      change_system_prompt(@system)
+    end
+    @messages.show_system_prompt
+    :next
+  end
+
+  command(
+    name: :think,
+    regexp: %r(^/think$),
+    help: 'choose ollama think mode setting for models'
+  ) do
+    think_mode.choose
+    :next
+  end
+
+  command(
+    name: :tools,
+    regexp: %r(^/tools(?:\s+(enable|disable|on|off))?),
+    complete: [ 'tools', %w[ enable disable on off ] ],
+    optional: true,
+    help: "list enabled, enable/disable tools,\nsupport on/off"
+  ) do |subcommand|
+    case subcommand
+    when nil
+      list_tools
+    when 'enable'
+      enable_tool
+    when 'disable'
+      disable_tool
+    when 'on'
+      tools_support.set(true, show: true)
+    when 'off'
+      tools_support.set(false, show: true)
+    end
+    :next
+  end
+
+  command(
+    name: :voice,
+    regexp: %r(^/voice$),
+    help: 'change the voice'
+  ) do
+    change_voice
+    :next
+  end
+
+  ## Conversation
+
+  command(
+    name: :list,
+    regexp: %r(^/list(?:\s+(\d*))?$),
+    options: '[n=1]',
+    help: 'list the last n / all conversation exchanges'
+  ) do
+    n = 2 * _1.to_i if _1
+    messages.list_conversation(n)
+    :next
+  end
+
+  command(
+    name: :last,
+    regexp: %r(^/last(?:\s+(\d*))?$),
+    options: '[n=1]',
+    help: 'show the last n / 1 system/assistant message'
+  ) do
+    n = _1.to_i.clamp(1..)
+    messages.show_last(n)
+    :next
+  end
+
+  command(
+    name: :drop,
+    regexp: %r(^/drop(?:\s+(\d*))?$),
+    options: '[n=1]',
+    help: 'drop the last n exchanges, defaults to 1'
+  ) do
+    messages.drop(_1)
+    messages.show_last
+    :next
+  end
+
+  command(
+    name: :clear,
+    regexp: %r(^/clear(?:\s+(messages|links|history|tags|all))?$),
+    complete: [ 'clear', %w[ messages links history tags all ] ],
+    help: 'clear these records'
+  ) do |subcommand|
+    if result = clean(subcommand)
+      disable_content_parsing
+      result
+    else
+      :next
+    end
+  end
+
+  command(
+    name: :links,
+    regexp: %r(^/links(?:\s+(clear))?$),
+    complete: [ 'links', %w[ clear ] ],
+    help: 'display (or clear) links used in the chat',
+  ) do |subcommand|
+    manage_links(subcommand)
+    :next
+  end
+
+  command(
+    name: :revise,
+    regexp: %r(^/revise(?:\s+(edit))?$),
+    complete: [ 'revise', %w[ edit ] ],
+    help: 'revise the last message (and/or edit the query)'
+  ) do |subcommand|
+    if content = messages.second_last&.content
+      content = strip_internal_json_markers(:ollama_chat_retrieval_snippets, content)
+      content = strip_internal_json_markers(:ollama_chat_runtime_information, content)
+      messages.drop(1)
+      if subcommand == 'edit'
+        content = edit_text(content)
+      end
+    else
+      STDOUT.puts "Not enough messages in this conversation."
+      next :redo
+    end
+    disable_content_parsing
+    content
+  end
+
+  command(
+    name: :prompt,
+    regexp: %r(^/prompt),
+    help: 'prefill user prompt with preset prompts',
+  ) do
+    @prefill_prompt = choose_prompt
+    :next
+  end
+
+  command(
+    name: :change_response,
+    regexp: %r(^/change_response$),
+    help: 'edit the last response in EDITOR',
+  ) do
+    change_response
+    :next
+  end
+
+  command(
+    name: :save,
+    regexp: %r(^/save\s+(.+)$),
+    options: 'path',
+    help: 'store conversation messages'
+  ) do |path|
+    save_conversation(path)
+    :next
+  end
+
+  command(
+    name: :load,
+    regexp: %r(^/load\s+(.+)$),
+    options: 'path',
+    help: 'load conversation messages'
+  ) do |path|
+    load_conversation(path)
+    :next
+  end
+
+  ## Collection
+
+  command(
+    name: :collection,
+    regexp: %r(^/collection(?:\s+(clear|change))?$),
+    complete: [ 'collection', %w[ clear change ] ],
+    help: 'change (default) collection or clear'
+  ) do |subcommand|
+    case subcommand || 'change'
+    when 'clear'
+      loop do
+        tags = @documents.tags.add('[EXIT]').add('[ALL]')
+        tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
+        case tag
+        when nil, '[EXIT]'
+          STDOUT.puts "Exiting chooser."
+          break
+        when '[ALL]'
+          if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
+            @documents.clear
+            STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
+            break
+          else
+            STDOUT.puts 'Cancelled.'
+            sleep 3
+          end
+        when /./
+          @documents.clear(tags: [ tag ])
+          STDOUT.puts "Cleared tag #{tag} from collection #{bold{@documents.collection}}."
+          sleep 3
+        end
+      end
+    when 'change'
+      choose_collection(@documents.collection)
+    end
+    :next
+  end
+
+  ## Persona
+
+  command(
+    name: :persona,
+    regexp: %r(^/persona(?:\s+(add|delete|edit|file|info|list|load|play))?$),
+    complete: [ 'persona', %w[ add delete edit file info list load play ] ],
+    optional: true,
+    help: 'manage and load/play personae for roleplay',
+  ) do |subcommand|
+    disable_content_parsing
+    case subcommand
+    when 'add'
+      if result = add_persona
+        result
+      else
+        :next
+      end
+    when 'delete'
+      if result = delete_persona
+        result
+      else
+        :next
+      end
+    when 'edit'
+      if result = edit_persona and
+          ask?(prompt: 'Load new persona profile? (y/n) ') =~ /\Ay/i
+        then
+        result
+      else
+        :next
+      end
+    when 'file'
+      if pathname = choose_filename('**/*.md')
+        pathname.read
+      else
+        :next
+      end
+    when 'info'
+      info_persona
+      :next
+    when 'list'
+      list_personae
+      :next
+    when 'load'
+      if result = load_personae
+        result
+      else
+        :next
+      end
+    when 'play'
+      if pathname = choose_filename('**/*.md')
+        play_persona_file(pathname)
+      else
+        :next
+      end
+    else
+      if result = play_persona.full?
+        result
+      else
+        :next
+      end
+    end
+  end
+
+  ## Input
+
+  command(
+    name: :compose,
+    regexp: %r(^/compose$),
+    help: 'compose content using an EDITOR'
+  ) do
+    compose or :next
+  end
+
+  command(
+    name: :web,
+    regexp: %r(^/web\s+(?:(\d+)\s+)?(.+)),
+    options: '[number=1] query',
+    help: 'query web for so many results'
+  ) do |count, query|
+    disable_content_parsing
+    web(count, query)
+  end
+
+  command(
+    name: :input,
+    regexp: %r(^/input(?:\s+(path|summary|context|embedding)(?:\s*(?=\z))?)?((?:\s+-(?:[ad]|w\s*\d+))*)(?:\s+(pattern))?(?:\s+(.+))?$),
+    optional: true,
+    complete: [ 'input', [ 'path', 'summary', 'context', 'embedding', '', ], [ 'pattern', '' ] ],
+    options: '[-w|-a] [arg…]',
+    help: <<~EOT
+      Read content from files, URLs, or glob patterns
+      and optionally transform it.
+      Use subcommands: context, embedding, path, summary,
+        import (the default).
+      Use pattern mode for local files.
+      Options:
+        -w <words> (summary subcommand only, default 100)
+        -a (pattern mode only, include all files for patterns)
+    EOT
+  ) do |input_mode,opt,pattern_mode,arg|
+    disable_content_parsing
+    case input_mode
+    when 'summary'
+      if pattern_mode
+        opts  = go_command('aw:', opt)
+        words = opts.fetch(?w, 100)
+        all   = opts.fetch(?a, false)
+        arg and patterns = arg.scan(/(\S+)/).flatten
+        next provide_file_set_content(patterns, all:) { summarize(_1, words:) } || :next
+      elsif arg
+        words  = go_command('w:', opt).fetch(?w, 100)
+        source = arg
+        next summarize(source, words:) || :next
+      else
+        STDERR.puts "Need a source to summarize for input!"
+        next :next
+      end
+    when 'context'
+      if pattern_mode
+        all      = go_command('a', opt).fetch(?a, false)
+        patterns = arg&.scan(/(\S+)/)&.flatten.full? || [ '**/*' ]
+        next context_spook(patterns, all:) || :next
+      elsif arg
+        next context_spook(Array(arg.to_s), all: true) || :next
+      else
+        next context_spook(nil) || :next
+      end
+    when 'embedding'
+      if pattern_mode
+        all = go_command('a', opt).fetch(?a, false)
+        arg and patterns = arg.scan(/(\S+)/).flatten
+        next provide_file_set_content(patterns, all:) { embed(_1) } || :next
+      elsif arg
+        source = arg
+        next embed(source) || :next
+      else
+        STDERR.puts "Need a source to embed for input!"
+        next :next
+      end
+    when 'path'
+      if pattern_mode
+        all = go_command('a', opt).fetch(?a, false)
+        arg and patterns = arg.scan(/(\S+)/).flatten
+        next provide_file_set_content(patterns, all:, &:read) || :next
+      elsif arg
+        filename = Pathname.new(arg).expand_path
+        next filename.file? && filename.read || :next
+      else
+        STDERR.puts "Need a filename to read for input!"
+        next :next
+      end
+    else
+      if pattern_mode
+        all = go_command('a', opt).fetch(?a, false)
+        arg and patterns = arg.scan(/(\S+)/).flatten
+        next provide_file_set_content(patterns, all:) { import(_1) } || :next
+      elsif arg
+        source = arg
+        next import(source) || :next
+      else
+        STDERR.puts "Need a source to import for input!"
+        next :next
+      end
+    end
+  end
+
+  ## Output
+
+  command(
+    name: :pipe,
+    regexp: %r(^/pipe\s+(.+)$),
+    options: 'path',
+    help: "write last response to command's stdin",
+  ) do |command|
+    pipe(command)
+    :next
+  end
+
+  command(
+    name: :vim,
+    regexp: %r(^/vim(?:\s+(.+))?$),
+    help: 'insert the last message into a vim (server)'
+  ) do |servername|
+    if message = messages.last
+      vim(servername).insert message.content
+    else
+      STDERR.puts "Warning: No message found to insert into Vim"
+    end
+    :next
+  end
+
+  command(
+    name: :output,
+    regexp: %r(^/output\s+(.+)$),
+    options: 'path',
+    help: 'save last response to path',
+  ) do |path|
+    output(path)
+    :next
+  end
+
+  ## Actions
+
+  command(
+    name: :reconnect,
+    regexp: %r(^/reconnect$),
+    help: 'reconnect to current ollama server'
+  ) do
+    STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
+    connect_ollama
+    STDERR.puts green { " Done." }
+    :next
+  end
+
+  command(
+    name: :quit,
+    regexp: %r(^/(?:quit|exit)$),
+    complete: [ %w[ quit exit ] ],
+    help: 'quit/exit the application',
+  ) do
+    STDOUT.puts "Goodbye."
+    :return
+  end
+
+  ## Information
+
+  command(
+    name: :info,
+    regexp: %r(^/info$),
+    help: 'show information for current session',
+  ) do
+    info
+    :next
+  end
+
+  command(
+    name: :help,
+    regexp: %r(^/help me$),
+    optional: true,
+    complete: [ 'help', %w[ me ] ],
+    help: 'to view this help (me=interactive ai help)'
+  ) do
+    disable_content_parsing
+    config.prompts.help % { commands: help_message }
+  end
+
+  command(
+    name: :help_fallback,
+    regexp: %r(^/),
+    complete: []
+  ) do
+    display_chat_help
+    :next
+  end
+
+  command(
+    name: :type_quit,
+    regexp: nil,
+    complete: [],
+  ) do
+    STDOUT.puts "Type /quit to quit."
+    :next
+  end
+
   # Handles user input commands and processes chat interactions.
   #
   # @param content [String] The input content to process
   # @return [Symbol, String, nil] Returns a symbol indicating next action,
   #   the content to be processed, or nil for no action needed
   def handle_input(content)
-    case content
-    when %r(^/reconnect)
-      STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
-      connect_ollama
-      STDERR.puts green { " Done." }
-      :next
-    when %r(^/copy$)
-      copy_to_clipboard
-      :next
-    when %r(^/paste$)
-      disable_content_parsing
-      paste_from_clipboard
-    when %r(^/markdown$)
-      markdown.toggle
-      :next
-    when %r(^/stream$)
-      stream.toggle
-      :next
-    when %r(^/location$)
-      location.toggle
-      :next
-    when %r(^/runtime_info$)
-      runtime_info.toggle
-      :next
-    when %r(^/voice(?:\s+(change))?$)
-      if $1 == 'change'
-        change_voice
-      else
-        voice.toggle
-      end
-      :next
-    when %r(^/list(?:\s+(\d*))?$)
-      n = 2 * $1.to_i if $1
-      messages.list_conversation(n)
-      :next
-    when %r(^/last(?:\s+(\d*))?$)
-      n = $1.to_i.clamp(1..)
-      messages.show_last(n)
-      :next
-    when %r(^/clear(?:\s+(messages|links|history|tags|all))?$)
-      if result = clean($1)
-        disable_content_parsing
-        content = result
-      else
-        :next
-      end
-    when %r(^/clobber$)
-      clean('all')
-      :next
-    when %r(^/drop(?:\s+(\d*))?$)
-      messages.drop($1)
-      messages.show_last
-      :next
-    when %r(^/model$)
-      begin
-        use_model
-      rescue OllamaChatError::UnknownModelError => e
-        msg = "Caught #{e.class}: #{e}"
-        log(:error, msg, warn: true)
-      end
-      :next
-    when %r(^/system(?:\s+(show))?$)
-      if $1 != 'show'
-        change_system_prompt(@system)
-      end
-      @messages.show_system_prompt
-      :next
-    when %r(^/prompt)
-      @prefill_prompt = choose_prompt
-      :next
-    when %r(^/revise(?:\s+(edit))?$)
-      subcommand = $1
-      if content = messages.second_last&.content
-        content = strip_internal_json_markers(:ollama_chat_retrieval_snippets, content)
-        content = strip_internal_json_markers(:ollama_chat_runtime_information, content)
-        messages.drop(1)
-        if subcommand == 'edit'
-          content = edit_text(content)
-        end
-      else
-        STDOUT.puts "Not enough messages in this conversation."
-        return :redo
-      end
-      disable_content_parsing
-      content
-    when %r(^/collection(?:\s+(clear|change))?$)
-      case $1 || 'change'
-      when 'clear'
-        loop do
-          tags = @documents.tags.add('[EXIT]').add('[ALL]')
-          tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
-          case tag
-          when nil, '[EXIT]'
-            STDOUT.puts "Exiting chooser."
-            break
-          when '[ALL]'
-            if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
-              @documents.clear
-              STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
-              break
-            else
-              STDOUT.puts 'Cancelled.'
-              sleep 3
-            end
-          when /./
-            @documents.clear(tags: [ tag ])
-            STDOUT.puts "Cleared tag #{tag} from collection #{bold{@documents.collection}}."
-            sleep 3
-          end
-        end
-      when 'change'
-        choose_collection(@documents.collection)
-      end
-      :next
-    when %r(^/info$)
-      info
-      :next
-    when %r(^/document_policy$)
-      document_policy.choose
-      :next
-    when %r(^/think$)
-      think_mode.choose
-      :next
-    when %r(^/think_loud$)
-      think_loud.toggle
-      :next
-    when %r(^/import\s+(.+))
-      disable_content_parsing
-      import($1) or :next
-    when %r(^/summarize\s+(?:(\d+)\s+)?(.+))
-      disable_content_parsing
-      summarize($2, words: $1) or :next
-    when %r(^/embedding$)
-      embedding_paused.toggle(show: false)
-      embedding.show
-      :next
-    when %r(^/embed\s+(.+))
-      disable_content_parsing
-      embed($1) or :next
-    when %r(^/web\s+(?:(\d+)\s+)?(.+))
-      disable_content_parsing
-      web($1, $2)
-    when %r(^/input(?:\s+(.+))?$)
-      arg = $1
-      arg and patterns = arg.scan(/(\S+)/).flatten
-      disable_content_parsing
-      input(patterns) or :next
-    when %r(^/context(?:\s+(.+))?$)
-      arg = $1
-      arg and patterns = arg.scan(/(\S+)/).flatten
-      disable_content_parsing
-      context_spook(patterns) or :next
-    when %r(^/compose$)
-      compose or :next
-    when %r(^/change_response$)
-      change_response
-      :next
-    when %r(^/save\s+(.+)$)
-      save_conversation($1)
-      :next
-    when %r(^/links(?:\s+(clear))?$)
-      manage_links($1)
-      :next
-    when %r(^/load\s+(.+)$)
-      load_conversation($1)
-      :next
-    when %r(^/pipe\s+(.+)$)
-      pipe($1)
-      :next
-    when %r(^/output\s+(.+)$)
-      output($1)
-      :next
-    when %r(^/vim(?:\s+(.+))?$)
-      if message = messages.last
-        vim($1).insert message.content
-      else
-        STDERR.puts "Warning: No message found to insert into Vim"
-      end
-      :next
-    when %r(^/tools(?:\s+(enable|disable|on|off))?$)
-      case $1
-      when nil
-        list_tools
-      when 'enable'
-        enable_tool
-      when 'disable'
-        disable_tool
-      when 'on'
-        tools_support.set(true, show: true)
-      when 'off'
-        tools_support.set(false, show: true)
-      end
-      :next
-    when %r(^/config(?:\s+(edit|reload))?$)
-      case $1
-      when 'edit'
-        edit_config
-      when 'reload'
-        reload_config
-      else
-        display_config
-      end
-      :next
-    when %r(^/persona(?:\s+(add|delete|edit|file|info|list|load|play))?$)
-      disable_content_parsing
-      case $1
-      when 'add'
-        if result = add_persona
-          result
-        else
-          :next
-        end
-      when 'delete'
-        if result = delete_persona
-          result
-        else
-          :next
-        end
-      when 'edit'
-        if result = edit_persona and
-            ask?(prompt: 'Load new persona profile? (y/n) ') =~ /\Ay/i
-        then
-          result
-        else
-          :next
-        end
-      when 'file'
-        if pathname = choose_filename('**/*.md')
-          pathname.read
-        else
-          :next
-        end
-      when 'info'
-        info_persona
-        :next
-      when 'list'
-        list_personae
-        :next
-      when 'load'
-        if result = load_personae
-          result
-        else
-          :next
-        end
-      when 'play'
-        if pathname = choose_filename('**/*.md')
-          play_persona_file(pathname)
-        else
-          :next
-        end
-      else
-        if result = play_persona.full?
-          result
-        else
-          :next
-        end
-      end
-    when %r(^/quit$), nil
-      STDOUT.puts "Goodbye."
-      :return
-    when %r(^/help me$)
-      disable_content_parsing
-      config.prompts.help % { commands: display_chat_help_message }
-    when %r(^/)
-      display_chat_help
-      :next
-    when /\A\s*\z/
-      STDOUT.puts "Type /quit to quit."
-      :next
+    commands.each do |_name, command|
+      action = command.execute_if_match?(content) {}
+      action and return action
     end
+    content
   end
 
   # Performs a web search and processes the results based on document processing configuration.
@@ -524,12 +815,6 @@ class OllamaChat::Chat
   # @example Web search with summarizing policy
   #   # With document_policy.selected == 'summarizing'
   #   # Processes results through summarization pipeline
-  #
-  # @see #search_web
-  # @see #fetch_source
-  # @see #embed_source
-  # @see #import
-  # @see #summarize
   def web(count, query)
     urls = search_web(query, count.to_i) or return :next
     if document_policy.selected == 'embedding' && @embedding.on?
@@ -842,7 +1127,7 @@ class OllamaChat::Chat
   #
   # This method determines whether to use a default system prompt or a custom
   # one specified via command-line options. If a custom system prompt is
-  # provided with a regex selector (starting with ?), it invokes the
+  # provided with a regexp selector (starting with ?), it invokes the
   # change_system_prompt method to handle the selection. Otherwise, it
   # retrieves the system prompt from a file or uses the default value, then
   # sets it in the message history.
@@ -908,9 +1193,6 @@ class OllamaChat::Chat
   # @note Empty entries in the document list will trigger a collection clear operation
   # @note Documents are processed in batches of 25 to manage memory usage
   # @note Progress is reported to STDOUT during processing
-  #
-  # @see fetch_source
-  # @see embed_source
   def add_documents_from_argv(document_list)
     if document_list.any?(&:empty?)
       STDOUT.puts "Clearing collection #{bold{documents.collection}}."
@@ -959,17 +1241,16 @@ class OllamaChat::Chat
   # Temporarily replaces the current Reline completion procedure with a custom
   # one that provides command completion based on the chat help message.
   #
-  # @param block [Proc] The block to execute with enhanced tab completion enabled
+  # @param block [Proc] The block to execute with enhanced tab completion
+  #   enabled
   #
   # @return [Object] The return value of the executed block
-  #
-  # @see display_chat_help_message
-  # @see Reline.completion_proc
   def enable_command_completion(&block)
     old = Reline.completion_proc
-    commands = display_chat_help_message.scan(/^\s*(\S+)/).inject(&:concat)
-    Reline.completion_proc = -> input {
-      commands.grep Regexp.new('\A' + Regexp.quote(input))
+    Reline.autocompletion = true
+    Reline.completion_proc = -> input, pre {
+      start = [ pre, input ].join(' ').strip.gsub(/\s+/, ' ')
+      command_completions.select { _1.start_with?(start) }
     }
     block.()
   ensure

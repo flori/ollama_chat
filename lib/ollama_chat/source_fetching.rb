@@ -49,11 +49,12 @@ module OllamaChat::SourceFetching
   # including commands, URLs, and file paths. It processes the source based on
   # its type and yields a temporary file handle for further processing.
   #
-  # @param source [ String ] the source identifier which can be a command, URL,
-  #   or file path
+  # @param source [ String, #to_path ] the source identifier which can be a
+  #   command, URL, or file path
   #
   # @yield [ tmp ]
   def fetch_source(source, check_exist: false, &block)
+    source = source.ask_and_send_or_self(:to_path).to_s
     case source
     when %r{\A!(.*)}
       command = $1
@@ -256,7 +257,6 @@ module OllamaChat::SourceFetching
     @documents.add(inputs, source:, batch_size: config.embedding.batch_size?)
   end
 
-
   # Embeds content from the specified source.
   #
   # This method fetches content from a given source (command, URL, or file) and
@@ -282,5 +282,16 @@ module OllamaChat::SourceFetching
       STDOUT.puts "Embedding is off, so I will just give a small summary of this source."
       summarize(source)
     end
+  end
+
+  # Returns the links set for this object, initializing it lazily if needed.
+  #
+  # The links set is memoized, meaning it will only be created once per object
+  # instance and subsequent calls will return the same Set instance.
+  #
+  # @return [Set] A Set object containing all links associated with this
+  #   instance
+  def links
+    @links ||= Set.new
   end
 end

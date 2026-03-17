@@ -8,6 +8,21 @@ require 'tempfile'
 # interactive file selection and context collection for enhancing chat
 # interactions with local or remote content.
 module OllamaChat::InputContent
+  # The file_set_each method iterates over a set of files matched by the given
+  # patterns, optionally including all files, and yields each file to the
+  # supplied block.
+  # It returns the array of files that were processed.
+  #
+  # @param patterns [Array<String>] the list of patterns to match files against
+  # @param all [TrueClass, FalseClass] whether to include all files in the set
+  # @yield [file] yields each file to the supplied block
+  # @return [Array<File>] the array of files that were processed
+  def file_set_each(patterns, all: false, &block)
+    files = all ? all_file_set(patterns) : choose_file_set(patterns)
+    block and files.each(&block)
+    files
+  end
+
   private
 
   # The input method selects and reads content from files matching a pattern.
@@ -21,11 +36,9 @@ module OllamaChat::InputContent
   # @return [String] a concatenated string of file contents with filenames as headers
   def input(patterns)
     files = choose_file_set(patterns)
-    result = ''
-    files.each do |filename|
+    files.each_with_object('') do |filename, result|
       result << ("%s:\n\n%s\n\n" % [ filename, filename.read ])
-    end
-    result.full?
+    end.full?
   end
 
   # The choose_filename method selects a file from a list of matching files. It
@@ -78,14 +91,15 @@ module OllamaChat::InputContent
   #
   # @example Load default context
   #   context_spook(nil)
-  def context_spook(patterns)
+  def context_spook(patterns, all: false)
     format = config.context.format
+    myself = self
     if patterns
       ContextSpook::generate_context(verbose: true, format:) do |context|
         context do
-          Dir.glob(patterns).each do |filename|
-            File.file?(filename) or next
-            file filename
+          myself.file_set_each(patterns, all:) do |filename|
+            filename.file? or next
+            file filename.to_path
           end
         end
       end.to_json
@@ -115,5 +129,40 @@ module OllamaChat::InputContent
       end
     end
     nil
+  end
+
+  # The all_file_set method aggregates files matching the provided glob
+  # patterns into a set.
+  #
+  # @param patterns [Array<String>] an array of glob patterns to match files
+  #   against
+  #
+  # @return [Set<Pathname>] a set containing all Pathname objects that match
+  #   any of the given patterns
+  def all_file_set(patterns)
+    files = Set[]
+    patterns.each do |pattern|
+      files.merge(Pathname.glob(pattern))
+    end
+    files.map(&:expand_path)
+  end
+
+  # The provide_file_set_content method collects content from a set of files
+  # that match the supplied patterns, optionally processing all files or
+  # allowing the caller to choose a subset interactively. It concatenates each
+  # file's name with the content returned by the provided block, separating
+  # each entry with newlines, resulting in a single string containing the
+  # processed content for all selected files.
+  #
+  # @param patterns [Array<String>] # the glob patterns used to find files
+  # @param all [TrueClass, FalseClass] whether to process all matching files or
+  #   let the caller choose a subset
+  #
+  # @yield [filename] the block that processes each filename
+  # @return [String] the concatenated result of the block applied to each file
+  def provide_file_set_content(patterns, all: false, &block)
+    file_set_each(patterns, all:).each_with_object('') do |filename, result|
+      result << ("%s:\n\n%s\n\n" % [ filename, block.(filename) ])
+    end.full?
   end
 end

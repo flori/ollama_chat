@@ -36,7 +36,7 @@ describe OllamaChat::Information do
   end
 
   it 'can show display_chat_help' do
-    expect(STDOUT).to receive(:puts).with(%r(/info.*show information))
+    expect(chat).to receive(:help_message)
     expect(chat.display_chat_help).to be_nil
   end
 

@@ -32,36 +32,51 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/copy")).to eq :next
     end
 
-    it 'returns :next when input is "/paste"' do
+    it 'returns "pasted this" when input is "/paste"' do
       expect(chat).to receive(:paste_from_clipboard).and_return "pasted this"
       expect(chat.handle_input("/paste")).to eq "pasted this"
     end
 
-    it 'returns :next when input is "/markdown"' do
+    it 'returns :next when input is "/toggle markdown"' do
       expect(chat.markdown).to receive(:toggle)
-      expect(chat.handle_input("/markdown")).to eq :next
+      expect(chat.handle_input("/toggle markdown")).to eq :next
     end
 
-    it 'returns :next when input is "/stream"' do
+    it 'returns :next when input is "/toggle stream"' do
       expect(chat.stream).to receive(:toggle)
-      expect(chat.handle_input("/stream")).to eq :next
+      expect(chat.handle_input("/toggle stream")).to eq :next
     end
 
-    it 'returns :next when input is "/location"' do
+    it 'returns :next when input is "/toggle location"' do
       expect(chat.location).to receive(:toggle)
-      expect(chat.handle_input("/location")).to eq :next
+      expect(chat.handle_input("/toggle location")).to eq :next
     end
 
-    it 'returns :next when input is "/runtime_info"' do
+    it 'returns :next when input is "/toggle runtime_info"' do
       expect(chat.runtime_info).to receive(:toggle)
-      expect(chat.handle_input("/runtime_info")).to eq :next
+      expect(chat.handle_input("/toggle runtime_info")).to eq :next
     end
 
-    it 'returns :next when input is "/voice(?:\s+(change))? "' do
+    it 'returns :next when input is "/toggle voice"' do
       expect(chat.voice).to receive(:toggle)
-      expect(chat.handle_input("/voice")).to eq :next
+      expect(chat.handle_input("/toggle voice")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle nixda"' do
+      expect_any_instance_of(OllamaChat::Switches::Switch).not_to receive(:toggle)
+      expect(chat).to receive(:display_chat_help)
+      expect(chat.handle_input("/toggle nixda")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle embedding"' do
+      expect(chat.embedding_paused).to receive(:toggle)
+      expect(chat.embedding).to receive(:show)
+      expect(chat.handle_input("/toggle embedding")).to eq :next
+    end
+
+    it 'returns :next when input is "/voice"' do
       expect(chat).to receive(:change_voice)
-      expect(chat.handle_input("/voice change")).to eq :next
+      expect(chat.handle_input("/voice")).to eq :next
     end
 
     it 'returns :next when input is "/list(?:\s+(\d*))? "' do
@@ -69,7 +84,7 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/list 2")).to eq :next
     end
 
-    it 'returns :next when input is "/clear(messages|links|history|all)"' do
+    it 'returns :next when input is "/clear (messages|links|history|all)"' do
       expect(chat).to receive(:clean).with('messages')
       expect(chat.handle_input("/clear messages")).to eq :next
       expect(chat).to receive(:clean).with('links')
@@ -78,11 +93,6 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/clear history")).to eq :next
       expect(chat).to receive(:clean).with('all')
       expect(chat.handle_input("/clear all")).to eq :next
-    end
-
-    it 'returns :next when input is "/clobber"' do
-      expect(chat).to receive(:clean).with('all')
-      expect(chat.handle_input("/clobber")).to eq :next
     end
 
     it 'returns :next when input is "/last"' do
@@ -106,8 +116,14 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/model")).to eq :next
     end
 
-    it 'returns :next when input is "/system"' do
+    it 'returns :next when input is "/system change"' do
       expect(chat).to receive(:change_system_prompt).with(nil)
+      expect(chat.messages).to receive(:show_system_prompt)
+      expect(chat.handle_input("/system change")).to eq :next
+    end
+
+    it 'returns :next when input is "/system"' do
+      expect(chat).not_to receive(:change_system_prompt)
       expect(chat.messages).to receive(:show_system_prompt)
       expect(chat.handle_input("/system")).to eq :next
     end
@@ -142,32 +158,115 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/document_policy"' do
-      expect_any_instance_of(OllamaChat::StateSelectors::StateSelector).to receive(:choose)
+      expect_any_instance_of(OllamaChat::StateSelectors::StateSelector).to\
+        receive(:choose)
       expect(chat.handle_input("/document_policy")).to eq :next
     end
 
-    it 'returns :next when input is "/import\s+(.+)"' do
-      expect(chat).to receive(:import).with('./some_file')
-      expect(chat.handle_input("/import ./some_file")).to eq :next
+    describe '/input' do
+      context 'import' do
+        it 'returns "success" when input is "/input (.+)"' do
+          expect(chat).to receive(:import).with(asset('example.rb')).
+            and_return 'success'
+          expect(chat.handle_input("/input #{asset('example.rb')}")).to eq 'success'
+        end
+
+        it 'returns "success" when input is "/input -a pattern (.+)"' do
+          expect(chat).to receive(:import).with(Pathname.new(asset('example.rb'))).
+            and_return 'success'
+          expect(chat.handle_input("/input -a pattern #{asset('*.rb')}")).to\
+            match(/success/)
+        end
+
+        it 'returns :next when input is "/input"' do
+          expect(chat.handle_input("/input")).to eq :next
+        end
+      end
+
+      context 'summary' do
+        it 'returns "success" when input is "/input summary -w 23 ./some/file' do
+          expect(chat).to receive(:summarize).with(asset('example.rb'), words: '23').
+            and_return 'success'
+          expect(chat.handle_input("/input summary -w 23 #{asset('example.rb')}")).
+            to eq 'success'
+        end
+
+        it 'returns "success" when input is "/input summary -a pattern (.+)"' do
+          expect(chat).to receive(:summarize).
+            with(asset_pathname('example.rb'), words: nil).
+            and_return 'success'
+          expect(chat.handle_input("/input summary -a pattern #{asset('*.rb')}")).to\
+            match(/success/)
+        end
+
+        it 'returns :next when input is "/input summary"' do
+          expect(chat.handle_input("/input summary")).to eq :next
+        end
+      end
+
+      context 'embedding' do
+        it 'returns "success" when input is "/input embedding (.+)"' do
+          expect(chat).to receive(:embed).with(asset('example.rb')).
+            and_return 'success'
+          expect(chat.handle_input("/input embedding #{asset('example.rb')}")).
+            to eq 'success'
+        end
+
+        it 'returns "success" when input is "/input embedding pattern (.+)"' do
+          expect(chat).to receive(:embed).with(asset_pathname('example.rb')).
+            and_return 'success'
+          expect(chat.handle_input("/input embedding -a pattern #{asset('*.rb')}")).
+            to match(/success/)
+        end
+
+        it 'returns :next when input is "/input embedding"' do
+          expect(chat.handle_input("/input embedding")).to eq :next
+        end
+      end
+
+      context 'path' do
+        it 'returns "success" when input is "/input path (.+)"' do
+          expect(chat.handle_input("/input path #{asset('example.rb')}")).
+            to match(/puts "Hello World!/)
+        end
+
+        it 'returns "success" when input is "/input path -a pattern (.+)"' do
+          expect(chat.handle_input("/input path -a pattern #{asset('*.rb')}")).
+            to match(/puts "Hello World!/)
+        end
+
+        it 'returns :next when input is "/input path"' do
+          expect(chat.handle_input("/input path")).to eq :next
+        end
+      end
+
+      context 'context' do
+        it 'returns "success" when input is "/input context (.+)"' do
+          expect(chat).to receive(:context_spook).
+            with([asset('example.rb')], all: true).and_return('success')
+          expect(chat.handle_input("/input context #{asset('example.rb')}")).to eq 'success'
+        end
+
+        it 'returns "success" when input is "/input context -a pattern (.+)"' do
+          expect(chat).to receive(:context_spook).
+            with([asset('*.rb')], all: 1).and_return 'success'
+          expect(chat.handle_input("/input context -a pattern #{asset('*.rb')}")).
+            to eq 'success'
+        end
+
+        it 'returns :next when input is "/input context" with "success"' do
+          expect(chat).to receive(:context_spook).and_return 'success'
+          expect(chat.handle_input("/input context")).to eq 'success'
+        end
+
+        it 'returns :next when input is "/input context" without choosing' do
+          expect(chat).to receive(:context_spook).and_return nil
+          expect(chat.handle_input("/input context")).to eq :next
+        end
+      end
     end
 
-    it 'returns :next when input is "/summarize\s+(?:(\d+)\s+)?(.+)"' do
-      expect(chat).to receive(:summarize).with('./some_file', words: '23')
-      expect(chat.handle_input("/summarize 23 ./some_file")).to eq :next
-    end
-
-    it 'returns :next when input is "/embedding"' do
-      expect(chat.embedding_paused).to receive(:toggle)
-      expect(chat.embedding).to receive(:show)
-      expect(chat.handle_input("/embedding")).to eq :next
-    end
-
-    it 'returns :next when input is "/embed\s+(.+)"' do
-      expect(chat).to receive(:embed).with('./some_file')
-      expect(chat.handle_input("/embed ./some_file")).to eq :next
-    end
-
-    it 'returns :next when input is "/web\s+(?:(\d+)\s+)?(.+)"' do
+    it 'returns "the response" when input is "/web\s+(?:(\d+)\s+)?(.+)"' do
       expect(chat).to receive(:web).with('23', 'query').and_return 'the response'
       expect(chat.handle_input("/web 23 query")).to eq 'the response'
     end
@@ -211,7 +310,7 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/config")).to eq :next
     end
 
-    it 'returns :next when input is "/quit"' do
+    it 'returns :return when input is "/quit"' do
       expect(STDOUT).to receive(:puts).with(/Goodbye/)
       expect(chat.handle_input("/quit")).to eq :return
     end
@@ -221,14 +320,9 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/nixda")).to eq :next
     end
 
-    it 'returns :next when input is "/help me"' do
-      expect(chat).to receive(:display_chat_help_message).and_return 'the help message'
+    it 'returns "the help message" when input is "/help me"' do
+      expect(chat).to receive(:help_message).and_return 'the help message'
       expect(chat.handle_input("/help me")).to include 'the help message'
-    end
-
-    it 'returns :next when input is "   "' do
-      expect(STDOUT).to receive(:puts).with(/to quit/)
-      expect(chat.handle_input("   ")).to eq :next
     end
   end
 

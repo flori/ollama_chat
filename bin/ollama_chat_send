@@ -19,7 +19,7 @@ def usage(rc = 0)
 
     Options:
       -r         Wait for the response from Ollama Chat and output it
-      -t         Send input as terminal input including commands, e. g. /import
+      -t         Send input as terminal input including commands, e. g. /input
       -p         Send input with source parsing enabled (defaults to disabled)
       -f CONFIG  file to read
       -d DIR     the working directory to derive the socket file from

@@ -37,6 +37,15 @@ module AssetHelpers
     File.join(*[__dir__, 'assets', name ].compact)
   end
 
+  # The asset_pathname method returns a Pathname object for the given asset
+  # name.
+  #
+  # @param name [ String ] the name of the asset file, optional
+  # @return [ Pathname ] the Pathname object for the asset file
+  def asset_pathname(name = nil)
+    Pathname.new(asset(name))
+  end
+
   # Reads and returns the content of an asset file from the assets directory.
   #
   # @param name [String] the name of the asset file to read
