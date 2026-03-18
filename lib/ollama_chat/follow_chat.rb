@@ -96,6 +96,8 @@ class OllamaChat::FollowChat
   def handle_tool_calls(response)
     return unless response.message.ask_and_send(:tool_calls)
 
+    tools_used = {}
+
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
       unless @chat.tool_configured?(name)
@@ -167,6 +169,14 @@ class OllamaChat::FollowChat
         @chat.log(:info, result)
       end
       @chat.tool_call_results[name] = result
+      tools_used[name] = Tins::Unit.format(result.to_s.size, unit: ?B, prefix: 1024, format: '%.1f %U')
+    end
+
+    if tools_used.full?
+      infobar.reset
+      puts "🔧 Tool functions returned result:",
+        tools_used.to_yaml.sub(/\A---\s*\n/, '').gsub(/^/, '  '), ""
+      @chat.confirm?(prompt: 'Press any key to continue.')
     end
   end
 
