@@ -5,6 +5,12 @@ describe OllamaChat::Information do
 
   connect_to_ollama_server
 
+  before do
+    const_conf_as(
+      'OC::PAGER' => nil
+    )
+  end
+
   describe ::OllamaChat::Information::UserAgent do
     it 'has progname' do
       expect(chat.progname).to eq 'ollama_chat'
@@ -21,16 +27,12 @@ describe OllamaChat::Information do
   end
 
   it 'can show info' do
-    expect(STDOUT).to receive(:puts).with(/Connected to ollama server version/)
-    expect(STDOUT).to receive(:puts).with(/Current conversation model is/)
-    expect(STDOUT).to receive(:puts).at_least(1)
+    expect { |b| chat.use_pager(&b) }.to yield_with_args(StringIO)
+    expect(STDOUT).to receive(:puts).with(/Running ollama_chat version/)
     expect(chat.info).to be_nil
   end
 
   it 'can display display_config' do
-    const_conf_as(
-      'OC::PAGER' => 'cat'
-    )
     expect(chat.config).to receive(:to_s).and_return('test configuration')
     expect { chat.send(:display_config) }.not_to raise_error
   end

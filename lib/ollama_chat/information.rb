@@ -71,9 +71,9 @@ module OllamaChat::Information
   # including the collection name, total number of embeddings, and a list of
   # tags.
   #
-  # @return [ nil ] This method always returns nil.
-  def collection_stats
-    STDOUT.puts <<~EOT
+  # @param output [IO] the output stream to write the message to
+  def collection_stats(output: STDOUT)
+    output.puts <<~EOT
       Current Collection
         Name: #{bold{@documents.collection}}
         #Embeddings: #{@documents.size}
@@ -91,42 +91,44 @@ module OllamaChat::Information
   # @return [ nil ] This method does not return a value; it outputs information
   #   directly to standard output.
   def info
-    STDOUT.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
-    STDOUT.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
-    STDOUT.puts "Current conversation model is #{bold{@model}}."
-    STDOUT.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
-    if @model_options.present?
-      STDOUT.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
-    end
-    @embedding.show
-    if @embedding.on?
-      STDOUT.puts "Current embedding model is #{bold{@embedding_model}}"
-      if @embedding_model_options.present?
-        STDOUT.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"
+    use_pager do |output|
+      output.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
+      output.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
+      output.puts "Current conversation model is #{bold{@model}}."
+      output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
+      if @model_options.present?
+        output.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
       end
-      STDOUT.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
-      collection_stats
+      @embedding.show(output:)
+      if @embedding.on?
+        output.puts "Current embedding model is #{bold{@embedding_model}}"
+        if @embedding_model_options.present?
+          output.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"
+        end
+        output.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
+        collection_stats(output:)
+      end
+      markdown.show(output:)
+      stream.show(output:)
+      think_mode.show(output:)
+      think_loud.show(output:)
+      location.show(output:)
+      voice.show(output:)
+      @voice.on? and @voices.show(output:)
+      if runtime_info.on?
+        output.puts "Runtime Information:"
+        output.puts runtime_information_values.transform_keys(&:to_s).to_yaml.
+          sub(/\A---\s*\n/, '').gsub(/^/, '  ')
+      else
+        runtime_info.show(output:)
+      end
+      tools_support.show(output:)
+      output.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
+      output.puts "Document policy for references in user text: #{bold{document_policy}}"
+      output.puts "Currently selected search engine is #{bold(search_engine)}."
+      name = default_persona_name and output.puts "Default persona: #{bold{name}}"
+      output.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     end
-    markdown.show
-    stream.show
-    think_mode.show
-    think_loud.show
-    location.show
-    voice.show
-    @voice.on? and @voices.show
-    if runtime_info.on?
-      STDOUT.puts "Runtime Information:"
-      STDOUT.puts runtime_information_values.transform_keys(&:to_s).to_yaml.
-        sub(/\A---\s*\n/, '').gsub(/^/, '  ')
-    else
-      runtime_info.show
-    end
-    tools_support.show
-    STDOUT.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
-    STDOUT.puts "Document policy for references in user text: #{bold{document_policy}}"
-    STDOUT.puts "Currently selected search engine is #{bold(search_engine)}."
-    name = default_persona_name and STDOUT.puts "Default persona: #{bold{name}}"
-    STDOUT.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     nil
   end
 

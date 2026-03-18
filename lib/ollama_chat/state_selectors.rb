@@ -105,8 +105,10 @@ module OllamaChat::StateSelectors
     #
     # This method displays the name of the state selector along with its
     # currently selected state in a formatted message to standard output.
-    def show
-      STDOUT.puts "#{@name} is #{bold(to_s)}."
+    #
+    # @param output [IO] the output stream to write the message to
+    def show(output: STDOUT)
+      output.puts "#{@name} is #{bold(to_s)}."
     end
 
     # The to_s method returns the string representation of the selected state.

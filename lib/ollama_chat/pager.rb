@@ -18,9 +18,9 @@ module OllamaChat::Pager
     command       = determine_pager_command
     output_buffer = StringIO.new
     yield output_buffer
-    messages = output_buffer.string
-    Kramdown::ANSI::Pager.pager(command:, lines: messages.count(?\n)) do |output|
-      output.puts messages
+    buffer = output_buffer.string
+    Kramdown::ANSI::Pager.pager(command:, lines: buffer.count(?\n)) do |output|
+      output.puts buffer
     end
   end
 

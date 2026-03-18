@@ -38,10 +38,11 @@ module OllamaChat::Switches
       !on?
     end
 
-    # The show method outputs the current value of the message to standard
-    # output.
-    def show
-      STDOUT.puts @msg[value]
+    # Displays the message associated with the current switch state.
+    #
+    # @param output [IO] the output stream to write the message to
+    def show(output: STDOUT)
+      output.puts @msg[value]
     end
   end
 
@@ -79,9 +80,10 @@ module OllamaChat::Switches
     #   assigned
     # @param show [ TrueClass, FalseClass ] determines whether to display the
     #   value after setting
-    def set(value, show: false)
+    # @param output [IO] the output stream to write the message to
+    def set(value, show: false, output: STDOUT)
       @value = !!value
-      show && self.show
+      show && self.show(output:)
     end
 
     # The toggle method switches the current value of the instance variable and

@@ -169,7 +169,6 @@ class OllamaChat::Chat
 
     @setup_system_prompt and setup_system_prompt
 
-    info
     STDOUT.puts "\nType /help to display the chat help."
 
     interact_with_user
