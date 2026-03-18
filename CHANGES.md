@@ -1,5 +1,118 @@
 # Changes
 
+## 2026-03-18 v0.0.80
+
+### Output & Paging
+
+- Remove the automatic `info` call from the main flow  
+- Wrap all output handling inside a `use_pager do |output|` block  
+- Pass the `output:` keyword to sub‑methods (`collection_stats`,
+  `Switches.show`, etc.)  
+- Adjust `Pager` to use a local `buffer` variable and `output.puts buffer`  
+- Update `StateSelectors.show` and `Switches.show` to accept `output: STDOUT`
+  and use `output.puts`  
+- Modify `Switches.set` to accept `output: STDOUT` and call
+  `self.show(output:)`
+
+### Collection & Runtime Info
+
+- Change `collection_stats` signature to `output: STDOUT` and replace
+  `STDOUT.puts` with `output.puts`  
+- Show runtime‑information only when `runtime_info.on? && content` is true  
+- Append a JSON line for runtime‑info instead of a plain‑text list
+
+### Tool Call Handling
+
+- Initialize `tools_used` hash in `OllamaChat::FollowChat#handle_tool_calls`  
+- Store the formatted size of each tool result using `Tins::Unit.format`  
+- Replace the non‑existent `full?` check with `size ==
+  response.message.tool_calls.size`  
+- Show a summary of tool call results and pause for user confirmation
+
+### Confirmation Prompt
+
+- Add `confirm?` method to `OllamaChat::Dialog` for single‑character
+  confirmation prompts  
+- Replace all `ask?` calls with `confirm?`
+
+### Command DSL
+
+- Add a `command` DSL in `command_concern.rb` for registering chat commands  
+- Include `OllamaChat::CommandConcern` in `chat.rb` and drop the old
+  `handle_input` logic  
+- Replace hard‑coded command handling with the new DSL (e.g., `/toggle`,
+  `/input`, `/revise`, etc.)
+
+### Documentation & README
+
+- Update `README.md` to show the new `/toggle` syntax and expanded command
+  table  
+- Update `bin/ollama_chat_send` help text to reflect the renamed `/input`
+  command
+
+### Utility Helpers
+
+- Add `go_command` helper in `dialog.rb` for parsing command‑line options  
+- Add `file_set_each`, `all_file_set`, and `provide_file_set_content` to
+  `input_content.rb`  
+- Update `context_spook` to use `file_set_each` and accept an `all` flag  
+- Add `strip_internal_json_markers` helper in `chat.rb`  
+- Add `choose_file_set` helper in `OllamaChat::Dialog` returning a `Set` of
+  expanded `Pathname` objects
+
+### Source Fetching & Links
+
+- Refactor `source_fetching.rb` to coerce sources to string  
+- Add a lazy `links` method and remove the old `links` method from `Chat`
+
+### Retrieval Snippets
+
+- Update retrieval‑snippet injection to use a JSON block instead of a
+  plain‑text list  
+- Use `strip_internal_json_markers` for `:ollama_chat_retrieval_snippets` and
+  `:ollama_chat_runtime_information`  
+- Truncate user query to `config.embedding.model.context_length` before calling
+  `@documents.find_where`
+
+### Directory Structure Tool
+
+- Add `suffix` parameter to `directory_structure` function  
+- Update `OllamaChat::Utils::AnalyzeDirectory.generate_structure` to accept a
+  `suffix:` argument and filter files accordingly  
+- Ensure only files matching the given extension are included; hidden files and
+  symlinks remain excluded
+
+### Persona Management
+
+- Update persona option labels to `keep`, `reload_default`, `choose_different`  
+- Add interactive persona reload options via a menu in `reload_default_persona`  
+- Use `SearchUI::Wrapper` and `OllamaChat::Utils::Chooser` for selection  
+- Update `@default_persona` when selecting “load_new”
+
+### Path Validation
+
+- Add `check_file` flag to `path_validator.rb` method signature  
+- Guard against non‑directory parents and file existence when `check_file:true`  
+- Propagate `check_file` flag in calls from `file_context`, `patch_file`, and
+  `read_file`
+
+### Tests & Specs
+
+- Adjust specs to stub `OC::PAGER`, expect `use_pager` yielding a `StringIO`,
+  and verify `STDOUT.puts` calls  
+- Update test expectations for new command handling and help output  
+- Expect `OllamaChat::InvalidPathError` instead of `Errno::ENOENT` in relevant
+  specs  
+- Add `asset_pathname` helper in `spec_helper.rb`
+
+### Miscellaneous
+
+- Add `reline` gem to `.utilsrc` dependency list  
+- Consider `-c` flag to skip persona setup when loading an existing
+  conversation  
+- Standardize `register_name` method comments to `@return [String] the
+  registered name for this tool`  
+
 ## 2026-03-13 v0.0.79
 
 - Added `tmp/*` to Rakefile ignore list for cleaner builds.  
