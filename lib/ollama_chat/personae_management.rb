@@ -173,7 +173,7 @@ module OllamaChat::PersonaeManagement
         STDOUT.puts "Deleting '#{bold{persona.sub_ext('')}}'..."
         STDOUT.puts "Backup will be saved to: #{backup_pathname}"
 
-        if ask?(prompt: "Are you sure? (y/n) ") =~ /\Ay/i
+        if confirm?(prompt: "Are you sure? (y/n) ") =~ /y/i
           FileUtils.mv pathname, backup_pathname
           STDOUT.puts "✅ Persona #{bold{persona.sub_ext('')}} deleted successfully"
           {

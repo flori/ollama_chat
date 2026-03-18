@@ -125,7 +125,7 @@ class OllamaChat::FollowChat
           bold { name },
           italic { function  },
         ]
-        if @chat.ask?(prompt:) =~ /\Ay/i
+        if @chat.confirm?(prompt:) =~ /y/i
           confirmed = :explicit
         else
           confirmed = :denied

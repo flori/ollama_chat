@@ -23,6 +23,21 @@ module OllamaChat::Dialog
     STDIN.gets.to_s.chomp
   end
 
+  # The confirm? method displays a prompt and reads a single character input
+  # from the user in raw mode, then returns that character. This is best used
+  # for confirmation prompts.
+  #
+  # @param prompt [ String ] the prompt to display to the user.
+  # @return [ String ] the character entered by the user.
+  def confirm?(prompt:)
+    print prompt
+    system 'stty raw'
+    c = STDIN.getc
+    system 'stty cooked'
+    puts
+    c
+  end
+
   private
 
   # The choose_file_set method aggregates all files matching the given patterns

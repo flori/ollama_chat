@@ -487,7 +487,7 @@ class OllamaChat::Chat
           STDOUT.puts "Exiting chooser."
           break
         when '[ALL]'
-          if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
+          if confirm?(prompt: 'Are you sure? (y/n) ') =~ /y/i
             @documents.clear
             STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
             break
@@ -532,7 +532,7 @@ class OllamaChat::Chat
       end
     when 'edit'
       if result = edit_persona and
-          ask?(prompt: 'Load new persona profile? (y/n) ') =~ /\Ay/i
+          confirm?(prompt: 'Load new persona profile? (y/n) ') =~ /y/i
         then
         result
       else
@@ -863,7 +863,7 @@ class OllamaChat::Chat
           STDOUT.puts "Exiting chooser."
           break
         when '[ALL]'
-          if ask?(prompt: 'Are you sure? (y/n) ') =~ /\Ay/i
+          if confirm?(prompt: 'Are you sure? (y/n) ') =~ /y/i
             links.clear
             STDOUT.puts "Cleared all links in list."
             break
@@ -911,7 +911,7 @@ class OllamaChat::Chat
       @documents.clear
       STDOUT.puts "Cleared all tags."
     when 'all'
-      if ask?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /\Ay/i
+      if confirm?(prompt: 'Are you sure to clear messages and collection? (y/n) ') =~ /y/i
         messages.clear
         @documents.clear
         links.clear

@@ -27,7 +27,7 @@ module OllamaChat::Conversation
   #   chat.save_conversation('conversations/2023-10-15_my_session.json')
   def save_conversation(filename)
     File.exist?(filename) &&
-      ask?(prompt: "File #{filename.to_s.inspect} already exists, overwrite? (y/n) ") !~ /\Ay/i and
+      confirm?(prompt: "File #{filename.to_s.inspect} already exists, overwrite? (y/n) ") !~ /y/i and
       return
     if messages.save_conversation(filename)
       STDOUT.puts "Saved conversation to #{filename.to_s.inspect}."
