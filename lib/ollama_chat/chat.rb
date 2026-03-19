@@ -1260,8 +1260,7 @@ class OllamaChat::Chat
         start = [ pre, input ].join(' ').strip.gsub(/\s+/, ' ')
         command_completions.select { _1.start_with?(start) }
       when %r((./\S*))
-        dir = File.join(File.directory?($&) ? $& : File.dirname($&), '')
-        Dir.glob(dir + "*").select { _1.start_with?(input) }
+        OllamaChat::Utils::PathCompleter.new(pre, input).complete
       end
     }
     block.()
