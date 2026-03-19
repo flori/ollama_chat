@@ -3,10 +3,6 @@ describe OllamaChat::Tools::GeneratePassword do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let :config do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do
@@ -40,7 +36,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, config:)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -59,7 +55,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, config:)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -79,7 +75,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, config:)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -99,7 +95,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, config:)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -119,7 +115,7 @@ describe OllamaChat::Tools::GeneratePassword do
     )
 
     # Test that it handles missing required parameters gracefully
-    result = described_class.new.execute(tool_call, config:)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)

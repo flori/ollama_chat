@@ -52,11 +52,12 @@ class OllamaChat::Tools::GetURL
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
+  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the fetched content as a JSON string
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
   def execute(tool_call, **opts)
-    config = opts[:config]
+    chat   = opts[:chat]
+    config = chat.config
     args   = tool_call.function.arguments
     url    = args.url.to_s
 
@@ -68,11 +69,7 @@ class OllamaChat::Tools::GetURL
         "(allowed: #{allowed_schemes.join(', ')})"
     end
 
-    OllamaChat::Utils::Fetcher.get(
-      url,
-      debug: OC::OLLAMA::CHAT::DEBUG,
-      reraise: true,
-    &:read)
+    chat.get_url(url, reraise: true, &:read)
   rescue => e
     { error: e.class, message: e.message, url: }.to_json
   end

@@ -59,12 +59,12 @@ class OllamaChat::Tools::FileContext
   #
   # @param tool_call [Ollama::Tool::Call] the tool call containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
+  # @option opts [ComplexConfig::Settings] :chat the configuration object
   #
   # @return [String] the generated context data in the configured format (JSON by default)
   # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
-    config      = opts[:config]
+    config      = opts[:chat].config
     pattern     = tool_call.function.arguments.pattern
     format      = config.context.format
 

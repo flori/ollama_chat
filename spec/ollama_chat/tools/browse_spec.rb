@@ -3,10 +3,6 @@ describe OllamaChat::Tools::Browse do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let :config do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do
@@ -36,7 +32,7 @@ describe OllamaChat::Tools::Browse do
     expect_any_instance_of(described_class).to receive(:browse_url).
       and_return(double(success?: true, exitstatus: 0))
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -62,7 +58,7 @@ describe OllamaChat::Tools::Browse do
     expect_any_instance_of(described_class).to receive(:browse_url).
       and_return(double(success?: false, exitstatus: 1))
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
@@ -86,7 +82,7 @@ describe OllamaChat::Tools::Browse do
 
     expect_any_instance_of(described_class).to receive(:browse_url).
       and_raise("some kind of exception")
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON even with exceptions
     expect(result).to be_a(String)
@@ -115,7 +111,7 @@ describe OllamaChat::Tools::Browse do
       expect_any_instance_of(described_class).to receive(:browse_url).
         and_return(double(success?: true, exitstatus: 0))
 
-      result = described_class.new.execute(tool_call, config: config)
+      result = described_class.new.execute(tool_call, chat:)
 
       # Should return valid JSON
       expect(result).to be_a(String)

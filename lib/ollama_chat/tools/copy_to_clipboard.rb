@@ -42,7 +42,6 @@ class OllamaChat::Tools::CopyToClipboard
   #
   # @param _tool_call [OllamaChat::Tool::Call] the tool call object (unused)
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
   # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
   def execute(tool_call, **opts)

@@ -40,7 +40,7 @@ describe OllamaChat::Tools::GetCVE do
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.id).to eq 'CVE-2023-12345'
     expect(json.description).to include('Test vulnerability description')
@@ -63,7 +63,7 @@ describe OllamaChat::Tools::GetCVE do
     stub_request(:get, url % { cve_id: })
       .to_return(status: 404, body: 'Not Found')
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.error).to eq 'JSON::ParserError'
     expect(json.message).to eq 'require JSON data'

@@ -3,10 +3,6 @@ describe OllamaChat::Tools::WriteFile do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let(:config) do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do
@@ -34,7 +30,7 @@ describe OllamaChat::Tools::WriteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -67,7 +63,7 @@ describe OllamaChat::Tools::WriteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -98,7 +94,7 @@ describe OllamaChat::Tools::WriteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -121,7 +117,7 @@ describe OllamaChat::Tools::WriteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -144,7 +140,7 @@ describe OllamaChat::Tools::WriteFile do
     )
 
     expect(File).to receive(:secure_write).and_raise 'some error'
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)

@@ -48,7 +48,7 @@ class OllamaChat::Tools::RunTests
   # @param opts [Hash] additional options (currently unused)
   # @return [String] JSON containing ``success``, ``path``, ``output`` and ``status``
   def execute(tool_call, **opts)
-    config   = opts[:config]
+    config   = opts[:chat].config
     path     = tool_call.function.arguments.path
     coverage = tool_call.function.arguments.coverage || false
     check_path(path, config)

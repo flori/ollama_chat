@@ -34,7 +34,7 @@ describe OllamaChat::Tools::GetCurrentWeather do
         arguments: double()
       )
     )
-    result = tool.execute(tool_call, config: chat.config)
+    result = tool.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
     expect(json.currently.temperature).to be_within(0.01).of(7.74)
@@ -52,7 +52,7 @@ describe OllamaChat::Tools::GetCurrentWeather do
       )
     )
 
-    result = tool.execute(tool_call, config: chat.config)
+    result = tool.execute(tool_call, chat:)
 
     # Parse the JSON result to verify structured error format
     json = json_object(result)

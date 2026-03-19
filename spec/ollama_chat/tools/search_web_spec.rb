@@ -3,10 +3,6 @@ describe OllamaChat::Tools::SearchWeb do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let(:config) do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do
@@ -39,7 +35,7 @@ describe OllamaChat::Tools::SearchWeb do
       'https://ruby-doc.org'
     ])
 
-    result = described_class.new.execute(tool_call, config: config, chat: chat)
+    result = described_class.new.execute(tool_call, chat: chat)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -66,7 +62,7 @@ describe OllamaChat::Tools::SearchWeb do
       'https://www.ruby-lang.org'
     ])
 
-    result = described_class.new.execute(tool_call, config: config, chat: chat)
+    result = described_class.new.execute(tool_call, chat: chat)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -91,7 +87,7 @@ describe OllamaChat::Tools::SearchWeb do
     # Mock the search_web method to raise an exception
     expect(chat).to receive(:search_web).and_raise('Network error')
 
-    result = described_class.new.execute(tool_call, config: config, chat: chat)
+    result = described_class.new.execute(tool_call, chat: chat)
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)

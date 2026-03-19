@@ -40,7 +40,7 @@ describe OllamaChat::Tools::GetRFC do
         headers: { 'Content-Type' => 'text/plain' }
       )
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.rfc_id).to eq rfc_id
     expect(json.content).to include('RFC 1234')
@@ -63,7 +63,7 @@ describe OllamaChat::Tools::GetRFC do
     stub_request(:get, url % { rfc_id: })
       .to_return(status: 404, body: 'Not Found')
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.error).to be_a String
     expect(json.message).to be_a String

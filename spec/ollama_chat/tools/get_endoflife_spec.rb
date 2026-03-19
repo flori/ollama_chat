@@ -40,7 +40,7 @@ describe OllamaChat::Tools::GetEndoflife do
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.cycle).to eq '3.1'
     expect(json.releaseDate).to eq '2023-05-01'
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::GetEndoflife do
     stub_request(:get, url % { product: product })
       .to_return(status: 404, body: 'Not Found')
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.error).to eq 'JSON::ParserError'
     expect(json.message).to eq 'require JSON data'

@@ -53,14 +53,14 @@ class OllamaChat::Tools::SearchWeb
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
+  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @option opts [OllamaChat::Chat] :chat the chat instance for location context
   # @return [String] the search results as a JSON string
   # @raise [StandardError] if there's an issue with the search operation
   def execute(tool_call, **opts)
     chat   = opts[:chat]
-    config = opts[:config]
-    args = tool_call.function.arguments
+    config = chat.config
+    args   = tool_call.function.arguments
 
     query = args.query
     max_results = config.tools.functions.search_web?.max_results? || 10

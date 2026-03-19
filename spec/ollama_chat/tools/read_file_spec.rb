@@ -3,10 +3,6 @@ describe OllamaChat::Tools::ReadFile do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let(:config) do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do
@@ -32,7 +28,7 @@ describe OllamaChat::Tools::ReadFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -53,7 +49,7 @@ describe OllamaChat::Tools::ReadFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -74,7 +70,7 @@ describe OllamaChat::Tools::ReadFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)

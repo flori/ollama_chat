@@ -3,10 +3,6 @@ describe OllamaChat::Tools::RunTests do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let(:config) do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   let :path do
@@ -58,7 +54,7 @@ describe OllamaChat::Tools::RunTests do
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['yeah', true])
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     json = json_object(result)
     expect(json.success).to be true
@@ -83,7 +79,7 @@ describe OllamaChat::Tools::RunTests do
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, true).and_return(['yeah', true])
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     json = json_object(result)
     expect(json.success).to be true
@@ -103,7 +99,7 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
   end
@@ -120,7 +116,7 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.error).to eq 'Errno::ENOENT'
   end

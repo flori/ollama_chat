@@ -3,10 +3,6 @@ describe OllamaChat::Tools::PasteFromClipboard do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let :config do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do

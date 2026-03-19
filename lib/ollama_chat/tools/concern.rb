@@ -11,6 +11,8 @@ module OllamaChat::Tools::Concern
     include Ollama
 
     implement :tool, :submodule
+
+    implement :execute, :submodule
   end
 
   class_methods do

@@ -24,27 +24,6 @@
 #     # Process the command output
 #   end
 module OllamaChat::SourceFetching
-  # The http_options method prepares HTTP options for requests based on
-  # configuration settings.
-  # It determines whether SSL peer verification should be disabled for a given
-  # URL and whether a proxy should be used, then returns a hash of options.
-  #
-  # @param url [ String ] the URL for which HTTP options are being prepared
-  #
-  # @return [ Hash ] a hash containing HTTP options such as ssl_verify_peer and
-  #   proxy settings
-  def http_options(url)
-    options = {}
-    if ssl_no_verify = config.ssl_no_verify?
-      hostname = URI.parse(url).hostname
-      options |= { ssl_verify_peer: !ssl_no_verify.include?(hostname) }
-    end
-    if proxy = config.proxy?
-      options |= { proxy: }
-    end
-    options
-  end
-
   # The fetch_source method retrieves content from various source types
   # including commands, URLs, and file paths. It processes the source based on
   # its type and yields a temporary file handle for further processing.
@@ -63,13 +42,7 @@ module OllamaChat::SourceFetching
       end
     when %r{\Ahttps?://\S+}
       links.add(source.to_s)
-      OllamaChat::Utils::Fetcher.get(
-        source,
-        headers:      config.request_headers?.to_h,
-        cache:        @cache,
-        debug:        ,
-        http_options: http_options(OllamaChat::Utils::Fetcher.normalize_url(source))
-      ) do |tmp|
+      get_url(source, cache:) do |tmp|
         block.(tmp)
       end
     when %r{\Afile://([^\s#]+)}

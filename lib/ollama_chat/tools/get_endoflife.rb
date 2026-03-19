@@ -48,23 +48,23 @@ class OllamaChat::Tools::GetEndoflife
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
+  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the parsed endoflife data or an error as a JSON string
   def execute(tool_call, **opts)
-    config = opts[:config]
+    chat   = opts[:chat]
+    config = chat.config
     product = tool_call.function.arguments.product
 
     # Construct the URL for the endoflife API
     url = config.tools.functions.get_endoflife.url % { product: }
 
     # Fetch the data from endoflife.date API
-    OllamaChat::Utils::Fetcher.get(
+    chat.get_url(
       url,
       headers: {
         'Accept' => 'application/json',
         'User-Agent' => OllamaChat::Chat.user_agent
       },
-      debug:   OC::OLLAMA::CHAT::DEBUG,
       reraise: true,
       &valid_json?
     )

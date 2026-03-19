@@ -52,11 +52,7 @@ module OllamaChat::WebSearching
   # @return [ Array<String> ] an array of URLs from the search results
   def search_web_with_searxng(query, n)
     url = config.web_search.engines.searxng.url % { query: }
-    OllamaChat::Utils::Fetcher.get(
-      url,
-      headers: config.request_headers?.to_h,
-      debug:
-    ) do |tmp|
+    get_url(url, cache:) do |tmp|
       data = JSON.parse(tmp.read, object_class: JSON::GenericObject)
       data.results.first(n).map(&:url)
     end
@@ -73,11 +69,7 @@ module OllamaChat::WebSearching
   #   results
   def search_web_with_duckduckgo(query, n)
     url = config.web_search.engines.duckduckgo.url % { query: }
-    OllamaChat::Utils::Fetcher.get(
-      url,
-      headers: config.request_headers?.to_h,
-      debug:
-    ) do |tmp|
+    get_url(url, cache:) do |tmp|
       result = []
       doc = Nokogiri::HTML(tmp)
       doc.css('.results_links').each do |link|

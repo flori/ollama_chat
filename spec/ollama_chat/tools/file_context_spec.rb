@@ -3,10 +3,6 @@ describe OllamaChat::Tools::FileContext do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let :config do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'can have name' do
@@ -30,7 +26,7 @@ describe OllamaChat::Tools::FileContext do
     )
 
     # Test with actual files in spec/assets
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
     expect(result).to be_a(String)
     json = json_object(result)
     content_file = json.files[Pathname.pwd.join('spec/assets/example.rb').to_s].content
@@ -50,7 +46,7 @@ describe OllamaChat::Tools::FileContext do
     )
 
     # Test that it handles non-existent patterns gracefully
-    result = described_class.new.execute(tool_call, config: config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should still return a string (even if empty or minimal)
     expect(result).to be_a(String)

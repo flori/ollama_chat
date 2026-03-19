@@ -38,7 +38,7 @@ describe OllamaChat::Tools::ExecuteGrep do
       "grep  -m 100 -r Hello\\ World #{Dir.pwd}/spec/assets"
     ).and_return 'Hello World!'
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return a JSON string
     expect(result).to be_a String
@@ -70,7 +70,7 @@ describe OllamaChat::Tools::ExecuteGrep do
       "grep  -m 5 -r class #{Dir.pwd}/spec/assets"
     ).and_return 'blub class blob'
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return a JSON string
     expect(result).to be_a String
@@ -101,7 +101,7 @@ describe OllamaChat::Tools::ExecuteGrep do
       "grep -i -m 5 -r class #{Dir.pwd}/spec/assets"
     ).and_return 'blub class blob'
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return a JSON string
     expect(result).to be_a String
@@ -134,7 +134,7 @@ describe OllamaChat::Tools::ExecuteGrep do
       "grep  -m 100 -r nonexistent_pattern #{Dir.pwd}/spec/assets"
     ).and_return ''
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return a JSON string even with no matches
     expect(result).to be_a String
@@ -165,7 +165,7 @@ describe OllamaChat::Tools::ExecuteGrep do
       "grep  -m 100 -r test /nonexistent/path/that/does/not/exist"
     ).and_return 'grep: /nonexistent/path/that/does/not/exist'
 
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return a JSON string with error information
     expect(result).to be_a String
@@ -192,7 +192,7 @@ describe OllamaChat::Tools::ExecuteGrep do
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).
       and_raise('my error')
-    result = described_class.new.execute(tool_call, config: chat.config)
+    result = described_class.new.execute(tool_call, chat:)
 
     expect(result).to be_a String
     json = json_object(result)
@@ -218,7 +218,7 @@ describe OllamaChat::Tools::ExecuteGrep do
         )
       )
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
 
       # Should find the example content
       json = json_object(result)

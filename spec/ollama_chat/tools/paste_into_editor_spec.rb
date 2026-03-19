@@ -3,10 +3,6 @@ describe OllamaChat::Tools::PasteIntoEditor do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
 
-  let :config do
-    chat.config
-  end
-
   connect_to_ollama_server
 
   it 'has the correct name' do
@@ -36,7 +32,7 @@ describe OllamaChat::Tools::PasteIntoEditor do
       expect(chat).to receive(:perform_insert)
         .with(text: nil, content: true).and_return true
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
       json   = json_object(result)
 
       expect(json.error).to be_nil
@@ -49,7 +45,7 @@ describe OllamaChat::Tools::PasteIntoEditor do
     it 'returns a success JSON even if no message is available' do
       allow(chat).to receive(:perform_insert).and_return(true)
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
       json   = json_object(result)
       expect(json.success).to be true
     end
@@ -71,7 +67,7 @@ describe OllamaChat::Tools::PasteIntoEditor do
       expect(chat).to receive(:perform_insert)
             .with(text: custom_text, content: true)
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
       json   = json_object(result)
 
       expect(json.error).to be_nil
@@ -97,7 +93,7 @@ describe OllamaChat::Tools::PasteIntoEditor do
       expect(chat).to receive(:perform_insert)
             .and_raise(OllamaChat::OllamaChatError, 'Insert failed')
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
       json   = json_object(result)
 
       expect(json.error).to eq('OllamaChat::OllamaChatError')
@@ -108,7 +104,7 @@ describe OllamaChat::Tools::PasteIntoEditor do
       expect(chat).to receive(:perform_insert)
             .and_raise(RuntimeError, 'Some exception')
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
       json   = json_object(result)
 
       expect(json.error).to eq('RuntimeError')

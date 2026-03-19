@@ -53,13 +53,13 @@ class OllamaChat::Tools::PatchFile
   #
   # @param tool_call [Ollama::Tool::Call] the tool call containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :config the configuration object
+  # @option opts [ComplexConfig::Settings] :chat the chat instance
   #
   # @return [String] the result of the patch operation as a JSON string
   # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
-    config = opts[:config]
-    args = tool_call.function.arguments
+    config = opts[:chat].config
+    args   = tool_call.function.arguments
 
     diff_content = args.diff_content.full? or
       raise ArgumentError, 'require diff_content to patch with'

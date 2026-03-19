@@ -5,10 +5,6 @@ describe OllamaChat::Tools::GetURL do
 
   connect_to_ollama_server
 
-  let(:config) do
-    chat.config
-  end
-
   it 'can have name' do
     expect(described_class.new.name).to eq 'get_url'
   end
@@ -37,7 +33,7 @@ describe OllamaChat::Tools::GetURL do
         with('https://www.example.com/foo', any_args).
         and_return('bar')
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
 
       expect(result).to be_a(String)
       expect(result).to eq('bar')
@@ -61,7 +57,7 @@ describe OllamaChat::Tools::GetURL do
       # Import should never be called
       expect(chat).not_to receive(:import)
 
-      result = described_class.new.execute(tool_call, chat:, config:)
+      result = described_class.new.execute(tool_call, chat:)
 
       expect(result).to be_a(String)
 
@@ -87,7 +83,7 @@ describe OllamaChat::Tools::GetURL do
       with('https://www.example.com/foo', any_args).
       and_raise('it somehow failed')
 
-    result = described_class.new.execute(tool_call, chat:, config:)
+    result = described_class.new.execute(tool_call, chat:)
 
     expect(result).to be_a(String)
     json = json_object(result)

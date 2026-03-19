@@ -33,6 +33,7 @@ require 'context_spook'
 class OllamaChat::Chat
   include Tins::GO
   include Term::ANSIColor
+  include OllamaChat::HTTPHandling
   include OllamaChat::CommandConcern
   include OllamaChat::Logging
   include OllamaChat::DocumentCache
@@ -156,6 +157,11 @@ class OllamaChat::Chat
   # @return [OllamaChat::MessageList] A MessageList object containing all
   #   messages associated with this instance
   attr_reader :messages
+
+  # Provides read-only access to the cache instance used by the object
+  #
+  # @attr_reader [Cache] the cache instance
+  attr_reader :cache
 
   # The start method initializes the chat session by displaying information,
   # then prompts the user for input to begin interacting with the chat.
@@ -1248,15 +1254,15 @@ class OllamaChat::Chat
     old = Reline.completion_proc
     Reline.autocompletion = true
     Reline.completion_proc = -> input, pre {
-			before = [ pre, input ].join
-			case before
-			when %r(^/)
-				start = [ pre, input ].join(' ').strip.gsub(/\s+/, ' ')
-				command_completions.select { _1.start_with?(start) }
-			when %r((./\S*))
-				dir = File.join(File.directory?($&) ? $& : File.dirname($&), '')
-				Dir.glob(dir + "*").select { _1.start_with?(input) }
-			end
+      before = [ pre, input ].join
+      case before
+      when %r(^/)
+        start = [ pre, input ].join(' ').strip.gsub(/\s+/, ' ')
+        command_completions.select { _1.start_with?(start) }
+      when %r((./\S*))
+        dir = File.join(File.directory?($&) ? $& : File.dirname($&), '')
+        Dir.glob(dir + "*").select { _1.start_with?(input) }
+      end
     }
     block.()
   ensure
