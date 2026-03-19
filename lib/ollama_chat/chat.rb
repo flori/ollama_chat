@@ -1248,8 +1248,15 @@ class OllamaChat::Chat
     old = Reline.completion_proc
     Reline.autocompletion = true
     Reline.completion_proc = -> input, pre {
-      start = [ pre, input ].join(' ').strip.gsub(/\s+/, ' ')
-      command_completions.select { _1.start_with?(start) }
+			before = [ pre, input ].join
+			case before
+			when %r(^/)
+				start = [ pre, input ].join(' ').strip.gsub(/\s+/, ' ')
+				command_completions.select { _1.start_with?(start) }
+			when %r((./\S*))
+				dir = File.join(File.directory?($&) ? $& : File.dirname($&), '')
+				Dir.glob(dir + "*").select { _1.start_with?(input) }
+			end
     }
     block.()
   ensure
