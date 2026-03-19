@@ -1,5 +1,41 @@
 # Changes
 
+## 2026-03-20 v0.0.81
+
+- Added `http_handling.rb` and `path_completer.rb` to gemspec
+  `s.extra_rdoc_files`, `s.files`, and `s.test_files` lists, ensuring these
+  modules are documented and packaged.  
+- Updated `http_options` to build SSL and proxy settings.  
+- Completed `get_url` to merge headers, pass cache, debug, and reraise flags.  
+- Updated YARD comments with parameter and return details.  
+- Fixed `config.request_headers` usage and added `merge`.  
+- Declared `proxy` variable in options hash.  
+- Added `debug` flag from `config` to fetcher call.  
+- Added `PathCompleter` utility in `lib/ollama_chat/utils/path_completer.rb`
+  that expands `./` and `~/` paths using `Dir.glob` and `File.expand_path`.  
+- Updated `lib/ollama_chat/utils.rb` to require the new helper.  
+- Replaced inline path completion logic in `lib/ollama_chat/chat.rb` with
+  `OllamaChat::Utils::PathCompleter.new(pre, input).complete`.  
+- Added tests for `PathCompleter` in
+  `spec/ollama_chat/utils/path_completer_spec.rb`, stubbing `expand_path` for
+  home‑directory case.  
+- Added duration metric to tool call results: recorded `start = Time.now`
+  before each tool call, stored `tools_used[name]` as a hash with `size` and
+  `duration` keys, calculated `duration` with `Time.now - start` and formatted
+  as `Tins::Duration.new(...).to_s`, kept size formatting using
+  `Tins::Unit.format(..., unit: ?B, prefix: 1024, format: '%.1f %U')`.  
+- Added `./` file path completion to Reline: updated
+  `OllamaChat::Chat#enable_command_completion` to add `./` path completion,
+  replaced old `RELINE` completion proc with a new `case before` block that
+  checks for `^/` and `./` patterns, ensuring file path completions are only
+  offered when the user starts with `./`.  
+- Added user name to runtime info and prompts: added `OC::USER` config variable
+  with default from `ENV['USER']`, included `user` in the hash returned by
+  `runtime_information_values`, extended default prompts in
+  `lib/ollama_chat/ollama_chat_config/default_config.yml` to show “Name of the
+  chat user: %{user}”, updated tests in `spec/ollama_chat/chat_spec.rb` to set
+  `OC::PAGER` to `nil` for cleaner output.
+
 ## 2026-03-18 v0.0.80
 
 ### Output & Paging
