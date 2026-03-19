@@ -203,6 +203,7 @@ module OllamaChat::Information
   # @return [Hash] a hash containing runtime information values.
   def runtime_information_values
     {
+      user:                 OC::OLLAMA::CHAT::USER || 'n/a',
       languages:            config.languages * ', ',
       time:                 Time.now.iso8601,
       location:             location.on?.full? { location_description } || 'n/a',

@@ -5,6 +5,9 @@ describe OllamaChat::Chat, protect_env: true do
 
   before do
     ENV['OLLAMA_CHAT_MODEL'] = 'llama3.1'
+    const_conf_as(
+      'OC::PAGER' => nil
+    )
   end
 
   let :chat do

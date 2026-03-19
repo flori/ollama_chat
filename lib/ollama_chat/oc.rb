@@ -147,6 +147,11 @@ module OC
         default     XDG_STATE_HOME + 'chat.log'
       end
 
+      USER = set do
+        description '(Full) Name of the chat user'
+        default     { ENV['USER'] }
+      end
+
       module TOOLS
         description 'Tool specific configuration settings'
 
