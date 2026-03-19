@@ -138,6 +138,7 @@ class OllamaChat::FollowChat
           italic { function },
         ]
       end
+      start  = Time.now
       result = nil
       case confirmed
       when :denied
@@ -169,7 +170,10 @@ class OllamaChat::FollowChat
         @chat.log(:info, result)
       end
       @chat.tool_call_results[name] = result
-      tools_used[name] = Tins::Unit.format(result.to_s.size, unit: ?B, prefix: 1024, format: '%.1f %U')
+      tools_used[name] = {
+        'size'     => Tins::Unit.format(result.to_s.size, unit: ?B, prefix: 1024, format: '%.1f %U'),
+        'duration' => Tins::Duration.new(Time.now - start).to_s,
+      }
     end
 
     if tools_used.full?
