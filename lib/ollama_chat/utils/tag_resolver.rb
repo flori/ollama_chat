@@ -10,19 +10,26 @@ class OllamaChat::Utils::TagResolver
   HEADERS = %i[ symbol filename regexp kind rest ]
   private_constant :HEADERS
 
-  # Return a human‑readable description of a ctags tag kind. For example, `f`
-  # (function) becomes "methods".
+  # The kinds method returns a mapping of single character kind identifiers to
+  # human‑readable descriptions for Ruby ctags kinds.
   #
-  # @param [String] kind The single character kind identifier from the tags file.
-  # @return [String]
-  def self.kind_of(kind)
+  # @return [Hash] a hash mapping kind identifiers to their descriptions.
+  def self.kinds
     ctags = ::OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL? or
       raise OllamaChat::ConfigMissingError,
       'need ctags tool path defined in %s' % (
         ::OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL!.env_var_name
       )
     @kinds ||= `#{ctags} --list-kinds=Ruby`.lines.map { _1.chomp.split(/\s+/, 2) }.to_h
-    @kinds.fetch(kind, 'unknown')
+  end
+
+  # Return a human‑readable description of a ctags tag kind. For example, `f`
+  # (function) becomes "methods".
+  #
+  # @param [String] kind The single character kind identifier from the tags file.
+  # @return [String]
+  def self.kind_of(kind)
+    kinds.fetch(kind, 'unknown')
   end
 
   # A lightweight struct representing a single tag entry. It extends the base
@@ -85,7 +92,7 @@ class OllamaChat::Utils::TagResolver
     results       = []
     @tags_file.each_line do |line|
       line.chomp!
-      line =~ /\A([^\t]+)\t([^\t]+)\t\/\^([^\t]+)\$\/\;"\t([^\t])\t([^\t]+)$/ or next
+      line =~ /\A([^\t]+)\t([^\t]+)\t\/\^([^\t]+)\$\/\;"\t([^\t])(.*)/ or next
       obj = TagResult.new(*$~.captures)
       next unless obj.symbol == symbol
       if kind

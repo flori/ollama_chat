@@ -32,7 +32,7 @@ class OllamaChat::Tools::ResolveTag
             ),
             kind: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Optional tag kind (e.g., f for function, v for variable).'
+              description: 'Optional tag kind (%s).' % OllamaChat::Utils::TagResolver.kinds.to_json
             ),
             directory: Tool::Function::Parameters::Property.new(
               type: 'string',
