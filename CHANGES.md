@@ -4,31 +4,31 @@
 
 - Added `http_handling.rb` and `path_completer.rb` to gemspec
   `s.extra_rdoc_files`, `s.files`, and `s.test_files` lists, ensuring these
-  modules are documented and packaged.  
-- Updated `http_options` to build SSL and proxy settings.  
-- Completed `get_url` to merge headers, pass cache, debug, and reraise flags.  
-- Updated YARD comments with parameter and return details.  
-- Fixed `config.request_headers` usage and added `merge`.  
-- Declared `proxy` variable in options hash.  
-- Added `debug` flag from `config` to fetcher call.  
+  modules are documented and packaged.
+- Updated `http_options` to build SSL and proxy settings.
+- Completed `get_url` to merge headers, pass cache, debug, and reraise flags.
+- Updated YARD comments with parameter and return details.
+- Fixed `config.request_headers` usage and added `merge`.
+- Declared `proxy` variable in options hash.
+- Added `debug` flag from `config` to fetcher call.
 - Added `PathCompleter` utility in `lib/ollama_chat/utils/path_completer.rb`
-  that expands `./` and `~/` paths using `Dir.glob` and `File.expand_path`.  
-- Updated `lib/ollama_chat/utils.rb` to require the new helper.  
+  that expands `./` and `~/` paths using `Dir.glob` and `File.expand_path`.
+- Updated `lib/ollama_chat/utils.rb` to require the new helper.
 - Replaced inline path completion logic in `lib/ollama_chat/chat.rb` with
-  `OllamaChat::Utils::PathCompleter.new(pre, input).complete`.  
+  `OllamaChat::Utils::PathCompleter.new(pre, input).complete`.
 - Added tests for `PathCompleter` in
   `spec/ollama_chat/utils/path_completer_spec.rb`, stubbing `expand_path` for
-  home‑directory case.  
+  home‑directory case.
 - Added duration metric to tool call results: recorded `start = Time.now`
   before each tool call, stored `tools_used[name]` as a hash with `size` and
   `duration` keys, calculated `duration` with `Time.now - start` and formatted
   as `Tins::Duration.new(...).to_s`, kept size formatting using
-  `Tins::Unit.format(..., unit: ?B, prefix: 1024, format: '%.1f %U')`.  
+  `Tins::Unit.format(..., unit: ?B, prefix: 1024, format: '%.1f %U')`.
 - Added `./` file path completion to Reline: updated
   `OllamaChat::Chat#enable_command_completion` to add `./` path completion,
   replaced old `RELINE` completion proc with a new `case before` block that
   checks for `^/` and `./` patterns, ensuring file path completions are only
-  offered when the user starts with `./`.  
+  offered when the user starts with `./`.
 - Added user name to runtime info and prompts: added `OC::USER` config variable
   with default from `ENV['USER']`, included `user` in the hash returned by
   `runtime_information_values`, extended default prompts in
@@ -40,166 +40,166 @@
 
 ### Output & Paging
 
-- Remove the automatic `info` call from the main flow  
-- Wrap all output handling inside a `use_pager do |output|` block  
+- Remove the automatic `info` call from the main flow
+- Wrap all output handling inside a `use_pager do |output|` block
 - Pass the `output:` keyword to sub‑methods (`collection_stats`,
-  `Switches.show`, etc.)  
-- Adjust `Pager` to use a local `buffer` variable and `output.puts buffer`  
+  `Switches.show`, etc.)
+- Adjust `Pager` to use a local `buffer` variable and `output.puts buffer`
 - Update `StateSelectors.show` and `Switches.show` to accept `output: STDOUT`
-  and use `output.puts`  
+  and use `output.puts`
 - Modify `Switches.set` to accept `output: STDOUT` and call
   `self.show(output:)`
 
 ### Collection & Runtime Info
 
 - Change `collection_stats` signature to `output: STDOUT` and replace
-  `STDOUT.puts` with `output.puts`  
-- Show runtime‑information only when `runtime_info.on? && content` is true  
+  `STDOUT.puts` with `output.puts`
+- Show runtime‑information only when `runtime_info.on? && content` is true
 - Append a JSON line for runtime‑info instead of a plain‑text list
 
 ### Tool Call Handling
 
-- Initialize `tools_used` hash in `OllamaChat::FollowChat#handle_tool_calls`  
-- Store the formatted size of each tool result using `Tins::Unit.format`  
+- Initialize `tools_used` hash in `OllamaChat::FollowChat#handle_tool_calls`
+- Store the formatted size of each tool result using `Tins::Unit.format`
 - Replace the non‑existent `full?` check with `size ==
-  response.message.tool_calls.size`  
+  response.message.tool_calls.size`
 - Show a summary of tool call results and pause for user confirmation
 
 ### Confirmation Prompt
 
 - Add `confirm?` method to `OllamaChat::Dialog` for single‑character
-  confirmation prompts  
+  confirmation prompts
 - Replace all `ask?` calls with `confirm?`
 
 ### Command DSL
 
-- Add a `command` DSL in `command_concern.rb` for registering chat commands  
+- Add a `command` DSL in `command_concern.rb` for registering chat commands
 - Include `OllamaChat::CommandConcern` in `chat.rb` and drop the old
-  `handle_input` logic  
+  `handle_input` logic
 - Replace hard‑coded command handling with the new DSL (e.g., `/toggle`,
   `/input`, `/revise`, etc.)
 
 ### Documentation & README
 
 - Update `README.md` to show the new `/toggle` syntax and expanded command
-  table  
+  table
 - Update `bin/ollama_chat_send` help text to reflect the renamed `/input`
   command
 
 ### Utility Helpers
 
-- Add `go_command` helper in `dialog.rb` for parsing command‑line options  
+- Add `go_command` helper in `dialog.rb` for parsing command‑line options
 - Add `file_set_each`, `all_file_set`, and `provide_file_set_content` to
-  `input_content.rb`  
-- Update `context_spook` to use `file_set_each` and accept an `all` flag  
-- Add `strip_internal_json_markers` helper in `chat.rb`  
+  `input_content.rb`
+- Update `context_spook` to use `file_set_each` and accept an `all` flag
+- Add `strip_internal_json_markers` helper in `chat.rb`
 - Add `choose_file_set` helper in `OllamaChat::Dialog` returning a `Set` of
   expanded `Pathname` objects
 
 ### Source Fetching & Links
 
-- Refactor `source_fetching.rb` to coerce sources to string  
+- Refactor `source_fetching.rb` to coerce sources to string
 - Add a lazy `links` method and remove the old `links` method from `Chat`
 
 ### Retrieval Snippets
 
 - Update retrieval‑snippet injection to use a JSON block instead of a
-  plain‑text list  
+  plain‑text list
 - Use `strip_internal_json_markers` for `:ollama_chat_retrieval_snippets` and
-  `:ollama_chat_runtime_information`  
+  `:ollama_chat_runtime_information`
 - Truncate user query to `config.embedding.model.context_length` before calling
   `@documents.find_where`
 
 ### Directory Structure Tool
 
-- Add `suffix` parameter to `directory_structure` function  
+- Add `suffix` parameter to `directory_structure` function
 - Update `OllamaChat::Utils::AnalyzeDirectory.generate_structure` to accept a
-  `suffix:` argument and filter files accordingly  
+  `suffix:` argument and filter files accordingly
 - Ensure only files matching the given extension are included; hidden files and
   symlinks remain excluded
 
 ### Persona Management
 
-- Update persona option labels to `keep`, `reload_default`, `choose_different`  
-- Add interactive persona reload options via a menu in `reload_default_persona`  
-- Use `SearchUI::Wrapper` and `OllamaChat::Utils::Chooser` for selection  
+- Update persona option labels to `keep`, `reload_default`, `choose_different`
+- Add interactive persona reload options via a menu in `reload_default_persona`
+- Use `SearchUI::Wrapper` and `OllamaChat::Utils::Chooser` for selection
 - Update `@default_persona` when selecting “load_new”
 
 ### Path Validation
 
-- Add `check_file` flag to `path_validator.rb` method signature  
-- Guard against non‑directory parents and file existence when `check_file:true`  
+- Add `check_file` flag to `path_validator.rb` method signature
+- Guard against non‑directory parents and file existence when `check_file:true`
 - Propagate `check_file` flag in calls from `file_context`, `patch_file`, and
   `read_file`
 
 ### Tests & Specs
 
 - Adjust specs to stub `OC::PAGER`, expect `use_pager` yielding a `StringIO`,
-  and verify `STDOUT.puts` calls  
-- Update test expectations for new command handling and help output  
+  and verify `STDOUT.puts` calls
+- Update test expectations for new command handling and help output
 - Expect `OllamaChat::InvalidPathError` instead of `Errno::ENOENT` in relevant
-  specs  
+  specs
 - Add `asset_pathname` helper in `spec_helper.rb`
 
 ### Miscellaneous
 
-- Add `reline` gem to `.utilsrc` dependency list  
+- Add `reline` gem to `.utilsrc` dependency list
 - Consider `-c` flag to skip persona setup when loading an existing
-  conversation  
+  conversation
 - Standardize `register_name` method comments to `@return [String] the
-  registered name for this tool`  
+  registered name for this tool`
 
 ## 2026-03-13 v0.0.79
 
-- Added `tmp/*` to Rakefile ignore list for cleaner builds.  
-- Updated gemspec: changed `s.rubygems_version` to **3.6.9**.  
-- Added `logging.rb` to `extra_rdoc_files` and `files` in gemspec.  
-- Adjusted gemspec file list to reflect new structure.  
-- Removed `Runtime Directory` (`-d`) explanation from `README.md`.  
-- Updated URL in `README.md`.  
+- Added `tmp/*` to Rakefile ignore list for cleaner builds.
+- Updated gemspec: changed `s.rubygems_version` to **3.6.9**.
+- Added `logging.rb` to `extra_rdoc_files` and `files` in gemspec.
+- Adjusted gemspec file list to reflect new structure.
+- Removed `Runtime Directory` (`-d`) explanation from `README.md`.
+- Updated URL in `README.md`.
 - Added explicit check that `args.path.full?` is true before calling
   `assert_valid_path`, raising `ArgumentError` with message `'require path to
-  file to be patched'`.  
+  file to be patched'`.
 - Updated path assignment to first validate presence, then assert validity
-  against `config.tools.functions.patch_file.allowed?`.  
+  against `config.tools.functions.patch_file.allowed?`.
 - Updated `OllamaChat::Tools::ExecuteGrep` to accept new options `before`,
-  `after`, and `context`.  
-- Added helper method `normalize_number` for optional integer arguments.  
+  `after`, and `context`.
+- Added helper method `normalize_number` for optional integer arguments.
 - Adjusted command template in `default_config.yml` to include `-B`, `-A`, and
-  `-C` flags based on provided values.  
+  `-C` flags based on provided values.
 - Refactored logging: replaced `logger.error` / `logger.warn` calls with
-  `log(:error, …)` or `log(:warn, …)` across multiple files.  
+  `log(:error, …)` or `log(:warn, …)` across multiple files.
 - Added optional `warn: true` flag to new helper so that critical errors also
   trigger a user‑visible warning output while still being written to the log
-  file.  
+  file.
 - Implemented `OllamaChat::Logging#log(severity, msg, warn:)` in `logging.rb`;
   it formats exceptions with backtraces and forwards messages to the underlying
-  Ruby `Logger`.  
+  Ruby `Logger`.
 - Updated `spec_helper.rb` by adding a global `config.before` hook that sets
   temporary paths for `OC::OLLAMA::CHAT::HISTORY` and `LOGFILE` so all specs
-  run against isolated files.  
-- Added `tmp/*` to `.gitignore`.  
+  run against isolated files.
+- Added `tmp/*` to `.gitignore`.
 - Created new module `OllamaChat::Logging` that lazily builds a Logger writing
-  to the file defined by `OC::OLLAMA::CHAT::LOGFILE` in XDG STATE.  
+  to the file defined by `OC::OLLAMA::CHAT::LOGFILE` in XDG STATE.
 - Required this logging module in `lib/ollama_chat.rb` and included it in
-  `class OllamaChat::Chat` so every chat instance has access to `logger`.  
+  `class OllamaChat::Chat` so every chat instance has access to `logger`.
 - Logged connection messages via `@chat.logger.info` before printing the
-  “Connecting …” line in `OllamaChat::Dialog#connect_message`.  
+  “Connecting …” line in `OllamaChat::Dialog#connect_message`.
 - Centralized tool‑call error handling: log unconfigured, unregistered or
   disabled tools with `@chat.logger.error`, and record each executed function
-  payload using `JSON.pretty_generate`.  
+  payload using `JSON.pretty_generate`.
 - Introduced an explicit vs implicit confirmation flow (`:explicit`,
   `:implicite`, `:denied`) in `OllamaChat::FollowChat#follow_chat` and log the
-  outcome accordingly.  
+  outcome accordingly.
 - Switched chat history storage from XDG CACHE to XDG STATE by updating
   `OC::OLLAMA::CHAT::HISTORY` path, adjusting file operations in
   `lib/ollama_chat/history.rb`, and adding a new config entry for `LOGFILE`
-  under state home in `oc.rb`.  
+  under state home in `oc.rb`.
 - Enhanced PatchFile tool: updated documentation to specify `unified diff
-  format` and `JSON response`.  
-- Added private method `digest` that returns `MD5` of a file path.  
+  format` and `JSON response`.
+- Added private method `digest` that returns `MD5` of a file path.
 - Modified `apply_patch` to compute old digest, run patch command, compare
-  digests, set `success` flag accordingly.  
+  digests, set `success` flag accordingly.
 - Improved error handling: now includes `success`, clearer messages, empty
   result on failure.
 
@@ -229,64 +229,64 @@
   inserted `%{time}` placeholder into prompts section of `default_config.yml`;
   added Git placeholders (`%{git_current_branch}`, `%{git_remote_origin}`)
   under **Git** key; reformatted terminal info under a single **Terminal**
-  heading with height and width.  
+  heading with height and width.
 - Extend weather tool to include six‑day forecast: updated `GetCurrentWeather`
   description to mention a six‑day forecast; functionality unchanged; tool
-  still requires no arguments.  
+  still requires no arguments.
 - Rename `insert_into_editor` tool to `paste_into_editor`: updated
   `lib/ollama_chat/tools.rb` to require `paste_into_editor`; renamed and
   updated class from `InsertIntoEditor` to `PasteIntoEditor` in
   `paste_into_editor.rb`, changing its register name, description text, and
   method logic; switched default config key in `default_config.yml` from
   `insert_into_editor` to `paste_into_editor`; refactored spec files; adjusted
-  all internal references.  
+  all internal references.
 
 ## 2026-03-09 v0.0.76
 
 - Added `client:` and `current_directory:` keys to `runtime_info_values` in
-  `chat.rb`.  
+  `chat.rb`.
 - Implemented `#client` method returning `"progname **0.0.75**"` in
-  `information.rb`.  
-- Introduced helper `location_description?` in `location_handling.rb`.  
+  `information.rb`.
+- Introduced helper `location_description?` in `location_handling.rb`.
 - Simplified `MessageList#to_ary` to return a duplicate of the internal array,
-  removing automatic system prompt + location injection.  
+  removing automatic system prompt + location injection.
 - Updated default config placeholders for `%{client}` and
-  `%{current_directory}` in `default_config.yml`.  
+  `%{current_directory}` in `default_config.yml`.
 - Adjusted web searching logic to use `location_description?` instead of
-  deprecated methods.  
+  deprecated methods.
 - Removed tests that expected location‑augmented system prompts from
-  `spec/ollama_chat/message_list_spec.rb`.  
+  `spec/ollama_chat/message_list_spec.rb`.
 - Standardized JSON output formatting across tools: aligned JSON keys, added
   spaces after commas, and added trailing commas in tool responses such as
   `copy_to_clipboard`, `gem_path_lookup`, `generate_password`, `get_endoflife`,
   `get_rfc`, `insert_into_editor`, `open_file_in_editor`,
-  `paste_from_clipboard`, and `search_web`.  
+  `paste_from_clipboard`, and `search_web`.
 - Added trailing commas to JSON objects for consistency and easier future
-  edits.  
+  edits.
 - Standardized error field formatting, ensuring each error block includes a
-  space after the colon and a trailing comma where appropriate.  
+  space after the colon and a trailing comma where appropriate.
 - Added helper `disable_content_parsing` in `chat.rb` that sets `@parse_content
-  = false`.  
+  = false`.
 - Refactored command handlers to call `disable_content_parsing` instead of
-  assigning directly to `@parse_content`.  
+  assigning directly to `@parse_content`.
 - Updated persona setup logic so that a returned persona result triggers
   `disable_content_parsing`; otherwise parsing is enabled with
-  `enable_command_completion`.  
-- Added explanatory comments around the new helper for clarity.  
+  `enable_command_completion`.
+- Added explanatory comments around the new helper for clarity.
 - Improved clean flow: captured return value of `clean` and set `@parse_content
-  = true` when a persona profile is returned.  
+  = true` when a persona profile is returned.
 - Replaced old flag `@persona_setup` with `@default_persona`; ensured it
-  defaults to `:none` in an `ensure` block after setup.  
+  defaults to `:none` in an `ensure` block after setup.
 - Added new method `reload_default_persona` that prompts for confirmation
-  before reloading the default persona file if one exists.  
+  before reloading the default persona file if one exists.
 - Modified `clean(what)` to return the result of `reload_default_persona`,
-  enabling the caller to react to a reload.  
+  enabling the caller to react to a reload.
 - Adjusted `/clear` command handling in the chat loop to use the returned value
-  from `clean` and only proceed when nothing is returned.  
+  from `clean` and only proceed when nothing is returned.
 - Renamed local variable `runtime_info` to `runtime_info_values` in `chat.rb`
-  for clarity.  
+  for clarity.
 - Updated runtime info prompt interpolation to use `runtime_info_values`
-  instead of `runtime_info`.  
+  instead of `runtime_info`.
 - Updated `/.utilsrc` by adding gems to the `code_indexer` configuration:
   `all_images`, `const_conf`, `context_spook`, `csv`, `fileutils`, `gem_hadar`,
   `infobar`, `irb`, `kramdown`, and `kramdown-parser-gfm`.
@@ -298,28 +298,28 @@
   prompt, and normalizing tool name handling.
 - Added new tool `OllamaChat::Tools::ResolveTag` with utility
   `OllamaChat::Utils::TagResolver` to parse tag files; enabled in
-  `default_config.yml` and added corresponding tests.  
+  `default_config.yml` and added corresponding tests.
 - Introduced `runtime_info` switch in `OllamaChat::Switches`; added
   `/runtime_info` command handling in `chat.rb`, runtime info block injection,
   and display via `information.rb`; added `prompts/runtime_info` template and
   `languages:` array; added `runtime_info.toggle`, `runtime_info.show`,
-  `runtime_info.on?`, `runtime_info.enabled` support.  
+  `runtime_info.on?`, `runtime_info.enabled` support.
 - Updated `OllamaChat::Tools::DirectoryStructure` description to note it can
-  locate one or multiple files, referencing `max_depth`.  
+  locate one or multiple files, referencing `max_depth`.
 - Clarified usage of `browse`, `copy_to_clipboard`, `open_file_in_editor`,
   `insert_into_editor` tools in documentation strings; fixed double‑negative
-  typo in `insert_into_editor.rb`.  
+  typo in `insert_into_editor.rb`.
 - Renamed `import_url` tool to `get_url`: updated config key, tool
   registration, class name `OllamaChat::Tools::GetURL`, spec file names, method
   calls to `config.tools.functions.get_url.schemes?`, replaced all
-  `chat.import` with `OllamaChat::Utils::Fetcher.get`.  
+  `chat.import` with `OllamaChat::Utils::Fetcher.get`.
 - Added path validation and error handling to `OllamaChat::Tools::RunTests`:
   new private method `check_path(path)` prevents using `"./"` and validates
   existence; wrapped execution in rescue block returning JSON with `error:` and
-  `message:`; updated function description accordingly.  
-- Refined and unified tool descriptions with consistent punctuation.  
+  `message:`; updated function description accordingly.
+- Refined and unified tool descriptions with consistent punctuation.
 - Added explicit persona loading verification when editing: confirmation step
-  before applying edited personality configurations.  
+  before applying edited personality configurations.
 - Improved persona loading and prompt formatting: updated
   `setup_persona_from_opts`, `info_persona`, `load_persona_file` to return
   `[pathname, content]`, added newline in `play_persona_prompt`, adjusted
