@@ -127,7 +127,7 @@ module OllamaChat::PersonaeManagement
   #   if the user cancels.
   def add_persona
     persona_name = ask?(
-      prompt: "Enter the name of the new persona (or press return to cancel): "
+      prompt: "❓ Enter the name of the new persona (or press return to cancel): "
     ).full? or return
 
     pathname = personae_directory + "#{persona_name}.md"
@@ -173,7 +173,7 @@ module OllamaChat::PersonaeManagement
         STDOUT.puts "Deleting '#{bold{persona.sub_ext('')}}'..."
         STDOUT.puts "Backup will be saved to: #{backup_pathname}"
 
-        if confirm?(prompt: "Are you sure? (y/n) ") =~ /y/i
+        if confirm?(prompt: "🔔 Are you sure? (y/n) ") =~ /y/i
           FileUtils.mv pathname, backup_pathname
           STDOUT.puts "✅ Persona #{bold{persona.sub_ext('')}} deleted successfully"
           {

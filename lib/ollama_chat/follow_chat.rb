@@ -123,7 +123,7 @@ class OllamaChat::FollowChat
       function = JSON.pretty_generate(tool_call.function)
       @chat.log(:info, function)
       if @chat.tool_function(name).require_confirmation?
-        prompt = "I want to execute tool %s\n%s\nConfirm? (y/n) " % [
+        prompt = "🔔 I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
           italic { function  },
         ]

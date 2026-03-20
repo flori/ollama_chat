@@ -83,7 +83,7 @@ module OllamaChat::MessageOutput
   def attempt_to_write_file(filename, message)
     path = Pathname.new(filename.to_s).expand_path
     if !path.exist? ||
-        confirm?(prompt: "File #{path.to_s.inspect} already exists, overwrite? (y/n) ") =~ /y/i
+        confirm?(prompt: "🔔 File #{path.to_s.inspect} already exists, overwrite? (y/n) ") =~ /y/i
     then
       File.open(path, ?w) do |output|
         output.write(message.content)
