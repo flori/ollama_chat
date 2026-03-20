@@ -180,7 +180,7 @@ class OllamaChat::FollowChat
       infobar.reset
       puts "🔧 Tool functions returned result:",
         tools_used.to_yaml.sub(/\A---\s*\n/, '').gsub(/^/, '  '), ""
-      @chat.confirm?(prompt: 'Press any key to continue.')
+      @chat.confirm?(prompt: '⏎  Press any key to continue. ')
     end
   end
 
