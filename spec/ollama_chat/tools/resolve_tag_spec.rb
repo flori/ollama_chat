@@ -5,6 +5,12 @@ describe OllamaChat::Tools::ResolveTag do
 
   connect_to_ollama_server
 
+  before do
+    const_conf_as(
+      'OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL'  => 'true'
+    )
+  end
+
   it 'can have name' do
     expect(described_class.new.name).to eq 'resolve_tag'
   end
