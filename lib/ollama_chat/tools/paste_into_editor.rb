@@ -16,10 +16,9 @@ class OllamaChat::Tools::PasteIntoEditor
         name:,
         description: <<~EOT,
           Editor helper – Pastes a string (or last reply if omitted) straight
-          into the User’s running editor.
-          If no `text` is supplied, the tool will automatically use the last assistant
-          response. Do not not call this tool function unless explicitly
-          requested by the user.
+          into the User’s already running editor.
+          If no `text` is supplied, the tool will automatically use the last
+          assistant response.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
