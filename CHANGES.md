@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-03-21 v0.0.82
+
+- Add a `before` block setting `OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL` to `ctags`
+  in the `resolve_tag` spec.  
+- Updated `OllamaChat::Tools::PasteIntoEditor` description to use `text`
+  instead of `string` and clarified that no file or line is required when
+  pasting into the editor.  
+- Added bell and question mark emojis to various `confirm?` and `ask?` prompts
+  across multiple modules for clearer UX.  
+- Updated prompt string to `⏎  Press …` for better display.  
+- Enhanced `OllamaChat::Tools::ResolveTag` and `OllamaChat::Utils::TagResolver`
+  with a new `kinds` method, updated `kind` parameter description, refactored
+  `kind_of`, and fixed tag‑parsing regex to capture all columns.
+
 ## 2026-03-20 v0.0.81
 
 - Added `http_handling.rb` and `path_completer.rb` to gemspec
