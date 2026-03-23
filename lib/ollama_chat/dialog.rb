@@ -94,7 +94,7 @@ module OllamaChat::Dialog
   #
   # @param current_collection [ String, nil ] the name of the currently active collection
   def choose_collection(current_collection)
-    collections = [ current_collection ] + @documents.collections
+    collections = [ current_collection ] + @documents.collections.to_a
     collections = collections.compact.map(&:to_s).uniq.sort
     collections.unshift('[EXIT]').unshift('[NEW]')
     collection = OllamaChat::Utils::Chooser.choose(collections) || current_collection
