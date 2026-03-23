@@ -184,9 +184,12 @@ class OllamaChat::FollowChat
 
     if tools_used.full?
       infobar.reset
-      puts "🔧 Tool functions returned result:",
-        tools_used.to_yaml.sub(/\A---\s*\n/, '').gsub(/^/, '  '), ""
-      @chat.confirm?(prompt: '⏎  Press any key to continue. ')
+      tools_used.each do |name, info|
+        puts "🔧 Tool functions #{name} returned result:",
+          info.to_yaml.sub(/\A---\s*\n/, '').gsub(/^/, '  '), ""
+        timeout = @chat.tool_function(name).result_display_timeout?
+        @chat.confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout:)
+      end
     end
   end
 

@@ -29,13 +29,18 @@ module OllamaChat::Dialog
   #
   # @param prompt   [String]  the prompt to display to the user
   # @param timeout  [Integer, nil] optional timeout in seconds; if nil, the
-  #   method blocks until input
+  #   method blocks until input, if 0 the method immediatly returns the default
+  #   value.
   # @param default  [Object, nil]  value returned when the timeout expires
   #   (defaults to `nil`)
   #
   # @return [Object] the character entered by the user, or the `default` value
   #   if a timeout occurs
   def confirm?(prompt:, timeout: nil, default: nil)
+    return default if timeout&.zero?
+    if prompt.include?('%s')
+      prompt = prompt % (timeout ? ('timeout in %us' % timeout) : 'no timeout')
+    end
     print prompt
     system 'stty raw'
     c = if timeout

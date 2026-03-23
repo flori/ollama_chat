@@ -156,34 +156,43 @@ tools:
   enabled: true
   functions:
     get_current_weather:
+      result_display_timeout: 3
       url: "https://api.pirateweather.net/forecast/KeyInHeader/%{lat},%{lon}?units=%{units}"
       default: false
     get_cve:
+      result_display_timeout: 3
       url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'
       default: true
     get_endoflife:
+      result_display_timeout: 3
       url: "https://endoflife.date/api/v1/products/%{product}"
       default: false
     get_time:
+      result_display_timeout: 3
       default: true
     get_location:
+      result_display_timeout: 3
       default: true
     file_context:
       default: false
       require_confirmation: false
+      result_display_timeout: 3
       allowed:
         - './spec'
     directory_structure:
       default: true
       require_confirmation: false
+      result_display_timeout: 3
       exclude:
         - corpus
         - pkg
     execute_grep:
       default: true
+      result_display_timeout: 3
       cmd: |
         grep #{'-i' if ignore_case} -m #{max_results} -r #{before.full? { "-B %u " % it }}#{after.full? { "-A %u " % it }}#{context.full? { "-C %u " % it }}#{pattern} #{path}
     browse:
+      result_display_timeout: 3
       default: true
     write_file:
       default: true
@@ -193,6 +202,7 @@ tools:
     read_file:
       default: true
       require_confirmation: false
+      result_display_timeout: 3
       allowed:
         - './tmp'
         - './lib'
@@ -200,42 +210,54 @@ tools:
     search_web:
       default: true
       require_confirmation: true
+      result_display_timeout: 3
       max_results: 25
     get_url:
       default: true
       require_confirmation: true
+      result_display_timeout: 3
       schemes:
         - http
         - https
     gem_path_lookup:
+      result_display_timeout: 3
       default: true
     open_file_in_editor:
       default: true
       require_confirmation: true
+      result_display_timeout: 0
     run_tests:
       require_confirmation: true
+      result_display_timeout: 3
       default: true
       allowed:
         - "./spec"
         - "./test"
         - "./tests"
     get_jira_issue:
+      result_display_timeout: 3
       default: false
     get_rfc:
       url: "https://www.rfc-editor.org/rfc/rfc%{rfc_id}.txt"
+      result_display_timeout: 3
       default: true
     generate_password:
       default: true
     copy_to_clipboard:
+      result_display_timeout: 3
       default: true
     paste_from_clipboard:
+      result_display_timeout: 3
       default: true
     paste_into_editor:
+      result_display_timeout: 3
       require_confirmation: true
       default: true
     execute_ri:
+      result_display_timeout: 3
       default: true
     resolve_tag:
+      result_display_timeout: 3
       default: true
     patch_file:
       default: true
