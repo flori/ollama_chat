@@ -27,15 +27,26 @@ module OllamaChat::Dialog
   # from the user in raw mode, then returns that character. This is best used
   # for confirmation prompts.
   #
-  # @param prompt [ String ] the prompt to display to the user.
-  # @return [ String ] the character entered by the user.
-  def confirm?(prompt:)
+  # @param prompt   [String]  the prompt to display to the user
+  # @param timeout  [Integer, nil] optional timeout in seconds; if nil, the
+  #   method blocks until input
+  # @param default  [Object, nil]  value returned when the timeout expires
+  #   (defaults to `nil`)
+  #
+  # @return [Object] the character entered by the user, or the `default` value
+  #   if a timeout occurs
+  def confirm?(prompt:, timeout: nil, default: nil)
     print prompt
     system 'stty raw'
-    c = STDIN.getc
+    c = if timeout
+          ready = IO.select([ STDIN ], nil, nil, timeout)
+          ready ? STDIN.getc : nil
+        else
+          STDIN.getc
+        end
     system 'stty cooked'
     puts
-    c
+    c || default
   end
 
   private
