@@ -53,7 +53,7 @@ class OllamaChat::Tools::PasteIntoEditor
       end
 
     {
-      success: true,
+      success:  true,
       message: ,
     }.to_json
   rescue => e

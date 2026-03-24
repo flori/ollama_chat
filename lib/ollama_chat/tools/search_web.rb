@@ -62,12 +62,19 @@ class OllamaChat::Tools::SearchWeb
     config = chat.config
     args   = tool_call.function.arguments
 
-    query = args.query
+    query       = args.query
     max_results = config.tools.functions.search_web?.max_results? || 10
     num_results = (args.num_results || 5).clamp(..max_results)
+    results     = chat.search_web(query, num_results)
+
+    message = "Searched the web with query %{query} "\
+      "which returned %{results_count} results." % {
+        query: query.inspect, results_count: results.size
+      }
+
     {
-      query: ,
-      url:   chat.search_web(query, num_results)
+      message:,
+      results:,
     }.to_json
   rescue => e
     {

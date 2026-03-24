@@ -56,8 +56,8 @@ class OllamaChat::Tools::CopyToClipboard
                 "The provided text has been successfully copied to the system clipboard."
               end
     {
-      success: true,
-      message:,
+      success:  true,
+      message: ,
     }.to_json
   rescue => e
     {

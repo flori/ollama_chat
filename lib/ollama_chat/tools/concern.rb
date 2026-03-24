@@ -6,6 +6,7 @@
 # functionality to integrate tools into the chat system's tool registry.
 module OllamaChat::Tools::Concern
   extend Tins::Concern
+  include OllamaChat::Utils::ValueFormatter
 
   included do
     include Ollama

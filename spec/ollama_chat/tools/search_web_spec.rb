@@ -40,9 +40,11 @@ describe OllamaChat::Tools::SearchWeb do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.query).to eq 'Ruby programming'
-    expect(json.url).to be_a(Array)
-    expect(json.url.length).to be >= 1
+    expect(json.message).to eq(
+      "Searched the web with query \"Ruby programming\" which returned 2 results."
+    )
+    expect(json.results).to be_a(Array)
+    expect(json.results.length).to be >= 1
   end
 
   it 'can be executed successfully with a query and custom num_results' do
@@ -67,9 +69,11 @@ describe OllamaChat::Tools::SearchWeb do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.query).to eq 'Ruby programming'
-    expect(json.url).to be_a(Array)
-    expect(json.url.length).to eq 1
+    expect(json.message).to eq(
+      "Searched the web with query \"Ruby programming\" which returned 1 results."
+    )
+    expect(json.results).to be_a(Array)
+    expect(json.results.length).to eq 1
   end
 
   it 'can handle execution errors gracefully' do

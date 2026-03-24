@@ -67,11 +67,16 @@ class OllamaChat::Tools::ResolveTag
     results = OllamaChat::Utils::TagResolver.new(tags).
       resolve(symbol:, kind:, directory:)
 
+    message = "Found %{results_count} results of symbol \"%{symbol}\"." % {
+      results_count: results.size, symbol:
+    }
+
     {
-      symbol:,
-      kind:,
+      message: ,
+      symbol:   ,
+      kind:     ,
       directory:,
-      results:
+      results:  ,
     }.to_json
   rescue => e
     { error: e.class.to_s, message: e.message }.to_json

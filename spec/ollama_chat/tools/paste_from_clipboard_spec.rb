@@ -27,7 +27,8 @@ describe OllamaChat::Tools::PasteFromClipboard do
     )
 
     # Test that perform_paste_from_clipboard is called
-    expect(chat).to receive(:perform_paste_from_clipboard)
+    expect(chat).to receive(:perform_paste_from_clipboard).
+      and_return 'Hello World'
 
     result = described_class.new.execute(tool_call, chat: chat)
 
@@ -36,7 +37,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     json = json_object(result)
     expect(json.error).to be_nil # No exception was raised
     expect(json.success).to be true
-    expect(json.message).to eq 'Content pasted from clipboard'
+    expect(json.message).to eq "Pasted 11.0 B of content."
   end
 
   it 'can handle execution errors gracefully' do

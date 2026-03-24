@@ -11,6 +11,7 @@ class OllamaChat::FollowChat
   include Ollama::Handlers::Concern
   include Term::ANSIColor
   include OllamaChat::MessageFormat
+  include OllamaChat::Utils::ValueFormatter
 
   # Initializes a new instance of OllamaChat::FollowChat.
   #
@@ -131,8 +132,9 @@ class OllamaChat::FollowChat
       if @chat.tool_function(name).require_confirmation?
         prompt = "🔔 I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
-          italic { function  },
+          italic { function },
         ]
+        prompt.gsub!('%', '%%')
         if @chat.confirm?(prompt:) =~ /y/i
           confirmed = :explicit
         else
@@ -169,24 +171,37 @@ class OllamaChat::FollowChat
           @chat.log(:info, "Execution of tool %s was implicitly confirmed." % name)
         end
       end
-      begin
-        data = JSON.parse(result)
-        @chat.log(:info, JSON.pretty_generate(data))
-      rescue
-        @chat.log(:info, result)
-      end
+
       @chat.tool_call_results[name] = result
+
+      data    = nil
+      message = begin
+                   data = JSON.parse(result)
+                   @chat.log(:info, JSON.pretty_generate(data))
+                   data['message']
+                 rescue
+                   @chat.log(:info, result)
+                   nil
+                 end
+
       tools_used[name] = {
-        'size'     => Tins::Unit.format(result.to_s.size, unit: ?B, prefix: 1024, format: '%.1f %U'),
-        'duration' => Tins::Duration.new(Time.now - start).to_s,
+        message:,
+        warn:     data.ask_and_send(:[], 'error') || data.ask_and_send(:[], 'success'),
+        size:     format_bytes(result.to_s.size),
+        duration: Tins::Duration.new(Time.now - start).to_s,
       }
     end
 
     if tools_used.full?
       infobar.reset
       tools_used.each do |name, info|
-        puts "🔧 Tool functions #{name} returned result:",
-          info.to_yaml.sub(/\A---\s*\n/, '').gsub(/^/, '  '), ""
+        feedback_message = if info[:message]
+                             "\n%s %s\n\n" % [ info[:warn] ? '⚠️' : '💡', info[:message] ]
+                           end
+        puts <<~EOT.strip, ""
+          🔧 Tool functions #{name} returned result (#{info[:size]} in #{info[:duration]}).
+          #{feedback_message}
+        EOT
         timeout = @chat.tool_function(name).result_display_timeout?
         @chat.confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout:)
       end
@@ -304,7 +319,7 @@ class OllamaChat::FollowChat
   #
   # This method delegates to the messages object's show_last method, which
   # displays the most recent non-user message in the conversation history.
-  # It is typically used to provide feedback to the user about the last
+  # It is typically used to provide message to the user about the last
   # response from the assistant.
   # @return [ nil, String ] the pager command or nil if no paging was
   #   performed.

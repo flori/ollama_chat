@@ -84,10 +84,17 @@ class OllamaChat::Tools::WriteFile
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
 
+    bytes_written = format_bytes(bytes_written)
+    path          = target_path.to_s.inspect
+
+    message = <<~EOT % { bytes_written:, path: }
+      Wrote %{bytes_written} to file %{path}.
+    EOT
+
     {
-      success:         true,
-      path:            target_path.to_s,
-      bytes_written:   ,
+      success: true,
+      path:    ,
+      message:,
     }.to_json
   rescue => e
     {

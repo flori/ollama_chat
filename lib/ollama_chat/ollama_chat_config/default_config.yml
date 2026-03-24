@@ -264,3 +264,5 @@ tools:
       require_confirmation: true
       allowed:
         - './tmp'
+    retrieve_document_snippets:
+      default: true

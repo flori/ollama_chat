@@ -51,7 +51,7 @@ describe OllamaChat::Tools::ResolveTag do
           "linenumber" => 49}
       ]
       expect(OllamaChat::Utils::TagResolver).to receive(:new).
-        and_return(double(resolve: double(resolve: result_array)))
+        and_return(double(resolve: double(size: 2, resolve: result_array)))
 
       result = described_class.new.execute(tool_call)
 

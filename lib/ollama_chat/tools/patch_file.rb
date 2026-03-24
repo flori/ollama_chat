@@ -68,9 +68,11 @@ class OllamaChat::Tools::PatchFile
     path = assert_valid_path(path, config.tools.functions.patch_file.allowed?, check_file: true)
 
     result = apply_patch(path, diff_content)
-    message = result[:success] ?
-      "Successfully applied patch to #{path.to_s.inspect}." :
-      "Failed to apply patch to file #{path.to_s.inspect}."
+    message = if result[:success]
+                 "Successfully applied patch to #{path.to_s.inspect}."
+               else
+                 "Failed to apply patch to file #{path.to_s.inspect}."
+               end
     (result | {
       path:    path.to_s,
       message: ,

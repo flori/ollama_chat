@@ -95,7 +95,7 @@ module OllamaChat::ModelHandling
   #                     that combines the model name and formatted size
   private def model_with_size(model)
     formatted_size = Term::ANSIColor.bold {
-      Tins::Unit.format(model.size, unit: ?B, prefix: 1024, format: '%.1f %U')
+      format_bytes(model.size)
     }
     SearchUI::Wrapper.new(model.name, display: "#{model.name} #{formatted_size}")
   end

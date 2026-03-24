@@ -40,7 +40,9 @@ describe OllamaChat::Tools::Browse do
     expect(json.error).to be_nil # No excception was raised
     expect(json.success).to be true
     expect(json.exitstatus).to eq 0
-    expect(json.message).to eq 'opening URL/file'
+    expect(json.message).to eq(
+      "Opened \"https://www.example.com\" in browser."
+    )
     expect(json.url).to eq 'https://www.example.com'
   end
 
@@ -66,7 +68,9 @@ describe OllamaChat::Tools::Browse do
     expect(json.error).to be_nil # No excception was raised
     expect(json.success).to be false
     expect(json.exitstatus).to eq 1
-    expect(json.message).to eq 'opening URL/file'
+    expect(json.message).to eq(
+      "Could not open \"https://nonexistent-domain-12345.com\" in browser."
+    )
   end
 
   it 'can handle execution exceptions gracefully' do
@@ -118,7 +122,9 @@ describe OllamaChat::Tools::Browse do
       json = json_object(result)
       expect(json.success).to be true
       expect(json.exitstatus).to eq 0
-      expect(json.message).to eq 'opening URL/file'
+      expect(json.message).to eq(
+        "Opened \"https://www.example.com\" in browser."
+      )
       expect(json.url).to eq 'https://www.example.com'
     end
   end

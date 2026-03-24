@@ -31,6 +31,7 @@ describe OllamaChat::Tools::OpenFileInEditor do
     json = json_object(result)
     expect(json.path).to eq asset('example.rb')
     expect(json.start_line).to eq 42
+    expect(json.message).to match(%r(spec/assets/example.rb" at line 42))
   end
 
   it 'can be executed successfully with valid path, start_line, end_line' do
@@ -52,6 +53,7 @@ describe OllamaChat::Tools::OpenFileInEditor do
     expect(json.path).to eq asset('example.rb')
     expect(json.start_line).to eq 23
     expect(json.end_line).to eq 42
+    expect(json.message).to match(%r(spec/assets/example.rb" and selected range 23-42))
   end
 
   it 'can handle invalid path gracefully' do

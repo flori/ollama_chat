@@ -61,6 +61,7 @@ class OllamaChat::Chat
   include OllamaChat::ToolCalling
   include OllamaChat::ConfigHandling
   include OllamaChat::PersonaeManagement
+  include OllamaChat::Utils::ValueFormatter
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
   # arguments.
@@ -1000,27 +1001,6 @@ class OllamaChat::Chat
                         [ content, Documentrix::Utils::Tags.new(valid_tag: /\A#*([\w\]\[]+)/) ]
                       end
 
-      if embedding.on? && content
-        records = @documents.find_where(
-          content.downcase.first(config.embedding.model.context_length),
-          tags:,
-          prompt:     config.embedding.model.prompt?,
-          text_size:  config.embedding.found_texts_size?,
-          text_count: config.embedding.found_texts_count?,
-        )
-        unless records.empty?
-          content << ?\n << JSON(
-            prompt: "Consider these snippets generated from retrieval when formulating your response!",
-            ollama_chat_retrieval_snippets: records.map { |r|
-              {
-                text: r.text,
-                tags: r.tags_set.map { |t| { name: t.to_s(link: false), source: t.source }.compact }
-              }
-            },
-          )
-        end
-      end
-
       runtime_info.on? && content and
         content << ?\n << {
           ollama_chat_runtime_information: runtime_information
@@ -1055,17 +1035,6 @@ class OllamaChat::Chat
         else
           raise
         end
-      end
-      if embedding.on? && !records.empty?
-        STDOUT.puts "", records.map { |record|
-          link = if record.source =~ %r(\Ahttps?://)
-                   record.source
-                 else
-                   'file://%s' % File.expand_path(record.source)
-                 end
-          [ link, ?# + record.tags.first ]
-        }.uniq.map { |l, t| hyperlink(l, t) }.join(' ')
-        debug and jj messages.to_ary
       end
 
       case type

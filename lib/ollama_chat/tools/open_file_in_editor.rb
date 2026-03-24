@@ -73,15 +73,16 @@ class OllamaChat::Tools::OpenFileInEditor
     end
 
     chat.vim.open_file(file_path, start_line, end_line)
-    if end_line
-      result_msg = "Opened #{file_path} and selected range #{start_line}-#{end_line}"
-    else
-      result_msg = "Opened #{file_path} at line #{start_line}"
-    end
+    message =
+      if end_line
+        "Opened #{file_path.to_s.inspect} and selected range #{start_line}-#{end_line}"
+      else
+        "Opened #{file_path.to_s.inspect} at line #{start_line}"
+      end
 
     {
       success:    true,
-      message:    result_msg,
+      message:   ,
       path:       file_path,
       start_line: start_line,
       end_line:   end_line,

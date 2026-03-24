@@ -3,7 +3,7 @@
 # This module encapsulates methods for piping assistant responses to command
 # standard input and writing assistant responses to files. It handles the
 # mechanics of sending output to external processes or saving content to disk
-# while providing appropriate error handling and user feedback.
+# while providing appropriate error handling and user message.
 #
 # @example Piping a response to a command
 #   chat.pipe('cat > output.txt')

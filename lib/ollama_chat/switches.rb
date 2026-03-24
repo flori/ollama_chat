@@ -51,7 +51,7 @@ module OllamaChat::Switches
   #
   # The Switch class provides a simple way to manage boolean configuration
   # options with methods to toggle, set, and query the current state. It
-  # includes messaging capabilities to provide feedback when the state changes.
+  # includes messaging capabilities to provide message when the state changes.
   #
   # @example Creating and using a switch
   #   switch = Switch.new(value: false, msg: { true => 'Enabled', false => 'Disabled' })

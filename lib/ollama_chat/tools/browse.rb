@@ -26,9 +26,9 @@ class OllamaChat::Tools::Browse
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Launch external viewer – Opens an HTTP/HTTPS link (or local file) in
-          the system’s web/browser app. Use when you want to hand off a page
-          for human inspection; no return value is expected.
+          Launch external viewer – Opens an HTTP/HTTPS link (or local file
+          path) in the system’s web/browser app. Use when you want to hand off
+          a page for human inspection; no return value is expected.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -58,10 +58,17 @@ class OllamaChat::Tools::Browse
   def execute(tool_call, **opts)
     url    = tool_call.function.arguments.url
     result = browse_url(url)
+
+    message = if result.success?
+                 "Opened #{url.to_s.inspect} in browser."
+               else
+                 "Could not open #{url.to_s.inspect} in browser."
+               end
+
     {
       success:    result.success?,
       exitstatus: result.exitstatus,
-      message:    'opening URL/file',
+      message:   ,
       url:        ,
     }.to_json
   rescue => e
