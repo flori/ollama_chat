@@ -1,5 +1,22 @@
 # Changes
 
+## 2026-03-24 v0.0.83
+
+- Added timeout support to `Dialog#confirm?`: introduced optional `timeout:`
+  and `default:` parameters, injected `IO.select` logic to respect the supplied
+  timeout and return the `default` when timed out, and updated YARD comments to
+  document the new parameters and return behavior.
+- Normalized namespaced tool calls in `OllamaChat`: updated
+  `lib/ollama_chat/follow_chat.rb` to extract the basename from `name` when it
+  contains a slash, added a warning log `@chat.log(:warn, msg)` to inform users
+  when a namespaced tool call is corrected, and adjusted the `name` variable so
+  that `@chat.tool_configured?(name)` and subsequent logic use the corrected
+  tool name.
+- Updated `OllamaChat::Dialog#choose_collection` to convert
+  `@documents.collections` to an array before concatenation, ensuring
+  consistent behavior when collections are not already arrays (e.g., NULL
+  objects).
+
 ## 2026-03-21 v0.0.82
 
 - Add a `before` block setting `OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL` to `ctags`
