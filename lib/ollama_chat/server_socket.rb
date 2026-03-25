@@ -117,7 +117,7 @@ module OllamaChat::ServerSocket
       running using the same directory or that a previous process left a stale
       socket file.
     EOT
-    if confirm?(prompt: '🔔 Do you want to remove the existing socket file and continue? (y/n) ') =~ /y/i
+    if confirm?(prompt: '🔔 Do you want to remove the existing socket file and continue? (y/n) ', yes: /y/i)
       FileUtils.rm_f socket_path
       retry
     else

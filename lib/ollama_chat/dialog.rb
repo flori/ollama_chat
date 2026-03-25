@@ -36,22 +36,46 @@ module OllamaChat::Dialog
   #
   # @return [Object] the character entered by the user, or the `default` value
   #   if a timeout occurs
-  def confirm?(prompt:, timeout: nil, default: nil)
+  def confirm?(prompt:, timeout: nil, default: nil, yes: nil)
     return default if timeout&.zero?
     if prompt.include?('%s')
       prompt = prompt % (timeout ? ('timeout in %us' % timeout) : 'no timeout')
     end
     print prompt
     system 'stty raw'
+    keypress = nil
     c = if timeout
-          ready = IO.select([ STDIN ], nil, nil, timeout)
-          ready ? STDIN.getc : nil
+          keypress = !!IO.select([ STDIN ], nil, nil, timeout)
+          keypress ? STDIN.getc : nil
         else
+          keypress = true
           STDIN.getc
         end
     system 'stty cooked'
-    puts
-    c || default
+    answer = c || default
+    case
+    when yes.nil?
+      if keypress
+        puts "⌨️ #{answer}"
+      else
+        puts "⌛️ #{answer}"
+      end
+      answer
+    when answer =~ yes
+      if keypress
+        puts "✅ #{answer}"
+      else
+        puts "☑️  #{answer}"
+      end
+      answer
+    else
+      if keypress
+        puts "🚫 #{answer}"
+      else
+        puts "⌛️ #{answer}"
+      end
+      nil
+    end
   end
 
   private

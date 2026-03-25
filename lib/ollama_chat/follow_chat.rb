@@ -135,7 +135,7 @@ class OllamaChat::FollowChat
           italic { function },
         ]
         prompt.gsub!('%', '%%')
-        if @chat.confirm?(prompt:) =~ /y/i
+        if @chat.confirm?(prompt:, yes: /y/i)
           confirmed = :explicit
         else
           confirmed = :denied
@@ -155,7 +155,7 @@ class OllamaChat::FollowChat
           resolve: 'You **MUST** ask the user for instructions on how to proceed!!!',
         )
         STDOUT.printf(
-          "\n%s Execution of tool %s denied by user.\n", ?🚫, bold { name }
+          "\n%s Execution of tool %s denied by user.\n\n", ?🚫, bold { name }
         )
         @chat.log(:warn,"Execution of tool %s was denied by user!" % name)
       else
@@ -183,10 +183,16 @@ class OllamaChat::FollowChat
                    @chat.log(:info, result)
                    nil
                  end
+      warn =
+        begin
+          !!data.ask_and_send(:[], 'error') || data.ask_and_send(:[], 'success')
+        rescue
+          false
+        end
 
       tools_used[name] = {
         message:,
-        warn:     data.ask_and_send(:[], 'error') || data.ask_and_send(:[], 'success'),
+        warn:     ,
         size:     format_bytes(result.to_s.size),
         duration: Tins::Duration.new(Time.now - start).to_s,
       }
