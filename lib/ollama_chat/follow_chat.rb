@@ -185,7 +185,7 @@ class OllamaChat::FollowChat
                  end
       warn =
         begin
-          !!data.ask_and_send(:[], 'error') || data.ask_and_send(:[], 'success')
+          !!data.ask_and_send(:[], 'error') || data.ask_and_send(:[], 'success') == false
         rescue
           false
         end
