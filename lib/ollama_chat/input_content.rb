@@ -161,7 +161,16 @@ module OllamaChat::InputContent
   # @yield [filename] the block that processes each filename
   # @return [String] the concatenated result of the block applied to each file
   def provide_file_set_content(patterns, all: false, &block)
+    total = 0
+    all and file_set_each(patterns, all:) { total += 1 }
+    count = 0
     file_set_each(patterns, all:).each_with_object('') do |filename, result|
+      count += 1
+      if all
+        STDOUT.puts "Handling File (#{bold{count}}/#{bold{total}}):"
+      else
+        STDOUT.puts "Handling File (#{bold{count}}):"
+      end
       result << ("%s:\n\n%s\n\n" % [ filename, block.(filename) ])
     end.full?
   end
