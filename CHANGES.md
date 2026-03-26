@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-03-26 v0.0.84
+
+- Added `OllamaChat::Utils::ValueFormatter` with helper `format_bytes` in
+  `lib/ollama_chat/utils/value_formatter.rb`.  
+    - Added `require 'ollama_chat/utils/value_formatter'` where needed.  
+    - Updated `write_file`, `patch_file`, `paste_from_clipboard` to use
+      `format_bytes` for byte‑size messages.  
+- Implemented new tool `RetrieveDocumentSnippets` in
+  `lib/ollama_chat/tools/retrieve_document_snippets.rb` and its spec
+  `spec/ollama_chat/tools/retrieve_document_snippets_spec.rb`.  
+    - Updated `default_config.yml` to enable `retrieve_document_snippets` by
+      default.  
+- Rewrote tool payloads to include a `message` key for `browse`, `search_web`,
+  `paste_from_clipboard`, `resolve_tag`, and others.  
+- `browse` now returns `"Opened \"<url>\" in browser."` or a failure message.  
+- Refactored `confirm?` in `lib/ollama_chat/dialog.rb` to accept keyword `yes:`
+  for a confirmation regex and display a coloured emoji matching the response
+  or timeout/default.  
+    - Updated all calls to `confirm?` to use `yes: /y/i` syntax.  
+    - Updated `lib/ollama_chat/message_output.rb` to add `yes:` keyword to
+      `confirm?` calls and refine the emoji shown when a file already exists.  
+
 ## 2026-03-24 v0.0.83
 
 - Added timeout support to `Dialog#confirm?`: introduced optional `timeout:`
