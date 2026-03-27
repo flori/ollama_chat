@@ -481,9 +481,10 @@ class OllamaChat::Chat
     name: :collection,
     regexp: %r(^/collection(?:\s+(clear|change))?$),
     complete: [ 'collection', %w[ clear change ] ],
-    help: 'change (default) collection or clear'
+    optional: true,
+    help: 'display, change, or clear collection'
   ) do |subcommand|
-    case subcommand || 'change'
+    case subcommand
     when 'clear'
       loop do
         tags = @documents.tags.add('[EXIT]').add('[ALL]')
@@ -509,6 +510,8 @@ class OllamaChat::Chat
       end
     when 'change'
       choose_collection(@documents.collection)
+    when nil
+      collection_stats
     end
     :next
   end
