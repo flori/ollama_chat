@@ -479,10 +479,10 @@ class OllamaChat::Chat
 
   command(
     name: :collection,
-    regexp: %r(^/collection(?:\s+(clear|change))?$),
-    complete: [ 'collection', %w[ clear change ] ],
+    regexp: %r(^/collection(?:\s+(clear|change|list|rename))?$),
+    complete: [ 'collection', %w[ clear change list rename ] ],
     optional: true,
-    help: 'display, change, or clear collection'
+    help: 'display, clear (current), change, list, or rename collection'
   ) do |subcommand|
     case subcommand
     when 'clear'
@@ -510,6 +510,12 @@ class OllamaChat::Chat
       end
     when 'change'
       choose_collection(@documents.collection)
+    when 'list'
+      current_collection = @documents.collection
+      puts @documents.collections.
+        map { |c| current_collection == c ? bold { c } : c }
+    when 'rename'
+      rename_collection(@documents.collection)
     when nil
       collection_stats
     end

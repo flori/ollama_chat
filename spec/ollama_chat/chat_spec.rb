@@ -1,6 +1,10 @@
 describe OllamaChat::Chat, protect_env: true do
+  let :collection do
+    "test-#{Random.hex}"
+  end
+
   let :argv do
-    chat_default_config(%w[ -C test ])
+    chat_default_config(%w[ -C ] << collection)
   end
 
   before do
@@ -153,6 +157,10 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat).to receive(:info)
       expect(STDOUT).to receive(:puts).with(/./)
       expect(chat.handle_input("/collection change")).to eq :next
+      expect(STDOUT).to receive(:puts).with(array_including(:default))
+      expect(chat.handle_input("/collection list")).to eq :next
+      expect(chat).to receive(:rename_collection).with(collection.to_sym)
+      expect(chat.handle_input("/collection rename")).to eq :next
     end
 
     it 'returns :next when input is "/info"' do
@@ -358,7 +366,7 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
     let :argv do
-      chat_default_config(%w[ -C test -c ] << asset('conversation.json'))
+      chat_default_config(%w[ -C ] << collection << '-c' << asset('conversation.json'))
     end
 
     it 'dispays the last exchange of the converstation' do
@@ -396,7 +404,7 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
       let :argv do
-        chat_default_config(%w[ -C test -D ] << asset('example.html'))
+        chat_default_config(%w[ -C ] << collection << '-D' << asset('example.html'))
       end
 
       it 'Adds documents passed to app via -D option' do
@@ -421,7 +429,7 @@ describe OllamaChat::Chat, protect_env: true do
     it 'can display collection_stats' do
       chat
       expect(STDOUT).to receive(:puts).with(
-        "Current Collection\n  Name: \e[1mtest\e[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags: \n"
+        "Current Collection\n  Name: \e[1m#{collection}\e[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags: \n"
       )
       expect(chat.collection_stats).to be_nil
     end

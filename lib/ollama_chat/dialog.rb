@@ -135,6 +135,27 @@ module OllamaChat::Dialog
     info
   end
 
+  # Rename an existing collection to a new, user‑supplied name.
+  #
+  # This helper prompts the user to provide a new name for the collection
+  # identified by <code>current_collection</code>. It then renames the current
+  # collection to have the new_name and switches to it.
+  #
+  # @param current_collection [Symbol] the current collection name
+  def rename_collection(current_collection)
+    prompt = 'Rename collection %s to: ' % current_collection
+    if new_collection = ask?(prompt:).full?(:to_sym)
+      begin
+        @documents.rename_collection(new_collection)
+        STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
+      rescue
+        STDERR.puts "Renaming to #{new_collection} failed, it already exists."
+      end
+    else
+      STDOUT.puts "Renaming cancelled."
+    end
+  end
+
   # The change_system_prompt method allows the user to select or enter a new
   # system prompt for the chat session.
   # It provides an interactive chooser when multiple prompts match the given

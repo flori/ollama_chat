@@ -209,8 +209,10 @@ The following commands can be given inside the chat, if prefixed by a `/`:
 ├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
 │ /load            │                    │ path             │ load conversation messages                               │
 ├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /collection      │ change﹡           │                  │ change (default) collection or clear                     │
-│                  │ clear﹡            │                  │                                                          │
+│ /collection      │ change             │                  │ display, clear (current), change, list, or rename        │
+│                  │ clear              │                  │ collection                                               │
+│                  │ list               │                  │                                                          │
+│                  │ rename             │                  │                                                          │
 ├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
 │ /persona         │ add                │                  │ manage and load/play personae for roleplay               │
 │                  │ delete             │                  │                                                          │
