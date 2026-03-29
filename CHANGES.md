@@ -1,5 +1,29 @@
 # Changes
 
+## 2026-03-29 v0.0.85
+
+- Added `list` and `rename` subcommands to the `/collection` command, allowing
+  users to display available collections and rename them via the
+  `rename_collection` method in `lib/ollama_chat/dialog.rb`.
+    - Enhanced the `/collection` command to be optional; running `/collection`
+      without arguments now displays collection statistics by invoking the
+      `collection_stats` method.
+    - Updated `README.md` to reflect new command options and adjusted help text for
+      the `/collection` command.
+    - Modified tests in `spec/ollama_chat/chat_spec.rb` to accommodate new command
+      options and collection handling.
+    - Adjusted `regexp` and `complete` configurations in `lib/ollama_chat/chat.rb`
+      for the `/collection` command.
+    - Updated the `documentrix` dependency from **0.0.4** to **0.1.0**.
+- Introduced progress feedback in `lib/ollama_chat/input_content.rb` within the
+  `provide_file_set_content` method, displaying `count/total` for batch
+  processing or just `count` for interactive mode.
+- Optimized persona loading logic to skip setting a default persona if the
+  conversation already contains messages, while retaining fallbacks from
+  command-line options for new conversations.
+- Fixed the warning condition in `OllamaChat::FollowChat` by correcting the
+  success check in `lib/ollama_chat/follow_chat.rb`.
+
 ## 2026-03-26 v0.0.84
 
 - Added `OllamaChat::Utils::ValueFormatter` with helper `format_bytes` in
