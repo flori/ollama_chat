@@ -119,16 +119,18 @@ module OllamaChat::ToolCalling
   # tools and handles the user's selection by adding the chosen tool to the
   # list of enabled tools and sorting the list.
   def enable_tool
-    select_tools = configured_tools - enabled_tools
-    select_tools += [ '[EXIT]' ]
-    case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
-    when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
-      return
-    when *select_tools
-      enabled_tools << chosen
-      enabled_tools.sort!
-      puts "Enabled tool %s" % bold { chosen }
+    loop do
+      select_tools = configured_tools - enabled_tools
+      select_tools = [ '[EXIT]' ] + select_tools
+      case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
+      when '[EXIT]', nil
+        STDOUT.puts "Exiting chooser."
+        return
+      when *select_tools
+        enabled_tools << chosen
+        enabled_tools.sort!
+        puts "Enabled tool %s" % bold { chosen }
+      end
     end
   end
 
@@ -141,15 +143,17 @@ module OllamaChat::ToolCalling
   # the chosen tool from the list of enabled tools and sorting the list
   # afterwards.
   def disable_tool
-    select_tools = enabled_tools
-    select_tools += [ '[EXIT]' ]
-    case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
-    when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
-      return
-    when *select_tools
-      enabled_tools.delete chosen
-      puts "Disabled tool %s" % bold { chosen }
+    loop do
+      select_tools = enabled_tools
+      select_tools = [ '[EXIT]' ] + select_tools
+      case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
+      when '[EXIT]', nil
+        STDOUT.puts "Exiting chooser."
+        return
+      when *select_tools
+        enabled_tools.delete chosen
+        puts "Disabled tool %s" % bold { chosen }
+      end
     end
   end
 
