@@ -27,9 +27,10 @@ class OllamaChat::Tools::FileContext
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Semantic file snapshot – Gathers AST‑style info (e.g., classes,
-          methods) from all matching files (pattern) in directory. Useful for
-          LLMs to reason about code structure
+          Reads all files matching a glob pattern like `lib/**/*.rb` and
+          returns their contents plus metadata. Provides file size, line count,
+          and tags. Useful for building codebase context to send to language
+          models or documenting project structure.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
