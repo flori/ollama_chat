@@ -608,7 +608,7 @@ class OllamaChat::Chat
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|summary|context|embedding)(?:\s*(?=\z))?)?((?:\s+-(?:[ad]|w\s*\d+))*)(?:\s+(pattern))?(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|summary|context|embedding)(?:\s*(?=\z))?)?((?:\s+-(?:[a]|w\s*\d+))*)(?:\s+(pattern))?(?:\s+(.+))?$),
     optional: true,
     complete: [ 'input', [ 'path', 'summary', 'context', 'embedding', '', ], [ 'pattern', '' ] ],
     options: '[-w|-a] [arg…]',
