@@ -194,10 +194,6 @@ module OllamaChat::Parsing
   CONTENT_REGEXP = %r{
     (https?://\S+)                         # Match HTTP/HTTPS URLs
     |                                      # OR
-    (?<![a-zA-Z\d])                        # Negative lookbehind: not part of a larger word
-    \#                                     # Literal # character (starts a tag)
-    ([\w\]\[]+)                            # Tag content: alphanumeric, brackets, underscores
-    |                                      # OR
     (file://(?:[^\s#]+))                   # Match file:// URLs
     |                                      # OR
     "((?:\.\.|[~.]?)/(?:\\"|\\|[^"\\]+)+)" # Quoted file path with escaped " quotes
@@ -206,31 +202,27 @@ module OllamaChat::Parsing
   }x
   private_constant :CONTENT_REGEXP
 
-  # Parses content and processes embedded resources based on document policy
+  # Parses a string for URLs, file refs, and image links, then returns
+  # the transformed content.  Detects `http(s)` URLs, `file://` paths,
+  # quoted file paths, and collects any image URLs into the supplied
+  # `images` array.
   #
-  # This method analyzes input content for URLs, tags, and file references,
-  # fetches referenced resources, and processes them according to the current
-  # document policy. It supports different processing modes for various content
-  # types.
+  # @param content [String] the raw text to parse
+  # @param images  [Array] mutable array that will be cleared
+  #                  then filled with discovered image URLs
   #
-  # @param content [String] The input content string to parse
-  # @param images [Array] An array to collect image references (will be cleared)
-  # @return [Array<String, Documentrix::Utils::Tags>] Returns an array containing
-  #   the processed content string and tags object if any tags were found
+  # @return [String] the content after all supported transformations
+  #   (URLs resolved, file refs expanded, image URLs collected)
   def parse_content(content, images)
     images.clear
-    tags = Documentrix::Utils::Tags.new valid_tag: /\A#*([\w\]\[]+)/
     contents = [ content ]
-    content.scan(CONTENT_REGEXP).each { |url, tag, file_url, quoted_file, file|
+    content.scan(CONTENT_REGEXP).each { |url, file_url, quoted_file, file|
       if file && File.directory?(file)
         contents << generate_structure(file).to_json
         next
       end
       check_exist = false
       case
-      when tag
-        tags.add(tag)
-        next
       when url
         links.add(url.to_s)
         source = url
@@ -271,7 +263,6 @@ module OllamaChat::Parsing
         end
       end
     }
-    new_content = contents.select { _1.present? rescue nil }.compact * "\n\n"
-    return new_content, (tags unless tags.empty?)
+    contents.select { _1.present? rescue nil }.compact * "\n\n"
   end
 end

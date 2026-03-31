@@ -128,12 +128,6 @@ describe OllamaChat::Parsing do
   end
 
   describe '#parse_content' do
-    it 'can parse tags' do
-      content, tags = chat.parse_content("see #foobar …", [])
-      expect(content).to eq 'see #foobar …'
-      expect(tags).to include('foobar')
-    end
-
     it 'can parse https URLs' do
       stub_request(:get, "https://www.example.com/foo.html").
         with(headers: { 'Host'       => 'www.example.com' }).

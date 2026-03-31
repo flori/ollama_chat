@@ -1004,11 +1004,7 @@ class OllamaChat::Chat
 
       content = content.encode(invalid: :replace)
 
-      content, tags = if @parse_content
-                        parse_content(content, @images)
-                      else
-                        [ content, Documentrix::Utils::Tags.new(valid_tag: /\A#*([\w\]\[]+)/) ]
-                      end
+      @parse_content and content = parse_content(content, @images)
 
       runtime_info.on? && content and
         content << ?\n << {
