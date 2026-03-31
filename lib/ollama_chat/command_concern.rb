@@ -31,8 +31,11 @@ module OllamaChat::CommandConcern
     #   exists or if no block is given.
     def command(name:, regexp:, complete: nil, optional: false, options: nil, help: nil, &block)
       name = name.to_sym
-      commands.key?(name) and raise ArgumentError, "command #{name} already registered!"
-      commands[name] = Command.new(name:, regexp:, complete:, optional:, options:, help:, &block)
+      commands.key?(name) and
+        raise ArgumentError, "command #{name} already registered!"
+      commands[name] =Command.new(
+        name:, regexp:, complete:, optional:, options:, help:, &block
+      )
     end
 
     # Return an array of all available command completions.
