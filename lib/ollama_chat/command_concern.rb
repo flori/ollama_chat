@@ -83,6 +83,21 @@ module OllamaChat::CommandConcern
     delegate :help_message, to: self
   end
 
+  # Represents a registered command in the OllamaChat command DSL.
+  #
+  # A `Command` instance stores
+  #   * the command name(s) (`@complete.first`),
+  #   * the matching regular expression (`@regexp`),
+  #   * optional completion hints (`@complete[1..]`),
+  #   * help text (`@help`), and
+  #   * the block that is executed when the command matches.
+  #
+  # It also exposes helpers for optionality (`optional?`),
+  # command names (`command_names`), arguments (`arguments`),
+  # and completions (`completions`).
+  #
+  # The `execute_if_match?` method performs a regexp match and, if
+  # successful, yields the execution context to the stored block.
   class Command
     # Create a new Command instance.
     #
