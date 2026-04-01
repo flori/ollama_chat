@@ -348,8 +348,8 @@ class OllamaChat::FollowChat
   #   the evaluation process including durations, counts, and rates, styled
   #   with colors and formatting
   def eval_stats(response)
-    eval_duration        = response.eval_duration / 1e9
-    prompt_eval_duration = response.prompt_eval_duration / 1e9
+    eval_duration        = response.eval_duration.to_f / 1e9
+    prompt_eval_duration = response.prompt_eval_duration.to_f / 1e9
     stats_text = {
       eval_duration:        Tins::Duration.new(eval_duration),
       eval_count:           response.eval_count.to_i,
