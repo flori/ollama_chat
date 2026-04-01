@@ -410,6 +410,7 @@ class OllamaChat::Chat
     name: :links,
     regexp: %r(^/links(?:\s+(clear))?$),
     complete: [ 'links', %w[ clear ] ],
+    optional: true,
     help: 'display (or clear) links used in the chat',
   ) do |subcommand|
     manage_links(subcommand)
