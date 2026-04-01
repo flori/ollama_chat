@@ -296,7 +296,7 @@ class OllamaChat::Chat
   ) do
     begin
       use_model
-    rescue OllamaChatError::UnknownModelError => e
+    rescue OllamaChat::UnknownModelError => e
       msg = "Caught #{e.class}: #{e}"
       log(:error, msg, warn: true)
     end
