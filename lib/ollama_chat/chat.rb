@@ -420,6 +420,7 @@ class OllamaChat::Chat
     name: :revise,
     regexp: %r(^/revise(?:\s+(edit))?$),
     complete: [ 'revise', %w[ edit ] ],
+    optional: true,
     help: 'revise the last message (and/or edit the query)'
   ) do |subcommand|
     if content = messages.second_last&.content
