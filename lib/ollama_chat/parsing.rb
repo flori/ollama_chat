@@ -217,7 +217,7 @@ module OllamaChat::Parsing
     images.clear
     contents = [ content ]
     content.scan(CONTENT_REGEXP).each { |url, file_url, quoted_file, file|
-      if file && File.directory?(file)
+      if file && Pathname.new(file).expand_path.directory?
         contents << generate_structure(file).to_json
         next
       end
