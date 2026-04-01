@@ -526,8 +526,8 @@ class OllamaChat::Chat
 
   command(
     name: :persona,
-    regexp: %r(^/persona(?:\s+(add|delete|edit|file|info|list|load|play))?$),
-    complete: [ 'persona', %w[ add delete edit file info list load play ] ],
+    regexp: %r(^/persona(?:\s+(add|delete|edit|backup|file|info|list|load|play))?$),
+    complete: [ 'persona', %w[ add delete edit backup file info list load play ] ],
     optional: true,
     help: 'manage and load/play personae for roleplay',
   ) do |subcommand|
@@ -553,6 +553,9 @@ class OllamaChat::Chat
       else
         :next
       end
+    when 'backup'
+      backup_persona
+      :next
     when 'file'
       if pathname = choose_filename('**/*.md')
         pathname.read

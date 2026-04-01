@@ -198,7 +198,6 @@ module OllamaChat::PersonaeManagement
   # old content, and returns the result after editing.
   def edit_persona
     if persona = choose_persona
-      persona  = persona
       pathname = personae_directory + persona
       old_content = File.read(pathname)
       if edit_file(pathname)
@@ -208,6 +207,21 @@ module OllamaChat::PersonaeManagement
         end
         personae_result(persona)
       end
+    end
+  end
+
+  # Backs up the content of a selected persona file.
+  #
+  # Prompts the user to select a persona from the available list. If a persona
+  # is selected, its current content is read and saved to a designated backup
+  # location using `File.write`. This ensures a safe copy is preserved before
+  # any modifications are made to the original file.
+  def backup_persona
+    if persona = choose_persona
+      pathname = personae_directory + persona
+      old_content = File.read(pathname)
+      File.write(persona_backup_pathname(persona), old_content)
+      STDOUT.puts "Wrote backup of #{persona.to_s} to #{pathname.to_s.inspect}."
     end
   end
 
