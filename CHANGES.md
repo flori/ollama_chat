@@ -1,5 +1,47 @@
 # Changes
 
+## 2026-04-02 v0.0.86
+
+- Updated `play_persona_prompt` in `lib/ollama_chat/personae_management.rb` to
+  include “(no need to read the file)” in the roleplay prompt template string.  
+- Added `optional: true` to the `/links` command in `lib/ollama_chat/chat.rb`.  
+- Made the `edit` subcommand of `/revise` optional by adding `optional: true`
+  to its command definition in `lib/ollama_chat/chat.rb`.  
+- Added a `backup` subcommand for persona management:  
+  - Updated the `:persona` command regex and completion options in
+    `lib/ollama_chat/chat.rb`.  
+  - Added a case handler to invoke the new `backup_persona` method.  
+  - Implemented `backup_persona` in `lib/ollama_chat/personae_management.rb`
+    with YARD documentation.  
+  - Removed the redundant assignment `persona = persona` in `edit_persona`.  
+- Fixed the rescue exception class name in the `use_model` block of
+  `lib/ollama_chat/chat.rb`, changing from `OllamaChatError::UnknownModelError`
+  to `OllamaChat::UnknownModelError`.  
+- Ensured float division for duration calculations in `FollowChat` by
+  converting operands to float in the `eval_stats` method of
+  `lib/ollama_chat/follow_chat.rb`.  
+- Used `Pathname.new(file).expand_path.directory?` for tilde expansion in
+  directory checks in `lib/ollama_chat/parsing.rb`.  
+- Refactored command registration formatting in `lib/ollama_chat/chat.rb`.  
+- Added YARD documentation to the `OllamaChat::CommandConcern::Command` class
+  in `lib/ollama_chat/command_concern.rb`.  
+- Removed the deprecated `-d` flag from the `/input` command in
+  `lib/ollama_chat/chat.rb`.  
+- Removed tag support from `parse_content`:  
+  - Updated `OllamaChat::Chat` to call `parse_content` without expecting a
+    `tags` array.  
+  - Simplified handling of `@parse_content`.  
+  - Removed tag recognition logic from `OllamaChat::Parsing`.  
+  - Changed `parse_content` to return a single `String`.  
+  - Deleted tag‑specific example from the spec.  
+- Updated the `file_context` tool description for accuracy.  
+- Added an interactive loop to enable/disable tools:  
+  - Wrapped `enable_tool` and `disable_tool` in a `loop do` in
+    `lib/ollama_chat/tool_calling.rb`.  
+  - Modified `select_tools` to place `[EXIT]` at the start.  
+  - Handled user choice with `OllamaChat::Utils::Chooser.choose(select_tools)`
+    and exited on `[EXIT]` or `nil`.
+
 ## 2026-03-29 v0.0.85
 
 - Added `list` and `rename` subcommands to the `/collection` command, allowing
