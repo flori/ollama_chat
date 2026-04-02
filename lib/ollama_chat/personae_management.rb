@@ -339,7 +339,7 @@ module OllamaChat::PersonaeManagement
   # @return [String] Formatted roleplay prompt
   def play_persona_prompt(persona:, persona_profile:)
     persona_name = persona.basename.sub_ext('')
-    "Roleplay as persona %{persona_name} loaded from %{persona}\n\n%{persona_profile}" % {
+    "Roleplay as persona %{persona_name} (no nead to read the file) loaded from %{persona}\n\n%{persona_profile}" % {
       persona_name:, persona:, persona_profile:
     }
   end
