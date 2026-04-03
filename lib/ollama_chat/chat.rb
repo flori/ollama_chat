@@ -671,7 +671,11 @@ class OllamaChat::Chat
       if pattern_mode
         all = go_command('a', opt).fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
-        next provide_file_set_content(patterns, all:, &:read) || :next
+        read = -> pathname {
+          STDOUT.puts "Reading #{pathname.to_s.inspect}."
+          pathname.read
+        }
+        next provide_file_set_content(patterns, all:, &read) || :next
       elsif arg
         filename = Pathname.new(arg).expand_path
         next filename.file? && filename.read || :next
