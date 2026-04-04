@@ -272,8 +272,15 @@ class OllamaChat::MessageList
   #
   # @return [self, NilClass] nil if the system prompt is empty, otherwise self.
   def show_system_prompt
-    system_prompt = @chat.kramdown_ansi_parse(system.to_s).gsub(/\n+\z/, '').full?
-    system_prompt or return
+    current_system = system.to_s
+    system_prompt = @chat.kramdown_ansi_parse(current_system).gsub(/\n+\z/, '').full?
+    if system_prompt.blank?
+      if current_system.present?
+        system_prompt = current_system
+      else
+        return
+      end
+    end
     STDOUT.puts <<~EOT
       Configured system prompt is:
       #{system_prompt}

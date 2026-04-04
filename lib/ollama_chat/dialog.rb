@@ -6,12 +6,6 @@
 # information and managing chat sessions. It leverages user interaction
 # components like choosers and prompts to enable dynamic configuration during
 # runtime.
-#
-# @example Selecting a model from available options
-#   chat.choose_model('-m llama3.1', 'llama3.1')
-#
-# @example Changing the system prompt
-#   chat.change_system_prompt('default_prompt', system: '?sherlock')
 module OllamaChat::Dialog
   # The ask? method prompts the user with a question and returns their input.
   #
@@ -154,48 +148,6 @@ module OllamaChat::Dialog
     else
       STDOUT.puts "Renaming cancelled."
     end
-  end
-
-  # The change_system_prompt method allows the user to select or enter a new
-  # system prompt for the chat session.
-  # It provides an interactive chooser when multiple prompts match the given
-  # selector, and sets the selected prompt as the current system prompt for the
-  # messages.
-  #
-  # @param default [ String ] the default system prompt to fall back to
-  # @param system [ String ] the system prompt identifier or pattern to
-  #   search for
-  def change_system_prompt(default, system: nil)
-    selector = case system
-               when /\A\?(.+)\z/
-                 Regexp.new($1)
-               when ??
-                 /./
-               else
-                 Regexp.new(system.to_s)
-               end
-    prompts = config.system_prompts.attribute_names.compact.grep(selector).sort
-    if prompts.size == 1
-      system = config.system_prompts.send(prompts.first)
-    else
-      prompts.unshift('[NEW]').unshift('[EXIT]')
-      chosen = OllamaChat::Utils::Chooser.choose(prompts)
-      system =
-        case chosen
-        when '[NEW]'
-          ask?(prompt: "❓ Enter new system prompt to use: ")
-        when '[EXIT]'
-          STDOUT.puts "Exiting chooser."
-          return
-        when nil
-          default
-        when *prompts
-          config.system_prompts.send(chosen)
-        else
-          default
-        end
-    end
-    @messages.set_system_prompt(system)
   end
 
   # The choose_prompt method presents a menu of available prompts for selection.

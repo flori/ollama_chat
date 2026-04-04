@@ -36,6 +36,7 @@ class OllamaChat::Chat
   include OllamaChat::HTTPHandling
   include OllamaChat::CommandConcern
   include OllamaChat::Logging
+  include OllamaChat::SystemPromptManagement
   include OllamaChat::DocumentCache
   include OllamaChat::Switches
   include OllamaChat::StateSelectors
@@ -94,9 +95,9 @@ class OllamaChat::Chat
     @opts               = go 'f:u:m:s:p:c:C:D:MESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
-    @messages           = OllamaChat::MessageList.new(self)
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
+    @messages           = OllamaChat::MessageList.new(self)
     setup_switches(config)
     setup_state_selectors(config)
     connect_ollama
@@ -105,8 +106,6 @@ class OllamaChat::Chat
     elsif backup_file = OC::XDG_CACHE_HOME + 'backup.json' and backup_file.exist?
       messages.load_conversation(backup_file)
       FileUtils.rm_f backup_file
-    else
-      @setup_system_prompt = true
     end
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @documents            = setup_documents
@@ -174,7 +173,7 @@ class OllamaChat::Chat
     end
     @model_options  = Ollama::Options[config.model.options]
 
-    @setup_system_prompt and setup_system_prompt
+    setup_system_prompt
 
     STDOUT.puts "\nType /help to display the chat help."
 
@@ -305,13 +304,16 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(change))?$),
-    complete: [ 'system', %w[ change ] ],
+    regexp: %r(^/system(?:\s+(change|load))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ change load ] ],
     optional: true,
     help: 'change/show system prompt'
-  ) do |subcommand|
-    if subcommand == 'change'
+  ) do |subcommand, pattern|
+    case subcommand
+    when 'change'
       change_system_prompt(@system)
+    when 'load'
+      load_system_prompt_from_file(pattern)
     end
     @messages.show_system_prompt
     :next
@@ -1109,24 +1111,6 @@ class OllamaChat::Chat
     end
     log(:info, "Connection to #{base_url} established.")
     @ollama
-  end
-
-  # Sets up the system prompt for the chat session.
-  #
-  # This method determines whether to use a default system prompt or a custom
-  # one specified via command-line options. If a custom system prompt is
-  # provided with a regexp selector (starting with ?), it invokes the
-  # change_system_prompt method to handle the selection. Otherwise, it
-  # retrieves the system prompt from a file or uses the default value, then
-  # sets it in the message history.
-  def setup_system_prompt
-    default = config.system_prompts.default? || @model_metadata.system
-    if @opts[?s] =~ /\A\?/
-      change_system_prompt(default, system: @opts[?s])
-    else
-      system = OllamaChat::Utils::FileArgument.get_file_argument(@opts[?s], default:)
-      system.present? and messages.set_system_prompt(system)
-    end
   end
 
   # The setup_documents method initializes the document processing pipeline by
