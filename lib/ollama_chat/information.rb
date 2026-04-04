@@ -83,6 +83,59 @@ module OllamaChat::Information
     nil
   end
 
+  # Prints details about the current chat model to the specified
+  # output.
+  #
+  # @param [IO] output The output stream to print the model information to
+  # (defaults to STDOUT).
+  def model_info(output: STDOUT)
+    output.puts "Current chat model is #{bold{@model}}."
+    output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
+    if @model_options.present?
+      output.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
+    end
+  end
+
+  # The info_session method displays comprehensive information about the
+  # current chat session.
+  #
+  # This method outputs details about the session including session name, model
+  # information, think mode settings, tool support, embedding status,
+  # collection statistics, persona,
+  # runtime information, and document policy.
+  #
+  # @param output [IO] the output stream to write the information to, defaults
+  #   to STDOUT
+  def info_session(output: STDOUT)
+    output.print "Current session: "; show_session(output:)
+    output.print "🧠 "; model_info(output:)
+    think_mode.show(output:)
+    think_loud.show(output:)
+    think_strip.show(output:)
+    tools_support.show(output:)
+    @embedding.show(output:)
+    if @embedding.on?
+      output.puts "🔢 Current RAG model is #{bold{@embedding_model}}"
+      if @embedding_model_options.present?
+        output.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"
+      end
+      output.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
+      collection_stats(output:)
+    end
+    name = default_persona_name and output.puts "💃 Persona: #{bold{name}}"
+    if runtime_info.on?
+      output.puts "🏃 Runtime Information:"
+      output.puts runtime_information_values.transform_keys(&:to_s).to_yaml.
+        sub(/\A---\s*\n/, '').gsub(/^/, '  ')
+    else
+      runtime_info.show(output:)
+    end
+    markdown.show(output:)
+    stream.show(output:)
+    voice.show(output:)
+    output.puts "📜 Document policy for parsing in user text: #{bold{document_policy}}"
+  end
+
   # The info method displays comprehensive information about the current state
   # of the ollama_chat instance.
   # This includes version details, server connection status, model
@@ -94,41 +147,12 @@ module OllamaChat::Information
     use_pager do |output|
       output.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
       output.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
-      output.puts "Current conversation model is #{bold{@model}}."
-      output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
-      if @model_options.present?
-        output.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
-      end
-      @embedding.show(output:)
-      if @embedding.on?
-        output.puts "Current embedding model is #{bold{@embedding_model}}"
-        if @embedding_model_options.present?
-          output.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"
-        end
-        output.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
-        collection_stats(output:)
-      end
-      markdown.show(output:)
-      stream.show(output:)
-      think_mode.show(output:)
-      think_loud.show(output:)
-      think_strip.show(output:)
+      output.puts "Session: #{bold{@session.name}} (#{italic{@session.id}})"
+      info_session(output:)
       location.show(output:)
-      voice.show(output:)
       @voice.on? and @voices.show(output:)
-      if runtime_info.on?
-        output.puts "Runtime Information:"
-        output.puts runtime_information_values.transform_keys(&:to_s).to_yaml.
-          sub(/\A---\s*\n/, '').gsub(/^/, '  ')
-      else
-        runtime_info.show(output:)
-      end
-      tools_support.show(output:)
       output.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
-      output.puts "Document policy for references in user text: #{bold{document_policy}}"
       output.puts "Currently selected search engine is #{bold(search_engine)}."
-      name = default_persona_name and output.puts "Default persona: #{bold{name}}"
-      output.puts "Conversation length: #{bold(@messages.size.to_s)} message(s)."
     end
     nil
   end
@@ -154,6 +178,7 @@ module OllamaChat::Information
       Usage: #{progname} [OPTIONS]
 
         -f CONFIG      config file to read
+        -l SESSION     load session with name/id SESSION
         -u URL         the ollama base url, OLLAMA_URL
         -m MODEL       the ollama model to chat with, OLLAMA_CHAT_MODEL, ?selector
         -s SYSTEM      the system prompt to use as a file, OLLAMA_CHAT_SYSTEM, ?selector

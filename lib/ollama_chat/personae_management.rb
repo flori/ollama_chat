@@ -4,6 +4,14 @@
 # creating, reading, updating, and deleting persona definitions stored as
 # Markdown files in the personae directory.
 module OllamaChat::PersonaeManagement
+  # The initial_persona method retrieves the initial persona for the chat
+  # session.
+  #
+  # @return [ String, nil ] the persona name or nil if not set
+  def initial_persona
+    @opts[?p].full? || session&.default_persona_id
+  end
+
   private
 
   # Returns the directory path where persona files are stored.
@@ -35,36 +43,57 @@ module OllamaChat::PersonaeManagement
     FileUtils.mkdir_p personae_backup_directory
   end
 
+  # Sets the default persona name and updates the session.
+  #
+  # @param persona_name [ String, nil ] the name of the persona to set as
+  #   default
+  #
+  # @return [ String, nil ] the set default persona name or nil if not set
+  def set_default_persona_name(persona_name)
+    if persona_name.present? && persona_name != :none
+      @default_persona_name = Pathname.new(persona_name).basename.sub_ext('').to_path
+      @session.update(default_persona_id: default_persona_name)
+    else
+      @session.update(default_persona_id: nil)
+      @default_persona_name = nil
+    end
+    default_persona_name
+  end
+
+  # The default_persona_name method returns the name of the default persona.
+  #
+  # @return [String, nil] the name of the default persona or nil if not set
+  attr_reader :default_persona_name
+
+  # The default_persona method returns the path to the default persona file.
+  #
+  # @return [ Pathname, nil ] the Pathname object for the default persona file
+  #   or nil if no default persona is set
+  def default_persona
+    if default_persona_name && default_persona_name != :none
+      personae_directory.join(default_persona_name).sub_ext('.md')
+    end
+  end
+
   # The setup_persona_from_opts method initializes persona setup by checking
   # for a provided persona option, determining the appropriate file path, and
   # playing the persona file if it exists.
   def setup_persona_from_opts
-    @default_persona and return
+    default_persona and return
     @messages.size > 0 and return
-    if persona = @opts[?p].full? { Pathname.new(_1) }
+    if persona = initial_persona
       if persona.extname == '.md'
         pathname = persona
       else
         pathname = personae_directory + (persona.to_s + '.md')
       end
       if pathname.exist?
-        @default_persona = pathname
+        set_default_persona_name(pathname)
         play_persona_file pathname
       end
     end
   ensure
-    @default_persona ||= :none
-  end
-
-  # The default_persona_name method returns the name of the currently set
-  # default persona by extracting its basename and removing the file extension,
-  # unless no persona is set.
-  #
-  # @return [ String ] the default persona name or nil if none.
-  def default_persona_name
-    if @default_persona.present? && @default_persona != :none
-      @default_persona.basename.sub_ext('').to_s
-    end
+    default_persona or set_default_persona_name(:none)
   end
 
   # Reloads the default persona file if one is set and not :none, prompting the
@@ -93,11 +122,11 @@ module OllamaChat::PersonaeManagement
       case choice&.value
       when nil, 'keep'
       when 'reload_default'
-        return play_persona_file(@default_persona)
+        return play_persona_file(default_persona)
       when 'choose_different'
         if persona = choose_persona
-          @default_persona = personae_directory + persona
-          return play_persona_file(@default_persona)
+          set_default_persona_name persona
+          return play_persona_file(default_persona)
         else
           redo
         end
@@ -306,6 +335,7 @@ module OllamaChat::PersonaeManagement
     result = {}
 
     personae.each do |persona|
+      persona = Pathname.new(persona).sub_ext('.md')
       pathname = personae_directory + persona
       pathname.exist? or next
       result[persona.sub_ext('')] = {
@@ -325,6 +355,7 @@ module OllamaChat::PersonaeManagement
   #   string
   def load_persona_file(persona)
     pathname = personae_directory + persona
+    pathname = pathname.sub_ext('.md')
     if pathname.exist?
       return pathname, pathname.read
     end
@@ -348,9 +379,10 @@ module OllamaChat::PersonaeManagement
   #
   # Uses the persona selection and loading methods to generate the
   # appropriate roleplay prompt.
-  def play_persona(pathname: nil)
+  def play_persona
     persona                  = choose_persona or return
     persona, persona_profile = load_persona_file(persona)
+    session.default_persona_id.full? or set_default_persona_name(persona)
     play_persona_prompt(persona:, persona_profile:)
   end
 
@@ -363,6 +395,7 @@ module OllamaChat::PersonaeManagement
   def play_persona_file(pathname)
     persona         = Pathname.new(pathname)
     persona_profile = pathname.read
+    session.default_persona_id.full? or set_default_persona_name(persona)
     play_persona_prompt(persona:, persona_profile:)
   end
 end

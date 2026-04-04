@@ -52,7 +52,6 @@ module OllamaChat::ConfigHandling
   # @param exception [Exception] the exception that occurred while reading
   #   the config file
   def fix_config(exception)
-    save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
     STDOUT.puts "When reading the config file, a #{exception.class} "\
       "exception was caught: #{exception.message.inspect}"
     unless diff_tool = OC::DIFF_TOOL?
@@ -70,6 +69,39 @@ module OllamaChat::ConfigHandling
     end
   end
 
+  # Adjusts the command-line argument array to ensure the current session is
+  # explicitly reloaded by injecting the `-l <session_id>` flag.
+  #
+  # This method handles the following argument scenarios to prevent
+  # breaking existing flags:
+  #
+  # 1. **Missing Flag:** If `-l` is not present, it appends `-l` and the
+  #    current session ID to the end of the array.
+  # 2. **Empty Flag:** If `-l` is present but the next element is another
+  #    flag (starts with `-`), it inserts the session ID immediately after `-l`.
+  #    (This case should actually never happen.)
+  # 3. **Existing Flag:** If `-l` is present and followed by a value,
+  #    it replaces that value with the current session ID to ensure continuity.
+  #
+  # @param argv [Array<String>] The array of command-line arguments (typically
+  #   `ARGV`) to be modified.
+  # @return [Array<String>] A new, duplicated array containing the updated
+  #   arguments, ensuring the original `ARGV` remains unmodified.
+  def fix_session(argv)
+    argv = argv.dup
+    if i = argv.index('-l')
+      j = i + 1
+      unless argv[j]&.start_with?(?-)
+        argv[j] = session.id.to_s
+      else
+        argv.insert(j, session.id.to_s)
+      end
+    else
+      argv << '-l' << session.id.to_s
+    end
+    argv
+  end
+
   # Edit the current configuration file in the editor defined by the
   # environment variable `EDITOR`.
   #
@@ -85,9 +117,9 @@ module OllamaChat::ConfigHandling
   def edit_config
     if result = edit_file(@ollama_chat_config.filename)
       if confirm?(prompt: "🔔 Do you want to restart #{progname}? (y/n) ", yes: /y/i)
-        save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
+        store_messages_in_session
         save_history
-        exec($0, *ARGV)
+        exec($0, *fix_session(ARGV))
       else
         STDOUT.puts "Skipped reloading the config."
       end
@@ -102,9 +134,9 @@ module OllamaChat::ConfigHandling
   #   config.reload_config  # => restarts if user answers "y"
   def reload_config
     if confirm?(prompt: "🔔 Do you want to restart #{progname}? (y/n) ", yes: /y/i)
-      save_conversation(OC::XDG_CACHE_HOME + 'backup.json')
+      store_messages_in_session
       save_history
-      exec($0, *ARGV)
+      exec($0, *fix_session(ARGV))
     else
       STDOUT.puts "Skipped reloading the config."
     end

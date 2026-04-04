@@ -14,6 +14,17 @@
 module OllamaChat::Parsing
   include OllamaChat::Utils::AnalyzeDirectory
 
+  # An array of valid document policy states that define how document
+  # references in user text are handled.
+  #
+  # These states control the behavior of the document policy selector:
+  # * `ignoring`: Document references are ignored.
+  # * `embedding`: Document references are embedded into the conversation
+  #   context for RAG.
+  # * `importing`: Document references are imported into the conversation.
+  # * `summarizing`: Document references are summarized for reference.
+  DOCUMENT_POLICY_STATES = %w[ ignoring embedding importing summarizing ]
+
   # The parse_source method processes different types of input sources and
   # converts them into a standardized text representation.
   #

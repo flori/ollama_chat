@@ -62,6 +62,9 @@ class OllamaChat::Chat
   include OllamaChat::ToolCalling
   include OllamaChat::ConfigHandling
   include OllamaChat::PersonaeManagement
+  include OllamaChat::SessionHandling
+  include OllamaChat::RAGHandling
+  include OllamaChat::FavouritesHandling
   include OllamaChat::Utils::ValueFormatter
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
@@ -92,27 +95,28 @@ class OllamaChat::Chat
   # @raise [RuntimeError] If the Ollama API version is less than 0.9.0, indicating
   #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
-    @opts               = go 'f:u:m:s:p:c:C:D:MESVh', argv
+    @opts               = go 'f:u:m:s:p:c:C:D:l:MESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
     @messages           = OllamaChat::MessageList.new(self)
-    setup_switches(config)
+    OllamaChat::Database.setup_models
+    setup_session
+    setup_switches
     setup_state_selectors(config)
     connect_ollama
+    set_default_persona_name session.default_persona_id
     if conversation_file = @opts[?c]
       messages.load_conversation(conversation_file)
-    elsif backup_file = OC::XDG_CACHE_HOME + 'backup.json' and backup_file.exist?
-      messages.load_conversation(backup_file)
-      FileUtils.rm_f backup_file
+    else
+      messages.read_conversation_jsonl(session.messages.to_s)
     end
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @documents            = setup_documents
     @cache                = setup_cache
     @images               = []
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
-    @enabled_tools        = default_enabled_tools
     @tool_call_results    = {}
     init_chat_history
     setup_personae_directory
@@ -120,19 +124,6 @@ class OllamaChat::Chat
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
-
-  # The document_policy reader returns the document policy selector for the chat session.
-  #
-  # @return [ OllamaChat::StateSelector ] the document policy selector object
-  #   that manages the policy for handling document references in user text
-  attr_reader :document_policy
-
-  # The think_mode reader returns the think mode selector for the chat session.
-  #
-  # @return [ OllamaChat::StateSelector ] the think mode selector object
-  #   that manages the thinking mode setting for the Ollama model interactions
-  attr_reader :think_mode
-
   # The ollama reader returns the Ollama API client instance.
   #
   # @return [Ollama::Client] the configured Ollama API client
@@ -167,13 +158,16 @@ class OllamaChat::Chat
   # then prompts the user for input to begin interacting with the chat.
   def start
     begin
-      use_model(@opts[?m].full? || config.model.name)
+      use_model(session.current_model.full? || initial_model)
     rescue OllamaChat::UnknownModelError => e
       abort "Failed to use to model: #{e}"
     end
-    @model_options  = Ollama::Options[config.model.options]
+    set_model_options(get_model_options(@model))
 
+    STDOUT.puts
     setup_system_prompt
+
+    info_session
 
     STDOUT.puts "\nType /help to display the chat help."
 
@@ -187,7 +181,59 @@ class OllamaChat::Chat
     OC::OLLAMA::CHAT::DEBUG
   end
 
+  # The initial_model method returns the model name to be used for the chat
+  # session. It checks if a model was specified via command line option '-m'
+  # and returns that, otherwise it falls back to the default model name from
+  # the configuration.
+  #
+  # @return [ String ] the model name to be used for the chat session
+  def initial_model
+    @opts[?m].full? || config.model.name
+  end
+
+  # The initial_collection method determines the collection name to be used for
+  # embeddings in the RAG system.
+  #
+  # @return [ Symbol ] the collection name symbol
+  def initial_collection
+    (
+      @opts[?C] ||
+      session&.current_collection.full? ||
+      config.embedding.collection.full? ||
+      :default
+    ).to_sym
+  end
+
+  # The initial_system_prompt method returns the system prompt for the initial
+  # message.
+  #
+  # @return [String] the system prompt for the initial message
+  def initial_system_prompt
+    @messages.system
+  end
+
   private
+
+  # The generate method sends a prompt to the Ollama model and returns the
+  # result.
+  #
+  # @param prompt [ String ] the prompt to send to the model
+  #
+  # @return [ Ollama::Response ] the response from the Ollama model
+  def generate(prompt:)
+    ollama.generate(
+      model: @model,
+      prompt:,
+      options: @model_options,
+      stream: false,
+      think: false,
+    )
+  end
+
+  # @return [Module] The module containing the database models.
+  def models
+    OllamaChat::Database::Models
+  end
 
   # Removes lines that are JSON objects containing the given key.
   #
@@ -289,15 +335,43 @@ class OllamaChat::Chat
   end
 
   command(
+    name: :favourite,
+    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model))?$),
+    complete: [ 'favourite', %w[ add delete ], %w[ model ] ],
+    help: 'manage model favourites'
+  ) do |subcommand, type|
+    case subcommand
+    when 'add'
+      add_favourite(type, all_models)
+    when 'delete'
+      all_my_models = all_models
+      selected = models::Favourite.where(context: type).
+        where(name: all_my_models.map(&:value)).map(&:name)
+      delete_favourite(type, all_my_models.select { selected.member?(_1.value) })
+    end
+    :next
+  end
+
+  command(
     name: :model,
-    regexp: %r(^/model$),
-    help: 'change the model'
-  ) do
-    begin
-      use_model
-    rescue OllamaChat::UnknownModelError => e
-      msg = "Caught #{e.class}: #{e}"
-      log(:error, msg, warn: true)
+    regexp: %r(^/model(?:\s+(change|options))?$),
+    complete: [ 'model', %w[ change options ] ],
+    optional: true,
+    help: 'change the model/model_options or show info'
+  ) do |subcommand|
+    case subcommand
+    when 'change'
+      begin
+        use_model
+      rescue OllamaChat::UnknownModelError => e
+        msg = "Caught #{e.class}: #{e}"
+        log(:error, msg, warn: true)
+      end
+      set_model_options(get_model_options(@model))
+    when 'options'
+      edit_model_options(@model)
+    else
+      model_info
     end
     :next
   end
@@ -356,6 +430,58 @@ class OllamaChat::Chat
     help: 'change the voice'
   ) do
     change_voice
+    :next
+  end
+
+  ## Session
+
+  command(
+    name: :session,
+    regexp: %r(^/session(?:\s+(list|new|rename|summarize|switch|delete))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ list new rename summarize switch delete ] ],
+    optional: true,
+    options: '[-c|-f] [name]',
+    help: <<~EOT,
+      Show session list, create new, rename, summarize (-s sentence/-f for
+      markdown file output), switch, delete session
+    EOT
+  ) do |subcommand, opt, name|
+    case subcommand
+    when nil
+      show_session
+    when 'list'
+      list_sessions
+    when 'new'
+      if content = set_new_session(name)
+        next content
+      end
+    when 'delete'
+      delete_session(name)
+    when 'rename'
+      rename_session
+    when 'summarize'
+      opts = go_command('fs', opt)
+      if summary = summarize_session(pretty: true, sentence: opts[?s]).full?
+        if opts[?f] and filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
+          if filename.exist? && !confirm?(
+              prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
+              yes: /y/i
+          )
+            then
+            STDERR.puts "File not written!"
+            next :next
+          end
+          filename.write(summary)
+          STDERR.puts "File successfully written."
+        else
+          use_pager do |output|
+            output.puts kramdown_ansi_parse(summary)
+          end
+        end
+      end
+    when 'switch'
+      switch_session(name)
+    end
     :next
   end
 
@@ -490,34 +616,11 @@ class OllamaChat::Chat
   ) do |subcommand|
     case subcommand
     when 'clear'
-      loop do
-        tags = @documents.tags.add('[EXIT]').add('[ALL]')
-        tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
-        case tag
-        when nil, '[EXIT]'
-          STDOUT.puts "Exiting chooser."
-          break
-        when '[ALL]'
-          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /y/i)
-            @documents.clear
-            STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
-            break
-          else
-            STDOUT.puts 'Cancelled.'
-            sleep 3
-          end
-        when /./
-          @documents.clear(tags: [ tag ])
-          STDOUT.puts "Cleared tag #{tag} from collection #{bold{@documents.collection}}."
-          sleep 3
-        end
-      end
+      clear_collection
     when 'change'
       choose_collection(@documents.collection)
     when 'list'
-      current_collection = @documents.collection
-      puts @documents.collections.
-        map { |c| current_collection == c ? bold { c } : c }
+      list_collections
     when 'rename'
       rename_collection(@documents.collection)
     when nil
@@ -530,13 +633,19 @@ class OllamaChat::Chat
 
   command(
     name: :persona,
-    regexp: %r(^/persona(?:\s+(add|delete|edit|backup|file|info|list|load|play))?$),
-    complete: [ 'persona', %w[ add delete edit backup file info list load play ] ],
+    regexp: %r(^/persona(?:\s+(set|add|delete|edit|backup|file|info|list|load|play))?$),
+    complete: [ 'persona', %w[ set add delete edit backup file info list load play ] ],
     optional: true,
     help: 'manage and load/play personae for roleplay',
   ) do |subcommand|
     disable_content_parsing
     case subcommand
+    when 'set'
+      default_persona_id = ask?(
+        prompt: "❓ Enter the new name for the current default persona (CR to unset, C-c cancel): "
+      )
+      set_default_persona_name(default_persona_id)
+      :next
     when 'add'
       if result = add_persona
         result
@@ -1083,6 +1192,7 @@ class OllamaChat::Chat
     log(:error, e)
     fix_config(e)
   ensure
+    store_messages_in_session
     save_history
   end
 
@@ -1133,7 +1243,7 @@ class OllamaChat::Chat
       @embedding_model         = config.embedding.model.name
       @embedding_model_options = Ollama::Options[config.embedding.model.options]
       pull_model_unless_present(@embedding_model)
-      collection = @opts[?C] || config.embedding.collection
+      collection = initial_collection
       @documents = Documentrix::Documents.new(
         ollama:,
         model:             @embedding_model,

@@ -41,7 +41,7 @@ describe OllamaChat::ThinkControl do
 
   describe '#think_mode' do
     it 'exposes a StateSelector instance' do
-      expect(chat.think_mode).to be_a OllamaChat::StateSelectors::StateSelector
+      expect(chat.think_mode).to be_a OllamaChat::StateSelectors::DatabaseStateSelector
     end
 
     it 'has the correct default selection (disabled)' do

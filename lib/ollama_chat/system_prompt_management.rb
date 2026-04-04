@@ -5,6 +5,13 @@
 # system prompts, allowing for dynamic and interactive configuration within the
 # chat lifecycle.
 module OllamaChat::SystemPromptManagement
+  # Sets the current system prompt for the chat session. @param system [String]
+  # the system prompt to set
+  def set_current_system_prompt(system)
+    messages.set_system_prompt(system)
+    session.update(current_system_prompt: system)
+  end
+
   # Sets up the system prompt for the chat session.
   #
   # This method determines whether to use a default system prompt or a custom
@@ -14,12 +21,13 @@ module OllamaChat::SystemPromptManagement
   # retrieves the system prompt from a file or uses the default value, then
   # sets it in the message history.
   def setup_system_prompt
-    default = config.system_prompts.default? || @model_metadata.system
+    default = session.current_system_prompt.full? ||
+      config.system_prompts.default? || @model_metadata.system
     if @opts[?s] =~ /\A\?/
       change_system_prompt(default, system: @opts[?s])
     else
       system = OllamaChat::Utils::FileArgument.get_file_argument(@opts[?s], default:)
-      system.present? and messages.set_system_prompt(system)
+      system.present? and set_current_system_prompt(system)
     end
   end
 
@@ -62,7 +70,7 @@ module OllamaChat::SystemPromptManagement
           default
         end
     end
-    @messages.set_system_prompt(system)
+    set_current_system_prompt(system)
   end
 
   # Loads a system prompt from a file selected via an interactive file chooser.
@@ -74,7 +82,7 @@ module OllamaChat::SystemPromptManagement
 
     if filename&.exist?
       content = filename.read
-      @messages.set_system_prompt(content)
+      set_current_system_prompt(content)
       STDOUT.puts "Successfully loaded system prompt from: #{filename}"
     else
       STDOUT.puts "No valid file selected or file does not exist."

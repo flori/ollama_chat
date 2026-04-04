@@ -118,8 +118,18 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/drop 2")).to eq :next
     end
 
-    it 'returns :next when input is "/model"' do
+    it 'returns :next when input is "/model change"' do
       expect(chat).to receive(:choose_model).and_return 'llama3.1'
+      expect(chat.handle_input("/model change")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options"' do
+      expect(chat).to receive(:edit_model_options)
+      expect(chat.handle_input("/model options")).to eq :next
+    end
+
+    it 'returns :next when input is "/model"' do
+      expect(chat).to receive(:model_info)
       expect(chat.handle_input("/model")).to eq :next
     end
 
@@ -169,7 +179,7 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/document_policy"' do
-      expect_any_instance_of(OllamaChat::StateSelectors::StateSelector).to\
+      expect_any_instance_of(OllamaChat::StateSelectors::DatabaseStateSelector).to\
         receive(:choose)
       expect(chat.handle_input("/document_policy")).to eq :next
     end
@@ -372,6 +382,8 @@ describe OllamaChat::Chat, protect_env: true do
     it 'dispays the last exchange of the converstation' do
       expect(chat).to receive(:interact_with_user).and_return 0
       expect(STDOUT).to receive(:puts).at_least(1)
+      expect(STDOUT).to receive(:print).at_least(1)
+      expect(chat).to receive(:get_model_options).and_return({}).at_least(1)
       chat.start
     end
   end
@@ -380,7 +392,6 @@ describe OllamaChat::Chat, protect_env: true do
     connect_to_ollama_server(instantiate: false)
 
     context 'with MemoryCache' do
-
       let :argv do
         chat_default_config(%w[ -M ])
       end

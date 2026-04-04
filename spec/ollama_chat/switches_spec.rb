@@ -33,7 +33,7 @@ describe OllamaChat::Switches do
       end
     end
 
-    context 'default to false' do
+    context 'default to true' do
       let :config do
         double(test: true)
       end
@@ -52,6 +52,73 @@ describe OllamaChat::Switches do
           switch.toggle
         }.to change {
           switch.on? && !switch.off?
+        }.from(true).to(false)
+      end
+    end
+  end
+
+  describe OllamaChat::Switches::DatabaseSwitch do
+    let :session do
+      double('Session')
+    end
+
+    let :chat do
+      double('Chat', session:)
+    end
+
+    let :switch do
+      described_class.new(
+        chat:,
+        attribute: :test,
+        msg: {
+          true  => "Enabled.",
+          false => "Disabled.",
+        }
+      )
+    end
+
+    context 'default to false' do
+      it 'can be switched on' do
+        expect(session).to receive(:send).with(:test).and_return false, true
+        expect(session).to receive(:update).with("test": true)
+        expect {
+          switch.set(true)
+        }.to change {
+          switch.on?
+        }.from(false).to(true)
+      end
+
+      it 'can be toggled on' do
+        expect(session).to receive(:send).with(:test).and_return false, false, true, true
+        expect(session).to receive(:update).with("test": true)
+        expect(STDOUT).to receive(:puts).with('Enabled.')
+        expect {
+          switch.toggle
+        }.to change {
+          switch.on?
+        }.from(false).to(true)
+      end
+    end
+
+    context 'default to true' do
+      it 'can be switched on' do
+        expect(session).to receive(:send).with(:test).and_return true, false
+        expect(session).to receive(:update).with("test": false)
+        expect {
+          switch.set(false)
+        }.to change {
+          switch.on?
+        }.from(true).to(false)
+      end
+
+      it 'can be toggled off' do
+        expect(session).to receive(:send).with(:test).and_return true, true, false, false
+        expect(session).to receive(:update).with("test": false)
+        expect(STDOUT).to receive(:puts).with('Disabled.')
+        expect {
+          switch.toggle
+        }.to change {
+          switch.on?
         }.from(true).to(false)
       end
     end

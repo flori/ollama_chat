@@ -99,6 +99,64 @@ module OllamaChat::Switches
     include CheckSwitch
   end
 
+  # The DatabaseSwitch class provides a mechanism for managing boolean
+  # configuration states that are persisted in the database.
+  #
+  # This class acts as a wrapper around a database attribute, allowing for
+  # toggling and setting of boolean values while ensuring that changes are
+  # immediately saved to the associated session.
+  #
+  # It is used in the application's switches to manage settings like streaming,
+  # thinking modes, markdown output, and other session-specific toggles.
+  class DatabaseSwitch
+    # Initializes a new DatabaseSwitch instance.
+    #
+    # @param chat [OllamaChat::Chat] the chat instance
+    # @param msg [Hash] the message hash containing display messages
+    # @param attribute [Symbol] the attribute name to switch
+    def initialize(chat:, msg:, attribute:)
+      @chat      = chat
+      @attribute = attribute
+      @msg      = msg
+    end
+
+    # The value method returns the current value of the attribute from the
+    # session.
+    #
+    # @return [Object] the value of the attribute
+    def value
+      @chat.session.send(@attribute)
+    end
+
+    # The attribute method returns the value of the attribute instance
+    # variable.
+    #
+    # @return [Object] the value of the attribute instance variable
+    attr_reader :attribute
+
+    # The set method updates the session attribute with the given value.
+    #
+    # @param value [Object] the value to set
+    # @param show [TrueClass, FalseClass] whether to show the updated value
+    # @param output [IO] the output stream to use when showing the value
+    def set(value, show: false, output: STDOUT)
+      @chat.session.update("#{attribute}": !!value)
+      show && self.show(output:)
+    end
+
+    # The toggle method switches the value of a session attribute and
+    # optionally displays the new state.
+    #
+    # @param show [ TrueClass, FalseClass ] whether to show the updated state
+    #   after toggling
+    def toggle(show: true)
+      @chat.session.update("#{attribute}": !value)
+      show && self.show
+    end
+
+    include CheckSwitch
+  end
+
   # A switch class that manages a boolean state based on a proc value.
   #
   # The CombinedSwitch class provides a way to manage a boolean configuration
@@ -204,52 +262,55 @@ module OllamaChat::Switches
   # This method creates and configures multiple switch objects that control
   # different aspects of the application, such as streaming, thinking, markdown
   # output, voice output, embedding, and location settings.
-  #
-  # @param config [ ComplexConfig::Settings ] the configuration object
-  #   containing settings for the switches
-  def setup_switches(config)
-    @stream = Switch.new(
-      value: config.stream,
+  def setup_switches
+    @stream = DatabaseSwitch.new(
+      chat: self,
+      attribute: :stream_enabled,
       msg: {
         true  => "Streaming enabled.",
         false => "Streaming disabled.",
       }
     )
 
-    @think_loud = Switch.new(
-      value: config.think.loud,
+    @think_loud = DatabaseSwitch.new(
+      chat: self,
+      attribute: :think_loud_enabled,
       msg: {
         true  => "Thinking out loud, show thinking annotations.",
         false => "Thinking silently, don't show thinking annotations.",
       }
     )
 
-    @think_strip = Switch.new(
-      value: config.think.strip,
+    @think_strip = DatabaseSwitch.new(
+      chat: self,
+      attribute: :think_strip_enabled,
       msg: {
         true  => "Stripping thinking content is enabled.",
         false => "Stripping thinking content is disabled.",
       }
     )
 
-    @markdown = Switch.new(
-      value: config.markdown,
+    @markdown = DatabaseSwitch.new(
+      chat: self,
+      attribute: :markdown_enabled,
       msg: {
         true  => "Using #{italic{'ANSI'}} markdown to output content.",
         false => "Using plaintext for outputting content.",
       }
     )
 
-    @voice = Switch.new(
-      value: config.voice.enabled,
+    @voice = DatabaseSwitch.new(
+      chat: self,
+      attribute: :voice_enabled,
       msg: {
         true  => "Voice output enabled.",
         false => "Voice output disabled.",
       }
     )
 
-    @embedding_enabled = Switch.new(
-      value: config.embedding.enabled,
+    @embedding_enabled = DatabaseSwitch.new(
+      chat: self,
+      attribute: :embedding_enabled,
       msg: {
         true  => "Embedding enabled.",
         false => "Embedding disabled.",
@@ -272,23 +333,27 @@ module OllamaChat::Switches
       }
     )
 
-    @location = Switch.new(
-      value: config.location.enabled,
+    @location = DatabaseSwitch.new(
+      chat: self,
+      attribute: :location_enabled,
       msg: {
         true  => "Location enabled.",
         false => "Location disabled.",
       }
     )
 
-    @runtime_info = Switch.new(
-      value: config.runtime_info.enabled,
+    @runtime_info = DatabaseSwitch.new(
+      chat: self,
+      attribute: :runtime_info_enabled,
       msg: {
         true  => "Runtime Information enabled.",
         false => "Runtime Information disabled.",
       }
     )
-    @tools_support = Switch.new(
-      value: config.tools.enabled,
+
+    @tools_support = DatabaseSwitch.new(
+      chat:      self,
+      attribute: :tools_enabled,
       msg: {
         true  => "Tools support enabled.",
         false => "Tools support disabled.",

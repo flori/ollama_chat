@@ -67,6 +67,7 @@ code_indexer do
     sqlite3
     stringio
     term-ansicolor
+    terminal-table
     tins
     unix_socks
     webmock

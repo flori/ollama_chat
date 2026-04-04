@@ -15,6 +15,8 @@ module OllamaChat::Dialog
   def ask?(prompt:)
     print prompt
     STDIN.gets.to_s.chomp
+  rescue Interrupt
+    return nil
   end
 
   # The confirm? method displays a prompt and reads a single character input
@@ -104,52 +106,6 @@ module OllamaChat::Dialog
     STDOUT.puts green { msg }
   end
 
-  # The choose_collection method presents a menu to select or create a document
-  # collection. It displays existing collections along with options to create a
-  # new one or exit.
-  # The method prompts the user for input and updates the document collection
-  # accordingly.
-  #
-  # @param current_collection [ String, nil ] the name of the currently active collection
-  def choose_collection(current_collection)
-    collections = [ current_collection ] + @documents.collections.to_a
-    collections = collections.compact.map(&:to_s).uniq.sort
-    collections.unshift('[EXIT]').unshift('[NEW]')
-    collection = OllamaChat::Utils::Chooser.choose(collections) || current_collection
-    case collection
-    when '[NEW]'
-      @documents.collection = ask?(prompt: "❓ Enter name of the new collection: ")
-    when nil, '[EXIT]'
-      STDOUT.puts "Exiting chooser."
-    when /./
-      @documents.collection = collection
-    end
-  ensure
-    STDOUT.puts "Using collection #{bold{@documents.collection}}."
-    info
-  end
-
-  # Rename an existing collection to a new, user‑supplied name.
-  #
-  # This helper prompts the user to provide a new name for the collection
-  # identified by <code>current_collection</code>. It then renames the current
-  # collection to have the new_name and switches to it.
-  #
-  # @param current_collection [Symbol] the current collection name
-  def rename_collection(current_collection)
-    prompt = 'Rename collection %s to: ' % current_collection
-    if new_collection = ask?(prompt:).full?(:to_sym)
-      begin
-        @documents.rename_collection(new_collection)
-        STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
-      rescue
-        STDERR.puts "Renaming to #{new_collection} failed, it already exists."
-      end
-    else
-      STDOUT.puts "Renaming cancelled."
-    end
-  end
-
   # The choose_prompt method presents a menu of available prompts for selection.
   # It retrieves the list of prompt attributes from the configuration,
   # adds an '[EXIT]' option to the list, and displays it to the user.
@@ -184,6 +140,13 @@ module OllamaChat::Dialog
     MessageList.new(self)
   end
 
+  # Parses and executes a command using Tins::GO.
+  #
+  # @param s [String] The Tins::GO option pattern string where each character
+  #   represents an option, and ':' indicates the option requires an argument.
+  # @param opt [Object] The arguments to be parsed. This object is converted
+  #   to a string, stripped of whitespace, and split into an array of strings.
+  # @return [Hash{String => Object}] A hash mapping option names to their values.
   def go_command(s, opt)
     Tins::GO.go(s, opt.to_s.strip.split(/\s+/))
   end

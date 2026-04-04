@@ -12,6 +12,11 @@ end
 require 'webmock/rspec'
 WebMock.disable_net_connect!
 require 'const_conf/spec'
+
+xdg_state_home = Pathname.pwd.join('tmp')
+xdg_state_home.join('state', 'ollama_chat').mkpath
+ENV['XDG_STATE_HOME'] = xdg_state_home.to_s
+
 require 'ollama_chat'
 
 ComplexConfig::Provider.deep_freeze = false
@@ -199,13 +204,21 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     infobar.show = nil
+    xdg_state_home.glob('state/**/*.db').each(&:delete)
   end
 
   config.before do
     const_conf_as(
-      'OC::OLLAMA::CHAT::HISTORY' => Pathname.pwd.join('tmp', 'history.json'),
-      'OC::OLLAMA::CHAT::LOGFILE' => Pathname.pwd.join('tmp', 'chat.log')
+      'OC::OLLAMA::CHAT::HISTORY'          => Pathname.pwd.join('tmp', 'history.json'),
+      'OC::OLLAMA::CHAT::LOGFILE'          => Pathname.pwd.join('tmp', 'chat.log'),
     )
+  end
+
+  config.around do |example|
+    OllamaChat::Database.setup_models
+    OllamaChat::DB.transaction(rollback: :always) do
+      example.run
+    end
   end
 
   config.around(&ProtectEnvVars.apply)

@@ -147,6 +147,11 @@ module OC
         default     XDG_STATE_HOME + 'chat.log'
       end
 
+      DATABASE_LOGFILE = set do
+        description 'File to output database log messages to'
+        default     XDG_STATE_HOME + 'database.log'
+      end
+
       USER = set do
         description '(Full) Name of the chat user'
         default     { ENV['USER'] }

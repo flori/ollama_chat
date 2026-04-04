@@ -35,7 +35,12 @@ module OllamaChat::ToolCalling
   # Provides access to the list of enabled tools for the chat session.
   #
   # @return [Array<String>] an Array containing the enabled tools
-  attr_reader :enabled_tools
+  def enabled_tools
+    enabled = session.tools_default_enabled
+    config.tools.functions.attribute_names.select {
+      enabled[_1.to_s]
+    }.map(&:to_s)
+  end
 
   # Checks if a tool is currently enabled for the chat session.
   #
@@ -116,8 +121,8 @@ module OllamaChat::ToolCalling
   #
   # This method presents a menu of tools that can be enabled, excluding those
   # that are already enabled. It uses the chooser to display the available
-  # tools and handles the user's selection by adding the chosen tool to the
-  # list of enabled tools and sorting the list.
+  # tools and handles the user's selection by updating the session's default
+  # tools configuration in the database.
   def enable_tool
     loop do
       select_tools = configured_tools - enabled_tools
@@ -127,9 +132,13 @@ module OllamaChat::ToolCalling
         STDOUT.puts "Exiting chooser."
         return
       when *select_tools
-        enabled_tools << chosen
-        enabled_tools.sort!
-        puts "Enabled tool %s" % bold { chosen }
+        session.tools_default_enabled[chosen] = true
+        if session.save
+          puts "Enabled tool %s" % bold { chosen }
+        else
+          puts "Could not enable tool %s" % bold { chosen }
+        end
+        confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
     end
   end
@@ -139,9 +148,8 @@ module OllamaChat::ToolCalling
   #
   # This method presents a menu of currently enabled tools to the user,
   # allowing them to choose which tool to disable. It uses the chooser to
-  # display the available tools and handles the user's selection by removing
-  # the chosen tool from the list of enabled tools and sorting the list
-  # afterwards.
+  # display the available tools and handles the user's selection by updating
+  # the session's default tools configuration in the database.
   def disable_tool
     loop do
       select_tools = enabled_tools
@@ -151,8 +159,13 @@ module OllamaChat::ToolCalling
         STDOUT.puts "Exiting chooser."
         return
       when *select_tools
-        enabled_tools.delete chosen
-        puts "Disabled tool %s" % bold { chosen }
+        session.tools_default_enabled[chosen] = false
+        if session.save
+          puts "Disabled tool %s" % bold { chosen }
+        else
+          puts "Could not disable tool %s" % bold { chosen }
+        end
+        confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
     end
   end

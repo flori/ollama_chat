@@ -67,9 +67,13 @@ class OllamaChat::MessageList
   # The clear method removes all non-system messages from the message list.
   #
   # @return [ OllamaChat::MessageList ] self
-  def clear
-    @messages.delete_if { _1.role != 'system' }
-    self
+  def clear(all: false)
+    if all
+      @messages.clear
+    else
+      @messages.delete_if { _1.role != 'system' }
+    end
+    sync
   end
 
   # The << operator appends a message to the list of messages and returns self.
@@ -79,7 +83,7 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] self
   def <<(message)
     @messages << message
-    self
+    sync
   end
 
   # Returns the last message from the conversation.
@@ -133,6 +137,25 @@ class OllamaChat::MessageList
     end
   end
 
+  # Iterates over messages in the conversation, yielding those matching the
+  # specified roles.
+  #
+  # @param role [Array<String>] the roles to include when iterating
+  # @yield [ message ]
+  #
+  # @return [Enumerator] if no block is given, returns an enumerator
+  # @return [void] if a block is given, returns nil after yielding all matching
+  #   messages
+  def each_message(role: %w[ user assistant ], &block)
+    block or return enum_for(__method__, role:)
+
+    @messages.each do |message|
+      role.include?(message.role) or next
+      yield message
+    end
+    nil
+  end
+
   # The load_conversation method loads a conversation from a file and populates
   # the message list.
   #
@@ -148,7 +171,7 @@ class OllamaChat::MessageList
     @messages = filename.extname == '.jsonl' ?
       load_conversation_jsonl(filename) :
       load_conversation_json(filename)
-    self
+    sync
   end
 
   # The save_conversation method saves the current conversation to a file.
@@ -158,7 +181,7 @@ class OllamaChat::MessageList
   # @return [ OllamaChat::MessageList ] self
   def save_conversation(filename)
     filename = Pathname.new(filename).expand_path
-    @messages = filename.extname == '.jsonl' ?
+    filename.extname == '.jsonl' ?
       save_conversation_jsonl(filename) :
       save_conversation_json(filename)
     self
@@ -232,6 +255,8 @@ class OllamaChat::MessageList
     end
     STDOUT.puts "Dropped the last #{m} exchanges."
     m
+  ensure
+    sync
   end
 
   # Sets the system prompt for the chat session.
@@ -256,7 +281,7 @@ class OllamaChat::MessageList
     else
       @system = nil
     end
-    self
+    sync
   end
 
   # The show_system_prompt method displays the system prompt configured for the
@@ -298,6 +323,32 @@ class OllamaChat::MessageList
     @messages.dup
   end
 
+  # Writes each message in the conversation to the output as a JSON line.
+  #
+  # @param output [IO] the output stream to write the JSON lines to
+  # @return [OllamaChat::MessageList] returns self to allow for method chaining
+  def write_conversation_jsonl(output)
+    @messages.each do |message|
+      output.puts JSON.dump(message)
+    end
+    self
+  end
+
+  # Loads conversation messages from a JSONL (JSON Lines) input stream. Each
+  # line in the input is expected to be a valid JSON representation of a
+  # message. The method parses each line and adds the resulting message to the
+  # current conversation.
+  #
+  # @param input [IO] the input stream containing JSONL formatted messages
+  # @return [OllamaChat::MessageList] returns self to allow for method chaining
+  def read_conversation_jsonl(input)
+    @messages.clear
+    input.each_line do |line|
+      @messages << parse_message_from_json(line)
+    end
+    self
+  end
+
   private
 
   # The config method provides access to the chat configuration object.
@@ -319,10 +370,10 @@ class OllamaChat::MessageList
   # @return [String] the formatted text representation of the message
   def message_text_for(message)
     role_color = case message.role
-                 when 'user' then 172
+                 when 'user'      then 172
                  when 'assistant' then 111
-                 when 'system' then 213
-                 else 210
+                 when 'system'    then 213
+                 else                  210
                  end
     thinking = if @chat.think_loud?
                  think_annotate do
@@ -360,7 +411,7 @@ class OllamaChat::MessageList
   # @return [Array<Ollama::Message>] an array of messages
   def load_conversation_jsonl(filename)
     filename.each_line.map {
-      Ollama::Message.from_hash(JSON.parse(_1) | { 'content' => nil })
+      parse_message_from_json(_1)
     }
   end
 
@@ -379,10 +430,30 @@ class OllamaChat::MessageList
   # @return [OllamaChat::MessageList] self
   def save_conversation_jsonl(filename)
     filename.open(?w) do |output|
-      @messages.each do |message|
-        output.puts JSON.dump(message)
-      end
+      write_conversation_jsonl(output)
     end
+    self
+  end
+
+  # Parse a message from a JSON string.
+  #
+  # @param string [String] the JSON string representing the message
+  # @return [Ollama::Message] a new message instance created from the JSON data
+  def parse_message_from_json(string)
+    Ollama::Message.from_hash(JSON.parse(string) | { 'content' => nil })
+  end
+
+  # Synchronizes the message list state with the active chat session.
+  #
+  # This method triggers the persistence of the current messages into the
+  # database via the associated {@chat} instance, ensuring that any
+  # recent mutations (like adding, clearing, or dropping messages) are
+  # immediately captured in the persistent session store.
+  #
+  # @return [ OllOamaChat::MessageList ] the current instance to allow for
+  #   method chaining.
+  def sync
+    @chat.store_messages_in_session
     self
   end
 end
