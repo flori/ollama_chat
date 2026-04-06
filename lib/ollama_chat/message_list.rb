@@ -140,16 +140,14 @@ class OllamaChat::MessageList
   #
   # @return [ OllamaChat::MessageList ] self
   def load_conversation(filename)
-    unless File.exist?(filename)
+    filename = Pathname.new(filename).expand_path
+    unless filename.exist?
       STDERR.puts "File #{filename.to_s.inspect} doesn't exist. Choose another filename."
       return
     end
-    @messages =
-      File.open(filename, 'r') do |output|
-        JSON(output.read).map {
-          Ollama::Message.from_hash(_1 | { 'content' => nil })
-        }
-      end
+    @messages = filename.extname == '.jsonl' ?
+      load_conversation_jsonl(filename) :
+      load_conversation_json(filename)
     self
   end
 
@@ -159,9 +157,10 @@ class OllamaChat::MessageList
   #
   # @return [ OllamaChat::MessageList ] self
   def save_conversation(filename)
-    File.open(filename, ?w) do |output|
-      output.puts JSON(@messages)
-    end
+    filename = Pathname.new(filename).expand_path
+    @messages = filename.extname == '.jsonl' ?
+      save_conversation_jsonl(filename) :
+      save_conversation_json(filename)
     self
   end
 
@@ -343,5 +342,47 @@ class OllamaChat::MessageList
       message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
     }
     message_text
+  end
+
+  # Loads a conversation from a standard JSON file.
+  #
+  # @param filename [Pathname] the path to the JSON file
+  # @return [Array<Ollama::Message>] an array of messages
+  def load_conversation_json(filename)
+    JSON.parse(filename.read).map {
+      Ollama::Message.from_hash(_1 | { 'content' => nil })
+    }
+  end
+
+  # Loads a conversation from a JSONL (JSON Lines) file.
+  #
+  # @param filename [Pathname] the path to the JSONL file
+  # @return [Array<Ollama::Message>] an array of messages
+  def load_conversation_jsonl(filename)
+    filename.each_line.map {
+      Ollama::Message.from_hash(JSON.parse(_1) | { 'content' => nil })
+    }
+  end
+
+  # Saves the conversation to a standard JSON file.
+  #
+  # @param filename [Pathname] the path to the JSON file
+  # @return [OllamaChat::MessageList] self
+  def save_conversation_json(filename)
+    filename.write JSON.dump(@messages)
+    self
+  end
+
+  # Saves the conversation to a JSONL (JSON Lines) file.
+  #
+  # @param filename [Pathname] the path to the JSONL file
+  # @return [OllamaChat::MessageList] self
+  def save_conversation_jsonl(filename)
+    filename.open(?w) do |output|
+      @messages.each do |message|
+        output.puts JSON.dump(message)
+      end
+    end
+    self
   end
 end

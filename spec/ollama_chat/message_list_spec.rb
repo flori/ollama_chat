@@ -71,20 +71,37 @@ describe OllamaChat::MessageList do
     end
   end
 
-  it 'can load conversations if existing' do
-    expect(list.messages.first.role).to eq  'system'
-    expect(list.load_conversation(asset('conversation-nixda.json'))).to be_nil
-    expect {
-      list.load_conversation(asset('conversation.json'))
-    }.to change { list.messages.size }.from(1).to(3)
-    expect(list.messages.map(&:role)).to eq %w[ system user assistant ]
+  describe '.load_conversation' do
+    it 'can load conversations in JSON if existing' do
+      expect(list.messages.first.role).to eq  'system'
+      expect(list.load_conversation(asset('conversation-nixda.json'))).to be_nil
+      expect {
+        list.load_conversation(asset('conversation.json'))
+      }.to change { list.messages.size }.from(1).to(3)
+      expect(list.messages.map(&:role)).to eq %w[ system user assistant ]
+    end
+
+    it 'can load conversations in JSONL if existing' do
+      expect(list.messages.first.role).to eq  'system'
+      expect(list.load_conversation(asset('conversation-nixda.jsonl'))).to be_nil
+      expect {
+        list.load_conversation(asset('conversation.jsonl'))
+      }.to change { list.messages.size }.from(1).to(3)
+      expect(list.messages.map(&:role)).to eq %w[ system user assistant ]
+    end
   end
 
   describe '.save_conversation' do
-    it 'can save conversations' do
+    it 'can save conversations in JSON' do
       expect(list.save_conversation('tmp/test-conversation.json')).to eq list
     ensure
       FileUtils.rm_f 'tmp/test-conversation.json'
+    end
+
+    it 'can save conversations in JSONL' do
+      expect(list.save_conversation('tmp/test-conversation.jsonl')).to eq list
+    ensure
+      FileUtils.rm_f 'tmp/test-conversation.jsonl'
     end
 
     it 'can save conversations with thinking' do
