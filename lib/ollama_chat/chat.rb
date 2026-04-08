@@ -265,8 +265,8 @@ class OllamaChat::Chat
 
   command(
     name: :toggle,
-    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud))?$),
-    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud embedding ] ],
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip))?$),
+    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
     help: 'toggle switch'
   ) do |toggle_name|
     if toggle_name
@@ -1031,9 +1031,17 @@ class OllamaChat::Chat
       )
       begin
         retried = false
+        sent_messages = messages.to_ary
+        if think_strip.on?
+          sent_messages = sent_messages.map {
+            _1.dup.tap { |message|
+              message.instance_variable_set(:@thinking, nil)
+            }
+          }
+        end
         ollama.chat(
           model:    @model,
-          messages: ,
+          messages: sent_messages,
           options:  @model_options,
           stream:   stream.on?,
           think:    ,

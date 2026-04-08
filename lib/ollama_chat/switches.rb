@@ -146,6 +146,19 @@ module OllamaChat::Switches
   # @return [ OllamaChat::Switches::Switch ] the think loud switch instance
   attr_reader :think_loud
 
+  # The switch that determines whether the `thinking` content is stripped from
+  # the message payload before it is sent to the Ollama API.
+  #
+  # Enabling this (`true`) helps optimize the payload size and prevents
+  # the model from being potentially confused by its own internal
+  # reasoning traces from previous turns.
+  #
+  # Disabling this (`false`) preserves the model's "chain of thought"
+  # history, allowing it to reference its previous logic.
+  #
+  # @return [ OllamaChat::Switches::Switch ] the think strip switch instance
+  attr_reader :think_strip
+
   # The voice reader returns the voice switch instance.
   #
   # @return [ OllamaChat::Switches::Switch ] the voice switch instance
@@ -208,6 +221,14 @@ module OllamaChat::Switches
       msg: {
         true  => "Thinking out loud, show thinking annotations.",
         false => "Thinking silently, don't show thinking annotations.",
+      }
+    )
+
+    @think_strip = Switch.new(
+      value: config.think.strip,
+      msg: {
+        true  => "Stripping thinking content is enabled.",
+        false => "Stripping thinking content is disabled.",
       }
     )
 

@@ -110,6 +110,7 @@ document_policy: importing
 think:
   mode: disabled
   loud: true
+  strip: false
 context:
   format: JSON
 embedding:

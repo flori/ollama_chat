@@ -112,6 +112,7 @@ module OllamaChat::Information
       stream.show(output:)
       think_mode.show(output:)
       think_loud.show(output:)
+      think_strip.show(output:)
       location.show(output:)
       voice.show(output:)
       @voice.on? and @voices.show(output:)
