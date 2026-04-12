@@ -292,9 +292,9 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/web 23 query")).to eq 'the response'
     end
 
-    it 'returns :next when input is "/save\s+(.+)$"' do
+    it 'returns :next when input is "/conversation save\s+(.+)$"' do
       expect(chat.messages).to receive(:save_conversation).with('./some_file')
-      expect(chat.handle_input("/save ./some_file")).to eq :next
+      expect(chat.handle_input("/conversation save ./some_file")).to eq :next
     end
 
     it 'returns :next when input is "/links(?:\s+(clear))?$" ' do
@@ -304,9 +304,9 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/links clear")).to eq :next
     end
 
-    it 'returns :next when input is "/load\s+(.+)$"' do
+    it 'returns :next when input is "/conversation load\s+(.+)$"' do
       expect(chat.messages).to receive(:load_conversation).with('./some_file')
-      expect(chat.handle_input("/load ./some_file")).to eq :next
+      expect(chat.handle_input("/conversation load ./some_file")).to eq :next
     end
 
     describe 'tools' do

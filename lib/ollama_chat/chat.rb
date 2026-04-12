@@ -586,22 +586,17 @@ class OllamaChat::Chat
   end
 
   command(
-    name: :save,
-    regexp: %r(^/save\s+(.+)$),
-    options: 'path',
-    help: 'store conversation messages'
-  ) do |path|
-    save_conversation(path)
-    :next
-  end
-
-  command(
-    name: :load,
-    regexp: %r(^/load\s+(.+)$),
-    options: 'path',
-    help: 'load conversation messages'
-  ) do |path|
-    load_conversation(path)
+    name: :conversation,
+    regexp: %r(^/conversation\s+(save|load)\s+(.+)$),
+    complete: [ 'conversation', %w[ save load ] ],
+    help: 'manage conversations (save/load)'
+  ) do |subcommand, path|
+    case subcommand
+    when 'save'
+      save_conversation(path)
+    when 'load'
+      load_conversation(path)
+    end
     :next
   end
 
