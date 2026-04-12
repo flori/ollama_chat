@@ -235,9 +235,11 @@ module OllamaChat::SessionHandling
       session_name = if sessions.size == 1
                        sessions.first.value
                      else
-                       OllamaChat::Utils::Chooser.choose(sessions)&.value || new_session
+                       OllamaChat::Utils::Chooser.choose(sessions)&.value
                      end
-      models::Session.first(name: session_name)
+      if session_name
+        models::Session.first(name: session_name)
+      end
     end
   end
 end
