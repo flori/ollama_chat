@@ -26,7 +26,9 @@ module OllamaChat::WebSearching
     query = URI.encode_uri_component(query)
     search_command = :"search_web_with_#{search_engine}"
     if respond_to?(search_command, true)
-      send(search_command, query, n)
+      send(search_command, query, n).tap do |results|
+        results.each { |url| links.add(url) }
+      end
     else
       STDOUT.puts "Search engine #{bold{search_engine}} not implemented!"
       nil
@@ -81,7 +83,6 @@ module OllamaChat::WebSearching
           url = URI.parse(url)
           url.host =~ /duckduckgo\.com/ and next
           url = url.to_s
-          links.add(url)
           result << url
           n -= 1
         else
