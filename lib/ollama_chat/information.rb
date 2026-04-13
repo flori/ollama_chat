@@ -228,10 +228,12 @@ module OllamaChat::Information
   #
   # @return [Hash] a hash containing runtime information values.
   def runtime_information_values
+    now = Time.now
     {
       user:                 OC::OLLAMA::CHAT::USER || 'n/a',
       languages:            config.languages * ', ',
-      time:                 Time.now.iso8601,
+      time:                 now.iso8601,
+      weekday:              now.strftime('%A'),
       location:             location.on?.full? { location_description } || 'n/a',
       default_persona:      default_persona_name.full? || 'n/a',
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
