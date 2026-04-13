@@ -205,10 +205,9 @@ class OllamaChat::Utils::Fetcher
       end
     end
   rescue => e
-    STDERR.puts "Cannot execute #{command.inspect} (#{e})"
-    if @debug && !e.is_a?(RuntimeError)
-      STDERR.puts "#{e.backtrace * ?\n}"
-    end
+    msg = "Cannot execute #{command.inspect} (#{e})"
+    @debug && !e.is_a?(RuntimeError) and msg += "\n#{e.backtrace * ?\n}"
+    STDERR.puts msg
     yield HeaderExtension.failed
   end
 
@@ -315,10 +314,9 @@ class OllamaChat::Utils::Fetcher
     @streaming = false
     retry
   rescue => e
-    STDERR.puts "Cannot get #{url.to_s.inspect} (#{e}): #{response&.status_line || 'n/a'}"
-    if @debug && !e.is_a?(RuntimeError)
-      STDERR.puts "#{e.backtrace * ?\n}"
-    end
+    msg = "Cannot get #{url.to_s.inspect} (#{e}): #{response&.status_line || 'n/a'}"
+    @debug && !e.is_a?(RuntimeError) and msg += "\n#{e.backtrace * ?\n}"
+    STDERR.puts msg
     yield HeaderExtension.failed
     reraise and raise e
   end
