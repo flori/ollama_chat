@@ -440,7 +440,7 @@ describe OllamaChat::Chat, protect_env: true do
     it 'can display collection_stats' do
       chat
       expect(STDOUT).to receive(:puts).with(
-        "Current Collection\n  Name: \e[1m#{collection}\e[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags: \n"
+        /Current Collection\n  Name: \e\[1m#{collection}\e\[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags:/
       )
       expect(chat.collection_stats).to be_nil
     end

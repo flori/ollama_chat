@@ -73,12 +73,17 @@ module OllamaChat::Information
   #
   # @param output [IO] the output stream to write the message to
   def collection_stats(output: STDOUT)
+    length       = (Tins::Terminal.cols - 10).clamp(0..)
+    wrapped_tags = Kramdown::ANSI::Width.
+      wrap(@documents.tags.to_a.join(', '), length:).
+      gsub(/(?<!\A)^/, ' ' * 4)
     output.puts <<~EOT
       Current Collection
         Name: #{bold{@documents.collection}}
         #Embeddings: #{@documents.size}
         #Tags: #{@documents.tags.size}
-        Tags: #{@documents.tags}
+        Tags:
+          #{wrapped_tags}
     EOT
     nil
   end
