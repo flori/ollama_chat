@@ -52,9 +52,10 @@ class OllamaChat::Tools::GetTime
   #
   # @example
   #   execute(tool_call, config:)
-  #   # => "{\"time\":\"2026-02-09T14:32:00+01:00\"}"
+  #   # => {"time":"2026-02-09T14:32:00+01:00","weekday":"Monday"}
   def execute(_tool_call, **_opts)
-    { time: Time.now.iso8601 }.to_json
+    now = Time.now
+    { time: now.iso8601, weekday: now.strftime('%A') }.to_json
   end
 
   self

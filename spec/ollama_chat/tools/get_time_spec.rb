@@ -33,5 +33,6 @@ describe OllamaChat::Tools::GetTime do
     expect(json.time).to match(
       /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\z/
     )
+    expect(json.weekday).to be_present
   end
 end
