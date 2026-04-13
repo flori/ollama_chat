@@ -379,6 +379,6 @@ class OllamaChat::FollowChat
   #
   # @param response [ Object ] the response object to be outputted
   def debug_output(response)
-    @chat.debug and jj response
+    @chat.debug and @chat.log(:debug, response.to_json)
   end
 end
