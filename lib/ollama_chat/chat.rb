@@ -254,8 +254,29 @@ class OllamaChat::Chat
   #
   # This prevents automatic parsing of user input content during chat
   # processing.
+  #
+  # @return [self] returns the current instance to allow for method chaining
   def disable_content_parsing
     @parse_content = false
+    self
+  end
+
+  # The enable_content_parsing method enables content parsing for the chat
+  # session.
+  #
+  # @return [self] returns the current instance to allow for method chaining
+  def enable_content_parsing
+    @parse_content = true
+    self
+  end
+
+  # The parse_content? method returns the boolean value of the @parse_content
+  # instance variable.
+  #
+  # @return [TrueClass, FalseClass] true if @parse_content is truthy, false
+  #   otherwise
+  def parse_content?
+    !!@parse_content
   end
 
   # Chat commands
@@ -1073,7 +1094,7 @@ class OllamaChat::Chat
         disable_content_parsing
         content = persona_result
       else
-        @parse_content = true
+        enable_content_parsing
         type           = :terminal_input
         input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
         begin
@@ -1119,7 +1140,7 @@ class OllamaChat::Chat
 
       content = content.encode(invalid: :replace)
 
-      @parse_content and content = parse_content(content, @images)
+      parse_content? and content = parse_content(content, @images)
 
       runtime_info.on? && content and
         content << ?\n << {
