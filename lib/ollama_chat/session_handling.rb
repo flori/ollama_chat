@@ -185,10 +185,13 @@ module OllamaChat::SessionHandling
   # @return [String, nil] the derived session name or nil
   def derive_session_name(length: 128)
     content = summarize_session(sentence: true) or return
-    generate(prompt: 'Create a title of length **< %u** characters for this conversation. Output only the title without quotes:\n\n%s' % [
-      length,
-      content,
-    ]).response.full? { Kramdown::ANSI::Width.truncate(_1, length:) }
+    prompt  = 'Create a title with a length of **less than %u** characters for this conversation. Output only the title and nothing else:\n\n%s'
+    generate(prompt: prompt % [ length, content ]).response.full? do |name|
+      name = name.
+        gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
+        gsub(/\s+/, ' ')
+      Kramdown::ANSI::Width.truncate(name, length:)
+    end
   end
 
   # Switches to a different session, saving the current one and loading the new
