@@ -89,7 +89,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   def self.with_defaults(chat)
     tools_default_enabled =
       chat.config.tools.functions.to_h.
-      each_with_object({}) { |(name, f), h| h[name] = f[:default] }
+      each_with_object({}) { |(name, f), h| h[name.to_s] = f[:default] }
     current_model = chat.initial_model
     model_options = chat.get_model_options(current_model).as_json
     attributes = {
