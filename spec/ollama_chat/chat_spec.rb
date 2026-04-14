@@ -350,19 +350,57 @@ describe OllamaChat::Chat, protect_env: true do
   describe 'chat history' do
     connect_to_ollama_server(instantiate: false)
 
-    it 'can save chat history' do
-      expect(File).to receive(:secure_write).with(
-        OC::OLLAMA::CHAT::HISTORY, kind_of(String)
-      )
-      chat.save_history
+    context 'JSON' do
+      before do
+        const_conf_as(
+          'OC::OLLAMA::CHAT::HISTORY' => Pathname.new('tmp/foo.json')
+        )
+      end
+
+      it 'can save chat history' do
+        tmp_double = double('tmp')
+        expect(tmp_double).to receive(:write)
+        expect(File).to receive(:secure_write).with(
+          OC::OLLAMA::CHAT::HISTORY
+        ).and_yield(tmp_double)
+        chat.save_history
+      end
+
+      it 'can initialize chat history' do
+        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return true
+        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:read).and_return '{}'
+        expect_any_instance_of(described_class).to receive(:init_chat_history).
+          and_call_original
+        chat
+      end
     end
 
-    it 'can initialize chat history' do
-      expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return true
-      expect(OC::OLLAMA::CHAT::HISTORY).to receive(:read).and_return '{}'
-      expect_any_instance_of(described_class).to receive(:init_chat_history).
-        and_call_original
-      chat
+    context 'JSONL' do
+      before do
+        const_conf_as(
+          'OC::OLLAMA::CHAT::HISTORY' => Pathname.new('tmp/foo.jsonl')
+        )
+      end
+
+      it 'can save chat history' do
+        tmp_double = double('tmp')
+        allow(Readline::HISTORY).to receive(:each).and_yield('test')
+        expect(tmp_double).to receive(:puts).with('"test"')
+        expect(File).to receive(:secure_write).with(
+          OC::OLLAMA::CHAT::HISTORY
+        ).and_yield(tmp_double)
+        chat.save_history
+      end
+
+      it 'can initialize chat history' do
+        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return(true).
+          at_least(1)
+        expect(JSON).to receive(:load).with('"test"')
+        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:each_line).and_yield('"test"')
+        expect_any_instance_of(described_class).to receive(:init_chat_history).
+          and_call_original
+        chat
+      end
     end
 
     it 'can clear history' do

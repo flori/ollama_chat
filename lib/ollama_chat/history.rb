@@ -18,7 +18,7 @@ module OllamaChat::History
   private
 
   # The init_chat_history method initializes the chat session by loading
-  # previously saved command history from a file.
+  # previously saved command history from a JSON or JSONL file.
   #
   # This method checks for the existence of a chat history file and, if found,
   # loads its contents into the Readline::HISTORY array. It clears the current
@@ -27,8 +27,11 @@ module OllamaChat::History
   # execution flow.
   def init_chat_history
     if OC::OLLAMA::CHAT::HISTORY.exist?
-      history = OC::OLLAMA::CHAT::HISTORY.read
-      history_data = JSON.load(history)
+      if OC::OLLAMA::CHAT::HISTORY.extname == '.jsonl'
+        history_data = OC::OLLAMA::CHAT::HISTORY.each_line.map { JSON.load(_1) }
+      else
+        history_data = JSON.load(OC::OLLAMA::CHAT::HISTORY.read)
+      end
       Readline::HISTORY.clear
       Readline::HISTORY.push(*history_data)
     end
@@ -39,11 +42,18 @@ module OllamaChat::History
 
   # The save_history method persists the current command history to a file.
   #
-  # This method serializes the Readline::HISTORY array into JSON format and
-  # writes it to the chat history filename. It handles potential errors during
-  # the write operation by catching exceptions and issuing a warning message.
+  # This method serializes the Readline::HISTORY array into JSON or JSONL
+  # format and writes it to the chat history filename. It handles potential
+  # errors during the write operation by catching exceptions and issuing a
+  # warning message.
   def save_history
-    File.secure_write(OC::OLLAMA::CHAT::HISTORY, JSON.dump(Readline::HISTORY))
+    File.secure_write(OC::OLLAMA::CHAT::HISTORY) do |out|
+      if OC::OLLAMA::CHAT::HISTORY.extname == '.jsonl'
+        Readline::HISTORY.each { out.puts JSON.dump(_1) }
+      else
+        out.write JSON.dump(Readline::HISTORY)
+      end
+    end
   rescue => e
     msg = "Caught #{e.class} while saving #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
     log(:error, msg, warn: true)

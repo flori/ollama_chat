@@ -139,7 +139,7 @@ module OC
 
       HISTORY = set do
         description 'File to save the chat history in'
-        default     XDG_STATE_HOME + 'history.json'
+        default     XDG_STATE_HOME + 'history.jsonl'
       end
 
       LOGFILE = set do
