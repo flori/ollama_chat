@@ -84,7 +84,7 @@
 - Refactored `confirm?` in `lib/ollama_chat/dialog.rb` to accept keyword `yes:`
   for a confirmation regex and display a coloured emoji matching the response
   or timeout/default.  
-    - Updated all calls to `confirm?` to use `yes: /y/i` syntax.  
+    - Updated all calls to `confirm?` to use `yes: /\Ay/i` syntax.  
     - Updated `lib/ollama_chat/message_output.rb` to add `yes:` keyword to
       `confirm?` calls and refine the emoji shown when a file already exists.  
 

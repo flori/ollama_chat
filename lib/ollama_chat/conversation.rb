@@ -29,7 +29,7 @@ module OllamaChat::Conversation
     if File.exist?(filename)
       confirm?(
         prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
-        yes: /y/i
+        yes: /\Ay/i
       ) or return
     end
     if messages.save_conversation(filename)

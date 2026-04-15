@@ -121,7 +121,7 @@ module OllamaChat::SessionHandling
     if chosen_session = choose_session(name)
       if session == chosen_session
         STDERR.puts "Cannot delete current session #{session.name.inspect}!"
-      elsif confirm?(prompt: "🔔 Do you really want to delete #{chosen_session.name.inspect}? (y/n) ", yes: /y/i)
+      elsif confirm?(prompt: "🔔 Do you really want to delete #{chosen_session.name.inspect}? (y/n) ", yes: /\Ay/i)
         chosen_session.destroy
         STDOUT.puts "Just deleted session #{chosen_session.name.inspect}!"
       end

@@ -135,7 +135,7 @@ class OllamaChat::FollowChat
           italic { function },
         ]
         prompt.gsub!('%', '%%')
-        if @chat.confirm?(prompt:, yes: /y/i)
+        if @chat.confirm?(prompt:, yes: /\Ay/i)
           confirmed = :explicit
         else
           confirmed = :denied

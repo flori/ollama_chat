@@ -24,7 +24,7 @@ module OllamaChat::RAGHandling
         STDOUT.puts "Exiting chooser."
         break
       when '[ALL]'
-        if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /y/i)
+        if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
           @documents.clear
           STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
           break

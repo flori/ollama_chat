@@ -486,7 +486,7 @@ class OllamaChat::Chat
         if opts[?f] and filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
           if filename.exist? && !confirm?(
               prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
-              yes: /y/i
+              yes: /\Ay/i
           )
             then
             STDERR.puts "File not written!"
@@ -676,7 +676,7 @@ class OllamaChat::Chat
       end
     when 'edit'
       if result = edit_persona and
-          confirm?(prompt: '🔔 Load new persona profile? (y/n) ', yes: /y/i)
+          confirm?(prompt: '🔔 Load new persona profile? (y/n) ', yes: /\Ay/i)
         then
         result
       else
@@ -1014,7 +1014,7 @@ class OllamaChat::Chat
           STDOUT.puts "Exiting chooser."
           break
         when '[ALL]'
-          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /y/i)
+          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
             links.clear
             STDOUT.puts "Cleared all links in list."
             break
@@ -1062,7 +1062,7 @@ class OllamaChat::Chat
       @documents.clear
       STDOUT.puts "Cleared all tags."
     when 'all'
-      if confirm?(prompt: '🔔 Are you sure to clear messages and collection? (y/n) ', yes: /y/i)
+      if confirm?(prompt: '🔔 Are you sure to clear messages and collection? (y/n) ', yes: /\Ay/i)
         messages.clear
         @documents.clear
         links.clear
