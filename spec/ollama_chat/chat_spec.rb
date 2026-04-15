@@ -396,7 +396,10 @@ describe OllamaChat::Chat, protect_env: true do
         expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return(true).
           at_least(1)
         expect(JSON).to receive(:load).with('"test"')
-        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:each_line).and_yield('"test"')
+        each_line = double('each_line')
+        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:each_line).
+          and_return(each_line)
+        expect(each_line).to receive(:map).and_yield('"test"')
         expect_any_instance_of(described_class).to receive(:init_chat_history).
           and_call_original
         chat
