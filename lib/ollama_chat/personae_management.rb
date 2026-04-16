@@ -259,10 +259,11 @@ module OllamaChat::PersonaeManagement
   # Shows the persona's profile using kramdown formatting with ansi parsing.
   def info_persona
     if persona = choose_persona
-      _persona, persona_profile = load_persona_file(persona)
+      persona_path, persona_profile = load_persona_file(persona)
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
           # Persona #{persona.sub_ext('')}
+          File #{persona_path.to_path}
           ---
           #{persona_profile}
           ---
