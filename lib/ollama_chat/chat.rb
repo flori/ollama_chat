@@ -378,10 +378,10 @@ class OllamaChat::Chat
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options))?$),
-    complete: [ 'model', %w[ change options ] ],
+    regexp: %r(^/model(?:\s+(change|options|sync))?$),
+    complete: [ 'model', %w[ change options sync ] ],
     optional: true,
-    help: 'change the model/model_options or show info'
+    help: 'change the model/model options/sync with session model options or show info'
   ) do |subcommand|
     case subcommand
     when 'change'
@@ -393,6 +393,8 @@ class OllamaChat::Chat
       end
     when 'options'
       edit_model_options(@model)
+    when 'sync'
+      sync_session_model_options
     else
       model_info
     end
