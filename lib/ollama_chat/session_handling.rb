@@ -113,18 +113,23 @@ module OllamaChat::SessionHandling
     end
   end
 
-  # Deletes a session by name.
-  #
-  # @param name [String] the name of the session to delete
-  def delete_session(name)
-    name.full? or name = ??
-    if chosen_session = choose_session(name)
-      if session == chosen_session
-        STDERR.puts "Cannot delete current session #{session.name.inspect}!"
-      elsif confirm?(prompt: "🔔 Do you really want to delete #{chosen_session.name.inspect}? (y/n) ", yes: /\Ay/i)
-        chosen_session.destroy
-        STDOUT.puts "Just deleted session #{chosen_session.name.inspect}!"
-      end
+  # Deletes the current session and prompts the user to pick a new one to switch to.
+  def delete_session
+    current_session_name, current_session_id = session.name, session.id
+    STDOUT.puts <<~EOT
+      The current session
+        #{current_session_name.inspect} (#{current_session_id})
+      will be deleted, pick a new session to switch to.
+    EOT
+    confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
+    if chosen_session = choose_session(??, except_id: current_session_id)
+      confirm?(
+        prompt: "🔔 Delete session #{current_session_name.inspect} (#{current_session_id})? (y/n) ",
+        yes: /\Ay/i
+      ) or return
+      switch_session(chosen_session.id)
+      models::Session.where(id: current_session_id).destroy
+      STDOUT.puts "Just deleted session #{current_session_name.inspect}!"
     end
   end
 
@@ -211,13 +216,19 @@ module OllamaChat::SessionHandling
     end
   end
 
-  # Chooses a session from the database based on a name or ID.
+  # Finds or selects a session based on a name, ID, or pattern.
   #
-  # @param session_name [String] the name or ID of the session to choose
+  # @param session_name [String] the name, ID, or pattern to search for
+  # @param except_id [String, Integer, nil] an ID to exclude from the search results
   # @return [OllamaChat::Database::Models::Session, nil] the chosen session or nil
-  def choose_session(session_name)
-    if session_name =~ /\A\d+/ and
-        session = models::Session.first(id: session_name)
+  def choose_session(session_name, except_id: nil)
+    session_name = session_name.to_s
+    session_query = models::Session
+    if except_id
+      session_query = session_query.where(Sequel[:id] !~ except_id)
+    end
+    if session_name =~ /\A\d+\z/ and
+      session = session_query.first(id: session_name)
     then
       return session
     end
@@ -225,10 +236,10 @@ module OllamaChat::SessionHandling
                  session_name = ''
                  Regexp.new($1)
                end
-    if session_name and session = models::Session.first(name: session_name)
+    if session_name and session = session_query.first(name: session_name)
       session
     elsif selector
-      sessions = models::Session.order(Sequel.desc(:updated_at)).map {
+      sessions = session_query.order(Sequel.desc(:updated_at)).map {
         SearchUI::Wrapper.new(
           _1.name,
           display: "#{_1.name} (#{_1.id}) #{_1.messages.to_s.count(?\n)} messages #{_1.created_at.iso8601}"
@@ -241,7 +252,7 @@ module OllamaChat::SessionHandling
                        OllamaChat::Utils::Chooser.choose(sessions)&.value
                      end
       if session_name
-        models::Session.first(name: session_name)
+        session_query.first(name: session_name)
       end
     end
   end

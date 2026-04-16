@@ -32,71 +32,111 @@ module OllamaChat::ModelHandling
     end
   end
 
-  # Retrieves model options from the database. If no entry exists for the
-  # given model name, it seeds the database using the current configuration.
+  # Retrieves the stored model options from the database for a given model name.
   #
-  # @param model_name [String] The name of the Ollama model to look up.
-  # @return [Ollama::Options] An object containing the model's configuration.
-  def get_model_options(model_name)
-    model_options = config.model.options
-    if mo = models::ModelOptions.where(model_name:).first
-      new_model_options =
-        begin
-          mo.options
-        rescue JSON::ParserError => e
-          log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
-          model_options
-        end
-      model_options = new_model_options
-    end
-    model_options = store_model_options(model_name, model_options)
-    Ollama::Options[model_options]
+  # @param model_name [String] the name of the model to look up
+  # @return [Hash] the model options as a hash with symbolized keys
+  def get_stored_model_options(model_name)
+    models::ModelOptions.where(model_name:).first&.options.
+      to_h.symbolize_keys_recursive
   end
 
   private
 
-  # Stores new options for a specific model to the database.
+  # Checks if model options exist in the database for the given model name.
   #
-  # @param [String] model_name The name of the model to target.
-  # @param [Hash, Ollama::Options] model_options The options to persist
-  #   as JSON.
-  # @return [Hash] The updated model options hash.
-  def store_model_options(model_name, model_options)
-    model_options = model_options.to_h.transform_keys(&:to_sym)
-    options = Ollama::Options[model_options]
-    models::ModelOptions.find_or_create(model_name:) do |mo|
-      mo.options = options
-    end.update(options:)
+  # @param model_name [String] the name of the model to check
+  # @return [OllamaChat::Database::Models::ModelOptions, nil] the model options record or nil
+  def stored_model_options_exist?(model_name)
+    models::ModelOptions.where(model_name:).first
+  end
+
+  # Retrieves the model options currently associated with the active session.
+  #
+  # @return [Hash] the session model options as a hash with symbolized keys
+  def get_session_model_options
+    session.model_options.to_h.symbolize_keys_recursive
+  end
+
+  # Retrieves the default model options from the application configuration.
+  #
+  # @return [Hash] the default model options as a hash
+  def get_default_model_options
+    config.model.options.to_h
+  end
+
+  # Computes the current model options as an `Ollama::Options` object.
+  #
+  # @return [Ollama::Options] the current model options object
+  def model_options
+    Ollama::Options[session.model_options.to_h.symbolize_keys_recursive]
+  end
+
+  # Fills in missing keys in a model options hash using the attributes of `Ollama::Options`.
+  #
+  # @param model_options [Hash] the hash containing the available model options
+  # @return [Ollama::Options] an `Ollama::Options` object containing all required keys
+  def fill_up_model_options(model_options)
+    Ollama::Options.attributes.each_with_object(model_options) do |name, mo|
+      mo[name] = model_options[name]
+    end
     model_options
+  end
+
+  # Stores or updates model options in the database for a specific model.
+  #
+  # @param model_name [String] the name of the model to target
+  # @param model_options [Hash, Ollama::Options] the options to persist
+  # @return [Hash] the updated model options hash
+  def store_model_options(model_name, model_options)
+    options = model_options.to_h.symbolize_keys_recursive.compact
+    mo = nil
+    if mo = stored_model_options_exist?(model_name)
+      mo.update(options:)
+    else
+      mo = models::ModelOptions.create(model_name:, options:)
+    end
+    mo.options
   end
 
   # The edit_model_options method retrieves the current options for the
   # specified model, presents them to the user for editing, and returns a new
   # Ollama::Options instance based on the edited configuration.
   #
-  # @param model_name [String] the name of the model whose options are to be edited.
+  # @param model_name [String] the name of the model whose options are to be
+  #   edited.
   def edit_model_options(model_name)
-    model_options      = get_model_options(model_name)
-    model_options_hash = Ollama::Options.attributes.each_with_object({}) do |name, mo|
-      mo[name] = model_options.send(name)
-    end
-    model_options_json     = edit_text(JSON.pretty_generate(model_options_hash))
-    new_model_options_hash = JSON.load(model_options_json)
-    new_model_options_hash = store_model_options(model_name, new_model_options_hash)
-    set_model_options new_model_options_hash
+    model_options      = get_stored_model_options(model_name)
+    model_options      = fill_up_model_options(model_options)
+    model_options_json = edit_text(JSON.pretty_generate(model_options))
+    model_options      = JSON.load(model_options_json)
+    store_model_options(model_name, model_options)
   rescue JSON::ParserError => e
     log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
   end
 
-  # Sets the @model_options instance variable, ensuring the input is
-  # converted into an Ollama::Options object.
+  # Presents the current session's model options to the user for editing.
   #
-  # @param model_options [Ollama::Options, Hash] The options to be assigned.
+  # @return [self] the instance of the module
+  def edit_session_model_options
+    model_options      = get_session_model_options
+    model_options      = fill_up_model_options(model_options)
+    model_options_json = edit_text(JSON.pretty_generate(model_options))
+    model_options      = JSON.load(model_options_json).compact
+    session.update(model_options:)
+    self
+  rescue JSON::ParserError => e
+    log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
+  end
+
+  # Resets the session's model options to match the stored defaults for the current model.
+  #
+  # @param model [String] the name of the model to use as the source for defaults
   # @return [void]
-  def set_model_options(model_options)
-    model_options = model_options.is_a?(Ollama::Options) ?
-        model_options : Ollama::Options[model_options]
-    @model_options = model_options
+  def reset_session_model_options(model)
+    stored_model_options = get_stored_model_options(model)
+    session.update(model_options: stored_model_options)
+    STDOUT.puts "Session options were reset to default model options of #{bold{model}}."
   end
 
   # The model_present? method checks if the specified Ollama model is
@@ -178,9 +218,11 @@ module OllamaChat::ModelHandling
   #
   # @param model [ String, nil ] the model name to use; if omitted, the current
   #   model is retained
+  # @param keep_options [Boolean] if true, session-specific model options are
+  #   retained instead of reverting to model defaults.
   #
   # @return [ ModelMetadata ] the metadata for the selected model.
-  def use_model(model = nil)
+  def use_model(model = nil, keep_options: false)
     old_model = @model
 
     if model.nil?
@@ -202,8 +244,34 @@ module OllamaChat::ModelHandling
     session.update(current_model: @model)
 
     if old_model != @model
-      model_options = get_model_options(@model).as_json
-      session.update(model_options:)
+      default_model_options = get_default_model_options
+      session_model_options = get_session_model_options
+      unless stored_model_options_exist?(@model)
+        store_model_options(@model, default_model_options)
+      end
+      stored_model_options = get_stored_model_options(@model)
+      if session_model_options.blank?
+        if stored_model_options.present?
+          session.update(model_options: stored_model_options)
+        else
+          store_model_options(@model, default_model_options)
+          session.update(model_options: default_model_options)
+        end
+      elsif !keep_options && session_model_options != stored_model_options
+        STDOUT.puts <<~EOT
+          ⚠️ Session model options differ from defaults for model #@model!
+          Session model options:
+          #{JSON.pretty_generate(session_model_options)}
+          Default model options:
+          #{JSON.pretty_generate(stored_model_options)}
+        EOT
+        if confirm?(
+            prompt: "❓ Overwrite session model options with defaults? (y/n) ", yes: /\Ay/i
+          )
+        then
+          session.update(model_options: stored_model_options)
+        end
+      end
     end
 
     @model_metadata
@@ -222,6 +290,10 @@ module OllamaChat::ModelHandling
   # choose from the filtered list if needed.
   # The method ensures that a model is selected and displays a connection
   # message with the chosen model and base URL.
+  #
+  # @param cli_model [String] the model name or pattern provided via CLI
+  # @param current_model [String] the fallback model if selection fails
+  # @return [String] the selected model name
   def choose_model(cli_model, current_model)
     selector = if cli_model =~ /\A\?+(.*)\z/
                  cli_model = ''

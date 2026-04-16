@@ -158,11 +158,14 @@ class OllamaChat::Chat
   # then prompts the user for input to begin interacting with the chat.
   def start
     begin
-      use_model(session.current_model.full? || initial_model)
+      if model = session.current_model.full?
+        use_model(model, keep_options: true)
+      else
+        use_model(initial_model)
+      end
     rescue OllamaChat::UnknownModelError => e
       abort "Failed to use to model: #{e}"
     end
-    set_model_options(get_model_options(@model))
 
     STDOUT.puts
     setup_system_prompt
@@ -224,7 +227,7 @@ class OllamaChat::Chat
     ollama.generate(
       model: @model,
       prompt:,
-      options: @model_options,
+      options: model_options,
       stream: false,
       think: false,
     )
@@ -388,7 +391,6 @@ class OllamaChat::Chat
         msg = "Caught #{e.class}: #{e}"
         log(:error, msg, warn: true)
       end
-      set_model_options(get_model_options(@model))
     when 'options'
       edit_model_options(@model)
     else
@@ -458,13 +460,13 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(list|new|rename|summarize|switch|delete))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ list new rename summarize switch delete ] ],
+    regexp: %r(^/session(?:\s+(list|new|rename|summarize|switch|delete|model options|model reset options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ list new rename summarize switch delete model\ options model\ reset\ options ] ],
     optional: true,
     options: '[-c|-f] [name]',
     help: <<~EOT,
       Show session list, create new, rename, summarize (-s sentence/-f for
-      markdown file output), switch, delete session
+      markdown file output), switch, delete session, edit session model options
     EOT
   ) do |subcommand, opt, name|
     case subcommand
@@ -477,7 +479,7 @@ class OllamaChat::Chat
         next content
       end
     when 'delete'
-      delete_session(name)
+      delete_session
     when 'rename'
       rename_session
     when 'summarize'
@@ -502,6 +504,10 @@ class OllamaChat::Chat
       end
     when 'switch'
       switch_session(name)
+    when 'model options'
+      edit_session_model_options
+    when 'model reset options'
+      reset_session_model_options(@model)
     end
     :next
   end
@@ -1167,7 +1173,7 @@ class OllamaChat::Chat
         ollama.chat(
           model:    @model,
           messages: sent_messages,
-          options:  @model_options,
+          options:  model_options,
           stream:   stream.on?,
           think:    ,
           tools:    ,

@@ -89,15 +89,18 @@ module OllamaChat::Information
   end
 
   # Prints details about the current chat model to the specified
-  # output.
+  # output and the session and default options.
   #
   # @param [IO] output The output stream to print the model information to
   # (defaults to STDOUT).
   def model_info(output: STDOUT)
     output.puts "Current chat model is #{bold{@model}}."
     output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
-    if @model_options.present?
-      output.puts "  Options: #{JSON.pretty_generate(@model_options).gsub(/(?<!\A)^/, '  ')}"
+    if model_options.present?
+      output.puts "  Session Options: #{JSON.pretty_generate(model_options).gsub(/(?<!\A)^/, '  ')}"
+    end
+    if mo = get_stored_model_options(@model).full? || config.model.options
+      output.puts "  Default Options: #{JSON.pretty_generate(mo).gsub(/(?<!\A)^/, '  ')}"
     end
   end
 

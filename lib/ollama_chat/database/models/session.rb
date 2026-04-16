@@ -91,7 +91,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       chat.config.tools.functions.to_h.
       each_with_object({}) { |(name, f), h| h[name.to_s] = f[:default] }
     current_model = chat.initial_model
-    model_options = chat.get_model_options(current_model).as_json
+    model_options = chat.get_stored_model_options(current_model)
     attributes = {
       name:                  "New Session #{Tins::Token.new}",
       current_model:         ,
