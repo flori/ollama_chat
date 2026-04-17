@@ -239,10 +239,13 @@ module OllamaChat::SessionHandling
     if session_name and session = session_query.first(name: session_name)
       session
     elsif selector
+      now = Time.now
       sessions = session_query.order(Sequel.desc(:updated_at)).map {
+        duration = Tins::Duration.new(now - _1.updated_at)
+        count    = _1.messages.to_s.count(?\n)
         SearchUI::Wrapper.new(
           _1.name,
-          display: "#{_1.name} (#{_1.id}) #{_1.messages.to_s.count(?\n)} messages #{_1.created_at.iso8601}"
+          display: "#{_1.name} 🆔#{_1.id} 📨#{count} ⏳#{duration}"
         )
       }
       selector and sessions = sessions.select { _1 =~ selector }
