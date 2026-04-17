@@ -265,7 +265,6 @@ tools:
       default: true
     patch_file:
       default: true
-      require_confirmation: true
       allowed:
         - './tmp'
     retrieve_document_snippets:

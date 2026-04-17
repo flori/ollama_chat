@@ -5,147 +5,121 @@ describe OllamaChat::Tools::PatchFile do
 
   connect_to_ollama_server
 
+  let :tool do
+    described_class.new
+  end
+
   it 'can have name' do
-    expect(described_class.new.name).to eq 'patch_file'
+    expect(tool.name).to eq 'patch_file'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(tool.tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(tool.to_hash).to be_a Hash
   end
 
-  it 'can be executed successfully with valid patch content' do
+  it 'can be executed successfully with valid content' do
     # Create a test file first
     test_file = './tmp/test_patch_file.txt'
     File.write(test_file, "Hello\nWorld\n")
 
-    diff_content = <<~DIFF
-      @@ -1,2 +1,3 @@
-       Hello
-      +Second
-       World
-    DIFF
+    new_content = "Hello\nSecond\nWorld\n"
+
+    # Mock arguments to respond to .full? as used in the tool
+    args_double = double('Arguments',
+      path: double(full?: test_file),
+      content: double(full?: new_content)
+    )
 
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'patch_file',
-        arguments: double(
-          path: test_file,
-          diff_content: diff_content
-        )
+        arguments: args_double
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    # Mock Tempfile and system to avoid launching real vimdiff
+    tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
+    expect(Tempfile).to receive(:create).and_yield(tmp_double)
 
-    # Should return valid JSON
+    # Simulate user applying changes via diffget (changing the file)
+    allow(tool).to receive(:system).and_return(true)
+
+    allow(tool).to receive(:digest).and_return 'theold', 'thenew'
+
+    result = tool.execute(tool_call, chat:)
+
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.success).to eq true
     expect(json.path).to include('test_patch_file.txt')
-
-    # Verify file was actually patched
-    expect(File.exist?(test_file)).to be true
-    content = File.read(test_file)
-    expect(content).to include('Hello')
-    expect(content).to include('Second')
-    expect(content).to include('World')
   ensure
-    # Clean up
     File.delete(test_file) if File.exist?(test_file)
   end
 
   it 'can handle execution errors gracefully when file does not exist' do
-    tool_call = double(
-      'ToolCall',
-      function: double(
-        name: 'patch_file',
-        arguments: double(
-          path: './tmp/nonexistent.txt',
-          diff_content: '@@ -1,1 +1,1 @@\n-Hello\n+World\n'
-        )
-      )
+    args_double = double('Arguments',
+      path: double(full?: './tmp/nonexistent.txt'),
+      content: double(full?: 'Some content')
     )
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = tool.execute(tool_call, chat:)
 
-    # Should return valid JSON with error
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
-    expect(json.path).to be_nil
   end
 
   it 'can handle execution errors gracefully when path is not allowed' do
-    tool_call = double(
-      'ToolCall',
-      function: double(
-        name: 'patch_file',
-        arguments: double(
-          path: '/etc/passwd',
-          diff_content: '@@ -1,1 +1,1 @@\n-Hello\n+World\n'
-        )
-      )
+    args_double = double('Arguments',
+      path: double(full?: '/etc/passwd'),
+      content: double(full?: 'Some content')
     )
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = tool.execute(tool_call, chat:)
 
-    # Should return valid JSON with error
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
-    expect(json.path).to be_nil
   end
 
-  it 'can handle execution errors gracefully when diff_content is missing' do
-    tool_call = double(
-      'ToolCall',
-      function: double(
-        name: 'patch_file',
-        arguments: double(
-          path: './tmp/test.txt',
-          diff_content: nil
-        )
-      )
+  it 'can handle execution errors gracefully when content is missing' do
+    args_double = double('Arguments',
+      path: double(full?: './tmp/test.txt'),
+      content: double(full?: nil)
     )
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = tool.execute(tool_call, chat:)
 
-    # Should return valid JSON with error
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'ArgumentError'
   end
 
   it 'can handle exceptions gracefully' do
-    test_file = './tmp/test.txt'
+    test_file = './tmp/test_exception.txt'
     File.write(test_file, "Hello\nWorld\n")
 
-    tool_call = double(
-      'ToolCall',
-      function: double(
-        name: 'patch_file',
-        arguments: double(
-          path: './tmp/test.txt',
-          diff_content: '@@ -1,1 +1,1 @@\n-Hello\n+World\n'
-        )
-      )
+    args_double = double('Arguments',
+      path: double(full?: test_file),
+      content: double(full?: 'New Content')
     )
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    tool = described_class.new
     expect(tool).to receive(:apply_patch).and_raise 'patch error'
     result = tool.execute(tool_call, chat:)
 
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
-    expect(json.path).to be_nil
   ensure
-    # Clean up
     File.delete(test_file) if File.exist?(test_file)
   end
 end

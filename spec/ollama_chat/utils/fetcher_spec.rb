@@ -25,7 +25,7 @@ describe OllamaChat::Utils::Fetcher do
         headers: { 'Content-Type' => 'text/plain' },
       )
     fetcher.get(url) do |tmp|
-      expect(tmp).to be_a Tempfile
+      expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
     end
@@ -40,7 +40,7 @@ describe OllamaChat::Utils::Fetcher do
         headers: { 'Content-Type' => 'text/plain' },
       )
     fetcher.get(url, headers: { 'Accept' => 'text/html' }) do |tmp|
-      expect(tmp).to be_a Tempfile
+      expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
     end
@@ -62,7 +62,7 @@ describe OllamaChat::Utils::Fetcher do
       hash_including(ssl_verify_peer: false)
     ).and_call_original
     fetcher.get(url) do |tmp|
-      expect(tmp).to be_a Tempfile
+      expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
     end
@@ -80,7 +80,7 @@ describe OllamaChat::Utils::Fetcher do
         }
       )
     fetcher.get(url) do |tmp|
-      expect(tmp).to be_a Tempfile
+      expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
     end
@@ -125,7 +125,7 @@ describe OllamaChat::Utils::Fetcher do
 
   it 'can .execute' do
     described_class.execute('echo hello world') do |file|
-      expect(file).to be_a Tempfile
+      expect(file).to be_a File
       expect(file.read).to eq "hello world\n"
       expect(file.content_type).to eq 'text/plain'
     end

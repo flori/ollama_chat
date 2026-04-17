@@ -21,7 +21,7 @@ module OllamaChat::FileEditing
   #
   # @return [String, nil] the edited text or nil if editing failed
   def edit_text(text)
-    Tempfile.open do |tmp|
+    Tempfile.create do |tmp|
       tmp.write(text)
       tmp.flush
 

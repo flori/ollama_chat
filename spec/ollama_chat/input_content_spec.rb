@@ -100,7 +100,7 @@ describe OllamaChat::InputContent do
 
       # Mock Tempfile behavior
       tmp_double = double('tmp', path: '/tmp/test')
-      expect(Tempfile).to receive(:open).and_yield(tmp_double)
+      expect(Tempfile).to receive(:create).and_yield(tmp_double)
 
       # Mock system call to simulate successful editor execution
       expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(true)
@@ -124,7 +124,7 @@ describe OllamaChat::InputContent do
       const_conf_as('OC::EDITOR' => '/usr/bin/vim')
 
       tmp_double = double('tmp', path: '/tmp/test')
-      expect(Tempfile).to receive(:open).and_yield(tmp_double)
+      expect(Tempfile).to receive(:create).and_yield(tmp_double)
 
       expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)
 

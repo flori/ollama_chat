@@ -121,7 +121,7 @@ module OllamaChat::InputContent
   #
   # @return [ String, nil ] the composed content if successful, nil otherwise
   def compose
-    Tempfile.open do |tmp|
+    Tempfile.create do |tmp|
       if result = edit_file(tmp.path)
         return File.read(tmp.path)
       else

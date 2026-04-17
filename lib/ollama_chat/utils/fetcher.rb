@@ -190,7 +190,7 @@ class OllamaChat::Utils::Fetcher
   # @yield [ tmpfile ]
   def self.execute(command, &block)
     command.is_a?(String) or command = Shellwords.join(command)
-    Tempfile.open do |tmp|
+    Tempfile.create do |tmp|
       unless command =~ /2>&1/
         command += ' 2>&1'
       end
@@ -286,7 +286,7 @@ class OllamaChat::Utils::Fetcher
     headers |= self.headers
     headers = headers.transform_keys(&:to_s)
     response = nil
-    Tempfile.open do |tmp|
+    Tempfile.create do |tmp|
       infobar.label = 'Getting'
       if @streaming
         response = excon(url, headers:, response_block: callback(tmp), **opts).request(method: :get)

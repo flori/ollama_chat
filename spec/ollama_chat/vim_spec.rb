@@ -60,7 +60,7 @@ describe OllamaChat::Vim do
         /vim.*--remote-expr.*col\('\.'\)/).and_return("5\n"
                                                      )
       tmp = double('Tempfile', flush: true, path: '/tmp/test')
-      expect(Tempfile).to receive(:open).and_yield(tmp)
+      expect(Tempfile).to receive(:create).and_yield(tmp)
       expect(tmp).to receive(:write).with('    test content')
       expect(vim).to receive(:system).with(
         /vim --clientserver.*--servername.*--remote-send.*\/tmp\/test/
