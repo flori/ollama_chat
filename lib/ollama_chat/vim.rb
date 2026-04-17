@@ -71,7 +71,7 @@ class OllamaChat::Vim
   def insert(text)
     spaces = (col - 1).clamp(0..)
     text   = text.gsub(/^/, ' ' * spaces)
-    Tempfile.create do |tmp|
+    Tempfile.open do |tmp|
       tmp.write(text)
       tmp.flush
       result = system %{
