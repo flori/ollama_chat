@@ -187,25 +187,38 @@ class OllamaChat::MessageList
     self
   end
 
-  # The list_conversation method displays the last n messages from the conversation.
+  # Displays the most recent messages from the conversation history.
   #
-  # @param last [ Integer ] the number of messages to display (default: nil)
+  # This method prints a specified number of trailing messages to the console
+  # using the pager for better readability. If no count is provided, the entire
+  # conversation is displayed.
   #
-  # @return [ OllamaChat::MessageList ]
+  # @param last [Integer, nil] The number of recent messages to display.
+  #   Defaults to the total size of the message list if nil.
+  #
+  # @return [OllamaChat::MessageList] self, allowing for method chaining.
   def list_conversation(last = nil)
     last = (last || @messages.size).clamp(0, @messages.size)
+    messages = @messages[-last..-1].to_ary
     use_pager do |output|
-      @messages[-last..-1].to_a.each do |message|
+      messages.each do |message|
         output.puts message_text_for(message)
       end
     end
     self
   end
 
-  # The show_last method displays the text of the last message if it is not
-  # from the user. It uses a pager for output and returns the instance itself.
+  # Displays the most recent messages that were not authored by the user.
   #
-  # @return [ OllamaChat::MessageList ] returns the instance of the class
+  # This is particularly useful for quickly reviewing the assistant's last
+  # responses without having to scroll through the user's own input.
+  # Output is routed through the pager.
+  #
+  # @param n [Integer, nil] The number of non-user messages to display.
+  #   Defaults to 1 if not specified.
+  #
+  # @return [OllamaChat::MessageList, nil] self if messages were displayed,
+  #   or nil if no valid messages were found to show.
   def show_last(n = nil)
     n ||= 1
     messages = @messages.reject { |message| message.role == 'user' }
@@ -219,19 +232,21 @@ class OllamaChat::MessageList
     self
   end
 
-  # Removes the last `n` exchanges from the message list. An exchange consists
-  # of a user and an assistant message. If only a single user message is
-  # present at the end, it will be removed first before proceeding with
-  # complete exchanges.
+  # Removes the last `n` exchanges from the message list.
+  #
+  # An "exchange" is defined as a pair consisting of a user message and an
+  # assistant response. This method handles the edge case where the conversation
+  # ends with a dangling user message (without a response) by removing that
+  # message first before proceeding to remove complete exchanges.
   #
   # @param n [Integer] The number of exchanges to remove.
   # @return [Integer] The actual number of complete exchanges removed.
-  #                   This may be less than `n` if there are not enough messages.
+  #   May be less than `n` if the message list is shorter than requested.
   #
   # @note
-  #   - System messages are preserved and not considered part of an exchange.
-  #   - If only one incomplete exchange (a single user message) exists, it will
-  #     be dropped first before removing complete exchanges.
+  #   - System messages are preserved and are not counted as part of an exchange.
+  #   - If a trailing user message exists, it is dropped first, and the count
+  #     of exchanges to be removed is decremented by one.
   def drop(n)
     n = n.to_i.clamp(1, Float::INFINITY)
     non_system_messages = @messages.reject { _1.role == 'system' }
@@ -269,8 +284,10 @@ class OllamaChat::MessageList
   #
   # @note This method:
   #   - Removes all existing system prompts from the message list
-  #   - Adds the new system prompt to the beginning of the message list if provided
-  #   - Handles edge cases such as clearing prompts when `system` is `nil` or `false`
+  #   - Adds the new system prompt to the beginning of the message list if
+  #     provided
+  #   - Handles edge cases such as clearing prompts when `system` is `nil` or
+  #     `false`
   def set_system_prompt(system)
     @messages.reject! { |msg| msg.role == 'system' }
     if new_system_prompt = system.full?(:to_s)
@@ -297,7 +314,8 @@ class OllamaChat::MessageList
   # @return [self, NilClass] nil if the system prompt is empty, otherwise self.
   def show_system_prompt
     current_system = system.to_s
-    system_prompt = @chat.kramdown_ansi_parse(current_system).gsub(/\n+\z/, '').full?
+    system_prompt = @chat.kramdown_ansi_parse(current_system).
+       gsub(/\n+\z/, '').full?
     if system_prompt.blank?
       if current_system.present?
         system_prompt = current_system
