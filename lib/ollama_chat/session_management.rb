@@ -6,7 +6,7 @@
 # session data is persisted correctly, especially the conversation history.
 #
 # @see OllamaChat::Database::Models::Session
-module OllamaChat::SessionHandling
+module OllamaChat::SessionManagement
   # Persists the current conversation messages to the database.
   #
   # This method serializes the current message list into JSONL format and

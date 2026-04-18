@@ -3,7 +3,7 @@
 # This module provides functionality for managing favourites within the
 # OllamaChat application, allowing users to save and retrieve favourite items
 # such as models, prompts, or other configurations.
-module OllamaChat::FavouritesHandling
+module OllamaChat::FavouritesManagement
   private
 
   # The prefix_favourite method adds a favorite indicator to a string.

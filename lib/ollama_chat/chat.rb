@@ -61,9 +61,9 @@ class OllamaChat::Chat
   include OllamaChat::ToolCalling
   include OllamaChat::ConfigHandling
   include OllamaChat::PersonaeManagement
-  include OllamaChat::SessionHandling
+  include OllamaChat::SessionManagement
   include OllamaChat::RAGHandling
-  include OllamaChat::FavouritesHandling
+  include OllamaChat::FavouritesManagement
   include OllamaChat::PromptHandling
   include OllamaChat::SystemPromptManagement
   include OllamaChat::PromptManagement
