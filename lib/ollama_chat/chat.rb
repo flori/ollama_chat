@@ -36,7 +36,6 @@ class OllamaChat::Chat
   include OllamaChat::HTTPHandling
   include OllamaChat::CommandConcern
   include OllamaChat::Logging
-  include OllamaChat::SystemPromptManagement
   include OllamaChat::DocumentCache
   include OllamaChat::Switches
   include OllamaChat::StateSelectors
@@ -65,6 +64,9 @@ class OllamaChat::Chat
   include OllamaChat::SessionHandling
   include OllamaChat::RAGHandling
   include OllamaChat::FavouritesHandling
+  include OllamaChat::PromptHandling
+  include OllamaChat::SystemPromptManagement
+  include OllamaChat::PromptManagement
   include OllamaChat::Utils::ValueFormatter
 
   # Initializes a new OllamaChat::Chat instance with the given command-line
@@ -101,7 +103,7 @@ class OllamaChat::Chat
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
     @messages           = OllamaChat::MessageList.new(self)
-    OllamaChat::Database.setup_models
+    OllamaChat::Database.setup_models.each { _1.ask_and_send(:seed, self) }
     setup_session
     setup_switches
     setup_state_selectors(config)
@@ -910,7 +912,7 @@ class OllamaChat::Chat
     help: 'to view this help (me=interactive ai help)'
   ) do
     disable_content_parsing
-    config.prompts.help % { commands: help_message }
+    prompt(:help).to_s % { commands: help_message }
   end
 
   command(
@@ -977,13 +979,13 @@ class OllamaChat::Chat
   def web(count, query)
     urls = search_web(query, count.to_i) or return :next
     if document_policy.selected == 'embedding' && @embedding.on?
-      prompt = config.prompts.web_embed
+      prompt = prompt(:web_embed).to_s
       urls.each do |url|
         fetch_source(url) { |url_io| embed_source(url_io, url) }
       end
       prompt.named_placeholders_interpolate({query:})
     elsif document_policy.selected == 'summarizing'
-      prompt = config.prompts.web_import
+      prompt = prompt(:web_import).to_s
       results = urls.each_with_object('') do |url, content|
         summarize(url).full? do |c|
           content << c.ask_and_send_or_self(:read)
@@ -991,7 +993,7 @@ class OllamaChat::Chat
       end
       prompt.named_placeholders_interpolate({query:, results:})
     else
-      prompt = config.prompts.web_summarize
+      prompt = prompt(:web_summarize).to_s
       results = urls.each_with_object('') do |url, content|
         import(url).full? do |c|
           content << c.ask_and_send_or_self(:read)

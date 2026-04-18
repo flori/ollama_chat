@@ -152,7 +152,7 @@ module OllamaChat::SourceFetching
     words < 1 and words = 100
     source_content = parse_source(source_io)
     source_content.present? or return
-    config.prompts.summarize % { source_content:, words: }
+    prompt(:summarize).to_s % { source_content:, words: }
   end
 
 
@@ -250,7 +250,7 @@ module OllamaChat::SourceFetching
         source_io.rewind
         embed_source(source_io, source)
       end
-      config.prompts.embed % { source: }
+      prompt(:embed).to_s % { source: }
     else
       STDOUT.puts "Embedding is off, so I will just give a small summary of this source."
       summarize(source)

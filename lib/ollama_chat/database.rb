@@ -38,9 +38,12 @@ module OllamaChat::Database
     OllamaChat::Database::Models::Migrations.run(OllamaChat::DB)
 
     # Load the rest of the models
-    Pathname.new(__dir__).glob('database/models/*.rb').each do |file|
+    Pathname.new(__dir__).glob('database/models/*.rb').map do |file|
       next if file.basename.to_s == 'migrations.rb'
       require file
+      OllamaChat::Database::Models.const_get(
+        Pathname.new(file).basename.sub_ext('').to_path.camelize
+      )
     end
   end
 end

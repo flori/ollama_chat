@@ -284,7 +284,7 @@ class OllamaChat::Utils::Fetcher
     middlewares = (self.middlewares | Array((opts.delete(:middlewares)))).uniq
     headers = opts.delete(:headers) || {}
     headers |= self.headers
-    headers = headers.transform_keys(&:to_s)
+    headers = headers.stringify_keys_recursive
     response = nil
     Tempfile.create do |tmp|
       infobar.label = 'Getting'

@@ -162,7 +162,7 @@ module OllamaChat::PersonaeManagement
     pathname = personae_directory + "#{persona_name}.md"
 
     unless pathname.exist?
-      File.write pathname, config.prompts.persona
+      File.write pathname, prompt(:persona).to_s
     end
 
     edit_file(pathname)

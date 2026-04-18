@@ -106,23 +106,6 @@ module OllamaChat::Dialog
     STDOUT.puts green { msg }
   end
 
-  # The choose_prompt method presents a menu of available prompts for selection.
-  # It retrieves the list of prompt attributes from the configuration,
-  # adds an '[EXIT]' option to the list, and displays it to the user.
-  # After the user makes a choice, the method either exits the chooser
-  # or applies the selected prompt configuration.
-  def choose_prompt
-    prompts = config.prompts.attribute_names.sort
-    prompts.unshift('[EXIT]')
-    case chosen = OllamaChat::Utils::Chooser.choose(prompts)
-    when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
-      return
-    when *prompts
-      config.prompts.send(chosen)
-    end
-  end
-
   # The change_voice method allows the user to select a voice from a list of
   # available options. It uses the chooser to present the options and sets the
   # selected voice as the current voice.

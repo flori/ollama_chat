@@ -133,7 +133,7 @@ module OllamaChat::Information
     name = default_persona_name and output.puts "💃 Persona: #{bold{name}}"
     if runtime_info.on?
       output.puts "🏃 Runtime Information:"
-      output.puts runtime_information_values.transform_keys(&:to_s).to_yaml.
+      output.puts runtime_information_values.stringify_keys_recursive.to_yaml.
         sub(/\A---\s*\n/, '').gsub(/^/, '  ')
     else
       runtime_info.show(output:)
@@ -265,6 +265,6 @@ module OllamaChat::Information
   #
   # @return [String] the formatted runtime information string.
   def runtime_information
-    config.prompts.runtime_info % runtime_information_values
+    prompt(:runtime_info).to_s % runtime_information_values
   end
 end

@@ -22,7 +22,8 @@ module OllamaChat::SystemPromptManagement
   # sets it in the message history.
   def setup_system_prompt
     default = session.current_system_prompt.full? ||
-      config.system_prompts.default? || @model_metadata.system
+      system_prompt(:default).full?(:to_s) ||
+      @model_metadata.system
     if @opts[?s] =~ /\A\?/
       change_system_prompt(default, system: @opts[?s])
     else
@@ -49,9 +50,9 @@ module OllamaChat::SystemPromptManagement
                else
                  Regexp.new(system.to_s)
                end
-    prompts = config.system_prompts.attribute_names.compact.grep(selector).sort
+    prompts = each_system_prompt.map(&:name).grep(selector).sort
     if prompts.size == 1
-      system = config.system_prompts.send(prompts.first)
+      system = system_prompt(prompts.first).to_s
     else
       prompts.unshift('[NEW]').unshift('[EXIT]')
       chosen = OllamaChat::Utils::Chooser.choose(prompts)
@@ -65,7 +66,7 @@ module OllamaChat::SystemPromptManagement
         when nil
           default
         when *prompts
-          config.system_prompts.send(chosen)
+          system_prompt(chosen).to_s
         else
           default
         end

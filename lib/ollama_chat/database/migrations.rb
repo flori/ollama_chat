@@ -71,5 +71,15 @@ module OllamaChat::Database::Models::Migrations
         document_policy: OllamaChat::Parsing::DOCUMENT_POLICY_STATES
       )
     end
+
+    db.create_table? :prompts do
+      primary_key :id
+      String :context, null: false
+      String :name, null: false
+      String :metadata, text: true
+      Time   :created_at
+      Time   :updated_at
+      unique [ :context, :name ]
+    end
   end
 end
