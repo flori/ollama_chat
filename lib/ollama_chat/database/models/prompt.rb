@@ -27,7 +27,7 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
         context: 'prompt',
         name: name.to_s,
       ).update(
-        metadata: { content: }.stringify_keys_recursive
+        metadata: { default: true, content: }.stringify_keys_recursive
       )
     end
     chat.config.system_prompts.each do |name, content|
@@ -35,7 +35,7 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
         context: 'system_prompt',
         name: name.to_s,
       ).update(
-        metadata: { content: }.stringify_keys_recursive
+        metadata: { default: true, content: }.stringify_keys_recursive
       )
     end
   end

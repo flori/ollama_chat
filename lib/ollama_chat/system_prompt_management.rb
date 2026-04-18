@@ -43,10 +43,8 @@ module OllamaChat::SystemPromptManagement
   #   search for
   def change_system_prompt(default, system: nil)
     selector = case system
-               when /\A\?(.+)\z/
+               when /\A\?(.*)\z/
                  Regexp.new($1)
-               when ??
-                 /./
                else
                  Regexp.new(system.to_s)
                end
@@ -59,7 +57,20 @@ module OllamaChat::SystemPromptManagement
       system =
         case chosen
         when '[NEW]'
-          ask?(prompt: "❓ Enter new system prompt to use: ")
+          name = nil
+          loop do
+            name = ask?(prompt: "❓ Enter new system prompt name to add: ")
+            if name.nil?
+              STDOUT.puts "Canceled."
+              return nil
+            end
+            if system_prompt(name)
+              STDOUT.puts "System prompt named #{bold{name}} already exists."
+            else
+              break
+            end
+          end
+          store_system_prompt(name, compose).to_s
         when '[EXIT]'
           STDOUT.puts "Exiting chooser."
           return
@@ -89,4 +100,10 @@ module OllamaChat::SystemPromptManagement
       STDOUT.puts "No valid file selected or file does not exist."
     end
   end
+
+  #def add_new_system_propmpt; end
+
+  #def choose_and_edit_system_prompt; end
+
+  #def choose_and_delete_system_prompt; end
 end

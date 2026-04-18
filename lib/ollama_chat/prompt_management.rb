@@ -22,4 +22,10 @@ module OllamaChat::PromptManagement
       prompt(chosen).to_s
     end
   end
+
+  #def add_new_propmpt; end
+
+  #def choose_and_edit_prompt; end
+
+  #def choose_and_delete_prompt; end
 end
