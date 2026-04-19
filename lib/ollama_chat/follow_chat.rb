@@ -204,7 +204,7 @@ class OllamaChat::FollowChat
         feedback_message = if info[:message]
                              "\n%s %s\n\n" % [ info[:warn] ? '⚠️' : '💡', info[:message] ]
                            end
-        puts <<~EOT.strip, ""
+        STDOUT.puts <<~EOT.strip, ""
           🔧 Tool functions #{name} returned result (#{info[:size]} in #{info[:duration]}).
           #{feedback_message}
         EOT

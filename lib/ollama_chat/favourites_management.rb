@@ -37,9 +37,9 @@ module OllamaChat::FavouritesManagement
         return
       when *to_select
         if models::Favourite.create(context: type, name: chosen.ask_and_send_or_self(:value).to_s)
-          puts "Favourited %s %s" % [ type, bold { prefix_favourite(chosen.ask_and_send_or_self(:value), true) } ]
+          STDOUT.puts "Favourited %s %s" % [ type, bold { prefix_favourite(chosen.ask_and_send_or_self(:value), true) } ]
         else
-          puts "Could not favourite %s %s" % [ type, bold { chosen } ]
+          STDOUT.puts "Could not favourite %s %s" % [ type, bold { chosen } ]
         end
         confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
@@ -60,9 +60,9 @@ module OllamaChat::FavouritesManagement
       return
     when *to_select
       if models::Favourite.where(context: type, name: chosen.ask_and_send_or_self(:value).to_s).destroy
-        puts "Unfavourited %s %s" % [ type, bold { prefix_favourite(chosen.ask_and_send_or_self(:value), false) } ]
+        STDOUT.puts "Unfavourited %s %s" % [ type, bold { prefix_favourite(chosen.ask_and_send_or_self(:value), false) } ]
       else
-        puts "Could not unfavourite %s %s" % [ type, bold { chosen } ]
+        STDOUT.puts "Could not unfavourite %s %s" % [ type, bold { chosen } ]
       end
       confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
     end

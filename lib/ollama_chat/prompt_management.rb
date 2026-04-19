@@ -9,10 +9,13 @@ module OllamaChat::PromptManagement
   # It retrieves the list of prompt names from the database, adds an '[EXIT]'
   # option, and displays them via the Chooser utility.
   #
-  # @return [String, nil] the text of the selected prompt, or nil if
-  #   the user chooses '[EXIT]' or cancels the selection.
-  def choose_prompt
-    prompts = each_prompt.map(&:name).sort
+  # @param default [Boolean, nil] filter for default prompts (true: only
+  #   defaults, false: only non-defaults)
+  #
+  # @return [OllamaChat::Database::Models::Prompt, nil] the selected prompt
+  #   model, or nil if the user chooses '[EXIT]' or cancels the selection.
+  def choose_prompt(default: nil)
+    prompts = each_prompt(default:).map(&:name).sort
     prompts.unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(prompts)
     when '[EXIT]', nil
@@ -23,9 +26,70 @@ module OllamaChat::PromptManagement
     end
   end
 
-  # TODO def add_new_propmpt; end
+  # Interactively prompts the user for a name and content (optionally loading
+  # from a file) to create a new prompt template.
+  #
+  # @return [Boolean, nil] true if the prompt was added, nil if the process was
+  #   cancelled
+  def add_new_prompt
+    name = nil
+    loop do
+      name = ask?(prompt: "❓ Enter new system prompt name to add: ")
+      if name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if prompt(name)
+        STDOUT.puts "System prompt named #{bold{name}} already exists."
+      else
+        break
+      end
+    end
+    patterns = ask?(prompt: "❓ Enter file patterns to load file, CR otherwise, C-c to cancel: ")
+    patterns.nil? and return
+    content = nil
+    patterns.present? and content = load_prompt_from_file(patterns)
+    prompt = compose(content)
+    store_prompt(name, prompt).to_s
+    true
+  end
 
-  # TODO def choose_and_edit_prompt; end
+  # Interactively selects an existing non-default prompt and deletes it after
+  # confirmation.
+  def choose_and_delete_prompt
+    prompt = choose_prompt(default: false) or return
+    confirm?(
+      prompt: "🔔 Really delete the prompt #{bold{prompt.name}}? (y/n) ",
+      yes: /\Ay/i
+    ) or return
+    prompt.destroy
+  end
 
-  # TODO def choose_and_delete_prompt; end
+  # Interactively selects an existing prompt and allows the user to edit its
+  # content via the integrated editor.
+  #
+  # @return [self, nil] the current context on success, or nil if cancelled
+  def choose_and_edit_prompt
+    prompt = choose_prompt or return
+    prompt.metadata['content'] = compose(prompt.metadata['content'].to_s)
+    prompt.save
+    self
+  end
+
+  # Lists all prompt templates in the database, indicating which are defaults
+  # and showing a truncated preview of their content.
+  #
+  # @return [Array] the result of the prompt mapping
+  def list_prompts
+    each_prompt.sort_by(&:name).map do |prompt|
+      default = prompt.metadata['default'] ? '⛭' : '✎'
+      start   = '%s %s' % [ default, bold { prompt.name } ]
+      content = prompt.to_s.inspect[1..-2]
+      content = Kramdown::ANSI::Width.truncate(
+        content, length: 0.9 * (Tins::Terminal.columns - start.size)
+      )
+      STDOUT.print start
+      STDOUT.puts ' %s' % italic { content }
+    end
+  end
 end

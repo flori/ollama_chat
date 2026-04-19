@@ -134,9 +134,9 @@ module OllamaChat::ToolCalling
       when *select_tools
         session.tools_default_enabled[chosen] = true
         if session.save
-          puts "Enabled tool %s" % bold { chosen }
+          STDOUT.puts "Enabled tool %s" % bold { chosen }
         else
-          puts "Could not enable tool %s" % bold { chosen }
+          STDOUT.puts "Could not enable tool %s" % bold { chosen }
         end
         confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
@@ -161,9 +161,9 @@ module OllamaChat::ToolCalling
       when *select_tools
         session.tools_default_enabled[chosen] = false
         if session.save
-          puts "Disabled tool %s" % bold { chosen }
+          STDOUT.puts "Disabled tool %s" % bold { chosen }
         else
-          puts "Could not disable tool %s" % bold { chosen }
+          STDOUT.puts "Could not disable tool %s" % bold { chosen }
         end
         confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end

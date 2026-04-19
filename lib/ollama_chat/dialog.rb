@@ -52,23 +52,23 @@ module OllamaChat::Dialog
     case
     when yes.nil?
       if keypress
-        puts "⌨️ #{answer}"
+        STDOUT.puts "⌨️ #{answer}"
       else
-        puts "⌛️ #{answer}"
+        STDOUT.puts "⌛️ #{answer}"
       end
       answer
     when answer =~ yes
       if keypress
-        puts "✅ #{answer}"
+        STDOUT.puts "✅ #{answer}"
       else
-        puts "☑️  #{answer}"
+        STDOUT.puts "☑️  #{answer}"
       end
       answer
     else
       if keypress
-        puts "🚫 #{answer}"
+        STDOUT.puts "🚫 #{answer}"
       else
-        puts "⌛️ #{answer}"
+        STDOUT.puts "⌛️ #{answer}"
       end
       nil
     end

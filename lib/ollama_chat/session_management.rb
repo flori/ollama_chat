@@ -90,6 +90,10 @@ module OllamaChat::SessionManagement
       session.touch
     end
     messages.clear
+    session.current_model.full? {
+      use_model(_1)
+      reset_session_model_options(_1)
+    }
     if persona = session.default_persona_id.full?
       disable_content_parsing
       personae_result(persona)
@@ -211,7 +215,7 @@ module OllamaChat::SessionManagement
       store_messages_in_session
       @session = chosen_session
       messages.read_conversation_jsonl(session.messages.to_s)
-      session.current_collection.full? { set_current_collection(collection) }
+      session.current_collection.full? { set_current_collection(_1) }
       session.current_model.full? { use_model(_1) }
       session.default_persona_id.full? { set_default_persona_name(_1) }
       session.current_system_prompt.full? { set_current_system_prompt(_1) }

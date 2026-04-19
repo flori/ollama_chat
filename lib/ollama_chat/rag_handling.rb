@@ -101,7 +101,7 @@ module OllamaChat::RAGHandling
   # @param collections [ Array<String> ] the list of all available collections
   def list_collections
     current_collection = @documents.collection
-    puts @documents.collections.
+    STDOUT.puts @documents.collections.
       map { |c| current_collection == c ? bold { c } : c }
   end
 end

@@ -72,22 +72,6 @@ module OllamaChat::SystemPromptManagement
     set_current_system_prompt(system)
   end
 
-  # Loads a system prompt from a file selected via an interactive file chooser.
-  #
-  # @param patterns [ Array<String> ] file patterns to filter the selection (e.g., ['*.txt', '*.md'])
-  def load_system_prompt_from_file(patterns = nil)
-    patterns = Array(patterns.full? || '**/*.{txt,md}')
-    filename = choose_filename(patterns)
-
-    if filename&.exist?
-      content = filename.read
-      set_current_system_prompt(content)
-      STDOUT.puts "Successfully loaded system prompt from: #{filename}"
-    else
-      STDOUT.puts "No valid file selected or file does not exist."
-    end
-  end
-
   # Presents an interactive menu to select a stored system prompt.
   #
   # @return [Object, nil] the selected system prompt object, or nil if cancelled
@@ -122,7 +106,11 @@ module OllamaChat::SystemPromptManagement
         break
       end
     end
-    system_prompt = compose
+    patterns = ask?(prompt: "❓ Enter file patterns to load file, CR otherwise, C-c to cancel: ")
+    patterns.nil? and return
+    content = nil
+    patterns.present? and content = load_prompt_from_file(patterns)
+    system_prompt = compose(content)
     store_system_prompt(name, system_prompt).to_s
     yes = confirm?(
       prompt: "🔔 Set the newly added prompt as current system prompt? (y/n) ",
@@ -153,11 +141,31 @@ module OllamaChat::SystemPromptManagement
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_delete_system_prompt
     prompt = choose_system_prompt or return
+    STDOUT.puts kramdown_ansi_parse(
+      prompt.to_s + "\n---"
+    )
     confirm?(
       prompt: "🔔 Really delete the system prompt #{bold{prompt.name}}? (y/n) ",
       yes: /\Ay/i
     ) or return
     prompt.destroy
     self
+  end
+
+  # Lists all stored system prompts in a formatted view, displaying their
+  # default status and a truncated preview of their content.
+  #
+  # @return [Array] an array of the results of the printing operations
+  def list_system_prompts
+    each_system_prompt.sort_by(&:name).map do |prompt|
+      default = prompt.metadata['default'] ? '⛭' : '✎'
+      start   = '%s %s' % [ default, bold { prompt.name } ]
+      content = prompt.to_s.inspect[1..-2]
+      content = Kramdown::ANSI::Width.truncate(
+        content, length: 0.9 * (Tins::Terminal.columns - start.size)
+      )
+      STDOUT.print start
+      STDOUT.puts ' %s' % italic { content }
+    end
   end
 end

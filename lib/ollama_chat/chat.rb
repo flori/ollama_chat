@@ -405,8 +405,8 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(add|delete|edit|change|load))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ add delete edit change load ] ],
+    regexp: %r(^/system(?:\s+(add|delete|edit|list|change))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ add delete edit list change ] ],
     optional: true,
     help: 'change/show/manage system prompt'
   ) do |subcommand, pattern|
@@ -417,11 +417,10 @@ class OllamaChat::Chat
       choose_and_delete_system_prompt
     when 'edit'
       choose_and_edit_system_prompt
+    when 'list'
+      list_system_prompts
     when 'change'
       change_system_prompt(@system)
-      @messages.show_system_prompt
-    when 'load'
-      load_system_prompt_from_file(pattern)
       @messages.show_system_prompt
     when nil
       @messages.show_system_prompt
@@ -609,11 +608,23 @@ class OllamaChat::Chat
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt),
-    help: 'prefill user prompt with preset prompts',
-  ) do
-    @prefill_prompt = choose_prompt&.to_s
-    # TODO add, delete, edit, load
+    regexp: %r(^/prompt(?:\s+(add|delete|edit|list))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ add delete edit list ] ],
+    optional: true,
+    help: 'prefill user prompt with preset prompts, manage prompts',
+  ) do |subcommand, pattern|
+    case subcommand
+    when 'add'
+      add_new_prompt
+    when 'delete'
+      choose_and_delete_prompt
+    when 'edit'
+      choose_and_edit_prompt
+    when 'list'
+      list_prompts
+    when nil
+      @prefill_prompt = choose_prompt&.to_s
+    end
     :next
   end
 
