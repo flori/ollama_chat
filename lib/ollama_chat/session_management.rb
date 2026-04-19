@@ -52,14 +52,16 @@ module OllamaChat::SessionManagement
       all_separators: true,
       border:         :unicode_round,
     }
-    table.headings = %w[ ID NAME SIZE COUNT ].map { |header| bold { header } }
+    table.headings = %w[ ID NAME SIZE COUNT UPDATED ].map { |header| bold { header } }
+    now = Time.now
     models::Session.order(Sequel.desc(:updated_at)).each do |s|
       size = format_bytes(s.messages.to_s.size)
       table << [
          s.id.to_s,
         session.id == s.id ? bold { s.name } : s.name,
         size,
-        s.messages.to_s.count(?\n)
+        s.messages.to_s.count(?\n),
+        Tins::Duration.new(now - s.updated_at),
       ]
     end
     table.align_column 2, :right
