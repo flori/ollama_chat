@@ -166,9 +166,9 @@ module OllamaChat::SessionManagement
     total = messages.each_message.count
     messages.each_message.with_infobar(label: 'Summarizing message', total:) do |message|
       summary = generate(
-        prompt: 'Summarize this %s message in one %s: %s' % [ # TODO Move into default config prompts
-          message.role, unit, message.content
-        ]
+        prompt:  prompt(:session_summarize).to_s % {
+          role: message.role, unit:, content: message.content
+        }
       ).response
       if pretty
         contents << '**%s**: %s' % [ message.role, summary ]
@@ -193,8 +193,7 @@ module OllamaChat::SessionManagement
   # @return [String, nil] the derived session name or nil
   def derive_session_name(length: 128)
     content = summarize_session(sentence: true) or return
-    prompt  = 'Create a title with a length of **less than %u** characters for this conversation. Output only the title and nothing else:\n\n%s'  # TODO: MOVE INTO default config prompts
-    generate(prompt: prompt % [ length, content ]).response.full? do |name|
+    generate(prompt: prompt(:session_title).to_s % { length:, content: }).response.full? do |name|
       name = name.
         gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
         gsub(/\s+/, ' ')

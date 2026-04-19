@@ -98,6 +98,8 @@ prompts:
     - **Format**: [Markdown, plain text, code blocks, etc.]
     - **Vocabulary**: [Technical terms, slang, formal language]
     - **Structure**: [How you organize your responses]
+  session_summarize: "Summarize this %{role} message in one %{unit}: %{content}"
+  session_title: "Create a title with a length of **less than %{length}** characters for this conversation. Output only the title and nothing else:\n\n%{content}"
 system_prompts:
   default: <%= OC::OLLAMA::CHAT::SYSTEM || 'null' %>
   assistant: You are a helpful assistant.
