@@ -23,7 +23,7 @@ describe OllamaChat::Tools::PatchFile do
 
   it 'can be executed successfully with valid content' do
     const_conf_as(
-      'OC::DIFF_TOOL' => Pathname.new('/bin/true')
+      'OC::DIFF_TOOL' => Pathname.new(`which true`.chomp)
     )
     # Create a test file first
     test_file = './tmp/test_patch_file.txt'
