@@ -1,3 +1,5 @@
+require 'open3'
+
 # Tool for executing RSpec / Test‑Unit test suites.
 #
 # The tool is registered under the name ``run_tests`` and exposes a single
@@ -95,7 +97,8 @@ class OllamaChat::Tools::RunTests
   def run_tests(path, coverage)
     output = +''
     env = ENV.to_h | { 'START_SIMPLECOV' => coverage ? '1' : '0' }
-    IO.popen(env, "#{test_runner} #{path} 2>&1", ?r) do |io|
+    cmd = [ test_runner, Shellwords.escape(path) ].join(' ')
+    Open3.popen2e(env, cmd) do |_,io|
       while line = io.gets
         STDOUT.puts line
         output << line
