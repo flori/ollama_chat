@@ -76,6 +76,6 @@ describe OllamaChat::Tools::ReadFile do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
-    expect(json.message).to match(/Failed to read file:.*is not a file/)
+    expect(json.message).to match(/Failed to read file:.* does not exist/)
   end
 end

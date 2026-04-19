@@ -13,7 +13,9 @@ module OllamaChat::Utils::PathValidator
   # The method performs the following steps:
   #
   # * Canonicalises the supplied `path` using `Pathname#expand_path` and
-  #   `cleanpath(true)` – this resolves symlinks and removes `..` components.
+  #   `cleanpath(true)`.
+  # * If the `check` option is provided, resolves the path to its real physical
+  #   location using `realpath` to prevent symlink traversal attacks.
   # * Normalises each entry in `allowed` into an absolute, cleaned `Pathname`
   #   (an empty or `nil` allowed list results in an empty array, which causes
   #   every path to be rejected – the safest default).
@@ -26,24 +28,40 @@ module OllamaChat::Utils::PathValidator
   #   are considered safe. Each entry is expanded to an absolute `Pathname`.
   #   Passing `nil` or an empty array will reject all paths.
   #
-  # @option check_file [Boolean] If true the method also verifies that *path*
-  #   itself exists as a file (not just its parent). Defaults to false.
+  # @option check [Symbol, Boolean, nil] Validation mode:
+  #   * `:file` - Verifies that the path exists and is a file.
+  #   * `:directory` - Verifies that the path exists and is a directory.
+  #   * `true` - Verifies only that the path exists (resolves symlinks).
+  #   * `nil` (default) - No existence or type check is performed.
   #
   # @return [Pathname] The canonicalised absolute path if validation passes.
   # @raise [OllamaChat::InvalidPathError] when `path` is not inside any of the
-  #   allowed directories or, when `check_file: true`, when it does not point to
-  #   an existing file.
-  def assert_valid_path(path, allowed, check_file: false)
+  #   allowed directories or, when `check` is set, when the path does not exist
+  #   or is of the wrong type.
+  def assert_valid_path(path, allowed, check: nil)
     target_path = Pathname.new(path).expand_path.cleanpath(true)
 
     target_path.dirname.directory? or
       raise OllamaChat::InvalidPathError,
         "#{target_path.dirname.to_s.inspect} is not a directory"
 
-    if check_file
-      target_path.file? or
+    if check
+      begin
+        target_path = target_path.realpath
+      rescue Errno::ENOENT
         raise OllamaChat::InvalidPathError,
-        "#{target_path.to_s.inspect} is not a file"
+          "#{target_path.to_s.inspect} does not exist"
+      end
+      case check
+      when :file
+        target_path.file? or
+          raise OllamaChat::InvalidPathError,
+          "#{target_path.to_s.inspect} is not a file"
+      when :directory
+        target_path.directory? or
+          raise OllamaChat::InvalidPathError,
+          "#{target_path.to_s.inspect} is not a file"
+      end
     end
 
     allowed_dirs, rest = Array(allowed).map do |p|

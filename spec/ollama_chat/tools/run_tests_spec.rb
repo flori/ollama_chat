@@ -118,6 +118,6 @@ describe OllamaChat::Tools::RunTests do
 
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
-    expect(json.error).to eq 'Errno::ENOENT'
+    expect(json.error).to eq 'OllamaChat::InvalidPathError'
   end
 end

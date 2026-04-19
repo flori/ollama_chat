@@ -83,7 +83,7 @@ class OllamaChat::Tools::RunTests
         raise ArgumentError, 'path could not be determined'
       end
     end
-    assert_valid_path(path, config.tools.functions.run_tests.allowed?)
+    assert_valid_path(path, config.tools.functions.run_tests.allowed?, check: true)
     File.exist?(path) or raise Errno::ENOENT, 'path %s does not exist' % path.inspect
   end
 
