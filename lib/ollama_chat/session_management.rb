@@ -211,6 +211,7 @@ module OllamaChat::SessionManagement
       store_messages_in_session
       @session = chosen_session
       messages.read_conversation_jsonl(session.messages.to_s)
+      session.current_collection.full? { set_current_collection(collection) }
       session.current_model.full? { use_model(_1) }
       session.default_persona_id.full? { set_default_persona_name(_1) }
       session.touch

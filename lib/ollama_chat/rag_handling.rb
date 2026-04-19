@@ -40,6 +40,14 @@ module OllamaChat::RAGHandling
     end
   end
 
+  # Sets the current document collection.
+  #
+  # @param collection [String, Symbol] the name of the collection to set
+  # @return [String, Symbol] the newly set collection name
+  def set_current_collection(collection)
+    @documents.collection = collection
+  end
+
   # The choose_collection method presents a menu to select or create a document
   # collection. It displays existing collections along with options to create a
   # new one or exit.
