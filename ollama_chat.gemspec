@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<excon>.freeze, ["~> 1.0".freeze])
   s.add_runtime_dependency(%q<ollama-ruby>.freeze, ["~> 1.21".freeze])
   s.add_runtime_dependency(%q<documentrix>.freeze, [">= 0.1.1".freeze])
-  s.add_runtime_dependency(%q<unix_socks>.freeze, ["~> 0.3".freeze])
+  s.add_runtime_dependency(%q<unix_socks>.freeze, [">= 0.4".freeze])
   s.add_runtime_dependency(%q<rss>.freeze, ["~> 0.3".freeze])
   s.add_runtime_dependency(%q<term-ansicolor>.freeze, ["~> 1.11".freeze])
   s.add_runtime_dependency(%q<redis>.freeze, ["~> 5.0".freeze])
