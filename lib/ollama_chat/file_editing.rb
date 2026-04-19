@@ -13,23 +13,42 @@ module OllamaChat::FileEditing
     system Shellwords.join([ editor, filename ])
   end
 
-  # The edit_text method temporarily writes the given text to a file,
-  # attempts to edit it using an external editor, and returns the edited
-  # content if successful.
+  # Creates a temporary file with the given basename, optionally populates it
+  # with text, and yields the file to the provided block.
   #
-  # @param text [String] the text to be edited
+  # The basename is used by the external editor to detect the filetype and
+  # provide appropriate syntax highlighting.
   #
-  # @return [String, nil] the edited text or nil if editing failed
-  def edit_text(text)
-    Tempfile.create do |tmp|
-      tmp.write(text)
-      tmp.flush
+  # @param text [String, nil] Initial content to write to the temporary file
+  # @param basename [Array<String>] Base name and extension for the temporary file
+  # @yield [Tempfile] The created temporary file
+  # @return [Object] The result of the block
+  def edit_text_block(text = nil, basename: %w[ text .md ], &block)
+    Tempfile.create(basename) do |tmp|
+      if text
+        tmp.write(text)
+        tmp.flush
+      end
+      block.(tmp)
+    end
+  end
 
+  # Opens a temporary file in the configured editor, populates it with the
+  # given text, and returns the edited content.
+  #
+  # The basename is used by the external editor to detect the filetype and
+  # provide appropriate syntax highlighting.
+  #
+  # @param text [String, nil] Initial content to pre-populate the editor
+  # @param basename [Array<String>] Base name and extension for the temporary file
+  # @return [String, nil] The edited content if successful, nil otherwise
+  def edit_text(text = nil, basename: %w[ text .md ])
+    edit_text_block(text, basename:) do |tmp|
       if result = edit_file(tmp.path)
         new_text = File.read(tmp.path)
         return new_text
       else
-        STDERR.puts "Editor failed to edit message."
+        STDERR.puts "Editor failed to edit #{tmp.path.inspect}."
       end
     end
   end

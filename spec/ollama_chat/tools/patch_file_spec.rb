@@ -45,9 +45,10 @@ describe OllamaChat::Tools::PatchFile do
       )
     )
 
-    # Mock Tempfile and system to avoid launching real vimdiff
     tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
-    expect(Tempfile).to receive(:create).and_yield(tmp_double)
+    expect(chat).to receive(:edit_text_block).
+      with(/Second\nWorld/m, basename: %w[ test_patch_file .txt ]).
+      and_yield(tmp_double)
 
     # Simulate user applying changes via diffget (changing the file)
     allow(tool).to receive(:system).and_return(true)

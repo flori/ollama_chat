@@ -62,7 +62,7 @@ module OllamaChat::PromptManagement
     patterns.nil? and return
     content = nil
     patterns.present? and content = load_prompt_from_file(patterns)
-    prompt = compose(content)
+    prompt = edit_text(content)
     store_prompt(name, prompt).to_s
     true
   end
@@ -84,7 +84,7 @@ module OllamaChat::PromptManagement
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_prompt
     prompt = choose_prompt or return
-    prompt.metadata['content'] = compose(prompt.metadata['content'].to_s)
+    prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
     prompt.save
     self
   end

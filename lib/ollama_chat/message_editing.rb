@@ -16,10 +16,7 @@ module OllamaChat::MessageEditing
   # @return [String, nil] the edited content if successful, nil otherwise
   def change_response
     if message = @messages.last
-      Tempfile.create do |tmp|
-        tmp.write(message.content)
-        tmp.flush
-
+      edit_text_block(message.content) do |tmp|
         if result = edit_file(tmp.path)
           new_content           = File.read(tmp.path)
           old_message           = @messages.messages.pop.as_json

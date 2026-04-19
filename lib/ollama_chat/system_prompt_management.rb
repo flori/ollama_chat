@@ -120,7 +120,7 @@ module OllamaChat::SystemPromptManagement
     patterns.nil? and return
     content = nil
     patterns.present? and content = load_prompt_from_file(patterns)
-    system_prompt = compose(content)
+    system_prompt = edit_text(content)
     store_system_prompt(name, system_prompt).to_s
     yes = confirm?(
       prompt: "🔔 Set the newly added prompt as current system prompt? (y/n) ",
@@ -140,7 +140,7 @@ module OllamaChat::SystemPromptManagement
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_system_prompt
     prompt = choose_system_prompt or return
-    prompt.metadata['content'] = compose(prompt.metadata['content'].to_s)
+    prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
     prompt.save
     self
   end

@@ -59,7 +59,8 @@ class OllamaChat::Tools::PatchFile
   #
   # @return [String] a JSON string containing the result of the operation
   def execute(tool_call, **opts)
-    config = opts[:chat].config
+    chat   = opts[:chat]
+    config = chat.config
     args   = tool_call.function.arguments
 
     content = args.content.full? or
@@ -68,7 +69,7 @@ class OllamaChat::Tools::PatchFile
     path = args.path.full? or raise ArgumentError, 'require path to file to be patched'
     path = assert_valid_path(path, config.tools.functions.patch_file.allowed?, check: :file)
 
-    result = apply_patch(path, content)
+    result = apply_patch(chat, path, content)
     message = if result[:success]
                  "Successfully applied patch to #{path.to_s.inspect}."
                else
@@ -107,14 +108,13 @@ class OllamaChat::Tools::PatchFile
   # @param content [String] The proposed new content
   #
   # @return [Hash] result containing success status and any output
-  def apply_patch(path, content)
+  def apply_patch(chat, path, content)
     old_digest = digest(path)
     diff_tool = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'
     File.exist?(diff_tool) or raise "Diff tool #{diff_tool.inspect} does not exist"
     result = { result: '', success: false }
-    Tempfile.create do |patched|
-      patched.write(content)
-      patched.flush
+    basename = [ path.basename.sub_ext(''), path.extname ].map(&:to_s).all_full?
+    chat.edit_text_block(content, basename:) do |patched|
       cmd = [ diff_tool, path, patched.path ].map(&:to_s)
       if system(*cmd)
         result[:success] = $?.success? && digest(path) != old_digest

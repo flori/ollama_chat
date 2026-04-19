@@ -753,7 +753,7 @@ class OllamaChat::Chat
     regexp: %r(^/compose$),
     help: 'compose content using an EDITOR'
   ) do
-    compose or :next
+    edit_text.full? or :next
   end
 
   command(

@@ -111,31 +111,6 @@ module OllamaChat::InputContent
     end
   end
 
-  # The compose method opens an editor to compose content.
-  #
-  # This method checks for a configured editor and opens a temporary file in
-  # that editor for the user to compose content. Upon successful editing, it
-  # reads the content from the temporary file and returns it. If the editor
-  # fails or no editor is configured, appropriate error messages are displayed
-  # and nil is returned.
-  #
-  # @param initial_content [String, nil] content to pre-populate the editor with
-  # @return [ String, nil ] the composed content if successful, nil otherwise
-  def compose(initial_content = nil)
-    Tempfile.create do |tmp|
-      if initial_content
-        tmp.write(initial_content)
-        tmp.flush
-      end
-      if result = edit_file(tmp.path)
-        return File.read(tmp.path)
-      else
-        STDERR.puts "Editor failed to edit #{tmp.path.inspect}."
-      end
-    end
-    nil
-  end
-
   # The all_file_set method aggregates files matching the provided glob
   # patterns into a set.
   #
