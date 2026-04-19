@@ -115,7 +115,8 @@ module OllamaChat::SessionManagement
     end
   end
 
-  # Deletes the current session and prompts the user to pick a new one to switch to.
+  # Deletes the current session and prompts the user to pick a new one to
+  # switch to.
   def delete_session
     current_session_name, current_session_id = session.name, session.id
     STDOUT.puts <<~EOT
@@ -165,7 +166,7 @@ module OllamaChat::SessionManagement
     total = messages.each_message.count
     messages.each_message.with_infobar(label: 'Summarizing message', total:) do |message|
       summary = generate(
-        prompt: 'Summarize this %s message in one %s: %s' % [
+        prompt: 'Summarize this %s message in one %s: %s' % [ # TODO Move into default config prompts
           message.role, unit, message.content
         ]
       ).response
@@ -192,7 +193,7 @@ module OllamaChat::SessionManagement
   # @return [String, nil] the derived session name or nil
   def derive_session_name(length: 128)
     content = summarize_session(sentence: true) or return
-    prompt  = 'Create a title with a length of **less than %u** characters for this conversation. Output only the title and nothing else:\n\n%s'
+    prompt  = 'Create a title with a length of **less than %u** characters for this conversation. Output only the title and nothing else:\n\n%s'  # TODO: MOVE INTO default config prompts
     generate(prompt: prompt % [ length, content ]).response.full? do |name|
       name = name.
         gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
@@ -214,6 +215,7 @@ module OllamaChat::SessionManagement
       session.current_collection.full? { set_current_collection(collection) }
       session.current_model.full? { use_model(_1) }
       session.default_persona_id.full? { set_default_persona_name(_1) }
+      session.current_system_prompt.full? { set_current_system_prompt(_1) }
       session.touch
       info_session
     end

@@ -19,13 +19,13 @@ module OllamaChat::PromptManagement
       STDOUT.puts "Exiting chooser."
       return
     when *prompts
-      prompt(chosen).to_s
+      prompt(chosen)
     end
   end
 
-  #def add_new_propmpt; end
+  # TODO def add_new_propmpt; end
 
-  #def choose_and_edit_prompt; end
+  # TODO def choose_and_edit_prompt; end
 
-  #def choose_and_delete_prompt; end
+  # TODO def choose_and_delete_prompt; end
 end

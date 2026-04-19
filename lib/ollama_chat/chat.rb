@@ -405,18 +405,27 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(change|load))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ change load ] ],
+    regexp: %r(^/system(?:\s+(add|delete|edit|change|load))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ add delete edit change load ] ],
     optional: true,
-    help: 'change/show system prompt'
+    help: 'change/show/manage system prompt'
   ) do |subcommand, pattern|
     case subcommand
+    when 'add'
+      add_new_system_prompt and @messages.show_system_prompt
+    when 'delete'
+      choose_and_delete_system_prompt
+    when 'edit'
+      choose_and_edit_system_prompt
     when 'change'
       change_system_prompt(@system)
+      @messages.show_system_prompt
     when 'load'
       load_system_prompt_from_file(pattern)
+      @messages.show_system_prompt
+    when nil
+      @messages.show_system_prompt
     end
-    @messages.show_system_prompt
     :next
   end
 
@@ -603,7 +612,8 @@ class OllamaChat::Chat
     regexp: %r(^/prompt),
     help: 'prefill user prompt with preset prompts',
   ) do
-    @prefill_prompt = choose_prompt
+    @prefill_prompt = choose_prompt&.to_s
+    # TODO add, delete, edit, load
     :next
   end
 

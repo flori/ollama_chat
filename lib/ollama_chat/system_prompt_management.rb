@@ -5,8 +5,9 @@
 # system prompts, allowing for dynamic and interactive configuration within the
 # chat lifecycle.
 module OllamaChat::SystemPromptManagement
-  # Sets the current system prompt for the chat session. @param system [String]
-  # the system prompt to set
+  # Sets the current system prompt for the chat session.
+  #
+  # @param system [String] the system prompt to set
   def set_current_system_prompt(system)
     messages.set_system_prompt(system)
     session.update(current_system_prompt: system)
@@ -41,6 +42,7 @@ module OllamaChat::SystemPromptManagement
   # @param default [ String ] the default system prompt to fall back to
   # @param system [ String ] the system prompt identifier or pattern to
   #   search for
+  # @return [String, nil] the system prompt that was set, or nil if cancelled
   def change_system_prompt(default, system: nil)
     selector = case system
                when /\A\?(.*)\z/
@@ -52,25 +54,10 @@ module OllamaChat::SystemPromptManagement
     if prompts.size == 1
       system = system_prompt(prompts.first).to_s
     else
-      prompts.unshift('[NEW]').unshift('[EXIT]')
+      prompts.unshift('[EXIT]')
       chosen = OllamaChat::Utils::Chooser.choose(prompts)
       system =
         case chosen
-        when '[NEW]'
-          name = nil
-          loop do
-            name = ask?(prompt: "❓ Enter new system prompt name to add: ")
-            if name.nil?
-              STDOUT.puts "Canceled."
-              return nil
-            end
-            if system_prompt(name)
-              STDOUT.puts "System prompt named #{bold{name}} already exists."
-            else
-              break
-            end
-          end
-          store_system_prompt(name, compose).to_s
         when '[EXIT]'
           STDOUT.puts "Exiting chooser."
           return
@@ -101,9 +88,76 @@ module OllamaChat::SystemPromptManagement
     end
   end
 
-  #def add_new_system_propmpt; end
+  # Presents an interactive menu to select a stored system prompt.
+  #
+  # @return [Object, nil] the selected system prompt object, or nil if cancelled
+  def choose_system_prompt
+    prompts = each_system_prompt.map(&:name).sort
+    prompts.unshift('[EXIT]')
+    case chosen = OllamaChat::Utils::Chooser.choose(prompts)
+    when '[EXIT]', nil
+      STDOUT.puts "Exiting chooser."
+      return
+    when *prompts
+      system_prompt(chosen)
+    end
+  end
 
-  #def choose_and_edit_system_prompt; end
+  # Interactively prompts the user for a name and content to create a new
+  # system prompt. Optionally sets the new prompt as the current one.
+  #
+  # @return [Boolean, nil] true if the prompt was added and set as current,
+  #   false if added but not set, or nil if the process was cancelled
+  def add_new_system_prompt
+    name = nil
+    loop do
+      name = ask?(prompt: "❓ Enter new system prompt name to add: ")
+      if name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if system_prompt(name)
+        STDOUT.puts "System prompt named #{bold{name}} already exists."
+      else
+        break
+      end
+    end
+    system_prompt = compose
+    store_system_prompt(name, system_prompt).to_s
+    yes = confirm?(
+      prompt: "🔔 Set the newly added prompt as current system prompt? (y/n) ",
+      yes: /\Ay/i
+    )
+    if yes
+      set_current_system_prompt(system_prompt)
+      true
+    else
+      false
+    end
+  end
 
-  #def choose_and_delete_system_prompt; end
+  # Interactively selects an existing system prompt and allows the user to
+  # edit its content.
+  #
+  # @return [self, nil] the current context on success, or nil if cancelled
+  def choose_and_edit_system_prompt
+    prompt = choose_system_prompt or return
+    prompt.metadata['content'] = compose(prompt.metadata['content'].to_s)
+    prompt.save
+    self
+  end
+
+  # Interactively selects an existing system prompt and deletes it after
+  # confirmation.
+  #
+  # @return [self, nil] the current context on success, or nil if cancelled
+  def choose_and_delete_system_prompt
+    prompt = choose_system_prompt or return
+    confirm?(
+      prompt: "🔔 Really delete the system prompt #{bold{prompt.name}}? (y/n) ",
+      yes: /\Ay/i
+    ) or return
+    prompt.destroy
+    self
+  end
 end
