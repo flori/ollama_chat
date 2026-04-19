@@ -58,11 +58,12 @@ module OllamaChat::ConfigHandling
       exit 1
     end
     if confirm?(prompt: '🔔 Do you want to fix the config? (y/n) ', yes: /\Ay/i)
-      system Shellwords.join([
+      cmd = [
         diff_tool,
         @ollama_chat_config.filename,
         @ollama_chat_config.default_config_path,
-      ])
+      ].map(&:to_s)
+      system(*cmd)
       exit 0
     else
       exit 1
