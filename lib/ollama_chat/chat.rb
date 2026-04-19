@@ -186,14 +186,17 @@ class OllamaChat::Chat
     OC::OLLAMA::CHAT::DEBUG
   end
 
-  # The initial_model method returns the model name to be used for the chat
-  # session. It checks if a model was specified via command line option '-m'
-  # and returns that, otherwise it falls back to the default model name from
-  # the configuration.
+
+  # Returns the model name to be used for the chat session.
   #
-  # @return [ String ] the model name to be used for the chat session
+  # The resolution priority is:
+  # 1. The current session's model (if present).
+  # 2. The model specified via the command line option `-m`.
+  # 3. The default model name defined in the configuration.
+  #
+  # @return [String] the model name to be used for the chat session
   def initial_model
-    @opts[?m].full? || config.model.name
+    session&.current_model.full? || @opts[?m].full? || config.model.name
   end
 
   # The initial_collection method determines the collection name to be used for
