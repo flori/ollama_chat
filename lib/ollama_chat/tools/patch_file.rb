@@ -115,8 +115,8 @@ class OllamaChat::Tools::PatchFile
     Tempfile.create do |patched|
       patched.write(content)
       patched.flush
-      cmd = Shellwords.join([ diff_tool, path, patched.path ])
-      if system(cmd)
+      cmd = [ diff_tool, path, patched.path ].map(&:to_s)
+      if system(*cmd)
         result[:success] = $?.success? && digest(path) != old_digest
       end
     end
