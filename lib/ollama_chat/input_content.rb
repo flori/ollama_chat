@@ -119,9 +119,14 @@ module OllamaChat::InputContent
   # fails or no editor is configured, appropriate error messages are displayed
   # and nil is returned.
   #
+  # @param initial_content [String, nil] content to pre-populate the editor with
   # @return [ String, nil ] the composed content if successful, nil otherwise
-  def compose
+  def compose(initial_content = nil)
     Tempfile.create do |tmp|
+      if initial_content
+        tmp.write(initial_content)
+        tmp.flush
+      end
       if result = edit_file(tmp.path)
         return File.read(tmp.path)
       else
@@ -138,7 +143,7 @@ module OllamaChat::InputContent
   #   against
   #
   # @return [Set<Pathname>] a set containing all Pathname objects that match
-  #   any of the given patterns
+  #   any given patterns
   def all_file_set(patterns)
     files = Set[]
     patterns.each do |pattern|
@@ -148,15 +153,15 @@ module OllamaChat::InputContent
   end
 
   # The provide_file_set_content method collects content from a set of files
-  # that match the supplied patterns, optionally processing all files or
+  # that match the supplied patterns, optionally processing them all or
   # allowing the caller to choose a subset interactively. It concatenates each
   # file's name with the content returned by the provided block, separating
   # each entry with newlines, resulting in a single string containing the
   # processed content for all selected files.
   #
   # @param patterns [Array<String>] # the glob patterns used to find files
-  # @param all [TrueClass, FalseClass] whether to process all matching files or
-  #   let the caller choose a subset
+  # @param all [TrueClass, FalseClass] whether to process all matching files
+  #   or let the caller choose a subset
   #
   # @yield [filename] the block that processes each filename
   # @return [String] the concatenated result of the block applied to each file
