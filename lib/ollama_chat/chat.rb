@@ -362,18 +362,15 @@ class OllamaChat::Chat
 
   command(
     name: :favourite,
-    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model))?$),
-    complete: [ 'favourite', %w[ add delete ], %w[ model ] ],
-    help: 'manage model favourites'
+    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system_prompt))?$),
+    complete: [ 'favourite', %w[ add delete ], %w[ model prompt system_prompt ] ],
+    help: 'manage model, prompt, system_prompt favourites'
   ) do |subcommand, type|
     case subcommand
     when 'add'
-      add_favourite(type, all_models)
+      add_favourite(type)
     when 'delete'
-      all_my_models = all_models
-      selected = models::Favourite.where(context: type).
-        where(name: all_my_models.map(&:value)).map(&:name)
-      delete_favourite(type, all_my_models.select { selected.member?(_1.value) })
+      delete_favourite(type)
     end
     :next
   end

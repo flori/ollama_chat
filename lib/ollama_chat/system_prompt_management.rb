@@ -5,6 +5,16 @@
 # system prompts, allowing for dynamic and interactive configuration within the
 # chat lifecycle.
 module OllamaChat::SystemPromptManagement
+  # Retrieves all stored system prompts, decorated with a heart if they are marked as favourites.
+  #
+  # @return [Array<SearchUI::Wrapper>] the list of system prompts for display in a chooser
+  def all_system_prompts
+    favs = all_favourited('system_prompt')
+    each_system_prompt.sort_by(&:name).map do |p|
+      system_prompt_with_favourite(p.name, favs[p.name])
+    end
+  end
+
   # Sets the current system prompt for the chat session.
   #
   # @param system [String] the system prompt to set
@@ -36,8 +46,8 @@ module OllamaChat::SystemPromptManagement
   # The change_system_prompt method allows the user to select or enter a new
   # system prompt for the chat session.
   # It provides an interactive chooser when multiple prompts match the given
-  # selector, and sets the selected prompt as the current system prompt for the
-  # messages.
+  # selector, and sets the selected prompt as the current system prompt for
+  # the messages.
   #
   # @param default [ String ] the default system prompt to fall back to
   # @param system [ String ] the system prompt identifier or pattern to
@@ -50,9 +60,9 @@ module OllamaChat::SystemPromptManagement
                else
                  Regexp.new(system.to_s)
                end
-    prompts = each_system_prompt.map(&:name).grep(selector).sort
+    prompts = all_system_prompts.select { |p| p.value =~ selector }
     if prompts.size == 1
-      system = system_prompt(prompts.first).to_s
+      system = system_prompt(prompts.first.value).to_s
     else
       prompts.unshift('[EXIT]')
       chosen = OllamaChat::Utils::Chooser.choose(prompts)
@@ -63,8 +73,8 @@ module OllamaChat::SystemPromptManagement
           return
         when nil
           default
-        when *prompts
-          system_prompt(chosen).to_s
+        when SearchUI::Wrapper
+          system_prompt(chosen.value).to_s
         else
           default
         end
@@ -76,14 +86,14 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [Object, nil] the selected system prompt object, or nil if cancelled
   def choose_system_prompt
-    prompts = each_system_prompt.map(&:name).sort
+    prompts = all_system_prompts
     prompts.unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(prompts)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
-    when *prompts
-      system_prompt(chosen)
+    when SearchUI::Wrapper
+      system_prompt(chosen.value)
     end
   end
 
@@ -157,9 +167,11 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [Array] an array of the results of the printing operations
   def list_system_prompts
+    fav = all_favourited('system_prompt')
     each_system_prompt.sort_by(&:name).map do |prompt|
       default = prompt.metadata['default'] ? '⛭' : '✎'
       start   = '%s %s' % [ default, bold { prompt.name } ]
+      start   = prefix_favourite(start, fav[prompt.name])
       content = prompt.to_s.inspect[1..-2]
       content = Kramdown::ANSI::Width.truncate(
         content, length: 0.9 * (Tins::Terminal.columns - start.size)
@@ -167,5 +179,13 @@ module OllamaChat::SystemPromptManagement
       STDOUT.print start
       STDOUT.puts ' %s' % italic { content }
     end
+  end
+
+  private
+
+  # Helper to wrap a system prompt name with its favourite status for the UI.
+  def system_prompt_with_favourite(name, favourited)
+    display = prefix_favourite(name, favourited)
+    SearchUI::Wrapper.new(name, display:)
   end
 end

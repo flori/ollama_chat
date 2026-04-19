@@ -1,20 +1,34 @@
 # A module that handles favourite operations for OllamaChat.
 #
-# This module provides functionality for managing favourites within the
-# OllamaChat application, allowing users to save and retrieve favourite items
-# such as models, prompts, or other configurations.
+# This module allows users to mark specific entities as favourites and retrieve
+# those favourites for easy access and display in the UI.
 module OllamaChat::FavouritesManagement
   private
 
-  # The prefix_favourite method adds a favorite indicator to a string.
+  # Prepend a heart icon to a string if it is marked as a favourite.
   #
-  # @param string [ String ] the string to be prefixed
-  # @param enabled [ TrueClass, FalseClass ] flag to determine favorite status
-  #
-  # @return [ String ] the prefixed string with favorite indicator
-  def prefix_favourite(string, enabled)
-    fav = enabled ? '❤️' : '🩶'
+  # @param string [String] the string to decorate
+  # @param favourited [Boolean] whether the item is a favourite
+  # @return [String] the decorated string
+  def prefix_favourite(string, favourited)
+    fav = favourited ? '❤️' : '🩶'
     "%s %s" % [ fav, string ]
+  end
+
+  # Retrieves a UI-ready list of all available entities of a given type,
+  # decorated with a heart icon if they are marked as favourites.
+  #
+  # @param type [String] the context type (e.g., 'model', 'prompt', 'system_prompt')
+  # @return [Array<SearchUI::Wrapper>] a list of wrappers containing the original
+  #   value and the decorated display string.
+  def favourite_all_things(type)
+    case type
+    when 'model'         then all_models
+    when 'prompt'        then all_prompts
+    when 'system_prompt' then all_system_prompts
+    else
+      raise ArgumentError, "not all things defined for type #{type.inspect}"
+    end.to_a
   end
 
   # The add_favourite method adds a favourite item of a specified type. It
@@ -22,25 +36,26 @@ module OllamaChat::FavouritesManagement
   # from items that haven't been favourited yet.
   #
   # @param type [ String ] the context type for the favourite
-  # @param all_things [ Array ] array of all available items to choose from
   #
   # @note This method uses a chooser to present options and handles user input
   #       for adding new favourites to the database.
-  def add_favourite(type, all_things)
+  def add_favourite(type)
+    all_things = favourite_all_things(type)
     loop do
       selected = models::Favourite.where(context: type).map(&:name)
       to_select = all_things - selected
-      to_select = [ '[EXIT]' ] + to_select
+      if to_select.empty?
+        STDOUT.puts "All items are already favourited."
+        return
+      end
+      to_select.unshift('[EXIT]')
       case chosen = OllamaChat::Utils::Chooser.choose(to_select)
       when '[EXIT]', nil
-        STDOUT.puts "Exiting chooser."
+        STDOUT.puts "Canceled."
         return
-      when *to_select
-        if models::Favourite.create(context: type, name: chosen.ask_and_send_or_self(:value).to_s)
-          STDOUT.puts "Favourited %s %s" % [ type, bold { prefix_favourite(chosen.ask_and_send_or_self(:value), true) } ]
-        else
-          STDOUT.puts "Could not favourite %s %s" % [ type, bold { chosen } ]
-        end
+      when SearchUI::Wrapper
+        models::Favourite.create(context: type, name: chosen.value)
+        STDOUT.puts "Added #{bold{chosen.value}} to favourites."
         confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
     end
@@ -49,21 +64,18 @@ module OllamaChat::FavouritesManagement
   # The delete_favourite method removes a favourite item from the database.
   #
   # @param type [ String ] the context type of the favourite to delete
-  # @param all_things [ Array ] the list of all available things to choose from
-  def delete_favourite(type, all_things)
+  def delete_favourite(type)
+    all_things = favourite_all_things(type)
     to_select = models::Favourite.where(context: type).map(&:name)
-    to_select = all_models.select { to_select.member?(_1.value) }
+    to_select = all_things.select { to_select.member?(_1.value) }
     to_select = [ '[EXIT]' ] + to_select
     case chosen = OllamaChat::Utils::Chooser.choose(to_select)
     when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
+      STDOUT.puts "Canceled."
       return
-    when *to_select
-      if models::Favourite.where(context: type, name: chosen.ask_and_send_or_self(:value).to_s).destroy
-        STDOUT.puts "Unfavourited %s %s" % [ type, bold { prefix_favourite(chosen.ask_and_send_or_self(:value), false) } ]
-      else
-        STDOUT.puts "Could not unfavourite %s %s" % [ type, bold { chosen } ]
-      end
+    when SearchUI::Wrapper
+      models::Favourite.where(context: type, name: chosen.value).destroy
+      STDOUT.puts "Removed #{bold{chosen.value}} from favourites."
       confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
     end
   end
