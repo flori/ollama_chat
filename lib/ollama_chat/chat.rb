@@ -689,7 +689,7 @@ class OllamaChat::Chat
     case subcommand
     when 'set'
       default_persona_id = ask?(
-        prompt: "❓ Enter the new name for the current default persona (CR to unset, C-c cancel): "
+        prompt: "❓ Enter the new name for the current default persona (empty ⇒ unset, C-c ⇒ cancel): "
       )
       set_default_persona_name(default_persona_id)
       :next

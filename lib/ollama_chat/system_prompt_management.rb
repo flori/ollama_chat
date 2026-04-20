@@ -116,7 +116,10 @@ module OllamaChat::SystemPromptManagement
         break
       end
     end
-    patterns = ask?(prompt: "❓ Enter file patterns to load file, CR otherwise, C-c to cancel: ")
+    patterns = ask?(
+      prompt: "❓ Enter file patterns to load file, C-c to cancel: ",
+      prefill: '**/*.{txt,md}'
+    )
     patterns.nil? and return
     content = nil
     patterns.present? and content = load_prompt_from_file(patterns)

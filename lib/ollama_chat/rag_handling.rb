@@ -83,7 +83,7 @@ module OllamaChat::RAGHandling
   # @param current_collection [Symbol] the current collection name
   def rename_collection(current_collection)
     prompt = 'Rename collection %s to: ' % current_collection
-    if new_collection = ask?(prompt:).full?(:to_sym)
+    if new_collection = ask?(prompt:, prefill: current_collection).full?(:to_sym)
       begin
         @documents.rename_collection(new_collection)
         STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."

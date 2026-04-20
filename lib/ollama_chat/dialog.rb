@@ -12,11 +12,16 @@ module OllamaChat::Dialog
   # @param prompt [ String ] the message to display to the user
   #
   # @return [ String ] the user's response with trailing newline removed
-  def ask?(prompt:)
-    print prompt
-    STDIN.gets.to_s.chomp
+  def ask?(prompt:, prefill: nil)
+    if prefill
+      old_pre_input_hook = Reline.pre_input_hook
+      Reline.pre_input_hook = -> { Reline.insert_text prefill.to_s }
+    end
+    Reline.readline(prompt, true)&.chomp
   rescue Interrupt
     return nil
+  ensure
+    prefill and Reline.pre_input_hook = old_pre_input_hook
   end
 
   # The confirm? method displays a prompt and reads a single character input
