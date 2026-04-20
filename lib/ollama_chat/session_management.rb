@@ -143,7 +143,7 @@ module OllamaChat::SessionManagement
   # Renames the current session.
   def rename_session
     name = ask?(
-      prompt: "❓ Enter the new name for the session (empty ⇒ auto, C-c ⇒ cancel): ",
+      prompt: "❓ Enter the new name for the session (C-u ⇒ auto, C-c ⇒ cancel): ",
       prefill: session.name
     )
     if name.nil?
