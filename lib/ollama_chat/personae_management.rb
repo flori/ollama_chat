@@ -176,7 +176,7 @@ module OllamaChat::PersonaeManagement
   # .md.bak extension. The timestamp format is YYYYMMDDHHMMSS for precise
   # identification of backup versions.
   #
-  # @param persona [String] The persona name to create a backup path for
+  # @param persona [String] The persona name to create a backup for
   # @return [Pathname] The full path to the backup file
   #
   # @note The timestamp ensures each backup has a unique filename when
@@ -191,7 +191,7 @@ module OllamaChat::PersonaeManagement
   # Prompts the user to select a persona, asks for confirmation, and creates
   # a timestamped backup of the persona file before deletion.
   #
-  # @return [String] Returns a JSON object with deletion status on success,
+  # @return [String] A JSON object with deletion status on success,
   #   or nil if no persona was selected or deletion was cancelled
   def delete_persona
     if persona = choose_persona
@@ -272,21 +272,54 @@ module OllamaChat::PersonaeManagement
     end
   end
 
-  # Lists all available persona names.
+  # Lists all available persona names in a formatted table.
   #
-  # Outputs the sorted list of persona filenames to STDOUT.
-  def list_personae
-    if personae = available_personae.full?
-      STDOUT.puts available_personae
-    else
-      STDOUT.puts "No personae defined."
+  # @param output [IO] the output stream to write the table to (default: STDOUT)
+  def list_personae(output: STDOUT)
+    use_pager do |output|
+      personae = available_personae
+      if personae.empty?
+        STDOUT.puts "No personae defined."
+        return
+      end
+
+      table = Terminal::Table.new
+      table.style = {
+        all_separators: true,
+        border:         :unicode_round,
+      }
+      table.headings = %w[ NAME SIZE #TOKEN ].map { |header| bold { header } }
+
+      personae.map do |name|
+        pathname = personae_directory + name.to_s
+        pathname.exist? or next
+        [ pathname, pathname.size ]
+      end.compact.sort_by(&:last).reverse_each do |pathname, size_bytes|
+        persona_name       = pathname.basename.sub_ext('').to_s
+        size               = format_bytes(pathname.size)
+        is_default         = default_persona_name == persona_name
+
+        display_name       = is_default ? bold { persona_name } : persona_name
+
+        bad_token_estimate = -> size { (size.to_f / 3.5).ceil }
+
+        table << [
+          display_name,
+          size,
+          bad_token_estimate.(size_bytes)
+        ]
+      end
+
+      table.align_column 1, :right
+      table.align_column 2, :right
+      output.puts table
     end
   end
 
   # Interactive method to select a persona from a list.
   #
   # Allows the user to choose a persona from available options or exit.
-  # Selected persona is returned if successful, nil otherwise.
+  # Selected persona is returned if successful, nil if user exits
   #
   # @param chosen [Set, nil] Optional set of already selected personas
   # @return [String, nil] The selected persona name or nil if user exits
