@@ -188,6 +188,7 @@ describe OllamaChat::MessageList do
     end
 
     it 'can list conversations without thinking' do
+      expect(chat).to receive(:strip_all_internal_json_markers) { _1 }.at_least(1)
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think_loud?).and_return(false).at_least(:once)
@@ -201,6 +202,7 @@ describe OllamaChat::MessageList do
     end
 
     it 'can list conversations with thinking' do
+      expect(chat).to receive(:strip_all_internal_json_markers) { _1 }.at_least(1)
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think_loud?).and_return(true).at_least(:once)
@@ -228,6 +230,7 @@ describe OllamaChat::MessageList do
 
     it 'can list conversations' do
       skip 'no tty' unless STDOUT.tty?
+      expect(chat).to receive(:strip_all_internal_json_markers) { _1 }.at_least(1)
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think_loud?).and_return(false).at_least(:once)

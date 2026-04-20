@@ -202,6 +202,10 @@ class OllamaChat::MessageList
     messages = @messages[-last..-1].to_ary
     use_pager do |output|
       messages.each do |message|
+        message = message.dup
+        content = message.content
+        content = @chat.strip_all_internal_json_markers(content)
+        message.instance_variable_set :@content, content
         output.puts message_text_for(message)
       end
     end

@@ -220,6 +220,17 @@ class OllamaChat::Chat
     @messages.system
   end
 
+  # Removes all internal JSON-formatted metadata markers from the provided content.
+  # This includes markers for retrieval snippets and runtime information.
+  #
+  # @param content [String] The raw string content containing potential JSON markers.
+  # @return [String] The cleaned string with all internal markers stripped away.
+  def strip_all_internal_json_markers(content)
+    content = strip_internal_json_markers(:ollama_chat_retrieval_snippets, content)
+    content = strip_internal_json_markers(:ollama_chat_runtime_information, content)
+    content
+  end
+
   private
 
   # The generate method sends a prompt to the Ollama model and returns the
@@ -592,8 +603,7 @@ class OllamaChat::Chat
     help: 'revise the last message (and/or edit the query)'
   ) do |subcommand|
     if content = messages.second_last&.content
-      content = strip_internal_json_markers(:ollama_chat_retrieval_snippets, content)
-      content = strip_internal_json_markers(:ollama_chat_runtime_information, content)
+      content = strip_all_internal_json_markers(content)
       messages.drop(1)
       if subcommand == 'edit'
         content = edit_text(content)
