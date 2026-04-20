@@ -109,19 +109,19 @@ class OllamaChat::FollowChat
       end
       unless @chat.tool_configured?(name)
         msg = "Error: Unconfigured tool named %s ignored => Skip.\n" % name
-        @chat.tool_call_results[name] = msg
+        @chat.tool_call_results[name] << msg
         @chat.log(:error, msg)
         next
       end
       unless @chat.tool_registered?(name)
         msg = "Error: Unregistered tool named %s ignored => Skip.\n" % name
-        @chat.tool_call_results[name] = msg
+        @chat.tool_call_results[name] << msg
         @chat.log(:error, msg)
         next
       end
       unless @chat.tool_enabled?(name)
         msg = "Error: Disabled tool named %s ignored => Skip.\n" % name
-        @chat.tool_call_results[name] = msg
+        @chat.tool_call_results[name] << msg
         @chat.log(:error, msg)
         next
       end
@@ -172,7 +172,7 @@ class OllamaChat::FollowChat
         end
       end
 
-      @chat.tool_call_results[name] = result
+      @chat.tool_call_results[name] << result
 
       data    = nil
       message = begin

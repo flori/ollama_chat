@@ -195,8 +195,10 @@ module OllamaChat::ToolCalling
   #   nil if no results exist
   def handle_tool_call_results?
     @tool_call_results.present? or return
-    content = @tool_call_results.map do |name, result|
-      "Tool %s returned %s" % [ name, result ]
+    content = @tool_call_results.each_with_object([]) do |(name, results), ary|
+      ary << results.each_with_index.map { |result, index|
+        "Tool (index=%u) %s returned\n%s" % [ index, name, result ]
+      }
     end.join(?\n)
     @tool_call_results.clear
     content
