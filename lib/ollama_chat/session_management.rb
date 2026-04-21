@@ -140,17 +140,43 @@ module OllamaChat::SessionManagement
     end
   end
 
-  # Renames the current session.
+  # Prompts the user to rename the current session interactively.
+  #
+  # This method manages a sophisticated renaming workflow:
+  # 1. It presents an interactive prompt using `ask?`.
+  # 2. If the user provides an empty string, it attempts to automatically
+  #    derive a new name using `derive_session_name`.
+  # 3. After derivation, it uses `redo` to re-prompt the user, now
+  #    pre-filling the prompt with the newly suggested name.
+  # 4. If the user provides an arbitrary string, the session is renamed.
+  # 5. If the user interrupts (e.g., via `C-c`), the process is cancelled.
+  #
+  # @note The use of `1.times do` and `redo` ensures a single-retry
+  #   capability for automatic name derivation.
   def rename_session
-    name = ask?(
-      prompt: "❓ Enter the new name for the session (C-u ⇒ auto, C-c ⇒ cancel): ",
-      prefill: session.name
-    )
-    if name.nil?
-      STDERR.puts "\nInterrupt: Session renaming was cancelled."
-      return
+    name = nil
+    1.times do
+      derived = false
+      prefill ||= session.name
+      name = ask?(
+        prompt: "❓ Enter the new name for the session (C-u ⇒ auto, C-c ⇒ cancel): ",
+        prefill:
+      )
+      if name.nil?
+        STDERR.puts "\nInterrupt: Session renaming was cancelled."
+        return
+      end
+      if name.empty?
+        if derived
+          break
+        else
+          derived = true
+          if prefill = derive_session_name.full?
+            redo
+          end
+        end
+      end
     end
-    name.empty? and name = derive_session_name
     if name && session.update(name:)
       STDOUT.puts "Renamed current session to #{name.inspect}."
     else

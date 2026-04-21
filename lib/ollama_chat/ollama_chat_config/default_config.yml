@@ -86,7 +86,7 @@ prompts:
 
     - **Role definition**: [What is your primary role/identity?]
     - **Tone**: [Describe your speaking style - formal, casual, technical, etc.]
-    - **Perspective**: [First-person "I" or third-person "You"]
+    - **Perspective**: [3rd person narrative, 1st person dialogue]
     - **Language**: [Natural language and any constraints]
     - **Guideline 1**: [e.g., "Maintain consistency with character"]
     - **Guideline 2**: [e.g., "Use appropriate communication style"]
