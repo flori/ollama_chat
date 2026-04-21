@@ -179,6 +179,8 @@ module OllamaChat::SessionManagement
     end
     if name && session.update(name:)
       STDOUT.puts "Renamed current session to #{name.inspect}."
+    elsif name == session.name
+      STDOUT.puts "Keeping the old name #{name.inspect}."
     else
       STDERR.puts "Could not rename current session!"
     end
