@@ -112,6 +112,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       voice_enabled:         chat.config.voice.enabled,
       model_options:         ,
       current_voice:         chat.config.voice.default,
+      working_directory:     Dir.pwd,
       messages:              ''
     }
     new(attributes)

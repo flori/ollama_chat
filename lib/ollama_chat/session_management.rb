@@ -33,13 +33,16 @@ module OllamaChat::SessionManagement
     OllamaChat::Database::Models::Session.with_defaults(self)
   end
 
-  # Retrieves the last used session from the database, or creates a new one if
+  # Retrieves the preferred session from the database, or creates a new one if
   # none exist.
   #
   # @return [OllamaChat::Database::Models::Session] the last used or newly
   #   created session
-  def last_used_session
-    models::Session.order(:updated_at).last || new_session
+  def preferred_session
+    models::Session.
+      where(working_directory: Dir.pwd).
+      order(:updated_at).last ||
+      new_session
   end
 
   # Lists all sessions in a formatted table.
@@ -108,7 +111,7 @@ module OllamaChat::SessionManagement
     @session = if session_name = @opts[?l]
                  choose_session(session_name)
                else
-                 last_used_session
+                 preferred_session
                end
     session or abort "No session named #{bold{session_name.inspect}} found."
     if session.touch
