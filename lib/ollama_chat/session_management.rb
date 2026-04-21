@@ -87,6 +87,8 @@ module OllamaChat::SessionManagement
   # @return [String, nil] the content of the new session or nil
   def set_new_session(name = nil)
     @session = new_session
+    session.lock? or raise OllamaChat::OllamaChatError,
+        "Could not lock session #{session.errors.inspect}"
     if name.full?
       session.update(name:)
     else
@@ -114,11 +116,11 @@ module OllamaChat::SessionManagement
                  preferred_session
                end
     session or abort "No session named #{bold{session_name.inspect}} found."
-    if session.touch
+    if session.lock?
       session
     else
       raise OllamaChat::OllamaChatError,
-        "Could not save session #{session.errors.inspect}"
+        "Could not lock session #{session.errors.inspect}"
     end
   end
 
@@ -237,22 +239,44 @@ module OllamaChat::SessionManagement
     end
   end
 
+
+  # Closes the current session by persisting final messages and releasing
+  # the process lock. This should be called during application shutdown
+  # or when switching sessions to ensure the session is available for
+  # future instances.
+  def session_close
+    store_messages_in_session
+    session.unlock
+  end
+
   # Switches to a different session, saving the current one and loading the new
   # one.
   #
   # @param name [String] the name or ID of the session to switch to
   def switch_session(name)
     name.full? or name = ??
-    if chosen_session = choose_session(name)
-      store_messages_in_session
-      @session = chosen_session
-      messages.read_conversation_jsonl(session.messages.to_s)
-      session.current_collection.full? { set_current_collection(_1) }
-      session.current_model.full? { use_model(_1) }
-      session.default_persona_id.full? { set_default_persona_name(_1) }
-      session.current_system_prompt.full? { set_current_system_prompt(_1) }
-      session.touch
-      info_session
+    loop do
+      if chosen_session = choose_session(name)
+        if chosen_session == session
+          confirm?(prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ", timeout: 3)
+          sleep 3
+        end
+        session_close
+        @session = chosen_session
+        messages.read_conversation_jsonl(session.messages.to_s)
+        session.current_collection.full? { set_current_collection(_1) }
+        session.current_model.full? { use_model(_1) }
+        session.default_persona_id.full? { set_default_persona_name(_1) }
+        session.current_system_prompt.full? { set_current_system_prompt(_1) }
+        session.working_directory = Dir.pwd
+        if session.lock?
+          info_session
+          break
+        else
+          confirm?(prompt: "\n⏎  Could not switch, Press any key to continue (%s). ", timeout: 3)
+          redo
+        end
+      end
     end
   end
 

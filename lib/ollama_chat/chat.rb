@@ -1249,8 +1249,8 @@ class OllamaChat::Chat
     log(:error, e)
     fix_config(e)
   ensure
-    store_messages_in_session
     save_history
+    session_close
   end
 
   # The base_url method returns the Ollama server URL from command-line options

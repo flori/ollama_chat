@@ -56,6 +56,7 @@ module OllamaChat::Database::Models::Migrations
       Boolean :voice_enabled, null: false
       String :current_voice, null: false
       Text :working_directory
+      Integer :locked_by_pid
       Text :model_options
       Text :messages, null: false # JSONL format
       Time :created_at
