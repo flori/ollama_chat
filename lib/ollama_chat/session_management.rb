@@ -257,9 +257,9 @@ module OllamaChat::SessionManagement
     name.full? or name = ??
     loop do
       if chosen_session = choose_session(name)
-        if chosen_session == session
+        if chosen_session.nil? || chosen_session == session
           confirm?(prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ", timeout: 3)
-          sleep 3
+          break
         end
         session_close
         @session = chosen_session
@@ -276,6 +276,9 @@ module OllamaChat::SessionManagement
           confirm?(prompt: "\n⏎  Could not switch, Press any key to continue (%s). ", timeout: 3)
           redo
         end
+      else
+        STDOUT.puts "Canceled."
+        break
       end
     end
   end
@@ -297,7 +300,7 @@ module OllamaChat::SessionManagement
       return session
     end
     selector = if session_name =~ /\A\?+(.*)\z/
-                 session_name = ''
+                 session_name = nil
                  Regexp.new($1)
                end
     if session_name and session = session_query.first(name: session_name)
@@ -316,7 +319,9 @@ module OllamaChat::SessionManagement
       session_name = if sessions.size == 1
                        sessions.first.value
                      else
-                       OllamaChat::Utils::Chooser.choose(sessions)&.value
+                       sessions = sessions.unshift(SearchUI::Wrapper.new('exit', display: '[EXIT]'))
+                       value = OllamaChat::Utils::Chooser.choose(sessions)&.value
+                       value unless value == 'exit'
                      end
       if session_name
         session_query.first(name: session_name)
