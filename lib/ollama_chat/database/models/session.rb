@@ -14,6 +14,15 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   plugin :serialization, :json, :tools_default_enabled
   plugin :serialization, :json, :model_options
 
+  # Calculates the age of the session based on the last update timestamp.
+  #
+  # @param now [Time] the reference time for the age calculation (defaults to Time.now)
+  #
+  # @return [Tins::Duration] the duration since the session was last updated
+  def age(now: Time.now)
+    Tins::Duration.new(updated_at ? now - updated_at : 0)
+  end
+
   # @!attribute [v] id
   #   @return [Integer] The primary key for the session.
   #

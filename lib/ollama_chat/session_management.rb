@@ -46,30 +46,29 @@ module OllamaChat::SessionManagement
   end
 
   # Lists all sessions in a formatted table.
-  #
-  # @param output [IO] the output stream to write the table to (default: STDOUT)
-  #
-  def list_sessions(output: STDOUT)
-    table = Terminal::Table.new
-    table.style = {
-      all_separators: true,
-      border:         :unicode_round,
-    }
-    table.headings = %w[ ID NAME SIZE COUNT UPDATED ].map { |header| bold { header } }
-    now = Time.now
-    models::Session.order(Sequel.desc(:updated_at)).each do |s|
-      size = format_bytes(s.messages.to_s.size)
-      table << [
-         s.id.to_s,
-        session.id == s.id ? bold { s.name } : s.name,
-        size,
-        s.messages.to_s.count(?\n),
-        Tins::Duration.new(now - s.updated_at),
-      ]
+  def list_sessions
+    use_pager do |output|
+      table = Terminal::Table.new
+      table.style = {
+        all_separators: true,
+        border:         :unicode_round,
+      }
+      table.headings = %w[ ID NAME SIZE COUNT UPDATED ].map { |header| bold { header } }
+      now = Time.now
+      models::Session.order(Sequel.desc(:updated_at)).each do |s|
+        size = format_bytes(s.messages.to_s.size)
+        table << [
+          s.id.to_s,
+          session.id == s.id ? bold { s.name } : s.name,
+          size,
+          s.messages.to_s.count(?\n),
+          s.age(now:),
+        ]
+      end
+      table.align_column 2, :right
+      table.align_column 3, :right
+      output.puts table
     end
-    table.align_column 2, :right
-    table.align_column 3, :right
-    output.puts table
   end
 
   # Displays information about the current session.
@@ -309,12 +308,12 @@ module OllamaChat::SessionManagement
       session
     elsif selector
       now = Time.now
-      sessions = session_query.order(Sequel.desc(:updated_at)).map {
-        duration = Tins::Duration.new(now - _1.updated_at)
-        count    = _1.messages.to_s.count(?\n)
+      sessions = session_query.order(Sequel.desc(:updated_at)).map { |session|
+        duration = session.age(now:)
+        count    = session.messages.to_s.count(?\n)
         SearchUI::Wrapper.new(
-          _1.name,
-          display: "#{_1.name} 🆔#{_1.id} 📨#{count} ⏳#{duration}"
+          session.name,
+          display: "#{session.name} 🆔#{session.id} 📨#{count} ⏳#{duration}"
         )
       }
       selector and sessions = sessions.select { _1 =~ selector }
