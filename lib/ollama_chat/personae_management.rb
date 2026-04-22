@@ -125,8 +125,11 @@ module OllamaChat::PersonaeManagement
         return play_persona_file(default_persona)
       when 'choose_different'
         if persona = choose_persona
-          set_default_persona_name persona
-          return play_persona_file(default_persona)
+          if set_default_persona_name(persona)
+            return play_persona_file(default_persona)
+          else
+            return
+          end
         else
           redo
         end
@@ -329,11 +332,13 @@ module OllamaChat::PersonaeManagement
       STDERR.puts "No personae defined."
       return
     end
-    personae_list.unshift('[EXIT]')
+    personae_list.unshift('[NONE]').unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(personae_list)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
+    when '[NONE]'
+      :none
     else
       chosen
     end
@@ -346,6 +351,7 @@ module OllamaChat::PersonaeManagement
   def load_personae
     chosen = Set[]
     while persona = choose_persona(chosen: chosen)
+      persona == :none and next
       chosen << persona
     end
 

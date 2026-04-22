@@ -92,7 +92,7 @@ module OllamaChat::Information
   # output and the session and default options.
   #
   # @param [IO] output The output stream to print the model information to
-  # (defaults to STDOUT).
+  #   (defaults to STDOUT).
   def model_info(output: STDOUT)
     output.puts "Current chat model is #{bold{@model}}."
     output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
