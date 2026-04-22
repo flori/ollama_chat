@@ -88,7 +88,7 @@ module OllamaChat::SessionManagement
   def set_new_session(name = nil)
     @session = new_session
     session.lock? or raise OllamaChat::OllamaChatError,
-        "Could not lock session #{session.errors.inspect}"
+      "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
     if name.full?
       session.update(name:)
     else
@@ -112,6 +112,8 @@ module OllamaChat::SessionManagement
   def setup_session
     @session = if session_name = @opts[?l]
                  choose_session(session_name)
+               elsif @opts[?n]
+                 new_session
                else
                  preferred_session
                end

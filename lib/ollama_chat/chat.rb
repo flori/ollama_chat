@@ -97,7 +97,7 @@ class OllamaChat::Chat
   # @raise [RuntimeError] If the Ollama API version is less than 0.9.0, indicating
   #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
-    @opts               = go 'f:u:m:s:p:c:C:D:l:MESVh', argv
+    @opts               = go 'f:u:m:s:p:c:C:D:l:nMESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])

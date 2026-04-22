@@ -187,6 +187,7 @@ module OllamaChat::Information
 
         -f CONFIG      config file to read
         -l SESSION     load session with name/id SESSION
+        -n             create a new session
         -u URL         the ollama base url, OLLAMA_URL
         -m MODEL       the ollama model to chat with, OLLAMA_CHAT_MODEL, ?selector
         -s SYSTEM      the system prompt to use as a file, OLLAMA_CHAT_SYSTEM, ?selector
