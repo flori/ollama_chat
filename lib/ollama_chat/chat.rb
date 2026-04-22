@@ -260,6 +260,7 @@ class OllamaChat::Chat
   # @param content [String] multiline text that may contain internal JSON markers
   # @return [String] text with matching marker lines removed
   def strip_internal_json_markers(name, content)
+    content.nil? and return
     name = name.to_s
     content.each_line.map do |line|
       JSON(line).fetch(name) and next
