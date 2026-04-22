@@ -39,6 +39,8 @@ module OllamaChat::SessionLocking
   #
   # @return [Boolean] true if the update was successful.
   def lock
+    now = Time.now
+    self.created_at ||= self.updated_at = now
     update(locked_by_pid: $$)
   end
 

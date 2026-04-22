@@ -13,6 +13,16 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   plugin :touch
   plugin :serialization, :json, :tools_default_enabled
   plugin :serialization, :json, :model_options
+  plugin :validation_helpers
+
+
+  # Validates the presence of essential timestamps to ensure session age
+  # calculations can be performed without Nil errors.
+  def validate
+    super
+    validates_presence :updated_at
+    validates_presence :created_at
+  end
 
   # Calculates the age of the session based on the last update timestamp.
   #
