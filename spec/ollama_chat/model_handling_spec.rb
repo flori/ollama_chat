@@ -7,7 +7,7 @@ describe OllamaChat::ModelHandling do
 
   it 'can check if model_present? false' do
     expect(chat.ollama).to receive(:show).and_raise Ollama::Errors::NotFoundError
-    expect(chat.model_present?('nixda')).to eq false
+    expect(chat.model_present?('nixda')).to eq nil
   end
 
   it 'can check if model_present? true' do

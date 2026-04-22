@@ -34,7 +34,7 @@ module OllamaChat::SystemPromptManagement
   def setup_system_prompt
     default = session.current_system_prompt.full? ||
       system_prompt(:default).full?(:to_s) ||
-      @model_metadata.system
+      @model_metadata&.system
     if @opts[?s] =~ /\A\?/
       change_system_prompt(default, system: @opts[?s])
     else

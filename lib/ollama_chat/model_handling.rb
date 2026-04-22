@@ -156,8 +156,8 @@ module OllamaChat::ModelHandling
   #
   # @param model [ String ] the name of the Ollama model
   #
-  # @return [ ModelMetadata, FalseClass ] if the model is present,
-  #   false otherwise
+  # @return [ ModelMetadata, NilClass ] if the model is present,
+  #   nil otherwise
   def model_present?(model)
     ollama.show(model:) do |md|
       return ModelMetadata.new(
@@ -167,7 +167,7 @@ module OllamaChat::ModelHandling
       )
     end
   rescue Ollama::Errors::NotFoundError
-    false
+    nil
   end
 
   # The pull_model_from_remote method attempts to retrieve a model from the
@@ -210,12 +210,33 @@ module OllamaChat::ModelHandling
   #
   # @return [ Object ] a result object with an overridden to_s method
   #                     that combines the model name and formatted size
-  private def model_with_size(model, favourited: false)
+  def model_with_size(model, favourited: false)
     formatted_size = Term::ANSIColor.bold {
       format_bytes(model.size)
     }
     display = prefix_favourite("#{model.name} #{formatted_size}", favourited)
     SearchUI::Wrapper.new(model.name, display:)
+  end
+
+  # Ensures the specified model is available locally and synchronizes the
+  # session's capability settings with the model's actual supported features.
+  #
+  # This method performs a lazy-load check: it pulls the model if it's missing
+  # and then immediately validates and updates 'thinking' and 'tools' support
+  # to prevent invalid API requests.
+  #
+  # @param model [String] the name of the model to prepare for use
+  # @return [OllamaChat::ModelHandling::ModelMetadata] the metadata for the
+  #   prepared model
+  def prepare_model(model)
+    @model_metadata = pull_model_unless_present(model)
+    if think? && !@model_metadata.can?('thinking')
+      think_mode.selected = 'disabled'
+    end
+
+    if tools_support.on? && !@model_metadata.can?('tools')
+      tools_support.set false
+    end
   end
 
   # The use_model method selects and sets the model to be used for the chat
@@ -243,17 +264,11 @@ module OllamaChat::ModelHandling
       @model = choose_model(model, config.model.name)
     end
 
-    @model_metadata = pull_model_unless_present(@model)
-
-    if think? && !@model_metadata.can?('thinking')
-      think_mode.selected = 'disabled'
+    if @model_metadata = model_present?(@model)
+      session.update(current_model: @model)
+    else
+      session.update(current_model: nil)
     end
-
-    if tools_support.on? && !@model_metadata.can?('tools')
-      tools_support.set false
-    end
-
-    session.update(current_model: @model)
 
     if old_model != @model
       default_model_options = get_default_model_options
@@ -289,6 +304,16 @@ module OllamaChat::ModelHandling
     @model_metadata
   end
 
+  # Retrieves a sorted list of all available Ollama models, enriched with size
+  # information and marked as favorites where applicable.
+  #
+  # This method fetches the list of models from the Ollama server, sorts them
+  # alphabetically by name, and wraps each in a SearchUI::Wrapper for
+  # consistent display in the user interface.
+  #
+  # @return [Array<SearchUI::Wrapper>] a sorted list of available models with
+  #   metadata
+  #
   def all_models
     favs = all_favourited('model')
     ollama.tags.models.sort_by(&:name).

@@ -240,6 +240,7 @@ class OllamaChat::Chat
   #
   # @return [ Ollama::Response ] the response from the Ollama model
   def generate(prompt:)
+    prepare_model(@model)
     ollama.generate(
       model: @model,
       prompt:,
@@ -1206,6 +1207,7 @@ class OllamaChat::Chat
             }
           }
         end
+        prepare_model(@model)
         ollama.chat(
           model:    @model,
           messages: sent_messages,
