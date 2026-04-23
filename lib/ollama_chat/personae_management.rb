@@ -29,8 +29,6 @@ module OllamaChat::PersonaeManagement
   # Returns the directory path for persona backup files.
   #
   # @return [Pathname] Path to the backups subdirectory within personae directory
-  #
-  # @note The directory is created automatically if it doesn't exist
   def personae_backup_directory
     personae_directory + 'backups'
   end
@@ -62,7 +60,7 @@ module OllamaChat::PersonaeManagement
 
   # The default_persona_name method returns the name of the default persona.
   #
-  # @return [String, nil] the name of the default persona or nil if not set
+  # @return [String, nil] the name of the default persona or nil if set
   attr_reader :default_persona_name
 
   # The default_persona method returns the path to the default persona file.
@@ -138,14 +136,40 @@ module OllamaChat::PersonaeManagement
     nil
   end
 
+
   # Returns a sorted list of available persona file names.
   #
   # This method scans the personae directory for Markdown files and returns
   # their basenames sorted alphabetically.
   #
-  # @return [Array<String>] Sorted array of persona filenames without extension
+  # @return [Array<Pathname>] Sorted array of persona filenames without extension
   def available_personae
     personae_directory.glob('*.md').map(&:basename).sort
+  end
+
+  # Helper to wrap a persona name with its favourite status for the UI.
+  #
+  # @param name [String] the name of the persona
+  # @param favourited [Boolean] whether the persona is marked as a favourite
+  # @return [SearchUI::Wrapper] a wrapper containing the original name and the
+  #   decorated display string
+  def persona_name_with_favourite(name, favourited)
+    display = prefix_favourite(name, favourited)
+    SearchUI::Wrapper.new(name, display:)
+  end
+
+
+  # Retrieves a list of available personas, decorated with their favourite
+  # status.
+  #
+  # @return [Array<SearchUI::Wrapper>] a list of wrappers containing the persona name
+  #   and its decorated display string
+  def available_personae_names
+    favs = all_favourited('persona')
+    personae_directory.glob('*.md').map(&:basename).sort.map { |bn|
+      persona_name = bn.sub_ext('').to_s
+      persona_name_with_favourite(persona_name, favs[persona_name])
+    }
   end
 
   # Creates a new persona file interactively.
@@ -191,8 +215,8 @@ module OllamaChat::PersonaeManagement
 
   # Interactive method to delete an existing persona with backup functionality.
   #
-  # Prompts the user to select a persona, asks for confirmation, and creates
-  # a timestamped backup of the persona file before deletion.
+  # Prompts the user to select a persona, asks for confirmation, and creates a
+  # timestamped backup of the persona file before deletion.
   #
   # @return [String] A JSON object with deletion status on success,
   #   or nil if no persona was selected or deletion was cancelled
@@ -286,6 +310,8 @@ module OllamaChat::PersonaeManagement
         return
       end
 
+      favs = all_favourited('persona')
+
       table = Terminal::Table.new
       table.style = {
         all_separators: true,
@@ -302,7 +328,7 @@ module OllamaChat::PersonaeManagement
         size               = format_bytes(pathname.size)
         is_default         = default_persona_name == persona_name
 
-        display_name       = is_default ? bold { persona_name } : persona_name
+        display_name       = prefix_favourite(is_default ? bold { persona_name } : persona_name, favs[persona_name])
 
         bad_token_estimate = -> size { (size.to_f / 3.5).ceil }
 
@@ -346,8 +372,8 @@ module OllamaChat::PersonaeManagement
 
   # Interactive method to load multiple personae for use.
   #
-  # Allows sequential selection of multiple personae. Returns JSON results
-  # for each loaded persona.
+  # Allows sequential selection of multiple personae. Returns JSON results for
+  # each loaded persona.
   def load_personae
     chosen = Set[]
     while persona = choose_persona(chosen: chosen)
@@ -429,7 +455,7 @@ module OllamaChat::PersonaeManagement
   # Initiates roleplay with a persona from a specific file path.
   #
   # Uses the pathname to identify the persona, reads its content, and
-  # generates the roleplay prompt.
+  # generates the appropriate roleplay prompt.
   #
   # @param pathname [String, Pathname] The path to the persona file
   def play_persona_file(pathname)

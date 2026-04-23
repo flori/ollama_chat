@@ -170,11 +170,11 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [Array] an array of the results of the printing operations
   def list_system_prompts
-    fav = all_favourited('system_prompt')
+    favs = all_favourited('system_prompt')
     each_system_prompt.sort_by(&:name).map do |prompt|
       default = prompt.metadata['default'] ? '⛭' : '✎'
       start   = '%s %s' % [ default, bold { prompt.name } ]
-      start   = prefix_favourite(start, fav[prompt.name])
+      start   = prefix_favourite(start, favs[prompt.name])
       content = prompt.to_s.inspect[1..-2]
       content = Kramdown::ANSI::Width.truncate(
         content, length: 0.9 * (Tins::Terminal.columns - start.size)
@@ -187,6 +187,12 @@ module OllamaChat::SystemPromptManagement
   private
 
   # Helper to wrap a system prompt name with its favourite status for the UI.
+  #
+  # @param name [String] the name of the system prompt
+  # @param favourited [Boolean] whether the system prompt is marked as a
+  #   favourite
+  # @return [SearchUI::Wrapper] a wrapper containing the original name and the
+  #   decorated display string
   def system_prompt_with_favourite(name, favourited)
     display = prefix_favourite(name, favourited)
     SearchUI::Wrapper.new(name, display:)

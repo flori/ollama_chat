@@ -100,11 +100,11 @@ module OllamaChat::PromptManagement
   #
   # @return [Array] the result of the prompt mapping
   def list_prompts
-    fav = all_favourited('prompt')
+    favs = all_favourited('prompt')
     each_prompt.sort_by(&:name).map do |prompt|
       default = prompt.metadata['default'] ? '⛭' : '✎'
       start   = '%s %s' % [ default, bold { prompt.name } ]
-      start   = prefix_favourite(start, fav[prompt.name])
+      start   = prefix_favourite(start, favs[prompt.name])
       content = prompt.to_s.inspect[1..-2]
       content = Kramdown::ANSI::Width.truncate(
         content, length: 0.9 * (Tins::Terminal.columns - start.size)
@@ -117,6 +117,11 @@ module OllamaChat::PromptManagement
   private
 
   # Helper to wrap a prompt name with its favourite status for the UI.
+  #
+  # @param name [String] the name of the prompt
+  # @param favourited [Boolean] whether the prompt is marked as a favourite
+  # @return [SearchUI::Wrapper] a wrapper containing the original name and the
+  #   decorated display string
   def prompt_with_favourite(name, favourited)
     display = prefix_favourite(name, favourited)
     SearchUI::Wrapper.new(name, display:)
