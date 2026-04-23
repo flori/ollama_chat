@@ -121,7 +121,7 @@ module OllamaChat::SessionManagement
       session
     else
       raise OllamaChat::OllamaChatError,
-        "Could not lock session #{session.errors.inspect}"
+        "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
     end
   end
 
