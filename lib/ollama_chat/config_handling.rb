@@ -118,8 +118,8 @@ module OllamaChat::ConfigHandling
   def edit_config
     if result = edit_file(@ollama_chat_config.filename)
       if confirm?(prompt: "🔔 Do you want to restart #{progname}? (y/n) ", yes: /\Ay/i)
-        store_messages_in_session
         save_history
+        session_close
         exec($0, *fix_session(ARGV))
       else
         STDOUT.puts "Skipped reloading the config."
@@ -135,8 +135,8 @@ module OllamaChat::ConfigHandling
   #   config.reload_config  # => restarts if user answers "y"
   def reload_config
     if confirm?(prompt: "🔔 Do you want to restart #{progname}? (y/n) ", yes: /\Ay/i)
-      store_messages_in_session
       save_history
+      session_close
       exec($0, *fix_session(ARGV))
     else
       STDOUT.puts "Skipped reloading the config."
