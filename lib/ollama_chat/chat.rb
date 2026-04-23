@@ -493,7 +493,7 @@ class OllamaChat::Chat
       Show session list, create new, rename, summarize (-s sentence/-f for
       markdown file output), switch, delete session, edit session model options
     EOT
-  ) do |subcommand, opt, name|
+  ) do |subcommand, opts, name|
     case subcommand
     when nil
       show_session
@@ -508,7 +508,7 @@ class OllamaChat::Chat
     when 'rename'
       rename_session
     when 'summarize'
-      opts = go_command('fs', opt)
+      opts = go_command('fs', opts)
       if summary = summarize_session(pretty: true, sentence: opts[?s]).full?
         if opts[?f] and filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
           if filename.exist? && !confirm?(
@@ -783,10 +783,10 @@ class OllamaChat::Chat
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|summary|context|embedding)(?:\s*(?=\z))?)?((?:\s+-(?:[a]|w\s*\d+))*)(?:\s+(pattern))?(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|summary|context|embedding)(?:\s*(?=\z))?)?((?:\s+-(?:[ap]|w\s*\d+))*)(?:\s+(.+))?$),
     optional: true,
-    complete: [ 'input', [ 'path', 'summary', 'context', 'embedding', '', ], [ 'pattern', '' ] ],
-    options: '[-w|-a] [arg…]',
+    complete: [ 'input', [ 'path', 'summary', 'context', 'embedding', '', ] ],
+    options: '[-w|-a|-p] [arg…]',
     help: <<~EOT
       Read content from files, URLs, or glob patterns
       and optionally transform it.
@@ -797,18 +797,18 @@ class OllamaChat::Chat
         -w <words> (summary subcommand only, default 100)
         -a (pattern mode only, include all files for patterns)
     EOT
-  ) do |input_mode,opt,pattern_mode,arg|
+  ) do |input_mode,opts,arg|
     disable_content_parsing
     case input_mode
     when 'summary'
-      if pattern_mode
-        opts  = go_command('aw:', opt)
+      opts = go_command('paw:', opts)
+      if opts[?p]
         words = opts.fetch(?w, 100)
         all   = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
         next provide_file_set_content(patterns, all:) { summarize(_1, words:) } || :next
       elsif arg
-        words  = go_command('w:', opt).fetch(?w, 100)
+        words = opts.fetch(?w, 100)
         source = arg
         next summarize(source, words:) || :next
       else
@@ -816,8 +816,9 @@ class OllamaChat::Chat
         next :next
       end
     when 'context'
-      if pattern_mode
-        all      = go_command('a', opt).fetch(?a, false)
+      opts = go_command('pa', opts)
+      if opts[?p]
+        all      = opts.fetch(?a, false)
         patterns = arg&.scan(/(\S+)/)&.flatten.full? || [ '**/*' ]
         next context_spook(patterns, all:) || :next
       elsif arg
@@ -826,8 +827,9 @@ class OllamaChat::Chat
         next context_spook(nil) || :next
       end
     when 'embedding'
-      if pattern_mode
-        all = go_command('a', opt).fetch(?a, false)
+      opts = go_command('pa', opts)
+      if opts[?p]
+        all = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
         next provide_file_set_content(patterns, all:) { embed(_1) } || :next
       elsif arg
@@ -838,8 +840,9 @@ class OllamaChat::Chat
         next :next
       end
     when 'path'
-      if pattern_mode
-        all = go_command('a', opt).fetch(?a, false)
+      opts = go_command('pa', opts)
+      if opts[?p]
+        all = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
         read = -> pathname {
           STDOUT.puts "Reading #{pathname.to_s.inspect}."
@@ -854,8 +857,9 @@ class OllamaChat::Chat
         next :next
       end
     else
-      if pattern_mode
-        all = go_command('a', opt).fetch(?a, false)
+      opts = go_command('pa', opts)
+      if opts[?p]
+        all = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
         next provide_file_set_content(patterns, all:) { import(_1) } || :next
       elsif arg

@@ -192,10 +192,10 @@ describe OllamaChat::Chat, protect_env: true do
           expect(chat.handle_input("/input #{asset('example.rb')}")).to eq 'success'
         end
 
-        it 'returns "success" when input is "/input -a pattern (.+)"' do
+        it 'returns "success" when input is "/input -a -p (.+)"' do
           expect(chat).to receive(:import).with(Pathname.new(asset('example.rb'))).
             and_return 'success'
-          expect(chat.handle_input("/input -a pattern #{asset('*.rb')}")).to\
+          expect(chat.handle_input("/input -a -p #{asset('*.rb')}")).to\
             match(/success/)
         end
 
@@ -212,11 +212,11 @@ describe OllamaChat::Chat, protect_env: true do
             to eq 'success'
         end
 
-        it 'returns "success" when input is "/input summary -a pattern (.+)"' do
+        it 'returns "success" when input is "/input summary -a -p (.+)"' do
           expect(chat).to receive(:summarize).
             with(asset_pathname('example.rb'), words: nil).
             and_return 'success'
-          expect(chat.handle_input("/input summary -a pattern #{asset('*.rb')}")).to\
+          expect(chat.handle_input("/input summary -a -p #{asset('*.rb')}")).to\
             match(/success/)
         end
 
@@ -233,10 +233,10 @@ describe OllamaChat::Chat, protect_env: true do
             to eq 'success'
         end
 
-        it 'returns "success" when input is "/input embedding pattern (.+)"' do
+        it 'returns "success" when input is "/input embedding -p (.+)"' do
           expect(chat).to receive(:embed).with(asset_pathname('example.rb')).
             and_return 'success'
-          expect(chat.handle_input("/input embedding -a pattern #{asset('*.rb')}")).
+          expect(chat.handle_input("/input embedding -a -p #{asset('*.rb')}")).
             to match(/success/)
         end
 
@@ -251,8 +251,8 @@ describe OllamaChat::Chat, protect_env: true do
             to match(/puts "Hello World!/)
         end
 
-        it 'returns "success" when input is "/input path -a pattern (.+)"' do
-          expect(chat.handle_input("/input path -a pattern #{asset('*.rb')}")).
+        it 'returns "success" when input is "/input path -a -p (.+)"' do
+          expect(chat.handle_input("/input path -a -p #{asset('*.rb')}")).
             to match(/puts "Hello World!/)
         end
 
@@ -268,10 +268,10 @@ describe OllamaChat::Chat, protect_env: true do
           expect(chat.handle_input("/input context #{asset('example.rb')}")).to eq 'success'
         end
 
-        it 'returns "success" when input is "/input context -a pattern (.+)"' do
+        it 'returns "success" when input is "/input context -a -p (.+)"' do
           expect(chat).to receive(:context_spook).
             with([asset('*.rb')], all: 1).and_return 'success'
-          expect(chat.handle_input("/input context -a pattern #{asset('*.rb')}")).
+          expect(chat.handle_input("/input context -a -p #{asset('*.rb')}")).
             to eq 'success'
         end
 
