@@ -90,6 +90,12 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] current_voice
   #   @return [String] The name of the voice currently in use.
   #
+  # @!attribute [v] working_directory
+  #   @return [String] The directory used as the working context for this session.
+  #
+  # @!attribute [v] locked_by_pid
+  #   @return [Integer, nil] The process ID that currently holds a lock on this session.
+  #
   # @!attribute [v] model_options
   #   @return [String, nil] A JSON-serialized string containing model-specific options.
   #

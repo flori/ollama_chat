@@ -7,11 +7,41 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   plugin :timestamps
   plugin :serialization, :json, :metadata
 
+  # @!attribute [v] id
+  #   @return [Integer] The primary key for the prompt entry.
+  #
+  # @!attribute [v] context
+  #   @return [String] The context of the prompt (e.g., 'prompt' or 'system_prompt').
+  #
+  # @!attribute [v] name
+  #   @return [String] The name of the prompt.
+  #
+  # @!attribute [v] metadata
+  #   @return [Hash, nil] A JSON-serialized hash containing prompt metadata,
+  #     including the actual content.
+  #
+  # @!attribute [v] created_at
+  #   @return [Time, nil] The timestamp when the prompt was created.
+  #
+  # @!attribute [v] updated_at
+  #   @return [Time, nil] The timestamp of the last update to the prompt.
+
   # Returns the actual prompt text stored within the metadata JSON.
   #
   # @return [String] the prompt content
   def to_s
     metadata['content'].to_s
+  end
+
+  # Hook to clean up associated favourites when a prompt is destroyed.
+  #
+  # This ensures that we don't leave orphaned favourite entries in the
+  # database when the underlying prompt is removed.
+  def after_destroy
+    super
+    OllamaChat::Database::Models::Favourite.
+      where(context: context, name: name).
+      destroy
   end
 
   # Seeds the prompt table from the provided chat configuration.
