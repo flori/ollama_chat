@@ -266,6 +266,7 @@ tools:
       result_display_timeout: 3
       default: true
     patch_file:
+      result_display_timeout: 3
       default: true
       allowed:
         - './tmp'
