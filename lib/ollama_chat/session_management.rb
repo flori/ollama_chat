@@ -53,20 +53,24 @@ module OllamaChat::SessionManagement
         all_separators: true,
         border:         :unicode_round,
       }
-      table.headings = %w[ ID NAME SIZE COUNT UPDATED ].map { |header| bold { header } }
+      table.headings = %w[ ID NAME SIZE #TOK COUNT UPDATED ].map { |header| bold { header } }
       now = Time.now
       models::Session.order(Sequel.desc(:updated_at)).each do |s|
-        size = format_bytes(s.messages.to_s.size)
+        size_bytes = s.messages.to_s.size
+        size       = format_bytes(size_bytes)
         table << [
           s.id.to_s,
           session.id == s.id ? bold { s.name } : s.name,
           size,
+          OllamaChat::Utils::TokenEstimator.estimate(size_bytes),
           s.messages.to_s.count(?\n),
           s.age(now:),
         ]
       end
       table.align_column 2, :right
       table.align_column 3, :right
+      table.align_column 4, :right
+      table.align_column 5, :right
       output.puts table
     end
   end

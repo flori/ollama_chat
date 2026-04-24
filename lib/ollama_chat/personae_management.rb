@@ -219,7 +219,7 @@ module OllamaChat::PersonaeManagement
   # timestamped backup of the persona file before deletion.
   #
   # @return [String] A JSON object with deletion status on success,
-  #   or nil if no persona was selected or deletion was cancelled
+  #   or nil if persona was not selected or deletion was cancelled
   def delete_persona
     if persona = choose_persona
       persona         = persona
@@ -317,7 +317,7 @@ module OllamaChat::PersonaeManagement
         all_separators: true,
         border:         :unicode_round,
       }
-      table.headings = %w[ NAME SIZE #TOKEN ].map { |header| bold { header } }
+      table.headings = %w[ NAME SIZE #TOK ].map { |header| bold { header } }
 
       personae.map do |name|
         pathname = personae_directory + name.to_s
@@ -330,12 +330,10 @@ module OllamaChat::PersonaeManagement
 
         display_name       = prefix_favourite(is_default ? bold { persona_name } : persona_name, favs[persona_name])
 
-        bad_token_estimate = -> size { (size.to_f / 3.5).ceil }
-
         table << [
           display_name,
           size,
-          bad_token_estimate.(size_bytes)
+          OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
         ]
       end
 
