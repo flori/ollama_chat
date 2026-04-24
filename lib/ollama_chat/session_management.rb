@@ -140,7 +140,7 @@ module OllamaChat::SessionManagement
         prompt: "🔔 Delete session #{current_session_name.inspect} (#{current_session_id})? (y/n) ",
         yes: /\Ay/i
       ) or return
-      switch_session(chosen_session.id)
+      change_session(chosen_session.id)
       models::Session.where(id: current_session_id).destroy
       STDOUT.puts "Just deleted session #{current_session_name.inspect}!"
     end
@@ -250,11 +250,11 @@ module OllamaChat::SessionManagement
     session.unlock
   end
 
-  # Switches to a different session, saving the current one and loading the new
+  # Changes to a different session, saving the current one and loading the new
   # one.
   #
   # @param name [String] the name or ID of the session to switch to
-  def switch_session(name)
+  def change_session(name)
     name.full? or name = ??
     loop do
       if chosen_session = choose_session(name)

@@ -485,13 +485,13 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(list|new|rename|summarize|switch|delete|model options|model reset options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ list new rename summarize switch delete model\ options model\ reset\ options ] ],
+    regexp: %r(^/session(?:\s+(list|new|rename|summarize|change|delete|model options|model reset options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ list new rename summarize change delete model\ options model\ reset\ options ] ],
     optional: true,
     options: '[-c|-f] [name]',
     help: <<~EOT,
       Show session list, create new, rename, summarize (-s sentence/-f for
-      markdown file output), switch, delete session, edit session model options
+      markdown file output), change, delete session, edit session model options
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -527,8 +527,8 @@ class OllamaChat::Chat
           end
         end
       end
-    when 'switch'
-      switch_session(name)
+    when 'change'
+      change_session(name)
     when 'model options'
       edit_session_model_options
     when 'model reset options'
