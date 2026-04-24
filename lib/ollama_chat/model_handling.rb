@@ -22,7 +22,8 @@ module OllamaChat::ModelHandling
   # @attr_reader name [String] the name of the model
   # @attr_reader system [String] the system prompt associated with the model
   # @attr_reader capabilities [Array<String>] the capabilities supported by the model
-  class ModelMetadata < Struct.new(:name, :system, :capabilities)
+  # @attr_reader families [Array<String>] the families of the model
+  class ModelMetadata < Struct.new(:name, :system, :capabilities, :families)
     # Checks if the given capability is included in the object's capabilities.
     #
     # @param capability [String] the capability to check for
@@ -161,9 +162,10 @@ module OllamaChat::ModelHandling
   def model_present?(model)
     ollama.show(model:) do |md|
       return ModelMetadata.new(
-        model,
-        md.system,
-        md.capabilities,
+        name:         model,
+        system:       md.system,
+        capabilities: md.capabilities,
+        families:     md.details.families,
       )
     end
   rescue Ollama::Errors::NotFoundError

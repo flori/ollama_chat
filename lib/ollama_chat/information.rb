@@ -96,6 +96,7 @@ module OllamaChat::Information
   def model_info(output: STDOUT)
     output.puts "Current chat model is #{bold{@model}}."
     output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
+    output.puts   "  Families: #{Array(@model_metadata&.families) * ', '}"
     if model_options.present?
       output.puts "  Session Options: #{JSON.pretty_generate(model_options).gsub(/(?<!\A)^/, '  ')}"
     end
