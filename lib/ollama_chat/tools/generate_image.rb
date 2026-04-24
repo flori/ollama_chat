@@ -1,0 +1,158 @@
+# Provides functionality to generate an image using a locally hosted ComfyUI server.
+# The class registers itself as a tool and implements the asynchronous
+# prompt-to-image pipeline: /prompt -> /history -> /view.
+class OllamaChat::Tools::GenerateImage
+  include OllamaChat::Tools::Concern
+
+  # Register the tool name for the Ollama tool-calling system.
+  #
+  # @return [String] the unique identifier for this tool
+  def self.register_name = 'generate_image'
+
+  # The tool method creates and returns a tool definition for generating an image.
+  #
+  # @return [Ollama::Tool] a tool definition for image generation
+  def tool
+    Tool.new(
+      type: 'function',
+      function: Tool::Function.new(
+        name:,
+        description: <<~EOT,
+          Image generator – Generates an image using a local ComfyUI server based on a text prompt.
+          Returns a URL to the generated image.
+        EOT
+        parameters: Tool::Function::Parameters.new(
+          type: 'object',
+          properties: {
+            prompt: {
+              type: 'string',
+              description: 'The descriptive text prompt for the image generation'
+            }
+          },
+          required: ['prompt']
+        )
+      )
+    )
+  end
+
+  # Executes the image generation process.
+  #
+  # @param tool_call [Object] the tool call object containing the prompt
+  # @param opts [Hash] additional options
+  # @option opts [ComplexConfig::Settings] :chat the chat instance
+  #
+  # @return [String] a JSON string containing either the success URL or an error message
+  def execute(tool_call, **opts)
+    chat   = opts[:chat]
+    config = chat.config
+    prompt = tool_call.function.arguments.prompt
+
+    # 1. Prepare the workflow
+    #
+    service_url = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL? or
+      raise ArgumentError, 'Require IMAGE_GENERATOR configuration for ComfyUI'
+    workflow    = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::WORKFLOW.dup
+    node_id     = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::PROMPT_NODE_ID
+
+    unless workflow.key?(node_id)
+      return { error: 'Configuration Error', message: 'ComfyUI workflow or prompt node ID is missing' }.to_json
+    end
+
+    workflow[node_id]['inputs']['text'] = prompt
+
+    # 2. Trigger generation
+    url        = service_url + '/prompt'
+    payload    = { prompt: workflow }
+    started    = Time.now
+    prompt_id  = post_url(url, payload).prompt_id
+
+    if prompt_id.nil?
+      return { error: 'API Error', message: "Failed to trigger ComfyUI: #{prompt_id}" }.to_json
+    end
+
+    # 3. Poll for completion
+    filename = poll_for_image(service_url, prompt_id, config)
+
+    if filename.nil?
+      return { error: 'Timeout', message: 'Image generation took too long or failed' }.to_json
+    end
+
+    # 4. Construct the final view URL
+    # Example: http://host:port/api/view?filename=...&subfolder=&type=output&rand=...
+    view_url = service_url + '/api/view'
+    view_url.query = URI.encode_www_form(
+      filename:, subfolder: '', type: 'output', rand:
+    )
+
+    {
+      status: 'success',
+      url: view_url,
+      message: "Image successfully generated! You can view it here: #{view_url}",
+      duration: Tins::Duration.new(Time.now - started),
+    }.to_json
+  rescue => e
+    {
+      error: e.class,
+      message: "Failed to generate image: #{e.message}",
+    }.to_json
+  end
+
+  private
+
+  # Sends a POST request to the specified URL with a JSON payload.
+  #
+  # @param url [URI] the target URL
+  # @param payload [Hash] the data to be sent as JSON
+  # @return [JSON::GenericObject] the parsed JSON response
+  def post_url(url, payload)
+    response = Excon.post(
+      url,
+      body: JSON.dump(payload),
+      headers: { 'Content-Type' => 'application/json' },
+      expects: 200
+    )
+    JSON.parse(response.body, object_class: JSON::GenericObject)
+  end
+
+  # Sends a GET request to the specified URL.
+  #
+  # @param url [URI] the target URL
+  # @return [JSON::GenericObject] the parsed JSON response
+  def get_url(url)
+    response = Excon.get(
+      url,
+      headers: { 'Accept' => 'application/json' },
+      expects: 200
+    )
+    JSON.parse(response.body, object_class: JSON::GenericObject)
+  end
+
+  # Polls the ComfyUI history endpoint until the image is generated or timeout is reached.
+  #
+  # @param service_url [URI] the base URL of the ComfyUI server
+  # @param prompt_id [String] the ID of the prompt to track
+  # @param config [ComplexConfig::Settings] the configuration settings for timeout
+  # @return [String, nil] the filename of the generated image, or nil if it timed out
+  def poll_for_image(service_url, prompt_id, config)
+    history_url = service_url + '/history'
+    filename = nil
+
+    attempts = config.tools.functions.generate_image.timeout_attempts? || 20
+    sleep    = -(config.tools.functions.generate_image.timeout_duration? || 60)
+
+    attempt attempts:, sleep:, exception_class: nil do
+      response = get_url(history_url)
+      output_data = response[prompt_id]
+
+      if filename = output_data&.outputs&.each_pair&.first&.last&.images&.first&.filename
+        true # Stop attempting
+      else
+        false # Keep attempting
+      end
+    end
+
+    filename
+  end
+
+  self
+end.register

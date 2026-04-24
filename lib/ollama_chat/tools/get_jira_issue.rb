@@ -67,7 +67,7 @@ class OllamaChat::Tools::GetJiraIssue
     # Construct the JIRA API URL
     env          = OC::OLLAMA::CHAT::TOOLS::JIRA
     base_url     = env::URL? or raise OllamaChat::ConfigMissingError, 'need … URL'
-    url          = "#{base_url}/rest/api/3/issue/#{issue_key}"
+    url          = base_url + "/rest/api/3/issue/#{issue_key}"
 
     # Fetch the data from JIRA API
     fetcher = OllamaChat::Utils::Fetcher.new(

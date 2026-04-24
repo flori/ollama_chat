@@ -275,3 +275,8 @@ tools:
     compute_bmi:
       result_display_timeout: 3
       default: true
+    generate_image:
+      require_confirmation: true
+      default: true
+      timeout_attempts: 23
+      timeout_duration: 66

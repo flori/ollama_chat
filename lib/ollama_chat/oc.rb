@@ -95,24 +95,31 @@ module OC
       description 'Ollama base URL to connect to'
       default     { 'http://%s' % OC::OLLAMA::HOST }
       sensitive   true
+      decode { URI.parse(it) }
+      check { value.scheme =~ /\Ahttps?\z/ }
     end
 
     SEARXNG_URL = set do
       description 'URL for the SearXNG service for searches'
       default     'http://localhost:8088/search?q=%{query}&language=en&format=json'
       sensitive   true
+      check { value =~ /\Ahttps?/ }
     end
 
     REDIS_URL = set do
       description 'Redis URL for documents'
       default     { ENV['REDIS_URL'].full?  }
       sensitive   true
+      decode { URI.parse(it) }
+      check { value.scheme == 'redis' }
     end
 
     REDIS_EXPIRING_URL = set do
       description 'Redis URL for caching'
       default     { OC::OLLAMA::REDIS_URL? || ENV['REDIS_URL'].full? }
       sensitive   true
+      decode { URI.parse(it) }
+      check { value.scheme == 'redis' }
     end
 
     module CHAT
@@ -196,6 +203,8 @@ module OC
           URL = set do
             description 'Base URL for Jira instance'
             sensitive   true
+            decode { URI.parse(_1) if _1.present? }
+            check { value.blank? || value.scheme == 'https' }
           end
 
           USER = set do
@@ -208,6 +217,28 @@ module OC
             description 'API token for Jira authentication'
             sensitive   true
             required { OC::OLLAMA::CHAT::TOOLS::JIRA::URL? }
+          end
+        end
+
+        module IMAGE_GENERATOR
+          description 'Image generator configuration'
+
+          URL = set do
+            description 'Base URL for ComfyUI image generator server'
+            sensitive   true
+            decode { URI.parse(_1) if _1.present? }
+            check { value.blank? || value.scheme =~ /\Ahttps?\z/ }
+          end
+
+          WORKFLOW = set do
+            description 'ComfyUI workflow as JSON string'
+            required { OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL? }
+            decode { JSON.parse(_1).freeze if _1.present? }
+          end
+
+          PROMPT_NODE_ID = set do
+            description 'Prompt node id for the image generating text prompt'
+            required { OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL? }
           end
         end
       end
