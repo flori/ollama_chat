@@ -64,9 +64,9 @@ class OllamaChat::Tools::PatchFile
     args   = tool_call.function.arguments
 
     content = args.content.full? or
-      raise ArgumentError, 'require content to patch file path with'
+      raise OllamaChat::ToolFunctionArgumentError, 'require content to patch file path with'
 
-    path = args.path.full? or raise ArgumentError, 'require path to file to be patched'
+    path = args.path.full? or raise OllamaChat::ToolFunctionArgumentError, 'require path to file to be patched'
     path = assert_valid_path(path, config.tools.functions.patch_file.allowed?, check: :file)
 
     result = apply_patch(chat, path, content)

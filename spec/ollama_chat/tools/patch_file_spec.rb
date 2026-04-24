@@ -104,7 +104,7 @@ describe OllamaChat::Tools::PatchFile do
 
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.error).to eq 'ArgumentError'
+    expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
   end
 
   it 'can handle exceptions gracefully' do

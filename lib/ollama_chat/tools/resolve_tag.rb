@@ -59,7 +59,7 @@ class OllamaChat::Tools::ResolveTag
   # @return [String] JSON string containing the resolved tag information or error details
   def execute(tool_call, **_opts)
     args      = tool_call.function.arguments
-    symbol    = args.symbol.full? or raise ArgumentError, 'require a symbol'
+    symbol    = args.symbol.full? or raise OllamaChat::ToolFunctionArgumentError, 'require a symbol'
     kind      = args.kind.full?
     directory = args.directory.full?
 

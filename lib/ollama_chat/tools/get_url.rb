@@ -65,7 +65,8 @@ class OllamaChat::Tools::GetURL
 
     uri = URI.parse(args.url.to_s)
     unless allowed_schemes.include?(uri.scheme)
-      raise ArgumentError, "scheme #{uri.scheme.inspect} not allowed "\
+      raise OllamaChat::ToolFunctionArgumentError,
+        "scheme #{uri.scheme.inspect} not allowed "\
         "(allowed: #{allowed_schemes.join(', ')})"
     end
 

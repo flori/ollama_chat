@@ -122,7 +122,8 @@ class OllamaChat::Tools::GeneratePassword
     alphabet_type = args.alphabet_type || 'default'
 
     length.nil? ^ bits.nil? or
-      raise ArgumentError, 'require either bits or length of password'
+      raise OllamaChat::ToolFunctionArgumentError,
+        'require either bits or length of password'
 
     # Build the alphabet
     alphabet = build_alphabet(

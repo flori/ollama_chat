@@ -58,7 +58,7 @@ describe OllamaChat::Tools::ExecuteRI do
       result = described_class.new.execute(tool_call, config: chat.config)
 
       json = json_object(result)
-      expect(json.error).to eq('ArgumentError')
+      expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
     end
   end
 

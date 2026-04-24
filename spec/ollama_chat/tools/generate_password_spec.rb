@@ -120,7 +120,7 @@ describe OllamaChat::Tools::GeneratePassword do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.error).to eq 'ArgumentError'
+    expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
   end
 
   it 'can be converted t)o hash' do

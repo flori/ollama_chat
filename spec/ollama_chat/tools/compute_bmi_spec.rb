@@ -83,7 +83,7 @@ describe OllamaChat::Tools::ComputeBMI do
         result = described_class.new.execute(tool_call, chat: chat)
         json = json_object(result)
 
-        expect(json.error).to eq 'ArgumentError'
+        expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
         expect(json.message).to include 'no weight given'
       end
 
@@ -99,7 +99,7 @@ describe OllamaChat::Tools::ComputeBMI do
         result = described_class.new.execute(tool_call, chat: chat)
         json = json_object(result)
 
-        expect(json.error).to eq 'ArgumentError'
+        expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
         expect(json.message).to include 'Height must be greater than zero'
       end
     end

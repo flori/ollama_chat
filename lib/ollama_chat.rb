@@ -26,11 +26,17 @@ module OllamaChat
     attr_accessor :path
   end
 
-  # Error raised when a path is outside the allowed whitelist.
-  #
-  # The error carries the offending `#path` as an attribute so that callers can
-  # log or display the problematic location.
+  # Error raised when a required configuration or setting is missing.
   class ConfigMissingError < OllamaChatError
+  end
+
+  # Exception raised when a tool's logic determines that the arguments provided
+  # within a tool call (the payload) are invalid, missing, or malformed.
+  #
+  # Unlike {ArgumentError}, which typically indicates an issue with the
+  # method's signature call, {ToolFunctionArgumentError} specifically
+  # targets the data provided by the LLM/caller for the tool's execution.
+  class ToolFunctionArgumentError < OllamaChatError
   end
 
   # Error raised when an HTTP request returns a non‑200 status code.

@@ -62,7 +62,7 @@ describe OllamaChat::Tools::GetURL do
       expect(result).to be_a(String)
 
       json = json_object(result)
-      expect(json.error).to eq 'ArgumentError'
+      expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
       expect(json.message).to match(/scheme "file" not allowed/)
       expect(json.url).to eq url
     end

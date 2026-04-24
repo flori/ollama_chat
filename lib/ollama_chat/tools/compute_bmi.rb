@@ -72,8 +72,8 @@ class OllamaChat::Tools::ComputeBMI
   def execute(tool_call, **opts)
     chat   = opts[:chat]
     args   = tool_call.function.arguments
-    weight = args.weight.full?(:to_f) or raise ArgumentError, 'no weight given'
-    height = args.height.full?(:to_f) or raise ArgumentError, 'no height given'
+    weight = args.weight.full?(:to_f) or raise OllamaChat::ToolFunctionArgumentError, 'no weight given'
+    height = args.height.full?(:to_f) or raise OllamaChat::ToolFunctionArgumentError, 'no height given'
     units  = args.units.full? || (chat.config.location.units =~ /SI/ ? 'SI' : 'USCS')
 
     # Convert to metric if using USCS
@@ -84,8 +84,8 @@ class OllamaChat::Tools::ComputeBMI
       units = 'SI'
     end
 
-    raise ArgumentError, 'Height must be greater than zero and in kg/lbs' if height <= 0
-    raise ArgumentError, 'Weight must be less than 3m and in meter/feet' if height > 3
+    raise OllamaChat::ToolFunctionArgumentError, 'Height must be greater than zero and in kg/lbs' if height <= 0
+    raise OllamaChat::ToolFunctionArgumentError, 'Weight must be less than 3m and in meter/feet' if height > 3
 
     bmi      = ( weight / (height**2) ).round(2)
     category = calculate_category(bmi)

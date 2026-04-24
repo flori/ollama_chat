@@ -51,20 +51,21 @@ class OllamaChat::Tools::GenerateImage
     config = chat.config
     args   = tool_call.function.arguments
     prompt = args.prompt.full? or
-      raise ArgumentError, 'require prompt argument for image generation'
+      raise OllamaChat::ToolFunctionArgumentError, 'require prompt argument for image generation'
     prefix = args.filename_prefix.full? || 'comfy-ui-image'
 
     # 1. Prepare the workflow
     #
     service_url = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL? or
-      raise ArgumentError, 'Require IMAGE_GENERATOR configuration for ComfyUI'
+      raise OllamaChat::ConfigMissingError,
+        'Require env var %s configuration for ComfyUI' %
+          OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL!.env_var_name
     workflow    = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::WORKFLOW.dup
     prompt_node = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::PROMPT_NODE_ID
     prefix_node = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::FILENAME_PREFIX_NODE_ID?
 
-    unless workflow.key?(prompt_node)
-      return { error: 'Configuration Error', message: 'ComfyUI workflow or prompt node ID is missing' }.to_json
-    end
+    workflow.key?(prompt_node) or raise OllamaChat::OllamaChatError,
+      'ComfyUI workflow or prompt node ID is missing'
 
     workflow[prompt_node]['inputs']['text'] = prompt
 
@@ -78,16 +79,14 @@ class OllamaChat::Tools::GenerateImage
     started    = Time.now
     prompt_id  = post_url(url, payload).prompt_id
 
-    if prompt_id.nil?
-      return { error: 'API Error', message: "Failed to trigger ComfyUI: #{prompt_id}" }.to_json
-    end
+    prompt_id.nil? and raise OllamaChat::OllamaChatError,
+      "failed to trigger ComfyUI with #{prompt_id}"
 
     # 3. Poll for completion
     filename = poll_for_image(service_url, prompt_id, config)
 
-    if filename.nil?
-      return { error: 'Timeout', message: 'Image generation took too long or failed' }.to_json
-    end
+    filename.nil? and raise OllamaChat::OllamaChatError,
+       'Image generation took too long or failed'
 
     # 4. Construct the final view URL
     # Example: http://host:port/api/view?filename=...&subfolder=&type=output&rand=...
