@@ -27,6 +27,10 @@ class OllamaChat::Tools::GenerateImage
             prompt: {
               type: 'string',
               description: 'The descriptive text prompt for the image generation'
+            },
+            filename_prefix: {
+              type: 'string',
+              description: 'Optional prefix for the generated image filename'
             }
           },
           required: ['prompt']
@@ -45,20 +49,28 @@ class OllamaChat::Tools::GenerateImage
   def execute(tool_call, **opts)
     chat   = opts[:chat]
     config = chat.config
-    prompt = tool_call.function.arguments.prompt
+    args   = tool_call.function.arguments
+    prompt = args.prompt.full? or
+      raise ArgumentError, 'require prompt argument for image generation'
+    prefix = args.filename_prefix.full? || 'comfy-ui-image'
 
     # 1. Prepare the workflow
     #
     service_url = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL? or
       raise ArgumentError, 'Require IMAGE_GENERATOR configuration for ComfyUI'
     workflow    = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::WORKFLOW.dup
-    node_id     = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::PROMPT_NODE_ID
+    prompt_node = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::PROMPT_NODE_ID
+    prefix_node = OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::FILENAME_PREFIX_NODE_ID?
 
-    unless workflow.key?(node_id)
+    unless workflow.key?(prompt_node)
       return { error: 'Configuration Error', message: 'ComfyUI workflow or prompt node ID is missing' }.to_json
     end
 
-    workflow[node_id]['inputs']['text'] = prompt
+    workflow[prompt_node]['inputs']['text'] = prompt
+
+    if prefix_node && workflow.key?(prefix_node)
+      workflow[prefix_node]['inputs']['filename_prefix'] = prefix
+    end
 
     # 2. Trigger generation
     url        = service_url + '/prompt'
@@ -79,7 +91,7 @@ class OllamaChat::Tools::GenerateImage
 
     # 4. Construct the final view URL
     # Example: http://host:port/api/view?filename=...&subfolder=&type=output&rand=...
-    view_url = service_url + '/api/view'
+    view_url       = service_url + '/api/view'
     view_url.query = URI.encode_www_form(
       filename:, subfolder: '', type: 'output', rand:
     )

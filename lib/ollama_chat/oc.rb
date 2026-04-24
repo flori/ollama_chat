@@ -240,6 +240,10 @@ module OC
             description 'Prompt node id for the image generating text prompt'
             required { OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR::URL? }
           end
+
+          FILENAME_PREFIX_NODE_ID = set do
+            description 'Node id for the image filename prefix'
+          end
         end
       end
     end
