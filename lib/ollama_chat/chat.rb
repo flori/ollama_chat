@@ -444,7 +444,7 @@ class OllamaChat::Chat
     when 'duplicate'
       duplicate_system_prompt
     when 'export'
-      filename ||= ask?(prompt: "❓ Enter filename, C-c to cancel: ")
+      filename ||= ask?(prompt: "❓ Enter filename, C-c ⇒ cancel: ")
       if filename
         export_system_prompt(filename)
       else
@@ -652,7 +652,7 @@ class OllamaChat::Chat
     when 'duplicate'
       duplicate_prompt
     when 'export'
-      filename ||= ask?(prompt: "❓ Enter filename, C-c to cancel: ")
+      filename ||= ask?(prompt: "❓ Enter filename, C-c ⇒ cancel: ")
       if filename
         export_prompt(filename)
       else

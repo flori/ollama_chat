@@ -318,11 +318,14 @@ module OllamaChat::SessionManagement
     elsif selector
       now = Time.now
       sessions = session_query.order(Sequel.desc(:updated_at)).map { |session|
-        duration = session.age(now:)
-        count    = session.messages.to_s.count(?\n)
+        duration    = session.age(now:)
+        size_bytes  = session.messages.to_s.size
+        tokens      = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
+        tokens_size = format_tokens(tokens)
+        count       = session.messages.to_s.count(?\n)
         SearchUI::Wrapper.new(
           session.name,
-          display: "#{session.name} 🆔#{session.id} 📨#{count} ⏳#{duration}"
+          display: "#{session.name} 🆔#{session.id} 📨#{count} 🧩#{tokens_size} ⏳#{duration}"
         )
       }
       selector and sessions = sessions.select { _1 =~ selector }

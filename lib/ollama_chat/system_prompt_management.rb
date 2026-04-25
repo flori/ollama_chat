@@ -119,7 +119,7 @@ module OllamaChat::SystemPromptManagement
       end
     end
     patterns = ask?(
-      prompt: "❓ Enter file patterns to load file, C-c to cancel: ",
+      prompt: "❓ Enter file patterns to load file, C-c ⇒ cancel: ",
       prefill: '**/*.{txt,md}'
     )
     patterns.nil? and return
@@ -204,7 +204,7 @@ module OllamaChat::SystemPromptManagement
     )
     name = nil
     loop do
-      name = ask?(prompt: "❓ Enter new system prompt name to duplicate as, C-c to cancel: ")
+      name = ask?(prompt: "❓ Enter new system prompt name to duplicate as, C-c ⇒ cancel: ")
       if name.nil?
         STDOUT.puts "Canceled."
         return nil

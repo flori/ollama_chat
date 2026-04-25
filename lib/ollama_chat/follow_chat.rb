@@ -194,6 +194,7 @@ class OllamaChat::FollowChat
         message:,
         warn:     ,
         size:     format_bytes(result.to_s.size),
+        tokens:   format_tokens(result.to_s.size),
         duration: Tins::Duration.new(Time.now - start).to_s,
       }
     end
@@ -201,11 +202,12 @@ class OllamaChat::FollowChat
     if tools_used.full?
       infobar.reset
       tools_used.each do |name, info|
-        feedback_message = if info[:message]
-                             "\n%s %s\n\n" % [ info[:warn] ? '⚠️' : '💡', info[:message] ]
-                           end
+        feedback_message =
+          if info[:message]
+            "\n%s %s\n\n" % [ info[:warn] ? '⚠️' : '💡', info[:message] ]
+          end
         STDOUT.puts <<~EOT.strip, ""
-          🔧 Tool functions #{name} returned result (#{info[:size]} in #{info[:duration]}).
+          🔧 Tool functions #{name} returned result (#{info[:size]}/#{info[:tokens]} in #{info[:duration]}).
           #{feedback_message}
         EOT
         timeout = @chat.tool_function(name).result_display_timeout?

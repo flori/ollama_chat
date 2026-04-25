@@ -49,7 +49,7 @@ module OllamaChat::PromptManagement
   def add_new_prompt
     name = nil
     loop do
-      name = ask?(prompt: "❓ Enter new system prompt name to add, C-c to cancel: ")
+      name = ask?(prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: ")
       if name.nil?
         STDOUT.puts "Canceled."
         return nil
@@ -61,7 +61,7 @@ module OllamaChat::PromptManagement
       end
     end
     patterns = ask?(
-      prompt: "❓ Enter file patterns to load file, C-c to cancel: ",
+      prompt: "❓ Enter file patterns to load file, C-c ⇒ cancel: ",
       prefill: '**/*.{txt,md}'
     )
     patterns.nil? and return
@@ -115,7 +115,7 @@ module OllamaChat::PromptManagement
     )
     name = nil
     loop do
-      name = ask?(prompt: "❓ Enter new prompt name to duplicate as, C-c to cancel: ")
+      name = ask?(prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: ")
       if name.nil?
         STDOUT.puts "Canceled."
         return nil
