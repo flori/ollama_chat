@@ -56,13 +56,15 @@ module OllamaChat::SessionManagement
       table.headings = %w[ ID NAME SIZE #TOK COUNT UPDATED ].map { |header| bold { header } }
       now = Time.now
       models::Session.order(Sequel.desc(:updated_at)).each do |s|
-        size_bytes = s.messages.to_s.size
-        size       = format_bytes(size_bytes)
+        size_bytes  = s.messages.to_s.size
+        size        = format_bytes(size_bytes)
+        tokens      = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
+        tokens_size = format_tokens(tokens)
         table << [
           s.id.to_s,
           session.id == s.id ? bold { s.name } : s.name,
           size,
-          OllamaChat::Utils::TokenEstimator.estimate(size_bytes),
+          tokens_size,
           s.messages.to_s.count(?\n),
           s.age(now:),
         ]
@@ -79,9 +81,12 @@ module OllamaChat::SessionManagement
   #
   # @param output [IO] the output stream to write the information to (default: STDOUT)
   def show_session(output: STDOUT)
-    messages_size  = format_bytes(session.messages.to_s.size)
+    size_bytes = session.messages.to_s.size
+    messages_size  = format_bytes(size_bytes)
+    tokens         = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
+    tokens_size    = format_tokens(tokens)
     messages_count = session.messages.to_s.count(?\n)
-    output.puts "#{bold{session.name}} (#{italic{session.id}}), #{messages_size}, #{messages_count} messages"
+    output.puts "#{bold{session.name}} (#{italic{session.id}}), #{messages_size}/#{tokens_size}, #{messages_count} messages"
   end
 
   # Creates a new session with the given name or a default name.

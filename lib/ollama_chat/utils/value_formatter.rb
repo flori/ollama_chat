@@ -5,6 +5,10 @@ module OllamaChat::Utils::ValueFormatter
   # @param bytes [Integer] the number of bytes to format
   # @return [String] the formatted byte string
   def format_bytes(bytes)
-    Tins::Unit.format(bytes, unit: ?B, prefix: 1024, format: '%.1f %U')
+    Tins::Unit.format(bytes, unit: ?B, prefix: :iec_uc, format: '%.1f %U')
+  end
+
+  def format_tokens(tokens)
+    Tins::Unit.format(tokens, unit: ?T, prefix: :si_uc, format: '%.1f %U')
   end
 end
