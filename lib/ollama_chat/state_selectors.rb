@@ -203,7 +203,8 @@ module OllamaChat::StateSelectors
     end
   end
 
-  # The document_policy reader returns the document policy selector for the chat session.
+  # The document_policy reader returns the document policy selector for the
+  # chat session.
   #
   # @return [ OllamaChat::StateSelector ] the document policy selector object
   #   that manages the policy for handling document references in user text

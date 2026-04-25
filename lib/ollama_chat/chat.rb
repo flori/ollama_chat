@@ -151,6 +151,12 @@ class OllamaChat::Chat
   #   messages associated with this instance
   attr_reader :messages
 
+
+  # Returns the list of images currently queued for the next message.
+  #
+  # @return [Array] a list of images to be sent with the next prompt
+  attr_reader :images
+
   # Provides read-only access to the cache instance used by the object
   #
   # @attr_reader [Cache] the cache instance

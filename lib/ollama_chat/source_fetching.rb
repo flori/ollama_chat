@@ -70,22 +70,6 @@ module OllamaChat::SourceFetching
     STDERR.puts "Cannot fetch source #{source.to_s.inspect}: #{e.class} #{e}\n#{e.backtrace * ?\n}"
   end
 
-  # Reads a file and extends it with header extension metadata. It then yields
-  # the file to the provided block for processing. If the file does not exist,
-  # it outputs an error message to standard error.
-  #
-  # @param filename [ String ] the path to the file to be read
-  #
-  # @yield [ file ] yields the opened file with header extension
-  #
-  # @return [ nil ] returns nil if the file does not exist
-  # @return [ Object ] returns the result of the block execution if the file exists
-  private def fetch_source_as_filename(filename, &block)
-    OllamaChat::Utils::Fetcher.read(filename) do |tmp|
-      block.(tmp)
-    end
-  end
-
   # Adds an image to the images collection from the given source IO and source
   # identifier.
   #
@@ -266,5 +250,23 @@ module OllamaChat::SourceFetching
   #   instance
   def links
     @links ||= Set.new
+  end
+
+  private
+
+  # Reads a file and extends it with header extension metadata. It then yields
+  # the file to the provided block for processing. If the file does not exist,
+  # it outputs an error message to standard error.
+  #
+  # @param filename [ String ] the path to the file to be read
+  #
+  # @yield [ file ] yields the opened file with header extension
+  #
+  # @return [ nil ] returns nil if the file does not exist
+  # @return [ Object ] returns the result of the block execution if the file exists
+  def fetch_source_as_filename(filename, &block)
+    OllamaChat::Utils::Fetcher.read(filename) do |tmp|
+      block.(tmp)
+    end
   end
 end

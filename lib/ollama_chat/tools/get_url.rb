@@ -22,9 +22,9 @@ class OllamaChat::Tools::GetURL
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-         Web fetcher – Downloads any web resource (HTML, Markdown, plain text)
+         Web fetcher – Downloads any web resource (HTML, Markdown, plain text, or images)
          at url and makes its contents available to the model. Good for pulling
-         documentation snippets.
+         documentation snippets or viewing generated images.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -36,6 +36,20 @@ class OllamaChat::Tools::GetURL
                 HTTPS URL pointing to a web resource that can be retrieved and
                 processed by the chat system. The tool handles the HTTP request
                 and returns the content.
+              EOT
+            ),
+            document_policy: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: <<~EOT,
+                The policy for handling the fetched text content, it defaults
+                to 'ignoring'. Note that policies other than 'ignoring'
+                typically transform the source content into a text-based
+                representation
+                (e.g., HTML to Markdown, PDF to text) before processing.
+                - 'ignoring': Returns the raw content without any transformation (best for raw text, logs, or code).
+                - 'importing': Processes content (e.g., HTML to Markdown) and adds it to the chat context.
+                - 'embedding': Processes the content for vector storage.
+                - 'summarizing': Returns a condensed summary of the content.
               EOT
             ),
           },
@@ -56,21 +70,51 @@ class OllamaChat::Tools::GetURL
   # @return [String] the fetched content as a JSON string
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
-    config = chat.config
-    args   = tool_call.function.arguments
-    url    = args.url.to_s
+    chat            = opts[:chat]
+    config          = chat.config
+    args            = tool_call.function.arguments
+    url             = args.url.to_s
+    document_policy = args.document_policy.full? || 'ignoring'
 
     allowed_schemes = Array(config.tools.functions.get_url.schemes?).map(&:to_s)
 
-    uri = URI.parse(args.url.to_s)
-    unless allowed_schemes.include?(uri.scheme)
+    url = URI.parse(args.url.to_s)
+    unless allowed_schemes.include?(url.scheme)
       raise OllamaChat::ToolFunctionArgumentError,
-        "scheme #{uri.scheme.inspect} not allowed "\
+        "scheme #{url.scheme.inspect} not allowed "\
         "(allowed: #{allowed_schemes.join(', ')})"
     end
 
-    chat.get_url(url, reraise: true, &:read)
+    source, message, content = url, nil, ''
+    chat.fetch_source(source, check_exist: false) do |source_io|
+      case source_io&.content_type&.media_type
+      when 'image'
+        chat.add_image(chat.images, source_io, source)
+      when 'text', 'application', nil
+        case document_policy
+        when 'ignoring'
+          content = source_io.read
+        when 'importing'
+          content = chat.import_source(source_io, source)
+        when 'embedding'
+          content = chat.embed_source(source_io, source)
+        when 'summarizing'
+          content = chat.summarize_source(source_io, source)
+        else
+          message = "Invalid document policy #{document_policy.inspect} used."
+        end
+      else
+        message = "Cannot fetch #{source.to_s.inspect} with content type "\
+          "#{source_io&.content_type.inspect}"
+      end
+    end
+    message ||= "Received requested URL successfully."
+
+    {
+      url:,
+      content:,
+      message:,
+    }.to_json
   rescue => e
     { error: e.class, message: e.message, url: }.to_json
   end

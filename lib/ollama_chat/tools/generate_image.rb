@@ -99,7 +99,7 @@ class OllamaChat::Tools::GenerateImage
       status: 'success',
       url: view_url,
       message: "Image successfully generated! You can view it here: #{view_url}",
-      duration: Tins::Duration.new(Time.now - started),
+      duration: Tins::Duration.new(Time.now - started).to_s,
     }.to_json
   rescue => e
     {
