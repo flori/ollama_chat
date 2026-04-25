@@ -5,9 +5,11 @@
 # system prompts, allowing for dynamic and interactive configuration within the
 # chat lifecycle.
 module OllamaChat::SystemPromptManagement
-  # Retrieves all stored system prompts, decorated with a heart if they are marked as favourites.
+  # Retrieves all stored system prompts, decorated with a heart if they are
+  # marked as favourites.
   #
-  # @return [Array<SearchUI::Wrapper>] the list of system prompts for display in a chooser
+  # @return [Array<SearchUI::Wrapper>] the list of system prompts for display
+  #   in a chooser
   def all_system_prompts
     favs = all_favourited('system_prompt')
     each_system_prompt.sort_by(&:name).map do |p|
@@ -181,6 +183,72 @@ module OllamaChat::SystemPromptManagement
       )
       STDOUT.print start
       STDOUT.puts ' %s' % italic { content }
+    end
+  end
+
+  # Duplicates an existing system prompt.
+  #
+  # This method initiates an interactive workflow:
+  # 1. Prompts the user to select a system prompt to clone.
+  # 2. Displays the content of the selected prompt for verification.
+  # 3. Requests a new name for the duplicate, validating that it does
+  #    not already exist in the database.
+  # 4. Creates and saves the new prompt record using the {Duplicatable} mixin.
+  #
+  # @return [self, nil] the current context on success, or nil if the user
+  #   cancelled the operation or no system prompt was selected.
+  def duplicate_system_prompt
+    prompt = choose_system_prompt or return
+    STDOUT.puts kramdown_ansi_parse(
+      prompt.to_s + "\n---"
+    )
+    name = nil
+    loop do
+      name = ask?(prompt: "❓ Enter new system prompt name to duplicate as, C-c to cancel: ")
+      if name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if system_prompt(name)
+        STDOUT.puts "System prompt named #{bold{name}} already exists."
+      else
+        break
+      end
+    end
+    duplicated_prompt = prompt.duplicate
+    duplicated_prompt.name = name
+    duplicated_prompt.metadata['default'] = false
+    duplicated_prompt.save
+    self
+  end
+
+  # Exports a selected system prompt to a specified file.
+  #
+  # The method first checks if the target file already exists to prevent
+  # accidental overwrites. If the file is clear, it prompts the user to select
+  # a system prompt, displays its content for verification, and finally asks
+  # for a final confirmation before writing the content to disk.
+  #
+  # @param filename [String, Pathname] the destination path where the system
+  #   prompt should be exported
+  def export_system_prompt(filename)
+    filename = Pathname.new(filename)
+    if filename.exist?
+      STDERR.puts "File #{filename.to_path.inspect} already exists!"
+      return
+    end
+    prompt = choose_system_prompt or return
+    STDOUT.puts kramdown_ansi_parse(
+      prompt.to_s + "\n---"
+    )
+    yes = confirm?(
+      prompt: "🔔 Really export this system prompt as #{filename.to_path.inspect}? (y/n) ",
+      yes: /\Ay/i
+    )
+    if yes
+      filename.write prompt
+    else
+      STDOUT.puts "Canceled."
     end
   end
 

@@ -4,6 +4,8 @@
 # This model stores prompts with a context (e.g., 'prompt' or 'system_prompt')
 # and a name, with the actual content residing in a serialized JSON metadata column.
 class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
+  include Duplicatable
+
   plugin :timestamps
   plugin :serialization, :json, :metadata
 

@@ -424,11 +424,11 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(add|delete|edit|list|change))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ add delete edit list change ] ],
+    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ add delete edit list change duplicate export ] ],
     optional: true,
     help: 'change/show/manage system prompt'
-  ) do |subcommand, pattern|
+  ) do |subcommand, filename|
     case subcommand
     when 'add'
       add_new_system_prompt and @messages.show_system_prompt
@@ -441,6 +441,15 @@ class OllamaChat::Chat
     when 'change'
       change_system_prompt(@system)
       @messages.show_system_prompt
+    when 'duplicate'
+      duplicate_system_prompt
+    when 'export'
+      filename ||= ask?(prompt: "❓ Enter filename, C-c to cancel: ")
+      if filename
+        export_system_prompt(filename)
+      else
+        STDOUT.puts "Canceled."
+      end
     when nil
       @messages.show_system_prompt
     end
@@ -626,11 +635,11 @@ class OllamaChat::Chat
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(add|delete|edit|list))?(?:\s+(\S+))?$),
-    complete: [ 'prompt', %w[ add delete edit list ] ],
+    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|export))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ add delete edit list duplicate export ] ],
     optional: true,
     help: 'prefill user prompt with preset prompts, manage prompts',
-  ) do |subcommand, pattern|
+  ) do |subcommand, filename|
     case subcommand
     when 'add'
       add_new_prompt
@@ -640,6 +649,15 @@ class OllamaChat::Chat
       choose_and_edit_prompt
     when 'list'
       list_prompts
+    when 'duplicate'
+      duplicate_prompt
+    when 'export'
+      filename ||= ask?(prompt: "❓ Enter filename, C-c to cancel: ")
+      if filename
+        export_prompt(filename)
+      else
+        STDOUT.puts "Canceled."
+      end
     when nil
       @prefill_prompt = choose_prompt&.to_s
     end

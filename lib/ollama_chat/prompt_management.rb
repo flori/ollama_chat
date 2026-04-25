@@ -5,12 +5,14 @@
 # prompts, allowing users to interactively pick a prompt from
 # the database.
 module OllamaChat::PromptManagement
-  # Retrieves all stored prompts, decorated with a heart if they are marked as favourites.
+  # Retrieves all stored prompts, decorated with a heart if they are marked as
+  # favourites.
   #
   # @param default [Boolean, nil] filter for default prompts (true: only
   #   defaults, false: only non-defaults)
   #
-  # @return [Array<SearchUI::Wrapper>] the list of prompts for display in a chooser
+  # @return [Array<SearchUI::Wrapper>] the list of prompts for display in a
+  #   chooser
   def all_prompts(default: nil)
     favs = all_favourited('prompt')
     each_prompt(default:).sort_by(&:name).map do |p|
@@ -18,9 +20,9 @@ module OllamaChat::PromptManagement
     end
   end
 
-  # The choose_prompt method presents a menu of available prompts for selection.
-  # It retrieves the list of prompt names from the database, adds an '[EXIT]'
-  # option, and displays them via the Chooser utility.
+  # The choose_prompt method presents a menu of available prompts for
+  # selection. It retrieves the list of prompt names from the database, adds an
+  # '[EXIT]' option, and displays them via the Chooser utility.
   #
   # @param default [Boolean, nil] filter for default prompts (true: only
   #   defaults, false: only non-defaults)
@@ -47,13 +49,13 @@ module OllamaChat::PromptManagement
   def add_new_prompt
     name = nil
     loop do
-      name = ask?(prompt: "❓ Enter new system prompt name to add: ")
+      name = ask?(prompt: "❓ Enter new system prompt name to add, C-c to cancel: ")
       if name.nil?
         STDOUT.puts "Canceled."
         return nil
       end
       if prompt(name)
-        STDOUT.puts "System prompt named #{bold{name}} already exists."
+        STDOUT.puts "Prompt named #{bold{name}} already exists."
       else
         break
       end
@@ -93,6 +95,76 @@ module OllamaChat::PromptManagement
     prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
     prompt.save
     self
+  end
+
+  # Duplicates an existing prompt.
+  #
+  # This method initiates an interactive workflow:
+  # 1. Prompts the user to select a prompt to clone.
+  # 2. Displays the content of the selected prompt for verification.
+  # 3. Requests a new name for the duplicate, validating that it does
+  #    not already exist in the database.
+  # 4. Creates and saves the new prompt record using the {Duplicatable} mixin.
+  #
+  # @return [self, nil] the current context on success, or nil if the user
+  #   cancelled the operation or no prompt was selected.
+  def duplicate_prompt
+    prompt = choose_prompt or return
+    STDOUT.puts kramdown_ansi_parse(
+      prompt.to_s + "\n---"
+    )
+    name = nil
+    loop do
+      name = ask?(prompt: "❓ Enter new prompt name to duplicate as, C-c to cancel: ")
+      if name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if prompt(name)
+        STDOUT.puts "Prompt named #{bold{name}} already exists."
+      else
+        break
+      end
+    end
+    duplicated_prompt = prompt.duplicate
+    duplicated_prompt.name = name
+    duplicated_prompt.metadata['default'] = false
+    duplicated_prompt.save
+    self
+  end
+
+  # Exports a selected prompt to a specified file.
+  #
+  # The method first checks if the target file already exists to prevent
+  # accidental overwrites. If the file is clear, it prompts the user to select
+  # a prompt, displays its content for verification, and finally asks
+  # for a final confirmation before writing the content to disk.
+  #
+  # @param filename [String, Pathname] the destination path where the
+  #   prompt should be exported
+  # @return [Boolean, nil] true if the prompt was exported, nil if the
+  #   process was cancelled or file exists.
+  def export_prompt(filename)
+    filename = Pathname.new(filename)
+    if filename.exist?
+      STDERR.puts "File #{filename.to_path.inspect} already exists!"
+      return nil
+    end
+    prompt = choose_prompt or return
+    STDOUT.puts kramdown_ansi_parse(
+      prompt.to_s + "\n---"
+    )
+    yes = confirm?(
+      prompt: "🔔 Really export this prompt as #{filename.to_path.inspect}? (y/n) ",
+      yes: /\Ay/i
+    )
+    if yes
+      filename.write prompt
+      true
+    else
+      STDOUT.puts "Canceled."
+      nil
+    end
   end
 
   # Lists all prompt templates in the database, indicating which are defaults
