@@ -123,7 +123,7 @@ describe OllamaChat::StateSelectors::StateSelector do
     it 'allows user to select a state from available options' do
       # Mock the chooser to return a specific choice
       expect(OllamaChat::Utils::Chooser).to receive(:choose).with(
-        %w[ enabled disabled low high [EXIT] ]
+        %w[ [EXIT] enabled disabled low high ]
       ).and_return('low')
 
       selector.choose

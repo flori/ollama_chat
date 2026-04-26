@@ -65,21 +65,35 @@ module OllamaChat::StateSelectors
       !off?
     end
 
-    # The choose method presents a menu to select from available states.
+    # The choose method presents an interactive menu to select from available
+    # states.
     #
-    # This method displays the available states to the user and allows them to
-    # select one. It handles the user's choice by updating the selected state
-    # or exiting the chooser if the user selects '[EXIT]' or cancels the selection.
+    # It displays the states with visual indicators: a door (🚪) for exiting,
+    # a green circle (🟢) for the currently selected state, and a black circle
+    # (⚫️) for others. The method updates the selected state based on user
+    # input or exits the chooser if '[EXIT]' or a cancellation is chosen.
     #
-    # @return [ nil ] This method does not return a value; it updates the instance
-    #   variable @selected based on user input.
+    # @return [ nil ] This method does not return a value; it updates the
+    #   instance variable @selected based on user input.
     def choose
-      states = self.states + [ '[EXIT]' ]
+      currently_selected = selected
+      states = [ '[EXIT]' ] + self.states.to_a
+      states = states.map do |state|
+        display_prefix =
+          case state
+          when '[EXIT]'           then '🚪'
+          when currently_selected then '🟢'
+          else                         '⚫️'
+          end
+        display = '%s %s' % [ display_prefix, state ]
+        SearchUI::Wrapper.new(state, display:)
+      end
+
       case chosen = OllamaChat::Utils::Chooser.choose(states)
       when '[EXIT]', nil
         STDOUT.puts "Exiting chooser."
       when
-        self.selected = chosen
+        self.selected = chosen.value
       end
     end
 
