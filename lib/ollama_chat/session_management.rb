@@ -4,8 +4,6 @@
 #
 # It integrates closely with the database-backed Session model and ensures that
 # session data is persisted correctly, especially the conversation history.
-#
-# @see OllamaChat::Database::Models::Session
 module OllamaChat::SessionManagement
   # Persists the current conversation messages to the database.
   #

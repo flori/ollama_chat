@@ -48,12 +48,13 @@ class OllamaChat::Tools::RunTests
   #
   # @param tool_call [ToolCall] the tool invocation containing arguments
   # @param opts [Hash] additional options (currently unused)
-  # @return [String] JSON containing ``success``, ``path``, ``output`` and ``status``
+  # @return [String] JSON containing either result metrics (``success``, ``path``, ``output``, ``status``)
+  #   or error details (``error``, ``message``).
   def execute(tool_call, **opts)
     config   = opts[:chat].config
     path     = tool_call.function.arguments.path
     coverage = tool_call.function.arguments.coverage || false
-    check_path(path, config)
+    path     = check_path(path, config)
     output, success = run_tests(path, coverage)
     {
       success:,
@@ -72,7 +73,7 @@ class OllamaChat::Tools::RunTests
   #
   # @param path [ String ] the initial path to be checked
   # @param config [ Object ] configuration object containing tool function settings
-  # @return [ String ] the validated and existing path
+  # @return [ Pathname ] the expanded, validated and existing path
   def check_path(path, config)
     if path.blank?
       if File.exist?('./spec')
@@ -86,24 +87,17 @@ class OllamaChat::Tools::RunTests
       end
     end
     assert_valid_path(path, config.tools.functions.run_tests.allowed?, check: true)
-    File.exist?(path) or raise Errno::ENOENT, 'path %s does not exist' % path.inspect
   end
 
   # Run the test suite using the configured test runner.
   #
   # @param path [String] file or directory to test
-  # @param coverage [true, false] whether to enable SimpleCov
-  # @return [Array(String, true, false)] the captured output and a success flag
+  # @param coverage [Boolean] whether to enable SimpleCov
+  # @return [String, Boolean] the captured output and a success flag
   def run_tests(path, coverage)
-    output = +''
     env = ENV.to_h | { 'START_SIMPLECOV' => coverage ? '1' : '0' }
     cmd = [ test_runner, Shellwords.escape(path) ].join(' ')
-    Open3.popen2e(env, cmd) do |_,io|
-      while line = io.gets
-        STDOUT.puts line
-        output << line
-      end
-    end
+    output = execute_test_command(env, cmd)
     return output, $?.success?
   end
 
@@ -112,6 +106,23 @@ class OllamaChat::Tools::RunTests
   # @return [String] the command to invoke the test runner
   def test_runner
     OC::OLLAMA::CHAT::TOOLS::TEST_RUNNER
+  end
+
+  # Executes the test command in a separate process, streaming output to
+  # STDOUT.
+  #
+  # @param env [Hash] environment variables for the process
+  # @param cmd [String] the command to execute
+  # @return [String] the combined output from stdout and stderr
+  def execute_test_command(env, cmd)
+    output = +''
+    Open3.popen2e(env, cmd) do |_,io|
+      while line = io.gets
+        STDOUT.puts line
+        output << line
+      end
+    end
+    output
   end
 
   self.register

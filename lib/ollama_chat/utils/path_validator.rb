@@ -4,11 +4,9 @@
 # that need to validate file paths against a whitelist.  By extracting the
 # logic into a reusable mixin we avoid duplication and make the intent of
 # each tool explicit.
-#
-# @private
 module OllamaChat::Utils::PathValidator
-
-  # Validates that a supplied path is located inside one of the allowed directories.
+  # Validates that a supplied path is located inside one of the allowed
+  # directories.
   #
   # The method performs the following steps:
   #
@@ -82,8 +80,8 @@ module OllamaChat::Utils::PathValidator
 
     unless valid_path
       error = OllamaChat::InvalidPathError.new(
-        "Path #{path} is not within allowed directories: " \
-        "#{allowed_dirs&.join(', ') || '∅'}"
+        "Path #{path.to_s.inspect} is not within allowed directories: " \
+        "#{allowed_dirs&.map { _1.to_s.inspect }&.join(', ') || ?∅ }"
       )
       error.path = path
       raise error
