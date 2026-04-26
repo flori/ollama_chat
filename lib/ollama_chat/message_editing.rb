@@ -21,7 +21,7 @@ module OllamaChat::MessageEditing
           new_content           = File.read(tmp.path)
           old_message           = @messages.messages.pop.as_json
           old_message[:content] = new_content
-          @messages << Ollama::Message.from_hash(old_message)
+          @messages << OllamaChat::Message.from_hash(old_message)
           STDOUT.puts "Message edited and updated."
           return new_content
         else

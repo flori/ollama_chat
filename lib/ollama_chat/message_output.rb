@@ -74,7 +74,7 @@ module OllamaChat::MessageOutput
   #
   # @param filename [ String ] the path to the file where the content should be
   #   written
-  # @param message [ Ollama::Message ] the message object containing the
+  # @param message [ OllamaChat::Message ] the message object containing the
   #   content to write
   #
   # @return [ TrueClass ] returns true if the file was successfully written

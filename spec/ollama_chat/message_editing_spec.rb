@@ -8,7 +8,7 @@ describe OllamaChat::MessageEditing do
   describe '#change_response' do
     it 'can revise the last message' do
       # First add a message to work with
-      chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
+      chat.messages << OllamaChat::Message.new(role: 'assistant', content: 'original content')
 
       const_conf_as('OC::EDITOR' => '/usr/bin/vim')
 
@@ -31,7 +31,7 @@ describe OllamaChat::MessageEditing do
     end
 
     it 'handles missing editor gracefully' do
-      chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
+      chat.messages << OllamaChat::Message.new(role: 'assistant', content: 'original content')
 
       const_conf_as('OC::EDITOR' => nil)
 
@@ -50,7 +50,7 @@ describe OllamaChat::MessageEditing do
 
     it 'handles editor failure' do
       const_conf_as('OC::EDITOR' => '/usr/bin/vim')
-      chat.messages << Ollama::Message.new(role: 'assistant', content: 'original content')
+      chat.messages << OllamaChat::Message.new(role: 'assistant', content: 'original content')
       tmp_double = double('tmp', write: true, flush: true, path: '/tmp/test')
       expect(chat).to receive(:edit_text_block).and_yield(tmp_double)
       expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)

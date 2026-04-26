@@ -35,7 +35,7 @@ class OllamaChat::FollowChat
 
   # Returns the conversation history (an array of message objects).
   #
-  # @return [OllamaChat::MessageList<Ollama::Message>] The array of messages in
+  # @return [OllamaChat::MessageList<OllamaChat::Message>] The array of messages in
   #   the conversation.
   attr_reader :messages
 

@@ -226,17 +226,6 @@ class OllamaChat::Chat
     @messages.system
   end
 
-  # Removes all internal JSON-formatted metadata markers from the provided content.
-  # This includes markers for retrieval snippets and runtime information.
-  #
-  # @param content [String] The raw string content containing potential JSON markers.
-  # @return [String] The cleaned string with all internal markers stripped away.
-  def strip_all_internal_json_markers(content)
-    content = strip_internal_json_markers(:ollama_chat_retrieval_snippets, content)
-    content = strip_internal_json_markers(:ollama_chat_runtime_information, content)
-    content
-  end
-
   private
 
   # The generate method sends a prompt to the Ollama model and returns the
@@ -259,21 +248,6 @@ class OllamaChat::Chat
   # @return [Module] The module containing the database models.
   def models
     OllamaChat::Database::Models
-  end
-
-  # Removes lines that are JSON objects containing the given key.
-  #
-  # @param name [String, Symbol] key to look for in each line
-  # @param content [String] multiline text that may contain internal JSON markers
-  # @return [String] text with matching marker lines removed
-  def strip_internal_json_markers(name, content)
-    content.nil? and return
-    name = name.to_s
-    content.each_line.map do |line|
-      JSON(line).fetch(name) and next
-    rescue
-      line
-    end.compact.join
   end
 
   # The disable_content_parsing method turns off content parsing by setting
@@ -619,8 +593,8 @@ class OllamaChat::Chat
     optional: true,
     help: 'revise the last message (and/or edit the query)'
   ) do |subcommand|
-    if content = messages.second_last&.content
-      content = strip_all_internal_json_markers(content)
+    if message = messages.second_last
+      content = message.stripped_content
       messages.drop(1)
       if subcommand == 'edit'
         content = edit_text(content)
@@ -816,7 +790,6 @@ class OllamaChat::Chat
       and optionally transform it.
       Use subcommands: context, embedding, path, summary,
         import (the default).
-      Use pattern mode for local files.
       Options:
         -w <words> (summary subcommand only, default 100)
         -a (pattern mode only, include all files for patterns)
@@ -1218,7 +1191,7 @@ class OllamaChat::Chat
           ollama_chat_runtime_information: runtime_information
         }.to_json
 
-      messages << Ollama::Message.new(role: 'user', content:, images: @images.dup)
+      messages << OllamaChat::Message.new(role: 'user', content:, images: @images.dup)
       @images.clear
       handler = OllamaChat::FollowChat.new(
         chat:     self,
@@ -1231,7 +1204,7 @@ class OllamaChat::Chat
         if think_strip.on?
           sent_messages = sent_messages.map {
             _1.dup.tap { |message|
-              message.instance_variable_set(:@thinking, nil)
+              message.thinking = nil
             }
           }
         end

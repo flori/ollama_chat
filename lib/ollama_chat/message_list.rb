@@ -13,8 +13,8 @@
 #   messages = OllamaChat::MessageList.new(chat)
 #
 # @example Adding messages to the list
-#   messages << Ollama::Message.new(role: 'user', content: 'Hello')
-#   messages << Ollama::Message.new(role: 'assistant', content: 'Hi there!')
+#   messages << OllamaChat::Message.new(role: 'user', content: 'Hello')
+#   messages << OllamaChat::Message.new(role: 'assistant', content: 'Hi there!')
 #
 # @example Displaying conversation history
 #   messages.list_conversation(5)  # Shows last 5 exchanges
@@ -78,7 +78,7 @@ class OllamaChat::MessageList
 
   # The << operator appends a message to the list of messages and returns self.
   #
-  # @param message [ Ollama::Message ] the message to append
+  # @param message [ OllamaChat::Message ] the message to append
   #
   # @return [ OllamaChat::MessageList ] self
   def <<(message)
@@ -88,7 +88,7 @@ class OllamaChat::MessageList
 
   # Returns the last message from the conversation.
   #
-  # @return [ Ollama::Message ] The last message in the conversation, or nil if
+  # @return [ OllamaChat::Message ] The last message in the conversation, or nil if
   #         there are no messages.
   def last
     @messages.last
@@ -130,7 +130,7 @@ class OllamaChat::MessageList
   # The second_last method returns the second-to-last message from the
   # conversation if there are more than one non-system messages.
   #
-  # @return [ Ollama::Message ] the second-to-last message
+  # @return [ OllamaChat::Message ] the second-to-last message
   def second_last
     if @messages.reject { _1.role == 'system' }.size > 1
       @messages[-2]
@@ -203,9 +203,7 @@ class OllamaChat::MessageList
     use_pager do |output|
       messages.each do |message|
         message = message.dup
-        content = message.content
-        content = @chat.strip_all_internal_json_markers(content)
-        message.instance_variable_set :@content, content
+        message.content = message.stripped_content
         output.puts message_text_for(message)
       end
     end
@@ -297,7 +295,7 @@ class OllamaChat::MessageList
     if new_system_prompt = system.full?(:to_s)
       @system = new_system_prompt
       @messages.unshift(
-        Ollama::Message.new(role: 'system', content: self.system)
+        OllamaChat::Message.new(role: 'system', content: self.system)
       )
     else
       @system = nil
@@ -337,9 +335,9 @@ class OllamaChat::MessageList
   end
 
   # The to_ary method converts the message list into an array of
-  # Ollama::Message objects.
+  # OllamaChat::Message objects.
   #
-  # @return [Array] An array of Ollama::Message objects representing the
+  # @return [Array] An array of OllamaChat::Message objects representing the
   #   messages in the list.
   def to_ary
     @messages.dup
@@ -420,17 +418,17 @@ class OllamaChat::MessageList
   # Loads a conversation from a standard JSON file.
   #
   # @param filename [Pathname] the path to the JSON file
-  # @return [Array<Ollama::Message>] an array of messages
+  # @return [Array<OllamaChat::Message>] an array of messages
   def load_conversation_json(filename)
     JSON.parse(filename.read).map {
-      Ollama::Message.from_hash(_1 | { 'content' => nil })
+      OllamaChat::Message.from_hash(_1 | { 'content' => nil })
     }
   end
 
   # Loads a conversation from a JSONL (JSON Lines) file.
   #
   # @param filename [Pathname] the path to the JSONL file
-  # @return [Array<Ollama::Message>] an array of messages
+  # @return [Array<OllamaChat::Message>] an array of messages
   def load_conversation_jsonl(filename)
     filename.each_line.map {
       parse_message_from_json(_1)
@@ -460,9 +458,9 @@ class OllamaChat::MessageList
   # Parse a message from a JSON string.
   #
   # @param string [String] the JSON string representing the message
-  # @return [Ollama::Message] a new message instance created from the JSON data
+  # @return [OllamaChat::Message] a new message instance created from the JSON data
   def parse_message_from_json(string)
-    Ollama::Message.from_hash(JSON.parse(string) | { 'content' => nil })
+    OllamaChat::Message.from_hash(JSON.parse(string) | { 'content' => nil })
   end
 
   # Synchronizes the message list state with the active chat session.
