@@ -98,6 +98,7 @@ class OllamaChat::Tools::GenerateImage
     {
       status: 'success',
       url: view_url,
+      prompt:,
       message: "Image successfully generated! You can view it here: #{view_url}",
       duration: Tins::Duration.new(Time.now - started).to_s,
     }.to_json
@@ -105,6 +106,7 @@ class OllamaChat::Tools::GenerateImage
     {
       error: e.class,
       message: "Failed to generate image: #{e.message}",
+      prompt:,
     }.to_json
   end
 
