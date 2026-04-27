@@ -8,6 +8,16 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
 
   plugin :timestamps
   plugin :serialization, :json, :metadata
+  plugin :validation_helpers
+
+  # Validates the prompt template.
+  #
+  # Ensures that both the `context` and `name` are present.
+  def validate
+    super
+    validates_presence :context
+    validates_presence :name
+  end
 
   # @!attribute [v] id
   #   @return [Integer] The primary key for the prompt entry.
@@ -55,18 +65,24 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   # @param chat [OllamaChat::Chat] the chat instance providing the configuration
   def self.seed(chat)
     chat.config.prompts.each do |name, content|
-      self.find_or_create(
+      where(
         context: 'prompt',
-        name: name.to_s,
-      ).update(
+        name:    name.to_s,
+      ).first and next
+      create(
+        context:  'prompt',
+        name:     name.to_s,
         metadata: { default: true, content: }.stringify_keys_recursive
       )
     end
     chat.config.system_prompts.each do |name, content|
-      self.find_or_create(
+      where(
         context: 'system_prompt',
-        name: name.to_s,
-      ).update(
+        name:    name.to_s,
+      ).first and next
+      create(
+        context:  'system_prompt',
+        name:     name.to_s,
         metadata: { default: true, content: }.stringify_keys_recursive
       )
     end

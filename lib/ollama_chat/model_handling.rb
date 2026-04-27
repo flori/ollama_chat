@@ -130,26 +130,23 @@ module OllamaChat::ModelHandling
     log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
   end
 
-  # Syncs the active model options with the session-specific model options.
-  #
   # This method retrieves the options stored for the current session and
   # updates the active model options to match, ensuring the model behavior
   # aligns with the session's specific configuration.
-  def sync_session_model_options
+  def copy_model_options_from_session
     model_name    = @model
     model_options = get_session_model_options
     store_model_options(model_name, model_options)
-    STDOUT.puts "Default model options were synced to session model options of #{bold{model_name}}."
+    STDOUT.puts "Default model options of #{bold{model_name}} were copied from session model options."
   end
 
-  # Resets the session's model options to match the stored defaults for the current model.
-  #
-  # @param model [String] the name of the model to use as the source for defaults
-  # @return [void]
-  def reset_session_model_options(model)
-    stored_model_options = get_stored_model_options(model)
+  # Resets the session's model options to match the stored defaults for the
+  # current model.
+  def copy_model_options_to_session
+    model_name = @model
+    stored_model_options = get_stored_model_options(model_name)
     session.update(model_options: stored_model_options)
-    STDOUT.puts "Session options were reset to default model options of #{bold{model}}."
+    STDOUT.puts "Default model options of #{bold{model_name}} were copied to session model options."
   end
 
   # The model_present? method checks if the specified Ollama model is

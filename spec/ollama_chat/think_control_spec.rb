@@ -84,7 +84,8 @@ describe OllamaChat::ThinkControl do
 
   describe '#think_mode.choose' do
     it 'updates the selector based on the user choice' do
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).and_return('low')
+      expect(OllamaChat::Utils::Chooser).to receive(:choose).
+        and_return(double(value: 'low'))
       chat.think_mode.choose
       expect(chat.think_mode.selected).to eq 'low'
     end

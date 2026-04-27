@@ -4,12 +4,22 @@
 # creating, reading, updating, and deleting persona definitions stored as
 # Markdown files in the personae directory.
 module OllamaChat::PersonaeManagement
-  # The initial_persona method retrieves the initial persona for the chat
-  # session.
+  # The initial_persona_prompt_name method retrieves the initial persona for
+  # the chat session.
   #
   # @return [ String, nil ] the persona name or nil if not set
-  def initial_persona
-    @opts[?p].full? || session&.default_persona_id
+  def initial_persona_prompt_name
+    session&.default_persona_id
+  end
+
+  # Retrieves the formatted roleplay prompt for the current default persona.
+  #
+  # @return [String, nil] The formatted persona profile or nil if none set
+  def default_persona_profile
+    if persona = default_persona and persona.exist?
+      persona_profile = persona.read
+      play_persona_prompt(persona:, persona_profile:)
+    end
   end
 
   private
@@ -28,7 +38,8 @@ module OllamaChat::PersonaeManagement
 
   # Returns the directory path for persona backup files.
   #
-  # @return [Pathname] Path to the backups subdirectory within personae directory
+  # @return [Pathname] Path to the backups subdirectory within the personae
+  #   directory
   def personae_backup_directory
     personae_directory + 'backups'
   end
@@ -55,12 +66,27 @@ module OllamaChat::PersonaeManagement
       @session.update(default_persona_id: nil)
       @default_persona_name = nil
     end
+    messages.set_system_prompt(session&.current_system_prompt.full?)
     default_persona_name
+  end
+
+  # Interactively selects a persona and sets it as the default for the session.
+  #
+  # This method prompts the user to choose a persona from the available list
+  # using `choose_persona`. If a valid persona is selected, it updates the
+  # session and the internal state via `set_default_persona_name`.
+  #
+  # @return [String, nil] The name of the persona that was set as default,
+  #   or nil if the selection was cancelled or no persona was chosen.
+  def set_default_persona
+    if persona = choose_persona
+      set_default_persona_name(persona)
+    end
   end
 
   # The default_persona_name method returns the name of the default persona.
   #
-  # @return [String, nil] the name of the default persona or nil if set
+  # @return [String, nil] the name of the default persona or nil if not set
   attr_reader :default_persona_name
 
   # The default_persona method returns the path to the default persona file.
@@ -73,78 +99,38 @@ module OllamaChat::PersonaeManagement
     end
   end
 
-  # The setup_persona_from_opts method initializes persona setup by checking
-  # for a provided persona option, determining the appropriate file path, and
-  # playing the persona file if it exists.
-  def setup_persona_from_opts
+  # Initializes the default persona for the current chat session.
+  #
+  # This method ensures that a default persona is configured at startup:
+  # 1. If a default persona is already set, it returns immediately.
+  # 2. Otherwise, it attempts to retrieve the initial persona prompt name from
+  #    the session and verifies if the corresponding Markdown file exists.
+  # 3. If a valid file is found, it sets it as the default persona.
+  # 4. The `ensure` block guarantees that the session always has a default persona
+  #    assigned, falling back to `:none` if no valid persona is found.
+  #
+  # @return [Pathname, String, nil] The resulting default persona path or name,
+  #   or nil if no persona is set.
+  def setup_persona_from_session
     default_persona and return
-    @messages.size > 0 and return
-    if persona = initial_persona
-      if persona.extname == '.md'
-        pathname = persona
-      else
-        pathname = personae_directory + (persona.to_s + '.md')
-      end
-      if pathname.exist?
-        set_default_persona_name(pathname)
-        play_persona_file pathname
-      end
+    if persona = initial_persona_prompt_name and
+      persona_pathname = personae_directory + (persona + '.md') and
+      persona_pathname.exist?
+    then
+      set_default_persona_name(persona_pathname)
     end
   ensure
     default_persona or set_default_persona_name(:none)
   end
-
-  # Reloads the default persona file if one is set and not :none, prompting the
-  # user for confirmation before playing the persona file or loading a new
-  # default persona and changing the default.
-  def reload_default_persona
-    1.times do
-      options = []
-      if name = default_persona_name
-        options << SearchUI::Wrapper.new(
-          'reload_default',
-          display: "Reload current default persona (#{name})"
-        )
-      end
-      options << SearchUI::Wrapper.new(
-        'keep',
-        display: "Keep it as‑is – do not load a persona"
-      )
-      options << SearchUI::Wrapper.new(
-        'choose_different',
-        display: "Choose a different persona to become the new default and load it"
-      )
-
-      choice = OllamaChat::Utils::Chooser.choose(options)
-
-      case choice&.value
-      when nil, 'keep'
-      when 'reload_default'
-        return play_persona_file(default_persona)
-      when 'choose_different'
-        if persona = choose_persona
-          if set_default_persona_name(persona)
-            return play_persona_file(default_persona)
-          else
-            return
-          end
-        else
-          redo
-        end
-      end
-    end
-    nil
-  end
-
 
   # Returns a sorted list of available persona file names.
   #
   # This method scans the personae directory for Markdown files and returns
   # their basenames sorted alphabetically.
   #
-  # @return [Array<Pathname>] Sorted array of persona filenames without extension
+  # @return [Array<String>] Sorted array of persona filenames without extension
   def available_personae
-    personae_directory.glob('*.md').map(&:basename).sort
+    personae_directory.glob('*.md').map { pathname_to_persona_prompt_name(_1) }
   end
 
   # Helper to wrap a persona name with its favourite status for the UI.
@@ -157,7 +143,6 @@ module OllamaChat::PersonaeManagement
     display = prefix_favourite(name, favourited)
     SearchUI::Wrapper.new(name, display:)
   end
-
 
   # Retrieves a list of available personas, decorated with their favourite
   # status.
@@ -210,7 +195,7 @@ module OllamaChat::PersonaeManagement
   #   multiple backups of the same persona exist
   def persona_backup_pathname(persona)
     timestamp = Time.now.strftime('%Y%m%d%H%M%S')
-    personae_backup_directory + (persona.sub_ext('').to_s + ?- + timestamp + '.md.bak')
+    personae_backup_directory + (persona + ?- + timestamp + '.md.bak')
   end
 
   # Interactive method to delete an existing persona with backup functionality.
@@ -222,21 +207,18 @@ module OllamaChat::PersonaeManagement
   #   or nil if persona was not selected or deletion was cancelled
   def delete_persona
     if persona = choose_persona
-      persona         = persona
-      pathname        = personae_directory + persona
+      pathname        = persona_prompt_name_to_pathname(persona)
       backup_pathname = persona_backup_pathname(persona)
       if pathname.exist?
-        STDOUT.puts "Deleting '#{bold{persona.sub_ext('')}}'..."
+        STDOUT.puts "Deleting '#{bold{persona}}'..."
         STDOUT.puts "Backup will be saved to: #{backup_pathname}"
 
         if confirm?(prompt: "🔔 Are you sure? (y/n) ", yes: /\Ay/i)
           FileUtils.mv pathname, backup_pathname
-          STDOUT.puts "Persona #{bold{persona.sub_ext('')}} deleted successfully"
-          {
-            success: true,
-            persona: persona.sub_ext(''),
-            backup_pathname:,
-          }.to_json
+          default_persona_name == persona and
+            set_default_persona_name(:none)
+          STDOUT.puts "Persona #{bold{persona}} deleted successfully"
+          self
         else
           STDOUT.puts "Deletion cancelled."
           return
@@ -252,16 +234,19 @@ module OllamaChat::PersonaeManagement
   #
   # Prompts the user to select a persona, opens it for editing, backups the
   # old content, and returns the result after editing.
+  #
+  # @return [String, nil] persona name or nil if cancelled
   def edit_persona
     if persona = choose_persona
-      pathname = personae_directory + persona
-      old_content = File.read(pathname)
+      pathname = persona_prompt_name_to_pathname(persona)
+      old_content = pathname.read
       if edit_file(pathname)
-        changed = File.read(pathname) != old_content
+        changed = pathname.read != old_content
         if changed
-          File.write(persona_backup_pathname(persona), old_content)
+          persona_backup_pathname(persona).write(old_content)
+          ask_to_set_default_persona_name(persona)
         end
-        personae_result(persona)
+        persona
       end
     end
   end
@@ -274,10 +259,11 @@ module OllamaChat::PersonaeManagement
   # any modifications are made to the original file.
   def backup_persona
     if persona = choose_persona
-      pathname = personae_directory + persona
-      old_content = File.read(pathname)
-      File.write(persona_backup_pathname(persona), old_content)
-      STDOUT.puts "Wrote backup of #{persona.to_s} to #{pathname.to_s.inspect}."
+      pathname        = persona_prompt_name_to_pathname(persona)
+      old_content     = pathname.read
+      backup_pathname = persona_backup_pathname(persona)
+      backup_pathname.write(old_content)
+      STDOUT.puts "Wrote backup of #{persona.to_s} to #{backup_pathname.to_s.inspect}."
     end
   end
 
@@ -289,7 +275,7 @@ module OllamaChat::PersonaeManagement
       persona_path, persona_profile = load_persona_file(persona)
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
-          # Persona #{persona.sub_ext('')}
+          # Persona #{persona}
           File #{persona_path.to_path}
           ---
           #{persona_profile}
@@ -319,8 +305,8 @@ module OllamaChat::PersonaeManagement
       }
       table.headings = %w[ NAME SIZE #TOK ].map { |header| bold { header } }
 
-      personae.map do |name|
-        pathname = personae_directory + name.to_s
+      personae.map do |persona_name|
+        pathname = persona_prompt_name_to_pathname(persona_name)
         pathname.exist? or next
         [ pathname, pathname.size ]
       end.compact.sort_by(&:last).reverse_each do |pathname, size_bytes|
@@ -347,9 +333,10 @@ module OllamaChat::PersonaeManagement
   # Selected persona is returned if successful, nil if user exits
   #
   # @param chosen [Set, nil] Optional set of already selected personas
-  # @return [String, nil] The selected persona name or nil if user exits
+  # @return [String, Symbol, nil] The selected persona name, :none, or nil if user exits
   def choose_persona(chosen: nil)
-    personae_list = available_personae.reject { chosen&.member?(_1) }
+    personae_list = available_personae.
+      reject { chosen&.member?(_1) }
     if personae_list.empty?
       STDERR.puts "No personae defined."
       return
@@ -416,8 +403,7 @@ module OllamaChat::PersonaeManagement
   # @return [Array<Pathname, String>] Returns the pathname and its content as a
   #   string
   def load_persona_file(persona)
-    pathname = personae_directory + persona
-    pathname = pathname.sub_ext('.md')
+    pathname = persona_prompt_name_to_pathname(persona)
     if pathname.exist?
       return pathname, pathname.read
     end
@@ -427,7 +413,7 @@ module OllamaChat::PersonaeManagement
   #
   # Creates a formatted prompt string that includes the persona name and profile.
   #
-  # @param persona [String] The persona name to include in the prompt
+  # @param persona [String, Pathname] The persona name or path to include in the prompt
   # @param persona_profile [String] The persona profile content
   # @return [String] Formatted roleplay prompt
   def play_persona_prompt(persona:, persona_profile:)
@@ -437,27 +423,118 @@ module OllamaChat::PersonaeManagement
     }
   end
 
-  # Initiates roleplay with a selected persona.
+  # Converts a persona prompt name to its full filesystem pathname.
   #
-  # Uses the persona selection and loading methods to generate the
-  # appropriate roleplay prompt.
-  def play_persona
-    persona                  = choose_persona or return
-    persona, persona_profile = load_persona_file(persona)
-    session.default_persona_id.full? or set_default_persona_name(persona)
-    play_persona_prompt(persona:, persona_profile:)
+  # @param persona_prompt_name [String] The name of the persona (without extension)
+  # @return [Pathname] The full path to the .md persona file
+  def persona_prompt_name_to_pathname(persona_prompt_name)
+    personae_directory.join(persona_prompt_name).sub_ext('.md')
   end
 
-  # Initiates roleplay with a persona from a specific file path.
+  # Converts a persona pathname to its prompt name.
   #
-  # Uses the pathname to identify the persona, reads its content, and
-  # generates the appropriate roleplay prompt.
+  # @param pathname [Pathname, String] The path to the persona file
+  # @return [String] The persona name without extension
+  def pathname_to_persona_prompt_name(pathname)
+    pathname.basename.sub_ext('').to_s
+  end
+
+  # Interactively determines a valid, non-conflicting name for a new persona.
   #
-  # @param pathname [String, Pathname] The path to the persona file
-  def play_persona_file(pathname)
-    persona         = Pathname.new(pathname)
-    persona_profile = pathname.read
-    session.default_persona_id.full? or set_default_persona_name(persona)
-    play_persona_prompt(persona:, persona_profile:)
+  # @param action [String] The action being performed (e.g., 'to import')
+  # @return [String, nil] The validated persona name or nil if cancelled
+  def determine_valid_new_name_for_persona(action)
+    persona_prompt_name = nil
+    loop do
+      persona_prompt_name = ask?(prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: ")
+      if persona_prompt_name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if persona_prompt_name_to_pathname(persona_prompt_name).exist?
+        STDOUT.puts "Persona prompt named #{bold{persona_prompt_name}} already exists."
+      else
+        break
+      end
+    end
+    persona_prompt_name
+  end
+
+  # Interactively duplicates an existing persona profile to a new name.
+  #
+  # The process follows these steps:
+  # 1. Prompts the user to select a source persona via `choose_persona`.
+  # 2. Prompts the user to enter a unique name for the duplicate via
+  #   `determine_valid_new_name_for_persona`.
+  # 3. Copies the content from the source persona file to the new persona file.
+  #
+  # @return [self, nil] returns self on success, or nil if the operation was
+  #   cancelled during persona selection or name entry.
+  def duplicate_persona_prompt
+    persona          = choose_persona or return
+    pathname         = persona_prompt_name_to_pathname(persona)
+    new_persona_name = determine_valid_new_name_for_persona('to ducplicate as') or return
+    new_pathname     = persona_prompt_name_to_pathname(new_persona_name)
+    new_pathname.write(pathname.read)
+    self
+  end
+
+  # Imports a persona from a Markdown file, prompting for a new name.
+  #
+  # @param pathname [Pathname, String] The path to the file to import
+  # @return [String, nil] The name of the imported persona or nil if cancelled
+  def import_persona_prompt(pathname)
+    content                 = pathname.read
+    persona_prompt_name     = determine_valid_new_name_for_persona('to import') or return
+    persona_prompt_pathname = persona_prompt_name_to_pathname(persona_prompt_name)
+    persona_prompt_pathname.write(content)
+    persona_prompt_name
+  end
+
+  # Interactively exports a persona profile to a specified file.
+  #
+  # The process follows these steps:
+  # 1. Prompts the user to select a persona via `choose_persona`.
+  # 2. Displays the persona's current content to the terminal.
+  # 3. Prompts for a destination filename via
+  #   `determine_valid_output_filename`.
+  # 4. Writes the persona content to the chosen file.
+  #
+  # @return [self, nil] returns self if the export was successful, or nil if
+  #   the process was cancelled during persona selection or filename entry.
+  def export_persona_prompt
+    persona  = choose_persona or return
+    pathname = persona_prompt_name_to_pathname(persona)
+    content  = pathname.read
+    STDOUT.puts kramdown_ansi_parse(
+      content + "\n---"
+    )
+    filename = determine_valid_output_filename('to write to') or return
+    filename.write(content)
+    STDOUT.puts "Persona #{persona.inspect} was exported as #{filename.to_path.inspect}?"
+    self
+  end
+
+  # Interactively asks the user if they want to set the specified persona as
+  # the current default for the session.
+  #
+  # If the user confirms, the default persona is updated via
+  # `set_default_persona_name`.
+  #
+  # @param persona_name [String] the name of the persona to potentially set as
+  #   default
+  # @return [Boolean] true if the persona was set as the default, false
+  #   otherwise
+  def ask_to_set_default_persona_name(persona_name)
+    yes = confirm?(
+      prompt: "🔔 Set the new persona promt as current default persona? (y/n) ",
+      yes: /\Ay/i
+    )
+    if yes
+      set_default_persona_name(persona_name)
+      true
+    else
+      false
+    end
   end
 end

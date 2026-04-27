@@ -201,6 +201,7 @@ describe OllamaChat::MessageList do
     end
 
     it 'can list conversations with thinking' do
+      expect(chat).to receive(:system_prompt).and_return(nil)
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think_loud?).and_return(true).at_least(:once)
@@ -244,20 +245,25 @@ describe OllamaChat::MessageList do
   it 'can set_system_prompt if unset' do
     list.messages.clear
     expect(list.messages.count { _1.role == 'system' }).to eq 0
+    expect(chat).to receive(:default_persona_profile).and_return(nil)
+    expect(chat).to receive(:system_prompt).and_return('test prompt')
     expect {
-      expect(list.set_system_prompt('test prompt')).to eq list
+      expect(list.set_system_prompt('test_prompt')).to eq list
     }.to change { list.system }.from(nil).to('test prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 1
   end
 
   it 'can set_system_prompt if already set' do
+    expect(chat).to receive(:default_persona_profile).and_return(nil).at_least(1)
     list.messages.clear
+    expect(chat).to receive(:system_prompt).and_return('first prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 0
-    list.set_system_prompt('first prompt')
+    list.set_system_prompt('first_prompt')
     expect(list.system).to eq('first prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 1
     #
-    list.set_system_prompt('new prompt')
+    expect(chat).to receive(:system_prompt).and_return('new prompt')
+    list.set_system_prompt('new_prompt')
     expect(list.system).to eq('new prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 1
     expect(list.messages.first.role).to eq('system')

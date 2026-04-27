@@ -103,7 +103,7 @@ module OllamaChat::SessionManagement
     messages.clear
     session.current_model.full? {
       use_model(_1)
-      reset_session_model_options(_1)
+      copy_model_options_to_session
     }
     if persona = session.default_persona_id.full?
       disable_content_parsing

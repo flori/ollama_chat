@@ -124,7 +124,7 @@ describe OllamaChat::StateSelectors::StateSelector do
       # Mock the chooser to return a specific choice
       expect(OllamaChat::Utils::Chooser).to receive(:choose).with(
         %w[ [EXIT] enabled disabled low high ]
-      ).and_return('low')
+      ).and_return(double(value: 'low'))
 
       selector.choose
       expect(selector.selected).to eq 'low'

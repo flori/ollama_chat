@@ -36,7 +36,7 @@ module OllamaChat::PromptManagement
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
-    when *prompts
+    when SearchUI::Wrapper
       prompt(chosen.value)
     end
   end
@@ -133,38 +133,59 @@ module OllamaChat::PromptManagement
     self
   end
 
-  # Exports a selected prompt to a specified file.
+  # Interactively imports a prompt from a file.
   #
-  # The method first checks if the target file already exists to prevent
-  # accidental overwrites. If the file is clear, it prompts the user to select
-  # a prompt, displays its content for verification, and finally asks
-  # for a final confirmation before writing the content to disk.
+  # The process follows these steps:
+  # 1. Resolves the source file path (either using the provided filename or
+  #    prompting the user to choose one).
+  # 2. Prompts for a unique name for the new prompt via `determine_valid_new_name_for_prompt`.
+  # 3. Reads the file content and stores it in the database.
   #
-  # @param filename [String, Pathname] the destination path where the
-  #   prompt should be exported
-  # @return [Boolean, nil] true if the prompt was exported, nil if the
-  #   process was cancelled or file exists.
-  def export_prompt(filename)
-    filename = Pathname.new(filename)
-    if filename.exist?
-      STDERR.puts "File #{filename.to_path.inspect} already exists!"
-      return nil
+  # @param filename [String, Pathname, nil] the path to the file to import,
+  #   or nil to trigger interactive file selection.
+  # @return [self, nil] the current context on success, or nil if the
+  #   import was cancelled.
+  def import_prompt(filename)
+    if filename
+      if File.exist?(filename)
+        filename = Pathname.new(filename)
+      else
+        filename = choose_filename(filename)
+      end
+    else
+      filename = choose_filename('**/*.md')
     end
+    unless filename
+      STDOUT.puts "Canceled."
+      return
+    end
+    prompt_name = determine_valid_new_name_for_prompt('to import') or return
+    prompt = filename.read
+    store_prompt(prompt_name, prompt)
+    STDOUT.puts "Imported prompt as #{prompt_name.inspect}."
+    self
+  end
+
+  # Interactively exports a prompt to a specified file.
+  #
+  # The process follows these steps:
+  # 1. Prompts the user to select a prompt via `choose_prompt`.
+  # 2. Displays the prompt's current content to the terminal.
+  # 3. Prompts for a destination filename via
+  #   `determine_valid_output_filename`.
+  # 4. Writes the prompt content to the chosen file.
+  #
+  # @return [self, nil] returns self if the export was successful, or nil if
+  #   the process was cancelled during prompt selection or filename entry.
+  def export_prompt
     prompt = choose_prompt or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
-    yes = confirm?(
-      prompt: "🔔 Really export this prompt as #{filename.to_path.inspect}? (y/n) ",
-      yes: /\Ay/i
-    )
-    if yes
-      filename.write prompt
-      true
-    else
-      STDOUT.puts "Canceled."
-      nil
-    end
+    filename = determine_valid_output_filename('to write to') or return
+    filename.write(prompt.to_s)
+    STDOUT.puts "Prompt #{prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
+    self
   end
 
   # Lists all prompt templates in the database, indicating which are defaults
@@ -197,5 +218,32 @@ module OllamaChat::PromptManagement
   def prompt_with_favourite(name, favourited)
     display = prefix_favourite(name, favourited)
     SearchUI::Wrapper.new(name, display:)
+  end
+
+  # Interactively determines a unique name for a new prompt, ensuring it
+  # does not conflict with existing prompts in the database.
+  #
+  # The method loops until the user either provides a name that is not
+  # currently in use or cancels the operation.
+  #
+  # @param action [String] The action being performed (e.g., 'to import'
+  #   or 'to duplicate as'), used to provide context in the user prompt.
+  # @return [String, nil] The validated unique prompt name, or nil if
+  #   the operation was cancelled.
+  def determine_valid_new_name_for_prompt(action)
+    prompt_name = nil
+    loop do
+      prompt_name = ask?(prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: ")
+      if prompt_name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if prompt(prompt_name)
+        STDOUT.puts "Prompt named #{bold{prompt_name}} already exists."
+      else
+        break
+      end
+    end
+    prompt_name
   end
 end

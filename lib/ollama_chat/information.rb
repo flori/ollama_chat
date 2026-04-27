@@ -154,14 +154,15 @@ module OllamaChat::Information
   #   directly to standard output.
   def info
     use_pager do |output|
-      output.puts "Running ollama_chat version: #{bold(OllamaChat::VERSION)}"
-      output.puts "Connected to ollama server version: #{bold(server_version)} on: #{bold(server_url)}"
+      output.puts "Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
+      output.puts "Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
       output.puts "Session: #{bold{@session.name}} (#{italic{@session.id}})"
+      output.puts "Current System Prompt: #{bold{current_system_prompt_name}}"
       info_session(output:)
       location.show(output:)
       @voice.on? and @voices.show(output:)
       output.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
-      output.puts "Currently selected search engine is #{bold(search_engine)}."
+      output.puts "Currently selected search engine is #{bold{search_engine}}."
     end
     nil
   end
@@ -191,8 +192,6 @@ module OllamaChat::Information
         -n             create a new session
         -u URL         the ollama base url, OLLAMA_URL
         -m MODEL       the ollama model to chat with, OLLAMA_CHAT_MODEL, ?selector
-        -s SYSTEM      the system prompt to use as a file, OLLAMA_CHAT_SYSTEM, ?selector
-        -p PERSONA     load a persona via name/file for roleplay at startup
         -c CHAT        a saved chat conversation to load
         -C COLLECTION  name of the collection used in this conversation
         -D DOCUMENT    load document and add to embeddings collection (multiple)
@@ -246,6 +245,7 @@ module OllamaChat::Information
       weekday:              now.strftime('%A'),
       location:             location.on?.full? { location_description } || 'n/a',
       default_persona:      default_persona_name.full? || 'n/a',
+      session_name:         session.name,
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
       git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
       client:               ,

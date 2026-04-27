@@ -17,12 +17,37 @@ module OllamaChat::SystemPromptManagement
     end
   end
 
+  # Retrieves the default system prompt associated with the current model.
+  #
+  # @return [String, nil] the default system prompt from the model metadata,
+  #   or nil if the metadata is not available.
+  def model_default_system_prompt
+    @model_metadata&.system
+  end
+
   # Sets the current system prompt for the chat session.
   #
-  # @param system [String] the system prompt to set
-  def set_current_system_prompt(system)
-    messages.set_system_prompt(system)
-    session.update(current_system_prompt: system)
+  # @param system_prompt_name [String] the system prompt to set
+  def set_current_system_prompt(system_prompt_name)
+    messages.set_system_prompt(system_prompt_name)
+    session.update(current_system_prompt: system_prompt_name)
+  end
+
+  # Returns the name of the system prompt currently active in the chat session.
+  #
+  # @return [String, nil] the name of the current system prompt,
+  #   or nil if no system prompt is set.
+  def current_system_prompt_name
+    messages.system_name
+  end
+
+  # Retrieves the content of the system prompt currently active in the chat
+  # session.
+  #
+  # @return [String, nil] the content of the current system prompt, or nil if
+  #   no system prompt is set.
+  def current_system_prompt
+    messages.system
   end
 
   # Sets up the system prompt for the chat session.
@@ -34,14 +59,13 @@ module OllamaChat::SystemPromptManagement
   # retrieves the system prompt from a file or uses the default value, then
   # sets it in the message history.
   def setup_system_prompt
-    default = session.current_system_prompt.full? ||
-      system_prompt(:default).full?(:to_s) ||
-      @model_metadata&.system
-    if @opts[?s] =~ /\A\?/
-      change_system_prompt(default, system: @opts[?s])
+    system_prompt_name = session.current_system_prompt.full? ||
+      ('default' if system_prompt(:default)) ||
+      'model_default'
+    if system_prompt_name.full?
+      set_current_system_prompt(system_prompt_name)
     else
-      system = OllamaChat::Utils::FileArgument.get_file_argument(@opts[?s], default:)
-      system.present? and set_current_system_prompt(system)
+      change_system_prompt(system_prompt_name)
     end
   end
 
@@ -55,33 +79,25 @@ module OllamaChat::SystemPromptManagement
   # @param system [ String ] the system prompt identifier or pattern to
   #   search for
   # @return [String, nil] the system prompt that was set, or nil if cancelled
-  def change_system_prompt(default, system: nil)
-    selector = case system
-               when /\A\?(.*)\z/
-                 Regexp.new($1)
-               else
-                 Regexp.new(system.to_s)
-               end
-    prompts = all_system_prompts.select { |p| p.value =~ selector }
-    if prompts.size == 1
-      system = system_prompt(prompts.first.value).to_s
-    else
-      prompts.unshift('[EXIT]')
-      chosen = OllamaChat::Utils::Chooser.choose(prompts)
-      system =
-        case chosen
-        when '[EXIT]'
-          STDOUT.puts "Exiting chooser."
-          return
-        when nil
-          default
-        when SearchUI::Wrapper
-          system_prompt(chosen.value).to_s
-        else
-          default
-        end
-    end
-    set_current_system_prompt(system)
+  def change_system_prompt(default)
+    prompts = all_system_prompts
+    prompts.unshift('[MODEL DEFAULT]').unshift('[EXIT]')
+    chosen = OllamaChat::Utils::Chooser.choose(prompts)
+    system_prompt_name =
+      case chosen
+      when '[EXIT]'
+        STDOUT.puts "Exiting chooser."
+        return
+      when '[MODEL DEFAULT]'
+        'model_default'
+      when nil
+        default
+      when SearchUI::Wrapper
+        chosen.value.to_s
+      else
+        default
+      end
+    set_current_system_prompt(system_prompt_name)
   end
 
   # Presents an interactive menu to select a stored system prompt.
@@ -105,19 +121,7 @@ module OllamaChat::SystemPromptManagement
   # @return [Boolean, nil] true if the prompt was added and set as current,
   #   false if added but not set, or nil if the process was cancelled
   def add_new_system_prompt
-    name = nil
-    loop do
-      name = ask?(prompt: "❓ Enter new system prompt name to add: ")
-      if name.nil?
-        STDOUT.puts "Canceled."
-        return nil
-      end
-      if system_prompt(name)
-        STDOUT.puts "System prompt named #{bold{name}} already exists."
-      else
-        break
-      end
-    end
+    system_prompt_name = determine_valid_new_name_for_system_prompt('to add') or return
     patterns = ask?(
       prompt: "❓ Enter file patterns to load file, C-c ⇒ cancel: ",
       prefill: '**/*.{txt,md}'
@@ -126,17 +130,8 @@ module OllamaChat::SystemPromptManagement
     content = nil
     patterns.present? and content = load_prompt_from_file(patterns)
     system_prompt = edit_text(content)
-    store_system_prompt(name, system_prompt).to_s
-    yes = confirm?(
-      prompt: "🔔 Set the newly added prompt as current system prompt? (y/n) ",
-      yes: /\Ay/i
-    )
-    if yes
-      set_current_system_prompt(system_prompt)
-      true
-    else
-      false
-    end
+    store_system_prompt(system_prompt_name, system_prompt).to_s
+    ask_to_set_current_system_prompt(system_prompt_name)
   end
 
   # Interactively selects an existing system prompt and allows the user to
@@ -144,9 +139,10 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_system_prompt
-    prompt = choose_system_prompt or return
-    prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
-    prompt.save
+    system_prompt = choose_system_prompt or return
+    system_prompt.metadata['content'] = edit_text(system_prompt.metadata['content'].to_s)
+    system_prompt.save
+    ask_to_set_current_system_prompt(system_prompt.name)
     self
   end
 
@@ -155,15 +151,15 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_delete_system_prompt
-    prompt = choose_system_prompt or return
+    system_prompt = choose_system_prompt or return
     STDOUT.puts kramdown_ansi_parse(
-      prompt.to_s + "\n---"
+      system_prompt.to_s + "\n---"
     )
     confirm?(
-      prompt: "🔔 Really delete the system prompt #{bold{prompt.name}}? (y/n) ",
+      prompt: "🔔 Really delete the system prompt #{bold{system_prompt.name}}? (y/n) ",
       yes: /\Ay/i
     ) or return
-    prompt.destroy
+    system_prompt.destroy
     self
   end
 
@@ -198,58 +194,69 @@ module OllamaChat::SystemPromptManagement
   # @return [self, nil] the current context on success, or nil if the user
   #   cancelled the operation or no system prompt was selected.
   def duplicate_system_prompt
-    prompt = choose_system_prompt or return
+    system_prompt = choose_system_prompt or return
     STDOUT.puts kramdown_ansi_parse(
-      prompt.to_s + "\n---"
+      system_prompt.to_s + "\n---"
     )
-    name = nil
-    loop do
-      name = ask?(prompt: "❓ Enter new system prompt name to duplicate as, C-c ⇒ cancel: ")
-      if name.nil?
-        STDOUT.puts "Canceled."
-        return nil
-      end
-      if system_prompt(name)
-        STDOUT.puts "System prompt named #{bold{name}} already exists."
-      else
-        break
-      end
-    end
-    duplicated_prompt = prompt.duplicate
-    duplicated_prompt.name = name
+    system_prompt_name = determine_valid_new_name_for_system_prompt('to ducplicate as') or return
+    duplicated_prompt = system_prompt.duplicate
+    duplicated_prompt.name = system_prompt_name
     duplicated_prompt.metadata['default'] = false
     duplicated_prompt.save
     self
   end
 
-  # Exports a selected system prompt to a specified file.
+  # Imports a system prompt from a file.
   #
-  # The method first checks if the target file already exists to prevent
-  # accidental overwrites. If the file is clear, it prompts the user to select
-  # a system prompt, displays its content for verification, and finally asks
-  # for a final confirmation before writing the content to disk.
+  # This method prompts the user for a name for the imported prompt, reads the
+  # content from the specified file, stores it, and then asks whether to set it
+  # as the current system prompt.
   #
-  # @param filename [String, Pathname] the destination path where the system
-  #   prompt should be exported
-  def export_system_prompt(filename)
-    filename = Pathname.new(filename)
-    if filename.exist?
-      STDERR.puts "File #{filename.to_path.inspect} already exists!"
+  # @param filename [String, Pathname] the path to the file containing the
+  #   system prompt
+  # @return [self, nil] self or nil if cancelled
+  def import_system_prompt(filename)
+    if filename
+      if File.exist?(filename)
+        filename = Pathname.new(filename)
+      else
+        filename = choose_filename(filename)
+      end
+    else
+      filename = choose_filename('**/*.md')
+    end
+    unless filename
+      STDOUT.puts "Canceled."
       return
     end
+    system_prompt_name = determine_valid_new_name_for_system_prompt('to import') or return
+    system_prompt = filename.read
+    store_system_prompt(system_prompt_name, system_prompt)
+    ask_to_set_current_system_prompt(system_prompt_name)
+    STDOUT.puts "Imported system prompt as #{system_prompt_name.inspect}."
+    self
+  end
+
+  # Interactively exports a system prompt to a specified file.
+  #
+  # The process follows these steps:
+  # 1. Prompts the user to select a system prompt via `choose_system_prompt`.
+  # 2. Displays the system prompt's current content to the terminal.
+  # 3. Prompts for a destination filename via
+  #   `determine_valid_output_filename`.
+  # 4. Writes the system prompt content to the chosen file.
+  #
+  # @return [self, nil] returns self if the export was successful, or nil if
+  #   the process was cancelled during system prompt selection or filename entry.
+  def export_system_prompt
     prompt = choose_system_prompt or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
-    yes = confirm?(
-      prompt: "🔔 Really export this system prompt as #{filename.to_path.inspect}? (y/n) ",
-      yes: /\Ay/i
-    )
-    if yes
-      filename.write prompt
-    else
-      STDOUT.puts "Canceled."
-    end
+    filename = determine_valid_output_filename('to write to') or return
+    filename.write(prompt.to_s)
+    STDOUT.puts "Prompt #{prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
+    self
   end
 
   private
@@ -264,5 +271,48 @@ module OllamaChat::SystemPromptManagement
   def system_prompt_with_favourite(name, favourited)
     display = prefix_favourite(name, favourited)
     SearchUI::Wrapper.new(name, display:)
+  end
+
+  # Interactively prompts the user for a new system prompt name and ensures it
+  # is unique within the system.
+  #
+  # @param action [String] a description of the action being performed (e.g.,
+  #   "to add") to be used in the prompt message.
+  # @return [String, nil] the unique system prompt name entered by the user,
+  #   or nil if the operation was cancelled.
+  def determine_valid_new_name_for_system_prompt(action)
+    system_prompt_name = nil
+    loop do
+      system_prompt_name = ask?(prompt: "❓ Enter new system prompt name #{action}, C-c ⇒ cancel: ")
+      if system_prompt_name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if system_prompt(system_prompt_name)
+        STDOUT.puts "System prompt named #{bold{system_prompt_name}} already exists."
+      else
+        break
+      end
+    end
+    system_prompt_name
+  end
+
+  # Asks the user for confirmation to set a specific system prompt as the
+  # current one.
+  #
+  # @param system_prompt_name [String] the name of the system prompt to
+  #   potentially set.
+  # @return [Boolean] true if the prompt was set as current, false otherwise.
+  def ask_to_set_current_system_prompt(system_prompt_name)
+    yes = confirm?(
+      prompt: "🔔 Set the new prompt as current system prompt? (y/n) ",
+      yes: /\Ay/i
+    )
+    if yes
+      set_current_system_prompt(system_prompt_name)
+      true
+    else
+      false
+    end
   end
 end

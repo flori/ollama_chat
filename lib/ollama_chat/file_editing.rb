@@ -98,4 +98,32 @@ module OllamaChat::FileEditing
         "No text available to copy to the system clipboard."
     end
   end
+
+  # Interactively determines a valid, non-conflicting filename for an output
+  # operation.
+  #
+  # This method prompts the user for a filename and ensures that the resulting
+  # file does not already exist on the filesystem. If the user cancels the
+  # prompt (e.g., via C-c), it returns nil.
+  #
+  # @param action [String] a description of the action being performed, used in
+  #   the prompt
+  # @return [Pathname, nil] the validated filename as a Pathname, or nil if the
+  #   operation was cancelled
+  def determine_valid_output_filename(action)
+    loop do
+      filename_str = ask?(prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: ")
+      if filename_str.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+
+      filename = Pathname.new(filename_str)
+      if filename.exist?
+        STDERR.puts "File #{filename.to_path.inspect} already exists!"
+      else
+        return filename
+      end
+    end
+  end
 end

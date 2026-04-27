@@ -15,11 +15,14 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   plugin :serialization, :json, :model_options
   plugin :validation_helpers
 
-
-  # Validates the presence of essential timestamps to ensure session age
-  # calculations can be performed without Nil errors.
+  # Validates the session instance.
+  #
+  # Ensures that the `name` and essential timestamps (`updated_at`, `created_at`)
+  # are present to ensure session age calculations can be performed without
+  # Nil errors.
   def validate
     super
+    validates_presence :name
     validates_presence :updated_at
     validates_presence :created_at
   end
@@ -125,7 +128,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       name:                  "New Session #{Tins::Token.new}",
       current_model:         ,
       current_collection:    chat.initial_collection,
-      default_persona_id:    chat.initial_persona,
+      default_persona_id:    chat.initial_persona_prompt_name,
       current_system_prompt: chat.initial_system_prompt,
       tools_enabled:         chat.config.tools.enabled,
       tools_default_enabled: ,

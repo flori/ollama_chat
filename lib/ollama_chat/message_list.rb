@@ -31,6 +31,7 @@ class OllamaChat::MessageList
   include Term::ANSIColor
   include OllamaChat::MessageFormat
   include OllamaChat::Pager
+  include OllamaChat::Utils::ValueFormatter
 
   # The initialize method sets up the message list for an OllamaChat session.
   #
@@ -45,6 +46,11 @@ class OllamaChat::MessageList
   #
   # @attr_reader [ String, nil ] the current system prompt content or nil if not set
   attr_reader :system
+
+  # The system_name attribute reader returns the name of the current system prompt.
+  #
+  # @attr_reader [ String, nil ] the name of the current system prompt or nil if not set
+  attr_reader :system_name
 
   # The messages attribute reader returns the messages set for this object,
   # initializing it lazily if needed.
@@ -278,8 +284,8 @@ class OllamaChat::MessageList
 
   # Sets the system prompt for the chat session.
   #
-  # @param system [String, nil] The new system prompt. If `nil` or `false`,
-  #   clears the system prompt.
+  # @param system_name [String, nil] The name of the new system prompt. If
+  #   `nil` or `false`, clears the system prompt.
   #
   # @return [OllamaChat::MessageList] Returns `self` to allow chaining of
   #   method calls.
@@ -290,9 +296,15 @@ class OllamaChat::MessageList
   #     provided
   #   - Handles edge cases such as clearing prompts when `system` is `nil` or
   #     `false`
-  def set_system_prompt(system)
+  def set_system_prompt(system_name)
+    @system_name = system_name
+    if system_name == 'model_default'
+      system = @chat.model_default_system_prompt.to_s
+    else
+      system = @chat.system_prompt(system_name).to_s
+    end
     @messages.reject! { |msg| msg.role == 'system' }
-    if new_system_prompt = system.full?(:to_s)
+    if new_system_prompt = system.full? { _1.to_s % { persona: @chat.default_persona_profile } }
       @system = new_system_prompt
       @messages.unshift(
         OllamaChat::Message.new(role: 'system', content: self.system)
@@ -316,7 +328,11 @@ class OllamaChat::MessageList
   # @return [self, NilClass] nil if the system prompt is empty, otherwise self.
   def show_system_prompt
     current_system = system.to_s
-    system_prompt = @chat.kramdown_ansi_parse(current_system).
+    size_bytes     = current_system.size
+    size           = format_bytes(size_bytes)
+    tokens         = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
+    tokens_size    = format_tokens(tokens)
+    system_prompt  = @chat.kramdown_ansi_parse(current_system).
        gsub(/\n+\z/, '').full?
     if system_prompt.blank?
       if current_system.present?
@@ -325,12 +341,15 @@ class OllamaChat::MessageList
         return
       end
     end
-    STDOUT.puts <<~EOT
+    use_pager do |output|
+      output.puts <<~EOT
       Configured system prompt is:
       #{system_prompt}
 
-      System prompt length: #{bold{system_prompt.size}} characters.
-    EOT
+      System prompt name:   #{bold{system_name}}
+      System prompt length: 👾#{size} 🧩#{tokens_size}
+      EOT
+    end
     self
   end
 

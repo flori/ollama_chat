@@ -4,6 +4,16 @@
 # This module is designed to be mixed into the Chat class, allowing it to
 # access prompt overrides stored in the database using the `models` helper.
 module OllamaChat::PromptHandling
+  # Retrieves a specific system prompt by name from the 'system_prompt'
+  # context.
+  #
+  # @param name [String, Symbol] the name of the system prompt to retrieve
+  # @return [OllamaChat::Database::Models::Prompt, nil] the prompt model
+  #   instance or nil if not found
+  def system_prompt(name)
+    models::Prompt.where(context: 'system_prompt', name: name.to_s).first
+  end
+
   private
 
   # Retrieves a specific prompt by name from the 'prompt' context.
@@ -54,15 +64,6 @@ module OllamaChat::PromptHandling
   #   instance
   def store_prompt(name, content)
     write_prompt('prompt', name, content)
-  end
-
-  # Retrieves a specific system prompt by name from the 'system_prompt' context.
-  #
-  # @param name [String, Symbol] the name of the system prompt to retrieve
-  # @return [OllamaChat::Database::Models::Prompt, nil] the prompt model
-  #   instance or nil if not found
-  def system_prompt(name)
-    models::Prompt.where(context: 'system_prompt', name: name.to_s).first
   end
 
   # Deletes a system prompt by name from the 'system_prompt' context if it is

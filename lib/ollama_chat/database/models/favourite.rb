@@ -6,8 +6,19 @@
 # hash. It utilizes Sequel plugins for managing timestamps and handling JSON
 # serialization for the `metadata` attribute.
 class OllamaChat::Database::Models::Favourite < Sequel::Model(OllamaChat::DB)
+
   plugin :timestamps
   plugin :serialization, :json, :metadata
+  plugin :validation_helpers
+
+  # Validates the favourite entry.
+  #
+  # Ensures that both the `context` and `name` are present.
+  def validate
+    super
+    validates_presence :context
+    validates_presence :name
+  end
 
   # @!attribute [v] id
   #   @return [Integer] The primary key for the favourite entry.

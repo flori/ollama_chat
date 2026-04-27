@@ -97,7 +97,7 @@ class OllamaChat::Chat
   # @raise [RuntimeError] If the Ollama API version is less than 0.9.0, indicating
   #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
-    @opts               = go 'f:u:m:s:p:c:C:D:l:nMESVh', argv
+    @opts               = go 'f:u:m:c:C:D:l:nMESVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
@@ -108,7 +108,6 @@ class OllamaChat::Chat
     setup_switches
     setup_state_selectors(config)
     connect_ollama
-    set_default_persona_name session.default_persona_id
     if conversation_file = @opts[?c]
       messages.load_conversation(conversation_file)
     else
@@ -151,7 +150,6 @@ class OllamaChat::Chat
   #   messages associated with this instance
   attr_reader :messages
 
-
   # Returns the list of images currently queued for the next message.
   #
   # @return [Array] a list of images to be sent with the next prompt
@@ -176,6 +174,8 @@ class OllamaChat::Chat
     end
 
     STDOUT.puts
+
+    setup_persona_from_session
     setup_system_prompt
 
     info_session
@@ -373,8 +373,8 @@ class OllamaChat::Chat
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options|sync))?$),
-    complete: [ 'model', %w[ change options sync ] ],
+    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))?$),
+    complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
     optional: true,
     help: 'change the model/model options/sync with session model options or show info'
   ) do |subcommand|
@@ -388,8 +388,10 @@ class OllamaChat::Chat
       end
     when 'options'
       edit_model_options(@model)
-    when 'sync'
-      sync_session_model_options
+    when 'options from session'
+      copy_model_options_from_session
+    when 'options to session'
+      copy_model_options_to_session
     else
       model_info
     end
@@ -398,8 +400,8 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ add delete edit list change duplicate export ] ],
+    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ add delete edit list change duplicate export import ] ],
     optional: true,
     help: 'change/show/manage system prompt'
   ) do |subcommand, filename|
@@ -417,13 +419,10 @@ class OllamaChat::Chat
       @messages.show_system_prompt
     when 'duplicate'
       duplicate_system_prompt
+    when 'import'
+      import_system_prompt(filename)
     when 'export'
-      filename ||= ask?(prompt: "❓ Enter filename, C-c ⇒ cancel: ")
-      if filename
-        export_system_prompt(filename)
-      else
-        STDOUT.puts "Canceled."
-      end
+      export_system_prompt
     when nil
       @messages.show_system_prompt
     end
@@ -474,8 +473,8 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(list|new|rename|summarize|change|delete|model options|model reset options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ list new rename summarize change delete model\ options model\ reset\ options ] ],
+    regexp: %r(^/session(?:\s+(list|new|rename|summarize|change|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ list new rename summarize change delete model\ options ] ],
     optional: true,
     options: '[-c|-f] [name]',
     help: <<~EOT,
@@ -520,8 +519,6 @@ class OllamaChat::Chat
       change_session(name)
     when 'model options'
       edit_session_model_options
-    when 'model reset options'
-      reset_session_model_options(@model)
     end
     :next
   end
@@ -565,7 +562,8 @@ class OllamaChat::Chat
     name: :clear,
     regexp: %r(^/clear(?:\s+(messages|links|history|tags|all))?$),
     complete: [ 'clear', %w[ messages links history tags all ] ],
-    help: 'clear these records'
+    optional: true,
+    help: 'clear these records, messages without argument'
   ) do |subcommand|
     if result = clean(subcommand)
       disable_content_parsing
@@ -609,8 +607,8 @@ class OllamaChat::Chat
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|export))?(?:\s+(\S+))?$),
-    complete: [ 'prompt', %w[ add delete edit list duplicate export ] ],
+    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ add delete edit list duplicate import export ] ],
     optional: true,
     help: 'prefill user prompt with preset prompts, manage prompts',
   ) do |subcommand, filename|
@@ -625,13 +623,10 @@ class OllamaChat::Chat
       list_prompts
     when 'duplicate'
       duplicate_prompt
+    when 'import'
+      import_prompt(filename)
     when 'export'
-      filename ||= ask?(prompt: "❓ Enter filename, C-c ⇒ cancel: ")
-      if filename
-        export_prompt(filename)
-      else
-        STDOUT.puts "Canceled."
-      end
+      export_prompt
     when nil
       @prefill_prompt = choose_prompt&.to_s
     end
@@ -690,19 +685,13 @@ class OllamaChat::Chat
 
   command(
     name: :persona,
-    regexp: %r(^/persona(?:\s+(set|add|delete|edit|backup|file|info|list|load|play))?$),
-    complete: [ 'persona', %w[ set add delete edit backup file info list load play ] ],
+    regexp: %r(^/persona(?:\s+(add|delete|edit|backup|import|export|duplicate|info|list|load))?$),
+    complete: [ 'persona', %w[ add delete edit backup import export duplicate info list load ] ],
     optional: true,
     help: 'manage and load/play personae for roleplay',
   ) do |subcommand|
     disable_content_parsing
     case subcommand
-    when 'set'
-      default_persona_id = ask?(
-        prompt: "❓ Enter the new name for the current default persona (C-u ⇒ unset, C-c ⇒ cancel): "
-      )
-      set_default_persona_name(default_persona_id)
-      :next
     when 'add'
       if result = add_persona
         result
@@ -710,28 +699,26 @@ class OllamaChat::Chat
         :next
       end
     when 'delete'
-      if result = delete_persona
-        result
-      else
-        :next
-      end
+      delete_persona
+      :next
     when 'edit'
-      if result = edit_persona and
-          confirm?(prompt: '🔔 Load new persona profile? (y/n) ', yes: /\Ay/i)
-        then
-        result
-      else
-        :next
-      end
+      edit_persona
+      :next
     when 'backup'
       backup_persona
       :next
-    when 'file'
-      if pathname = choose_filename('**/*.md')
-        pathname.read
-      else
-        :next
+    when 'duplicate'
+      duplicate_persona_prompt
+      :next
+    when 'import'
+      filename = choose_filename('**/*.md')
+      if filename and name = import_persona_prompt(filename)
+        STDOUT.puts "Imported person as #{name.inspect}."
       end
+      :next
+    when 'export'
+      export_persona_prompt
+      :next
     when 'info'
       info_persona
       :next
@@ -744,18 +731,9 @@ class OllamaChat::Chat
       else
         :next
       end
-    when 'play'
-      if pathname = choose_filename('**/*.md')
-        play_persona_file(pathname)
-      else
-        :next
-      end
     else
-      if result = play_persona.full?
-        result
-      else
-        :next
-      end
+      set_default_persona
+      :next
     end
   end
 
@@ -980,110 +958,6 @@ class OllamaChat::Chat
     content
   end
 
-  # Performs a web search and processes the results based on document processing configuration.
-  #
-  # Searches for the given query using the configured search engine and processes up to
-  # the specified number of URLs. The processing approach varies based on the current
-  # document policy and embedding status:
-  #
-  # - **Embedding mode**: When `document_policy.selected == 'embedding'` AND `@embedding.on?` is true,
-  #   each result is embedded and the query is interpolated into the `web_embed` prompt.
-  # - **Summarizing mode**: When `document_policy.selected == 'summarizing'`,
-  #   each result is summarized and both query and results are interpolated into the
-  #   `web_summarize` prompt.
-  # - **Importing mode**: For all other cases, each result is imported and both query and
-  #   results are interpolated into the `web_import` prompt.
-  #
-  # @param count [String] The maximum number of search results to process (defaults to 1)
-  # @param query [String] The search query string
-  #
-  # @return [String, Symbol] The interpolated prompt content when successful,
-  #   or :next if no URLs were found or processing failed
-  #
-  # @example Basic web search
-  #   web('3', 'ruby programming tutorials')
-  #
-  # @example Web search with embedding policy
-  #   # With document_policy.selected == 'embedding' and @embedding.on?
-  #   # Processes results through embedding pipeline
-  #
-  # @example Web search with summarizing policy
-  #   # With document_policy.selected == 'summarizing'
-  #   # Processes results through summarization pipeline
-  def web(count, query)
-    urls = search_web(query, count.to_i) or return :next
-    if document_policy.selected == 'embedding' && @embedding.on?
-      prompt = prompt(:web_embed).to_s
-      urls.each do |url|
-        fetch_source(url) { |url_io| embed_source(url_io, url) }
-      end
-      prompt.named_placeholders_interpolate({query:})
-    elsif document_policy.selected == 'summarizing'
-      prompt = prompt(:web_import).to_s
-      results = urls.each_with_object('') do |url, content|
-        summarize(url).full? do |c|
-          content << c.ask_and_send_or_self(:read)
-        end
-      end
-      prompt.named_placeholders_interpolate({query:, results:})
-    else
-      prompt = prompt(:web_summarize).to_s
-      results = urls.each_with_object('') do |url, content|
-        import(url).full? do |c|
-          content << c.ask_and_send_or_self(:read)
-        end
-      end
-      prompt.named_placeholders_interpolate({query:, results:})
-    end
-  end
-
-  # The manage_links method handles operations on a collection of links, such
-  # as displaying them or clearing specific entries.
-  #
-  # It supports two main commands: 'clear' and nil (default).
-  # When the command is 'clear', it presents an interactive menu to either
-  # clear all links or individual links.
-  # When the command is nil, it displays the current list of links with
-  # hyperlinks.
-  #
-  # @param command [ String, nil ] the operation to perform on the links
-  def manage_links(command)
-    case command
-    when 'clear'
-      loop do
-        links_options = links.dup.add('[EXIT]').add('[ALL]')
-        link = OllamaChat::Utils::Chooser.choose(links_options, prompt: 'Clear? %s')
-        case link
-        when nil, '[EXIT]'
-          STDOUT.puts "Exiting chooser."
-          break
-        when '[ALL]'
-          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
-            links.clear
-            STDOUT.puts "Cleared all links in list."
-            break
-          else
-            STDOUT.puts 'Cancelled.'
-            sleep 3
-          end
-        when /./
-          links.delete(link)
-          STDOUT.puts "Cleared link from links in list."
-          sleep 3
-        end
-      end
-    when nil
-      if links.empty?
-        STDOUT.puts "List is empty."
-      else
-        w       = Math.log10(links.size + 1).ceil
-        format  = "%#{w}s. %s"
-        connect = -> link { hyperlink(link) { link } }
-        STDOUT.puts links.each_with_index.map { |x, i| format % [ i + 1, connect.(x) ] }
-      end
-    end
-  end
-
   # The clean method clears various parts of the chat session based on the
   # specified parameter.
   #
@@ -1094,7 +968,6 @@ class OllamaChat::Chat
     case what
     when 'messages', nil
       messages.clear
-      persona_profile = reload_default_persona
       STDOUT.puts "Cleared messages."
     when 'links'
       links.clear
@@ -1111,7 +984,6 @@ class OllamaChat::Chat
         @documents.clear
         links.clear
         clear_history
-        persona_profile = reload_default_persona
         STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
       else
         STDOUT.puts 'Cancelled.'
@@ -1134,51 +1006,46 @@ class OllamaChat::Chat
   # interaction.
   def interact_with_user
     loop do
-      if persona_result = setup_persona_from_opts
-        disable_content_parsing
-        content = persona_result
-      else
-        enable_content_parsing
-        type           = :terminal_input
-        input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
-        begin
-          if content = handle_tool_call_results?
-            disable_content_parsing
-          else
-            content = enable_command_completion do
-              if prefill_prompt = @prefill_prompt.full?
-                Reline.pre_input_hook = -> {
-                  Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
-                  @prefill_prompt = nil
-                }
-              else
-                Reline.pre_input_hook = nil
-              end
-              Reline.readline(input_prompt, true)&.chomp
+      enable_content_parsing
+      type           = :terminal_input
+      input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
+      begin
+        if content = handle_tool_call_results?
+          disable_content_parsing
+        else
+          content = enable_command_completion do
+            if prefill_prompt = @prefill_prompt.full?
+              Reline.pre_input_hook = -> {
+                Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
+                @prefill_prompt = nil
+              }
+            else
+              Reline.pre_input_hook = nil
             end
-          end
-        rescue Interrupt
-          if message = server_socket_message
-            type           = message.type.full?(:to_sym) || :socket_input
-            content        = message.content
-            @parse_content = message.parse
-            STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
-          else
-            raise
+            Reline.readline(input_prompt, true)&.chomp
           end
         end
+      rescue Interrupt
+        if message = server_socket_message
+          type           = message.type.full?(:to_sym) || :socket_input
+          content        = message.content
+          @parse_content = message.parse
+          STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
+        else
+          raise
+        end
+      end
 
-        if type == :terminal_input
-          case next_action = handle_input(content)
-          when :next
-            next
-          when :redo
-            redo
-          when :return
-            return
-          when String
-            content = next_action
-          end
+      if type == :terminal_input
+        case next_action = handle_input(content)
+        when :next
+          next
+        when :redo
+          redo
+        when :return
+          return
+        when String
+          content = next_action
         end
       end
 

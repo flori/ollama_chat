@@ -1,8 +1,19 @@
 # Sequel model for persisting model-specific configurations as a JSON blob.
 # Each record is uniquely identified by its model name.
 class OllamaChat::Database::Models::ModelOptions < Sequel::Model(OllamaChat::DB)
+
   plugin :timestamps
   plugin :serialization, :json, :options
+  plugin :validation_helpers
+
+  # Validates the model options.
+  #
+  # Ensures that both the `model_name` and `options` are present.
+  def validate
+    super
+    validates_presence :model_name
+    validates_presence :options
+  end
 
   # @!attribute [v] id
   #   @return [Integer] The primary key for the model options entry.
