@@ -90,7 +90,6 @@ module OllamaChat::SessionManagement
   # Creates a new session with the given name or a default name.
   #
   # @param name [String, nil] the name for the new session
-  # @return [String, nil] the content of the new session or nil
   def set_new_session(name = nil)
     @session = new_session
     session.lock? or raise OllamaChat::OllamaChatError,
@@ -105,10 +104,7 @@ module OllamaChat::SessionManagement
       use_model(_1)
       copy_model_options_to_session
     }
-    if persona = session.default_persona_id.full?
-      disable_content_parsing
-      personae_result(persona)
-    end
+    nil
   end
 
   # Sets up the current session based on command-line options or the last used

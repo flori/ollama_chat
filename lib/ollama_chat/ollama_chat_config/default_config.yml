@@ -101,7 +101,7 @@ prompts:
   session_summarize: "Summarize this %{role} message in one %{unit}: %{content}"
   session_title: "Create a title with a length of **less than %{length}** characters for this conversation. Output only the title and nothing else:\n\n%{content}"
 system_prompts:
-  default: <%= OC::OLLAMA::CHAT::SYSTEM || 'null' %>
+  default: <%= OC::OLLAMA::CHAT::SYSTEM || '%{persona}'.inspect %>
   assistant: You are a helpful assistant.
 voice:
   enabled: false
