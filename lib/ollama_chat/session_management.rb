@@ -87,10 +87,42 @@ module OllamaChat::SessionManagement
     output.puts "#{bold{session.name}} (#{italic{session.id}}), #{messages_size}/#{tokens_size}, #{messages_count} messages"
   end
 
-  # Creates a new session with the given name or a default name.
+  # Interactively prompts the user for a unique session name.
   #
-  # @param name [String, nil] the name for the new session
-  def set_new_session(name = nil)
+  # This method will keep prompting the user until a name is provided that
+  # does not already exist in the database, or until the user cancels.
+  #
+  # @param action [String] a description of the action being performed
+  # @param default_name [String, nil] an optional prefill value for the prompt
+  # @return [String, nil] the unique session name, or nil if cancelled
+  def determine_valid_new_name_for_session(action, default_name: nil)
+    session_name = nil
+    loop do
+      session_name = ask?(
+        prompt: "❓ Enter new session name #{action}, C-c ⇒ cancel: ",
+        prefill: default_name
+      )
+      if session_name.nil?
+        STDOUT.puts "Canceled."
+        return nil
+      end
+      if models::Session.where(name: session_name).first
+        STDOUT.puts "Session named #{bold{session_name}} already exists."
+      else
+        break
+      end
+    end
+    session_name
+  end
+
+  # Creates and activates a new session with a unique name.
+  #
+  # This method prompts for a name, initializes a new session record, locks it,
+  # and sets up the associated model and options.
+  #
+  # @return [nil]
+  def set_new_session
+    name = determine_valid_new_name_for_session('to create')
     @session = new_session
     session.lock? or raise OllamaChat::OllamaChatError,
       "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
@@ -100,6 +132,34 @@ module OllamaChat::SessionManagement
       session.touch
     end
     messages.clear
+    session.current_model.full? {
+      use_model(_1)
+      copy_model_options_to_session
+    }
+    nil
+  end
+
+  # Duplicates the current session into a new one.
+  #
+  # This method creates a copy of the current session's attributes and
+  # prompts the user for a new name and whether to clear the duplicated
+  # session's message history.
+  #
+  # @return [nil]
+  def duplicate_session
+    name = determine_valid_new_name_for_session(
+      'to create', default_name: session.name
+    ) or return
+    old_session = session
+    old_session.unlock
+    @session = session.duplicate
+    session.update(name:)
+    session.lock? or raise OllamaChat::OllamaChatError,
+      "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
+    confirm?(
+      prompt: "🔔 Clear messages of duplicated session? (y/n) ",
+      yes: /\Ay/i
+    ) and messages.clear
     session.current_model.full? {
       use_model(_1)
       copy_model_options_to_session
@@ -194,7 +254,7 @@ module OllamaChat::SessionManagement
       STDERR.puts "Could not rename current session!"
     end
   rescue Sequel::UniqueConstraintViolation
-    STDERR.puts "Could not rename current session to #{name.inspect}, already exists!"
+    STDERR.puts "Could not rename session to #{name.inspect}, already exists!"
   end
 
   # Generates a summary of the current session's conversation.

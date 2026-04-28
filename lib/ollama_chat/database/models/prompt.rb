@@ -17,6 +17,7 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
     super
     validates_presence :context
     validates_presence :name
+    validates_unique %i[ context name ]
   end
 
   # @!attribute [v] id

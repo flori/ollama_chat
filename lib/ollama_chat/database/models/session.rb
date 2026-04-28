@@ -6,6 +6,7 @@
 # and `model_options`.
 class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   include OllamaChat::Database::SessionLocking
+  include OllamaChat::Database::Duplicatable
 
   plugin :timestamps, update_on_create: true
   plugin :touch
@@ -21,6 +22,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   def validate
     super
     validates_presence :name
+    validates_unique :name
     validates_presence :updated_at
     validates_presence :created_at
   end

@@ -16,7 +16,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
           context: context,
           name: name
         )
-      }.to raise_error(Sequel::UniqueConstraintViolation)
+      }.to raise_error(Sequel::ValidationFailed)
     end
   end
 

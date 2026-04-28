@@ -470,13 +470,14 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(list|new|rename|summarize|change|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ list new rename summarize change delete model\ options ] ],
+    regexp: %r(^/session(?:\s+(list|new|duplicate|rename|summarize|change|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ list new duplicate rename summarize change delete model\ options ] ],
     optional: true,
     options: '[-c|-f] [name]',
     help: <<~EOT,
-      Show session list, create new, rename, summarize (-s sentence/-f for
-      markdown file output), change, delete session, edit session model options
+      Show session list, create new/duplicate, rename, summarize (-s
+      sentence/-f for markdown file output), change, delete session, edit
+      session model options
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -485,9 +486,9 @@ class OllamaChat::Chat
     when 'list'
       list_sessions
     when 'new'
-      if content = set_new_session(name)
-        next content
-      end
+      set_new_session
+    when 'duplicate'
+      duplicate_session
     when 'delete'
       delete_session
     when 'rename'
