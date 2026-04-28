@@ -691,11 +691,8 @@ class OllamaChat::Chat
     disable_content_parsing
     case subcommand
     when 'add'
-      if result = add_persona
-        result
-      else
-        :next
-      end
+      add_persona
+      :next
     when 'delete'
       delete_persona
       :next
@@ -931,13 +928,19 @@ class OllamaChat::Chat
 
   command(
     name: :help,
-    regexp: %r(^/help me$),
+    regexp: %r(^/help(?:\s+(\S+))?$),
     optional: true,
     complete: [ 'help', %w[ me ] ],
-    help: 'to view this help (me=interactive ai help)'
-  ) do
-    disable_content_parsing
-    prompt(:help).to_s % { commands: help_message }
+    help: 'to view this help (me=interactive ai help or pattern)'
+  ) do |subcommand|
+    case subcommand
+    when 'me'
+      disable_content_parsing
+      prompt(:help).to_s % { commands: help_message }
+    when /\S+/
+      display_chat_help(Regexp.new(Regexp.quote($&)))
+      :next
+    end
   end
 
   command(

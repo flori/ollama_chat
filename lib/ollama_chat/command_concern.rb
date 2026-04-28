@@ -48,8 +48,10 @@ module OllamaChat::CommandConcern
 
     # Build a formatted help table for all registered commands.
     #
+    # @param pattern [String, Regexp, nil] An optional pattern to filter
+    #   commands by their names.
     # @return [Terminal::Table] A table with columns CMD, SUBCMD, OPTS, HELP.
-    def help_message
+    def help_message(pattern = nil)
       table = Terminal::Table.new
       table.style = {
         all_separators: true,
@@ -58,6 +60,9 @@ module OllamaChat::CommandConcern
       table.headings = %w[ CMD SUBCMD OPTS HELP ]
       commands.each_value do |command|
         command.help or next
+        if pattern
+          command.command_names.any? { _1 =~ pattern } or next
+        end
         subcommands = command.arguments[0].full? { |arg0|
           arg0.product(command.arguments[1..-1] + [ '' ]).
             map { _1.select(&:full?).join(' ') }.

@@ -163,9 +163,6 @@ module OllamaChat::PersonaeManagement
   # file with that name in the personas directory (if it does not already exist), opens
   # the file in the configured editor, and finally returns the result of calling
   # `#personae_result` on the created file.
-  #
-  # @return [String] The JSON string returned by `#personae_result`, or nil
-  #   if the user cancels.
   def add_persona
     persona_name = ask?(
       prompt: "❓ Enter the name of the new persona (or press return to cancel): "
@@ -178,8 +175,7 @@ module OllamaChat::PersonaeManagement
     end
 
     edit_file(pathname)
-
-    personae_result(pathname.basename)
+    nil
   end
 
   # Generates the backup pathname for a persona file with timestamp.

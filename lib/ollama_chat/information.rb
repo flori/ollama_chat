@@ -44,8 +44,8 @@ module OllamaChat::Information
       'ollama_chat'
     end
 
-    # The user_agent method constructs and returns a user agent string
-    # that combines the program name and the OllamaChat version
+    # The user_agent method constructs and returns a user agent string that
+    # combines the program name and the OllamaChat version
     # separated by a forward slash.
     #
     # @return [ String ] the formatted user agent string
@@ -188,11 +188,13 @@ module OllamaChat::Information
   # The display_chat_help method outputs the chat help message to standard
   # output, eventually using the configured pager.
   #
+  # @param pattern [String, Regexp, nil] An optional pattern to filter
+  #   the commands displayed in the help message.
   # @return [ nil ] This method always returns nil after printing the help
   #   message.
-  def display_chat_help
+  def display_chat_help(pattern = nil)
     use_pager do |output|
-      output.puts help_message
+      output.puts help_message(pattern)
     end
     nil
   end
