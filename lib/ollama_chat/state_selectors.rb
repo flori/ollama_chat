@@ -230,6 +230,12 @@ module OllamaChat::StateSelectors
   #   that manages the thinking mode setting for the Ollama model interactions
   attr_reader :think_mode
 
+  # The voices reader returns the voice selector for the chat session.
+  #
+  # @return [ OllamaChat::StateSelector ] the voice selector object
+  #   that manages the currently selected voice for the chat session
+  attr_reader :voices
+
   # Sets up state selectors for document policy and think mode based on the
   # provided configuration.
   #

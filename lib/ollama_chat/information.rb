@@ -2,10 +2,9 @@
 # OllamaChat
 #
 # The Information module encapsulates methods for managing application
-# identification, displaying version and configuration details, and handling
-# command-line interface help messages. It includes user agent capabilities for
-# HTTP requests and provides comprehensive information display features for
-# chat sessions.
+# identification, displaying version and configuration details, and providing
+# a modular information dashboard for chat sessions. It includes user agent
+# capabilities for HTTP requests and provides focused information views.
 #
 # @example Displaying application information
 #   chat.info
@@ -88,13 +87,13 @@ module OllamaChat::Information
     nil
   end
 
-  # Prints details about the current chat model to the specified
-  # output and the session and default options.
+  # Displays detailed information about the current chat model, including
+  # capabilities, families, and configuration options.
   #
-  # @param [IO] output The output stream to print the model information to
+  # @param output [IO] the output stream to print the model information to
   #   (defaults to STDOUT).
-  def model_info(output: STDOUT)
-    output.puts "Current chat model is #{bold{@model}}."
+  def info_model(output: STDOUT)
+    output.puts "🧠 Current chat model is #{bold{@model}}."
     output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
     output.puts   "  Families: #{Array(@model_metadata&.families) * ', '}"
     if model_options.present?
@@ -105,70 +104,89 @@ module OllamaChat::Information
     end
   end
 
-  # The info_session method displays comprehensive information about the
-  # current chat session.
-  #
-  # This method outputs details about the session including session name, model
-  # information, think mode settings, tool support, embedding status,
-  # collection statistics, persona,
-  # runtime information, and document policy.
+  # Displays a detailed view of the current chat session state, including the
+  # system prompt, persona, active model, thinking modes, tools, and audio settings.
   #
   # @param output [IO] the output stream to write the information to, defaults
   #   to STDOUT
   def info_session(output: STDOUT)
-    output.print "Current session: "; show_session(output:)
-    output.print "🧠 "; model_info(output:)
-    think_mode.show(output:)
-    think_loud.show(output:)
-    think_strip.show(output:)
-    tools_support.show(output:)
-    @embedding.show(output:)
+    output.print "🗣️ Current session: "; show_session(output:)
+    output.puts "  Current System Prompt: #{bold{current_system_prompt_name}}"
+    if name = default_persona_name
+      output.puts "  💃 Persona: #{bold{name}}"
+    else
+      output.puts "  No persona selected."
+    end
+    output.puts "🧠 Current chat model is #{bold{@model}}."
+    output.print '  '; think_mode.show(output:)
+    output.print '  '; think_loud.show(output:)
+    output.print '  '; think_strip.show(output:)
+    output.print '  🛠️ '; tools_support.show(output:)
+    output.print '⚙️ Chat Settings'
+    output.print '  '; markdown.show(output:)
+    output.print '  '; stream.show(output:)
+    output.print '  🎙️ '; voice.show(output:)
+    if voice.on?
+      output.print '  '; voices.show(output:)
+    end
+    output.print '  '; location.show(output:)
+  end
+
+  # Displays the current runtime environment details, such as git state,
+  # terminal dimensions, and tool path permissions.
+  #
+  # @param output [IO] the output stream to write the information to, defaults to STDOUT
+  def info_runtime(output: STDOUT)
+    output.puts "🏃 Runtime Information:"
+    output.print '  '; runtime_info.show(output:)
+    output.puts 'Values:'
+    output.puts runtime_information_values.stringify_keys_recursive.to_yaml.
+      sub(/\A---\s*\n/, '').gsub(/^/, '  ')
+  end
+
+  # Displays information regarding the Retrieval Augmented Generation (RAG)
+  # configuration, including the embedding model and collection statistics.
+  #
+  # @param output [IO] the output stream to write the information to, defaults to STDOUT
+  def info_rag(output: STDOUT)
     if @embedding.on?
-      output.puts "🔢 Current RAG model is #{bold{@embedding_model}}"
+      output.puts "🗄️ Current RAG model is #{bold{@embedding_model}}"
       if @embedding_model_options.present?
         output.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"
       end
       output.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
       collection_stats(output:)
     end
-    name = default_persona_name and output.puts "💃 Persona: #{bold{name}}"
-    if runtime_info.on?
-      output.puts "🏃 Runtime Information:"
-      output.puts runtime_information_values.stringify_keys_recursive.to_yaml.
-        sub(/\A---\s*\n/, '').gsub(/^/, '  ')
-    else
-      runtime_info.show(output:)
-    end
-    markdown.show(output:)
-    stream.show(output:)
-    voice.show(output:)
+    @embedding.show(output:)
     output.puts "📜 Document policy for parsing in user text: #{bold{document_policy}}"
   end
 
-  # The info method displays comprehensive information about the current state
-  # of the ollama_chat instance.
-  # This includes version details, server connection status, model
-  # configurations, embedding settings, and various operational switches.
+  # Displays a high-level summary dashboard of the current state of the
+  # ollama_chat instance.
   #
+  # @param output [IO] the output stream to write the information to, defaults to STDOUT
   # @return [ nil ] This method does not return a value; it outputs information
   #   directly to standard output.
-  def info
-    use_pager do |output|
-      output.puts "Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
-      output.puts "Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
-      output.puts "Session: #{bold{@session.name}} (#{italic{@session.id}})"
-      output.puts "Current System Prompt: #{bold{current_system_prompt_name}}"
-      info_session(output:)
-      location.show(output:)
-      @voice.on? and @voices.show(output:)
-      output.puts "Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
-      output.puts "Currently selected search engine is #{bold{search_engine}}."
+  def info(output: STDOUT)
+    output.puts "💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
+    output.puts "🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
+    output.puts "📜 Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
+    output.puts "🔎 Currently selected search engine is #{bold{search_engine}}."
+    output.puts "🧠 Current chat model is #{bold{@model}}."
+    output.puts "🗣️ Session: #{bold{@session.name}} (#{italic{@session.id}})"
+    output.puts "  Current System Prompt: #{bold{current_system_prompt_name}}"
+    if name = default_persona_name
+      output.puts "  💃 Persona: #{bold{name}}"
+    else
+      output.puts "  No persona selected."
     end
+    output.print '  🛠️ '; tools_support.show(output:)
+    output.print '  🏃 '; runtime_info.show(output:)
     nil
   end
 
   # The display_chat_help method outputs the chat help message to standard
-  # output, evenutally using the configured pager.
+  # output, eventually using the configured pager.
   #
   # @return [ nil ] This method always returns nil after printing the help
   #   message.
@@ -179,7 +197,7 @@ module OllamaChat::Information
     nil
   end
 
-  # The usage method displays the command-line interface help text
+  # The usage method displays the command-line idea help text
   # and returns an exit code of 0.
   #
   # @return [ Integer ] always returns 0 indicating successful help display

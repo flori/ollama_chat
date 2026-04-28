@@ -128,11 +128,6 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/model options")).to eq :next
     end
 
-    it 'returns :next when input is "/model"' do
-      expect(chat).to receive(:model_info)
-      expect(chat.handle_input("/model")).to eq :next
-    end
-
     it 'returns :next when input is "/system change"' do
       expect(chat).to receive(:change_system_prompt).with(nil)
       expect(chat.messages).to receive(:show_system_prompt)

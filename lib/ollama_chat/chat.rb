@@ -223,7 +223,7 @@ class OllamaChat::Chat
   #
   # @return [String] the system prompt for the initial message
   def initial_system_prompt
-    @messages.system
+    @messages.system_name
   end
 
   private
@@ -373,10 +373,9 @@ class OllamaChat::Chat
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))?$),
+    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
-    optional: true,
-    help: 'change the model/model options/sync with session model options or show info'
+    help: 'change the model/model options/sync with session model options'
   ) do |subcommand|
     case subcommand
     when 'change'
@@ -392,8 +391,6 @@ class OllamaChat::Chat
       copy_model_options_from_session
     when 'options to session'
       copy_model_options_to_session
-    else
-      model_info
     end
     :next
   end
@@ -909,10 +906,25 @@ class OllamaChat::Chat
 
   command(
     name: :info,
-    regexp: %r(^/info$),
-    help: 'show information for current session',
-  ) do
-    info
+    regexp: %r(^/info(?:\s+(session|model|runtime|rag))?$),
+    complete: [ 'info', %w[ session model runtime rag ] ],
+    optional: true,
+    help: 'show information for ollama_chat',
+  ) do |subcommand|
+    use_pager do |output|
+      case subcommand
+      when 'session'
+        info_session(output:)
+      when 'model'
+        info_model(output:)
+      when 'runtime'
+        info_runtime(output:)
+      when 'rag'
+        info_rag(output:)
+      else
+        info(output:)
+      end
+    end
     :next
   end
 
@@ -1063,7 +1075,7 @@ class OllamaChat::Chat
       handler = OllamaChat::FollowChat.new(
         chat:     self,
         messages:,
-        voice:    (@voices.selected if voice.on?)
+        voice:    (voices.selected if voice.on?)
       )
       begin
         retried = false

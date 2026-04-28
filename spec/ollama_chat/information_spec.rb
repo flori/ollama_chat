@@ -28,7 +28,17 @@ describe OllamaChat::Information do
 
   it 'can show info' do
     expect { |b| chat.use_pager(&b) }.to yield_with_args(StringIO)
+    allow(STDOUT).to receive(:print)
     expect(STDOUT).to receive(:puts).with(/Running ollama_chat version/)
+    expect(STDOUT).to receive(:puts).with(/Connected to ollama server/)
+    expect(STDOUT).to receive(:puts).with(/Documents database cache/)
+    expect(STDOUT).to receive(:puts).with(/Currently selected search engine/)
+    expect(STDOUT).to receive(:puts).with(/Current chat model is/)
+    expect(STDOUT).to receive(:puts).with(/Session:/)
+    expect(STDOUT).to receive(:puts).with(/Current System Prompt/)
+    expect(STDOUT).to receive(:puts).with(/No persona selected/)
+    expect(STDOUT).to receive(:puts).with(/Tools support enabled/)
+    expect(STDOUT).to receive(:puts).with(/Runtime Information enabled/)
     expect(chat.info).to be_nil
   end
 

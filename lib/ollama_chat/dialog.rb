@@ -117,7 +117,7 @@ module OllamaChat::Dialog
   #
   # @return [ String ] the full name of the chosen voice
   def change_voice
-    @voices.choose
+    voices.choose
   end
 
   # The message_list method creates and returns a new MessageList instance
