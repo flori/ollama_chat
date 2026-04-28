@@ -8,7 +8,7 @@
 #
 # This module is intended to be mixed into models that persist session state,
 # such as OllamaChat::Database::Models::Session.
-module OllamaChat::SessionLocking
+module OllamaChat::Database::SessionLocking
   # Checks if the session is currently locked by an active process.
   #
   # @return [Integer, nil] the PID of the locking process if active, or nil if unlocked/stale.
@@ -39,8 +39,6 @@ module OllamaChat::SessionLocking
   #
   # @return [Boolean] true if the update was successful.
   def lock
-    now = Time.now
-    self.created_at ||= self.updated_at = now
     update(locked_by_pid: $$)
   end
 

@@ -264,7 +264,7 @@ module OllamaChat::SessionManagement
   def change_session(name)
     name.full? or name = ??
     loop do
-      if chosen_session = choose_session(name)
+      if chosen_session = choose_session(name, offer_new_session: true)
         if chosen_session.nil? || chosen_session == session
           confirm?(prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ", timeout: 3)
           break
@@ -296,7 +296,7 @@ module OllamaChat::SessionManagement
   # @param session_name [String] the name, ID, or pattern to search for
   # @param except_id [String, Integer, nil] an ID to exclude from the search results
   # @return [OllamaChat::Database::Models::Session, nil] the chosen session or nil
-  def choose_session(session_name, except_id: nil)
+  def choose_session(session_name, except_id: nil, offer_new_session: false)
     session_name = session_name.to_s
     session_query = models::Session
     if except_id
@@ -330,9 +330,13 @@ module OllamaChat::SessionManagement
       session_name = if sessions.size == 1
                        sessions.first.value
                      else
-                       sessions = sessions.unshift(SearchUI::Wrapper.new('exit', display: '[EXIT]'))
+                       offer_new_session and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
+                       sessions = sessions.unshift(SearchUI::Wrapper.new('[exit]', display: '[EXIT]'))
                        value = OllamaChat::Utils::Chooser.choose(sessions)&.value
-                       value unless value == 'exit'
+                       if value == '[new]'
+                         return new_session
+                       end
+                       value unless value == '[exit]'
                      end
       if session_name
         session_query.first(name: session_name)

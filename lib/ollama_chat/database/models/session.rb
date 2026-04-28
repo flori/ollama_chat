@@ -1,5 +1,3 @@
-require 'ollama_chat/session_locking'
-
 # Represents a persistent chat session in the database, managing the
 # configuration, state, and message history for an individual chat interaction.
 #
@@ -7,9 +5,9 @@ require 'ollama_chat/session_locking'
 # the JSON serialization of complex attributes such as `tools_default_enabled`
 # and `model_options`.
 class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
-  include OllamaChat::SessionLocking
+  include OllamaChat::Database::SessionLocking
 
-  plugin :timestamps
+  plugin :timestamps, update_on_create: true
   plugin :touch
   plugin :serialization, :json, :tools_default_enabled
   plugin :serialization, :json, :model_options
@@ -145,7 +143,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       model_options:         ,
       current_voice:         chat.config.voice.default,
       working_directory:     Dir.pwd,
-      messages:              ''
+      messages:              '',
     }
     new(attributes)
   end

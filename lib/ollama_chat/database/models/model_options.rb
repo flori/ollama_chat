@@ -1,8 +1,7 @@
 # Sequel model for persisting model-specific configurations as a JSON blob.
 # Each record is uniquely identified by its model name.
 class OllamaChat::Database::Models::ModelOptions < Sequel::Model(OllamaChat::DB)
-
-  plugin :timestamps
+  plugin :timestamps, update_on_create: true
   plugin :serialization, :json, :options
   plugin :validation_helpers
 

@@ -1,5 +1,3 @@
-require 'ollama_chat/database/duplicatable'
-
 # The OllamaChat::Database module is responsible for managing the
 # application's persistence layer, including the initialization
 # of the database connection and the dynamic loading of models.
@@ -49,3 +47,5 @@ module OllamaChat::Database
     end
   end
 end
+require 'ollama_chat/database/duplicatable'
+require 'ollama_chat/database/session_locking'

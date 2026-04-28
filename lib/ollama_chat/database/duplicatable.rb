@@ -1,4 +1,4 @@
-module Duplicatable
+module OllamaChat::Database::Duplicatable
   def duplicate
     klass = self.class
     attributes = columns.each_with_object({}) do |column, hash|

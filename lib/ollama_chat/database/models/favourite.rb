@@ -7,7 +7,7 @@
 # serialization for the `metadata` attribute.
 class OllamaChat::Database::Models::Favourite < Sequel::Model(OllamaChat::DB)
 
-  plugin :timestamps
+  plugin :timestamps, update_on_create: true
   plugin :serialization, :json, :metadata
   plugin :validation_helpers
 
