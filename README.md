@@ -55,10 +55,10 @@ It can be started with the following arguments:
 Usage: ollama_chat [OPTIONS]
 
   -f CONFIG      config file to read
+  -l SESSION     load session with name/id SESSION
+  -n             create a new session
   -u URL         the ollama base url, OLLAMA_URL
   -m MODEL       the ollama model to chat with, OLLAMA_CHAT_MODEL, ?selector
-  -s SYSTEM      the system prompt to use as a file, OLLAMA_CHAT_SYSTEM, ?selector
-  -p PERSONA     load a persona via name/file for roleplay at startup
   -c CHAT        a saved chat conversation to load
   -C COLLECTION  name of the collection used in this conversation
   -D DOCUMENT    load document and add to embeddings collection (multiple)
@@ -68,7 +68,7 @@ Usage: ollama_chat [OPTIONS]
   -V             display the current version number and quit
   -h             this help
 
-  Use `?selector` with `-m` or `-s` to filter options. Multiple matches
+  Use `?selector` with `-m` or `-l` to filter options. Multiple matches
   will open a chooser dialog.
 ```
 
