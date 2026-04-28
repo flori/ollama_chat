@@ -7,14 +7,12 @@
 module OllamaChat::RAGHandling
   private
 
-  # Clears documents from the collection based on user selection.
+  # Clears documents from the collection through an interactive user interface.
   #
-  # @param tags [ Array<String> ] the list of tags to choose from for clearing
-  # @param tag [ String ] the selected tag to clear
-  #
-  # @note This method provides an interactive interface for clearing documents
-  #       from the collection. It allows users to select specific tags to clear
-  #       or clear all documents in the collection.
+  # This method allows users to selectively clear documents by choosing
+  # specific tags from the current collection or to clear all documents in the
+  # collection. It provides a loop for multiple deletions until the user exits
+  # or completes a clear operation.
   def clear_collection
     loop do
       tags = @documents.tags.add('[EXIT]').add('[ALL]')
@@ -95,10 +93,10 @@ module OllamaChat::RAGHandling
     end
   end
 
-  # Displays the list of available collections.
+  # Displays the list of available collections in the terminal.
   #
-  # @param current_collection [ String ] the currently selected collection
-  # @param collections [ Array<String> ] the list of all available collections
+  # This method retrieves the current collection and the full list of available
+  # collections from the internal document handler, highlighting the active one.
   def list_collections
     current_collection = @documents.collection
     STDOUT.puts @documents.collections.

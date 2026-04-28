@@ -1,10 +1,9 @@
+# Provides crude estimations of token counts for various models.
+#
+# Since actual tokenization depends on the specific model's BPE/SentencePiece
+# vocabulary, these methods provide a "best effort" approximation based
+# on average character/byte ratios.
 module OllamaChat::Utils::TokenEstimator
-  # Provides crude estimations of token counts for various models.
-  #
-  # Since actual tokenization depends on the specific model's BPE/SentencePiece
-  # vocabulary, these methods provide a "best effort" approximation based
-  # on average character/byte ratios.
-
   # Estimates tokens based on byte size.
   # Assumes an average of 3.5 bytes per token.
   #

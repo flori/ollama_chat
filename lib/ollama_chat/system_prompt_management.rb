@@ -75,10 +75,13 @@ module OllamaChat::SystemPromptManagement
   # selector, and sets the selected prompt as the current system prompt for
   # the messages.
   #
-  # @param default [ String ] the default system prompt to fall back to
-  # @param system [ String ] the system prompt identifier or pattern to
-  #   search for
-  # @return [String, nil] the system prompt that was set, or nil if cancelled
+  # The user can choose from all stored system prompts, the model's default,
+  # or exit the chooser. If the selection is cancelled or returns nil,
+  # the provided default is used.
+  #
+  # @param default [String] the system prompt name to use as a fallback
+  # @return [Object, nil] the result of setting the current system prompt, or
+  #   nil if the operation was explicitly exited.
   def change_system_prompt(default)
     prompts = all_system_prompts
     prompts.unshift('[MODEL DEFAULT]').unshift('[EXIT]')

@@ -8,6 +8,10 @@ module OllamaChat::Utils::ValueFormatter
     Tins::Unit.format(bytes, unit: ?B, prefix: :iec_uc, format: '%.1f %U')
   end
 
+  # Formats a token count into a human‑readable string with units
+  #
+  # @param tokens [Integer] the number of tokens to format
+  # @return [String] the formatted token string
   def format_tokens(tokens)
     Tins::Unit.format(tokens, unit: ?T, prefix: :si_uc, format: '%.1f %U')
   end
