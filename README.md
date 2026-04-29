@@ -62,8 +62,8 @@ The following environment variables can be used to configure behavior:
 - `DIFF_TOOL` - Tool for diff operations (default: `vimdiff`)
 - `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES` - Custom ANSI styles for Markdown formatting
 - `KRAMDOWN_ANSI_STYLES` - Fallback ANSI styles configuration
-- `OLLAMA_REDIS_URL` - Redis connection URL for documents
-- `OLLAMA_REDIS_EXPIRING_URL` - Redis connection URL for caching
+- `OLLAMA_REDIS_URL` - Redis connection URL for documents (documentrix)
+- `OLLAMA_REDIS_EXPIRING_URL` - Optional Redis connection URL for caching
 
 Example usage for `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES`:
 
