@@ -125,12 +125,14 @@ class OllamaChat::Chat
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
+
   # The ollama reader returns the Ollama API client instance.
   #
   # @return [Ollama::Client] the configured Ollama API client
   attr_reader :ollama
 
-  # Returns the documents set for this object, initializing it lazily if needed.
+  # Returns the documents set for this object, initializing it lazily if
+  # needed.
   #
   # The documents set is memoized, meaning it will only be created once per
   # object instance and subsequent calls will return the same
@@ -191,7 +193,6 @@ class OllamaChat::Chat
   def debug
     OC::OLLAMA::CHAT::DEBUG
   end
-
 
   # Returns the model name to be used for the chat session.
   #
@@ -287,7 +288,7 @@ class OllamaChat::Chat
   command(
     name: :copy,
     regexp: %r(/copy$),
-    help: 'to copy last response to clipboard'
+    help: 'Copy the last response to the clipboard'
   ) do
     copy_to_clipboard
     :next
@@ -296,7 +297,7 @@ class OllamaChat::Chat
   command(
     name: :paste,
     regexp: %r(^/paste$),
-    help: 'to paste content from the clipboard'
+    help: 'Paste content from the clipboard'
   ) do
     disable_content_parsing
     paste_from_clipboard
@@ -309,7 +310,7 @@ class OllamaChat::Chat
     regexp: %r(^/config(?:\s+(edit|reload))?$),
     complete: [ 'config', %w[ edit reload ] ],
     optional: true,
-    help: 'output/edit/reload configuration'
+    help: 'View, edit, or reload configuration'
   ) do |subcommand|
     case subcommand
     when 'edit'
@@ -325,7 +326,7 @@ class OllamaChat::Chat
   command(
     name: :document_policy,
     regexp: %r(^/document_policy$),
-    help: 'pick a scan policy for documents'
+    help: 'Select a scanning policy for documents'
   ) do
     document_policy.choose
     :next
@@ -335,7 +336,7 @@ class OllamaChat::Chat
     name: :toggle,
     regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip))?$),
     complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
-    help: 'toggle switch'
+    help: 'Toggle feature switches (markdown, stream, location, runtime_info, voice, think_loud, think_strip, embedding)'
   ) do |toggle_name|
     if toggle_name
       send(toggle_name).toggle
@@ -360,7 +361,7 @@ class OllamaChat::Chat
     name: :favourite,
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system_prompt|persona))?$),
     complete: [ 'favourite', %w[ add delete ], %w[ model prompt system_prompt persona ] ],
-    help: 'manage model, prompt, system_prompt, persona favourites'
+    help: 'Manage favorites for models, prompts, and personas (add, delete)'
   ) do |subcommand, type|
     case subcommand
     when 'add'
@@ -375,7 +376,10 @@ class OllamaChat::Chat
     name: :model,
     regexp: %r(^/model(?:\s+(change|options|options from session|options to session))$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
-    help: 'change the model/model options/sync with session model options'
+    help: <<~EOT
+      Change the model or manage model options (change, options, options from
+      session, options to session)
+    EOT
   ) do |subcommand|
     case subcommand
     when 'change'
@@ -400,7 +404,10 @@ class OllamaChat::Chat
     regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import))?(?:\s+(\S+))?$),
     complete: [ 'system', %w[ add delete edit list change duplicate export import ] ],
     optional: true,
-    help: 'change/show/manage system prompt'
+    help: <<~EOT
+      Manage the system prompt (add, delete, edit, list, change, duplicate,
+      export, import)
+    EOT
   ) do |subcommand, filename|
     case subcommand
     when 'add'
@@ -429,7 +436,7 @@ class OllamaChat::Chat
   command(
     name: :think,
     regexp: %r(^/think$),
-    help: 'choose ollama think mode setting for models'
+    help: 'Configure the think mode for models'
   ) do
     think_mode.choose
     :next
@@ -440,7 +447,7 @@ class OllamaChat::Chat
     regexp: %r(^/tools(?:\s+(enable|disable|on|off))?),
     complete: [ 'tools', %w[ enable disable on off ] ],
     optional: true,
-    help: "list enabled, enable/disable tools,\nsupport on/off"
+    help: 'Manage tool support and enabled tools (enable, disable, on, off)'
   ) do |subcommand|
     case subcommand
     when nil
@@ -460,7 +467,7 @@ class OllamaChat::Chat
   command(
     name: :voice,
     regexp: %r(^/voice$),
-    help: 'change the voice'
+    help: 'Change the voice output settings'
   ) do
     change_voice
     :next
@@ -474,10 +481,10 @@ class OllamaChat::Chat
     complete: [ 'session', %w[ list new duplicate rename summarize change delete model\ options ] ],
     optional: true,
     options: '[-c|-f] [name]',
-    help: <<~EOT,
-      Show session list, create new/duplicate, rename, summarize (-s
-      sentence/-f for markdown file output), change, delete session, edit
-      session model options
+    help: <<~EOT
+      Manage chat sessions (list, new, duplicate, rename, summarize, change,
+      delete, model options).
+      For summarize: -s (single sentence), -f (output to markdown file)
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -527,7 +534,7 @@ class OllamaChat::Chat
     name: :list,
     regexp: %r(^/list(?:\s+(\d*))?$),
     options: '[n=1]',
-    help: 'list the last n / all conversation exchanges'
+    help: 'List the last n or all conversation exchanges'
   ) do
     n = 2 * _1.to_i if _1
     messages.list_conversation(n)
@@ -538,7 +545,7 @@ class OllamaChat::Chat
     name: :last,
     regexp: %r(^/last(?:\s+(\d*))?$),
     options: '[n=1]',
-    help: 'show the last n / 1 system/assistant message'
+    help: 'Show the last n or the most recent system/assistant message'
   ) do
     n = _1.to_i.clamp(1..)
     messages.show_last(n)
@@ -549,7 +556,7 @@ class OllamaChat::Chat
     name: :drop,
     regexp: %r(^/drop(?:\s+(\d*))?$),
     options: '[n=1]',
-    help: 'drop the last n exchanges, defaults to 1'
+    help: 'Remove the last n conversation exchanges'
   ) do
     messages.drop(_1)
     messages.show_last
@@ -561,7 +568,7 @@ class OllamaChat::Chat
     regexp: %r(^/clear(?:\s+(messages|links|history|tags|all))?$),
     complete: [ 'clear', %w[ messages links history tags all ] ],
     optional: true,
-    help: 'clear these records, messages without argument'
+    help: 'Clear messages, links, history, tags, or all'
   ) do |subcommand|
     if result = clean(subcommand)
       disable_content_parsing
@@ -576,7 +583,7 @@ class OllamaChat::Chat
     regexp: %r(^/links(?:\s+(clear))?$),
     complete: [ 'links', %w[ clear ] ],
     optional: true,
-    help: 'display (or clear) links used in the chat',
+    help: 'Clear links used in the chat',
   ) do |subcommand|
     manage_links(subcommand)
     :next
@@ -587,7 +594,7 @@ class OllamaChat::Chat
     regexp: %r(^/revise(?:\s+(edit))?$),
     complete: [ 'revise', %w[ edit ] ],
     optional: true,
-    help: 'revise the last message (and/or edit the query)'
+    help: 'Revise the last message or edit the query'
   ) do |subcommand|
     if message = messages.second_last
       content = message.stripped_content
@@ -608,7 +615,10 @@ class OllamaChat::Chat
     regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export))?(?:\s+(\S+))?$),
     complete: [ 'prompt', %w[ add delete edit list duplicate import export ] ],
     optional: true,
-    help: 'prefill user prompt with preset prompts, manage prompts',
+    help: <<~EOT,
+      Manage preset prompt templates or prefill the prompt (add, delete, edit,
+      list, duplicate, import, export)
+    EOT
   ) do |subcommand, filename|
     case subcommand
     when 'add'
@@ -634,7 +644,7 @@ class OllamaChat::Chat
   command(
     name: :change_response,
     regexp: %r(^/change_response$),
-    help: 'edit the last response in EDITOR',
+    help: 'Edit the last assistant response in the editor',
   ) do
     change_response
     :next
@@ -644,7 +654,7 @@ class OllamaChat::Chat
     name: :conversation,
     regexp: %r(^/conversation\s+(save|load)\s+(.+)$),
     complete: [ 'conversation', %w[ save load ] ],
-    help: 'manage conversations (save/load)'
+    help: 'Save or load conversations'
   ) do |subcommand, path|
     case subcommand
     when 'save'
@@ -662,7 +672,10 @@ class OllamaChat::Chat
     regexp: %r(^/collection(?:\s+(clear|change|list|rename))?$),
     complete: [ 'collection', %w[ clear change list rename ] ],
     optional: true,
-    help: 'display, clear (current), change, list, or rename collection'
+    help: <<~EOT
+      Manage the current RAG document collection: clear, change, rename, list
+      and show
+    EOT
   ) do |subcommand|
     case subcommand
     when 'clear'
@@ -686,7 +699,10 @@ class OllamaChat::Chat
     regexp: %r(^/persona(?:\s+(add|delete|edit|backup|import|export|duplicate|info|list|load))?$),
     complete: [ 'persona', %w[ add delete edit backup import export duplicate info list load ] ],
     optional: true,
-    help: 'manage and load/play personae for roleplay',
+    help: <<~EOT,
+      Manage and activate personas for roleplay (add, delete, edit, backup,
+      import, export, duplicate, info, list, load)
+    EOT
   ) do |subcommand|
     disable_content_parsing
     case subcommand
@@ -737,7 +753,7 @@ class OllamaChat::Chat
   command(
     name: :compose,
     regexp: %r(^/compose$),
-    help: 'compose content using an EDITOR'
+    help: 'Compose a message using the text editor'
   ) do
     edit_text.full? or :next
   end
@@ -746,7 +762,7 @@ class OllamaChat::Chat
     name: :web,
     regexp: %r(^/web\s+(?:(\d+)\s+)?(.+)),
     options: '[number=1] query',
-    help: 'query web for so many results'
+    help: 'Query the web for a specified number of results'
   ) do |count, query|
     disable_content_parsing
     web(count, query)
@@ -759,11 +775,11 @@ class OllamaChat::Chat
     complete: [ 'input', [ 'path', 'summary', 'context', 'embedding', '', ] ],
     options: '[-w|-a|-p] [arg…]',
     help: <<~EOT
-      Read content from files, URLs, or glob patterns
-      and optionally transform it.
+      Import content from files, URLs, or globs into the context
       Use subcommands: context, embedding, path, summary,
         import (the default).
       Options:
+        -p (enable pattern mode to allow using globs/wildcards)
         -w <words> (summary subcommand only, default 100)
         -a (pattern mode only, include all files for patterns)
     EOT
@@ -848,7 +864,7 @@ class OllamaChat::Chat
     name: :pipe,
     regexp: %r(^/pipe\s+(.+)$),
     options: 'path',
-    help: "write last response to command's stdin",
+    help: 'Pipe the last response into another command\'s stdin',
   ) do |command|
     pipe(command)
     :next
@@ -857,7 +873,7 @@ class OllamaChat::Chat
   command(
     name: :vim,
     regexp: %r(^/vim(?:\s+(.+))?$),
-    help: 'insert the last message into a vim (server)'
+    help: 'Insert the last message into a Vim server buffer'
   ) do |servername|
     if message = messages.last
       vim(servername).insert message.content
@@ -871,7 +887,7 @@ class OllamaChat::Chat
     name: :output,
     regexp: %r(^/output\s+(.+)$),
     options: 'path',
-    help: 'save last response to path',
+    help: 'Save the last response to a file',
   ) do |path|
     output(path)
     :next
@@ -882,7 +898,7 @@ class OllamaChat::Chat
   command(
     name: :reconnect,
     regexp: %r(^/reconnect$),
-    help: 'reconnect to current ollama server'
+    help: 'Reconnect to the Ollama server'
   ) do
     STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
     connect_ollama
@@ -894,7 +910,7 @@ class OllamaChat::Chat
     name: :quit,
     regexp: %r(^/(?:quit|exit)$),
     complete: [ %w[ quit exit ] ],
-    help: 'quit/exit the application',
+    help: 'Quit the application',
   ) do
     STDOUT.puts "Goodbye."
     :return
@@ -907,7 +923,7 @@ class OllamaChat::Chat
     regexp: %r(^/info(?:\s+(session|model|runtime|rag))?$),
     complete: [ 'info', %w[ session model runtime rag ] ],
     optional: true,
-    help: 'show information for ollama_chat',
+    help: 'Show info about the session, model, runtime, or RAG',
   ) do |subcommand|
     use_pager do |output|
       case subcommand
@@ -931,7 +947,7 @@ class OllamaChat::Chat
     regexp: %r(^/help(?:\s+(\S+))?$),
     optional: true,
     complete: [ 'help', %w[ me ] ],
-    help: 'to view this help (me=interactive ai help or pattern)'
+    help: 'View the help menu (use \'me\' for AI help or a pattern to filter)'
   ) do |subcommand|
     case subcommand
     when 'me'
@@ -1152,9 +1168,9 @@ class OllamaChat::Chat
   # The connect_ollama method establishes a connection to the Ollama API server.
   #
   # This method initializes a new Ollama::Client instance with configured timeouts
-  # and connection parameters, then verifies that the connected server meets
-  # the minimum required API version (0.9.0). It sets the @ollama instance
-  # variable to the configured client and stores the server version in @server_version.
+  # and connection parameters, then verifies that the connected server meets the
+  # minimum required API version (0.9.0). It sets the @ollama instance
+  # variable to the configured client and stores the version in @server_version.
   #
   # @return [Ollama::Client] the configured Ollama client instance
   # @raise [RuntimeError] if the connected Ollama server API version is less

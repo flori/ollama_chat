@@ -25,20 +25,45 @@ in your terminal.
 
 The following environment variables can be used to configure behavior:
 
+#### Ollama Core
 - `OLLAMA_URL` - Base URL for Ollama server (default: `http://localhost:11434`)
-- `OLLAMA_HOST` - Base URL for Ollama server (default: `localhost:11434`)
-- `OLLAMA_MODEL` - Default model to use (e.g., `llama3.1`)
+- `OLLAMA_HOST` - Base hostname for Ollama server (default: `localhost:11434`)
+- `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL
+
+#### Chat Settings
+- `OLLAMA_CHAT_MODEL` - Default model to use (e.g., `llama3.1`)
+- `OLLAMA_CHAT_SYSTEM` - Default system prompt file or content
+- `OLLAMA_CHAT_COLLECTION` - Default collection for embeddings
+- `OLLAMA_CHAT_HISTORY` - Chat history filename
+- `OLLAMA_CHAT_USER` - Full name of the chat user
+- `OLLAMA_CHAT_DEBUG` - Debug mode toggle (1 = enabled)
+
+#### Tool Configuration
+- `OLLAMA_CHAT_TOOLS_TEST_RUNNER` - Configured test runner for `run_tests` (default: `rspec`)
+- `OLLAMA_CHAT_TOOLS_CTAGS_TOOL` - Path to the ctags tool
+- `OLLAMA_CHAT_TOOLS_TAGS_FILE` - Location of the tags file
+- `OLLAMA_CHAT_TOOLS_PATCH_TOOL` - Patch tool to use
+- `OLLAMA_CHAT_TOOLS_JIRA_URL` - Base URL for Jira instance
+- `OLLAMA_CHAT_TOOLS_JIRA_USER` - Username for Jira authentication
+- `OLLAMA_CHAT_TOOLS_JIRA_API_TOKEN` - API token for Jira authentication
+- `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_URL` - Base URL for ComfyUI server
+- `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_WORKFLOW` - ComfyUI workflow as JSON string
+- `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_PROMPT_NODE_ID` - Prompt node ID
+- `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_FILENAME_PREFIX_NODE_ID` - Filename prefix node ID
+- `OLLAMA_CHAT_TOOLS_PIRATEWEATHER_API_KEY` - Pirate Weather API key
+
+#### System & Infrastructure
+- `XDG_CONFIG_HOME` - XDG Configuration home directory
+- `XDG_CACHE_HOME` - XDG Cache home directory
+- `XDG_STATE_HOME` - XDG State home directory
+- `PAGER` - Default pager for output
+- `EDITOR` - Default text editor
+- `BROWSER` - Default web browser
+- `DIFF_TOOL` - Tool for diff operations (default: `vimdiff`)
 - `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES` - Custom ANSI styles for Markdown formatting
 - `KRAMDOWN_ANSI_STYLES` - Fallback ANSI styles configuration
-- `OLLAMA_CHAT_SYSTEM` - System prompt file or content (default: `null`)
-- `OLLAMA_CHAT_COLLECTION` - Collection name for embeddings
-- `PAGER` - Default pager for output
-- `REDIS_URL` - Redis connection URL for caching
-- `REDIS_EXPIRING_URL` - Redis connection URL for expiring data
-- `OLLAMA_CHAT_HISTORY` - Chat history filename (default: `$XDG_CACHE_HOME/ollama_chat/history.json`)
-- `OLLAMA_CHAT_DEBUG` - Debug mode toggle (1 = enabled)
-- `DIFF_TOOL` - Tool for diff operations (default: `vimdiff`)
-- `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL
+- `OLLAMA_REDIS_URL` - Redis connection URL for documents
+- `OLLAMA_REDIS_EXPIRING_URL` - Redis connection URL for caching
 
 Example usage for `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES`:
 
@@ -74,40 +99,46 @@ Usage: ollama_chat [OPTIONS]
 
 The base URL can be either set by the environment variable `OLLAMA_URL` or it
 is derived from the environment variable `OLLAMA_HOST`. The default model to
-connect can be configured in the environment variable `OLLAMA_MODEL`.
+connect can be configured in the environment variable `OLLAMA_CHAT_MODEL`.
 
 The YAML config file is stored in `$XDG_CONFIG_HOME/ollama_chat/config.yml` and
 you can use it for more complex settings.
 
-### Example: Setting a system prompt
+### Example: Using a Persona
 
-Some settings can be passed as arguments as well, e. g. if you want to choose a
-specific system prompt:
+You can import a persona profile from a Markdown file and load it into the
+current session. The persona's content is then interpolated into the system
+prompt (which defaults to `"%{persona}"`) as `%{persona}`. You can set your own
+system prompts and interpolate the persona like this:
 
 ```
-$ ollama_chat -s sherlock.txt
-Model with architecture llama found.
-Connecting to llama3.1@http://ollama.local.net:11434 now…
-Configured system prompt is:
-You are Sherlock Holmes and the user is your new client, Dr. Watson is also in
-the room. You will talk and act in the typical manner of Sherlock Holmes do and
-try to solve the user's case using logic and deduction.
+You are a helpful assistant.
 
+%{persona}
+```
+
+The following interaction demonstrates how to import a persona file, activate
+it, and start the conversation:
+
+```
+$ ollama_chat
+Connecting to llama3.1@http://localhost:11434 now…
 Type /help to display the chat help.
+📨 user:
+/persona import config/sherlock.md
+# (Prompts for name: "sherlock")
+Persona 'sherlock' imported successfully.
+📨 user:
+/persona
+# (Select 'sherlock' from the list to be impersonated by the assistant)
 📨 user:
 Good morning.
 📨 assistant:
 Ah, good morning, my dear fellow! It is a pleasure to make your acquaintance. I
 am Sherlock Holmes, the renowned detective, and this is my trusty sidekick, Dr.
-Watson. Please, have a seat and tell us about the nature of your visit. What
+Watson. Please, have a seat, and tell us about the nature of your visit. What
 seems to be the problem that has brought you to our humble abode at 221B Baker
 Street?
-
-(Watson nods in encouragement as he takes notes)
-
-Now, pray tell, what is it that puzzles you, my dear client? A missing item,
-perhaps? Or a mysterious occurrence that requires clarification? The game, as
-they say, is afoot!
 ```
 
 ### Example: Using a multimodal model
@@ -147,113 +178,6 @@ The simplicity of the scene allows the viewer to concentrate on the main
 subject - the young, blue-eyed cat.
 ```
 
-### Chat commands
-
-The following commands can be given inside the chat, if prefixed by a `/`:
-
-```
-╭──────────────────┬────────────────────┬──────────────────┬──────────────────────────────────────────────────────────╮
-│ CMD              │ SUBCMD             │ OPTS             │ HELP                                                     │
-╞══════════════════╪════════════════════╪══════════════════╪══════════════════════════════════════════════════════════╡
-│ /copy            │                    │                  │ to copy last response to clipboard                       │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /paste           │                    │                  │ to paste content from the clipboard                      │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /config          │ edit               │                  │ output/edit/reload configuration                         │
-│                  │ reload             │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /document_policy │                    │                  │ pick a scan policy for documents                         │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /toggle          │ embedding﹡        │                  │ toggle switch                                            │
-│                  │ location﹡         │                  │                                                          │
-│                  │ markdown﹡         │                  │                                                          │
-│                  │ runtime_info﹡     │                  │                                                          │
-│                  │ stream﹡           │                  │                                                          │
-│                  │ think_loud﹡       │                  │                                                          │
-│                  │ voice﹡            │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /model           │                    │                  │ change the model                                         │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /system          │ change             │                  │ change/show system prompt                                │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /think           │                    │                  │ choose ollama think mode setting for models              │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /tools           │ disable            │                  │ list enabled, enable/disable tools,                      │
-│                  │ enable             │                  │ support on/off                                           │
-│                  │ off                │                  │                                                          │
-│                  │ on                 │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /voice           │                    │                  │ change the voice                                         │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /list            │                    │ [n=1]            │ list the last n / all conversation exchanges             │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /last            │                    │ [n=1]            │ show the last n / 1 system/assistant message             │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /drop            │                    │ [n=1]            │ drop the last n exchanges, defaults to 1                 │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /clear           │ all﹡              │                  │ clear these records                                      │
-│                  │ history﹡          │                  │                                                          │
-│                  │ links﹡            │                  │                                                          │
-│                  │ messages﹡         │                  │                                                          │
-│                  │ tags﹡             │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /links           │ clear﹡            │                  │ display (or clear) links used in the chat                │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /revise          │ edit﹡             │                  │ revise the last message (and/or edit the query)          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /prompt          │                    │                  │ prefill user prompt with preset prompts                  │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /change_response │                    │                  │ edit the last response in EDITOR                         │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /save            │                    │ path             │ store conversation messages                              │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /load            │                    │ path             │ load conversation messages                               │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /collection      │ change             │                  │ display, clear (current), change, list, or rename        │
-│                  │ clear              │                  │ collection                                               │
-│                  │ list               │                  │                                                          │
-│                  │ rename             │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /persona         │ add                │                  │ manage and load/play personae for roleplay               │
-│                  │ delete             │                  │                                                          │
-│                  │ edit               │                  │                                                          │
-│                  │ file               │                  │                                                          │
-│                  │ info               │                  │                                                          │
-│                  │ list               │                  │                                                          │
-│                  │ load               │                  │                                                          │
-│                  │ play               │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /compose         │                    │                  │ compose content using an EDITOR                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /web             │                    │ [number=1] query │ query web for so many results                            │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /input           │ context            │ [-w|-a] [arg…]   │ Read content from files, URLs, or glob patterns          │
-│                  │ context pattern    │                  │ and optionally transform it.                             │
-│                  │ embedding          │                  │ Use subcommands: context, embedding, path, summary,      │
-│                  │ embedding pattern  │                  │   import (the default).                                  │
-│                  │ path               │                  │ Use pattern mode for local files.                        │
-│                  │ path pattern       │                  │ Options:                                                 │
-│                  │ pattern            │                  │   -w <words> (summary subcommand only, default 100)      │
-│                  │ summary            │                  │   -a (pattern mode only, include all files for patterns) │
-│                  │ summary pattern    │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /pipe            │                    │ path             │ write last response to command's stdin                   │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /vim             │                    │                  │ insert the last message into a vim (server)              │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /output          │                    │ path             │ save last response to path                               │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /reconnect       │                    │                  │ reconnect to current ollama server                       │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /quit            │                    │                  │ quit/exit the application                                │
-│ /exit            │                    │                  │                                                          │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /info            │                    │                  │ show information for current session                     │
-├──────────────────┼────────────────────┼──────────────────┼──────────────────────────────────────────────────────────┤
-│ /help            │ me                 │                  │ to view this help (me=interactive ai help)               │
-╰──────────────────┴────────────────────┴──────────────────┴──────────────────────────────────────────────────────────╯
-```
-
 ### Using `ollama_chat_send` to send input to a running `ollama_chat`
 
 You can do this from the shell by pasting into the `ollama_chat_send`
@@ -277,15 +201,18 @@ endfunction
 
 #### Advanced Parameters for `ollama_chat_send`
 
-The `ollama_chat_send` command now supports additional parameters to enhance functionality:
+The `ollama_chat_send` command now supports additional parameters to enhance
+functionality:
 
-- **Terminal Input (`-t`)**: Sends input as terminal commands, enabling special commands like `/input`.
+- **Terminal Input (`-t`)**: Sends input as terminal commands, enabling special
+  commands like `/input`.
 
   ```bash
   $ echo "/input https://example.com/some-content" | ollama_chat_send -t
   ```
 
-- **Wait for Response (`-r`)**: Enables two-way communication by waiting for and returning the server's response.
+- **Wait for Response (`-r`)**: Enables two-way communication by waiting for
+  and returning the server's response.
 
   ```bash
   $ response=$(echo "Tell me a joke." | ollama_chat_send -r)
@@ -301,8 +228,8 @@ The `ollama_chat_send` command now supports additional parameters to enhance fun
   ```
 
 - **Working Directory (`-d`)**: Specifies the working directory used to derive
-  the Unix socket file path. When the ollama chat configuration is set to use a
-  working directory dependent socket (via `working_dir_dependent_socket: true`),
+  the Unix socket file path. When the ollama chat configuration is set to use
+  a working directory dependent socket (via `working_dir_dependent_socket: true`),
   this option determines the base path for socket naming. If not specified, the
   current working directory is assumed.
 
@@ -318,6 +245,21 @@ The `ollama_chat_send` command now supports additional parameters to enhance fun
 
 These parameters provide greater flexibility in how you interact with
 `ollama_chat`, whether from the command line or integrated tools like `vim`.
+
+## Available Tools
+
+The assistant can interact with the system using a variety of tools to gather
+context, manipulate files, and retrieve external information.
+
+| Category | Tools | Description |
+| :--- | :--- | :--- |
+| **Filesystem** | `read_file`, `write_file`, `patch_file`, `directory_structure`, `execute_grep` | Read, write, and search files within allowed directories. |
+| **Ruby/Dev** | `resolve_tag`, `execute_ri`, `gem_path_lookup`, `run_tests` | Introspect Ruby code, check documentation, and run test suites. |
+| **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife` | Access the internet, fetch specific URLs, and look up technical standards. |
+| **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi` | General utility functions for time, location, and simple calculations. |
+| **Editor/Clip** | `copy_to_clipboard`, `paste_from_clipboard`, `paste_into_editor`, `open_file_in_editor` | Bridge the gap between the chat and the system clipboard or editor. |
+| **Knowledge** | `retrieve_document_snippets` | Search through project-specific documentation collections. |
+| **Multimodal** | `generate_image` | Generate images via a local ComfyUI server. |
 
 ## Download
 
