@@ -102,6 +102,7 @@ prompts:
   session_title: "Create a title with a length of **less than %{length}** characters for this conversation. Output only the title and nothing else:\n\n%{content}"
 system_prompts:
   default: <%= OC::OLLAMA::CHAT::SYSTEM || '%{persona}'.inspect %>
+  persona: '%{persona}'
   assistant: You are a helpful assistant.
 voice:
   enabled: false
