@@ -24,6 +24,8 @@ describe OllamaChat::Tools::ReadFile do
         name: 'read_file',
         arguments: double(
           path: asset('example.rb'),
+          start_line: nil,
+          end_line: nil,
         )
       )
     )
@@ -38,6 +40,57 @@ describe OllamaChat::Tools::ReadFile do
     EOT
   end
 
+  it 'can extract range when start_line is provided and end_line is nil' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.rb'),
+          start_line: 1,
+          end_line: nil,
+        )
+      )
+    )
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.content).to eq "puts \"Hello World!\"\n"
+  end
+
+  it 'can extract range when start_line is nil and end_line is provided' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.rb'),
+          start_line: nil,
+          end_line: 1,
+        )
+      )
+    )
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.content).to eq "puts \"Hello World!\"\n"
+  end
+
+  it 'returns empty content when end_line is less than start_line' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.rb'),
+          start_line: 2,
+          end_line: 1,
+        )
+      )
+    )
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.content).to eq ''
+  end
+
   it 'can handle execution errors gracefully when path is not allowed' do
     tool_call = double(
       'ToolCall',
@@ -45,6 +98,8 @@ describe OllamaChat::Tools::ReadFile do
         name: 'read_file',
         arguments: double(
           path: '/etc/passwd',
+          start_line: nil,
+          end_line: nil,
         )
       )
     )
@@ -66,6 +121,8 @@ describe OllamaChat::Tools::ReadFile do
         name: 'read_file',
         arguments: double(
           path: asset('not-there.txt'),
+          start_line: nil,
+          end_line: nil,
         )
       )
     )

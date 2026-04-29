@@ -16,8 +16,7 @@ class OllamaChat::Tools::ReadFile
   # Creates and returns a tool definition for reading file content.
   #
   # This method constructs the function signature that describes what the tool
-  # does, its parameters, and required fields. The tool expects a path
-  # parameter for the file to be read.
+  # does, its parameters, and required fields.
   #
   # @return [Ollama::Tool] a tool definition for reading file content
   def tool
@@ -28,7 +27,7 @@ class OllamaChat::Tools::ReadFile
         description: <<~EOT,
           File reader – Returns raw text from path if it’s within allowed
           directories. No side effects; useful for inspecting config or source
-          files.
+          files. You can optionally specify a line range to read.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -36,6 +35,14 @@ class OllamaChat::Tools::ReadFile
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: 'The path to the file to read (must be within allowed directories)'
+            ),
+            start_line: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'The line number to start reading from (1-indexed)'
+            ),
+            end_line: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'The line number to stop reading at (1-indexed)'
             )
           },
           required: %w[path]
@@ -61,18 +68,58 @@ class OllamaChat::Tools::ReadFile
     config = opts[:chat].config
     args   = tool_call.function.arguments
 
-    path = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
+    start_line = args.start_line.full?
+    end_line   = args.end_line.full?
+
+    path    = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
+    content = extract_range(path.read, start_line, end_line)
 
     {
       path:,
-      content: File.read(path),
+      content:,
+      start_line:,
+      end_line:,
     }.to_json
   rescue => e
     {
       error:   e.class,
       path:    e.ask_and_send(:path),
-      message: "Failed to read file: #{e.message}"
+      message: "Failed to read file: #{e.message}",
+      start_line:,
+      end_line:,
     }.to_json
+  end
+
+  private
+
+  # Extracts a specific range of lines from the provided string content.
+  #
+  # @param content [String] the source text to extract lines from.
+  # @param start_line [Integer, nil] the 1-indexed starting line number.
+  #   If nil, defaults to the first line.
+  # @param end_line [Integer, nil] the 1-indexed ending line number.
+  #   If nil, extracts until the end of the content.
+  # @return [String] the extracted substring containing the requested line range.
+  #   Returns an empty string if `end_line` is less than `start_line`.
+  def extract_range(content, start_line, end_line)
+    case
+    when start_line.nil? && end_line.nil?
+      content
+    when start_line.nil?
+      extract_range(content, 1, end_line)
+    when end_line.nil?
+      extract_range(content, start_line, Float::INFINITY)
+    else
+      new_content = +''
+      end_line < start_line and return new_content
+      content.each_line.each_with_index do |line, index|
+        line_number = index + 1
+        line_number < start_line and next
+        new_content << line
+        line_number >= end_line and break
+      end
+      new_content
+    end
   end
 
   self
