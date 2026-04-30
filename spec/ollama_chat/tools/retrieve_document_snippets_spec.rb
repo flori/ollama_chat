@@ -20,7 +20,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
         name: 'retrieve_document_snippets',
         arguments: double(
           query: 'Ruby array',
-          # other attributes are irrelevant for this tool
+          collection: nil,
         )
       )
     )
@@ -41,6 +41,31 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
       "Consider these snippets generated from retrieval when formulating your response!"
     )
     expect(json.ollama_chat_retrieval_snippets.size).to eq 1
+  end
+
+  it 'switches to the specified collection and restores the original' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'retrieve_document_snippets',
+        arguments: double(
+          query: 'Hobbits',
+          collection: 'tolkien'
+        )
+      )
+    )
+
+    mock_docs = double('Documents')
+    allow(chat).to receive(:documents).and_return(mock_docs)
+
+    expect(mock_docs).to receive(:collection).and_return('default_collection')
+    expect(mock_docs).to receive(:collection=).with('tolkien').ordered
+    expect(mock_docs).to receive(:collection=).with('default_collection').ordered
+
+    tool = described_class.new
+    expect(tool).to receive(:find_document_records).and_return([])
+
+    tool.execute(tool_call, chat:)
   end
 
   it 'returns an error when query is empty' do

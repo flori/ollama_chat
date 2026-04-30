@@ -43,6 +43,10 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
             query: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: 'The query or text to search for in the document collection.'
+            ),
+            collection: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'The document collection to search in for the query or text.'
             )
           },
           required: ['query']
@@ -63,10 +67,17 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
 
     chat.embedding.on? or raise OllamaChat::OllamaChatError, 'Embedding disabled'
 
-    query = tool_call.function.arguments.query.to_s
+    args  = tool_call.function.arguments
 
+    query = args.query.to_s
     query.blank? and raise OllamaChat::OllamaChatError, 'Empty query'
 
+    old_collection = nil
+
+    if collection = args.collection.full?
+      old_collection            = chat.documents.collection
+      chat.documents.collection = collection
+    end
 
     records = find_document_records(chat, query)
 
@@ -91,6 +102,8 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
     }.to_json
   rescue => e
     { error: e.class.name, message: e.message }.to_json
+  ensure
+    old_collection and chat.documents.collection = old_collection
   end
 
   private
