@@ -48,7 +48,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] current_collection
   #   @return [String, nil] The name of the currently active document collection.
   #
-  # @!attribute [v] default_persona_id
+  # @!attribute [v] default_persona_name
   #   @return [String, nil] The identifier of the persona set as default for this session.
   #
   # @!attribute [v] current_system_prompt
@@ -128,7 +128,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       name:                  "New Session #{Tins::Token.new}",
       current_model:         ,
       current_collection:    chat.initial_collection,
-      default_persona_id:    chat.initial_persona_prompt_name,
+      default_persona_name:  chat.initial_persona_name,
       current_system_prompt: chat.initial_system_prompt,
       tools_enabled:         chat.config.tools.enabled,
       tools_default_enabled: ,

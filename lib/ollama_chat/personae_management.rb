@@ -4,12 +4,12 @@
 # creating, reading, updating, and deleting persona definitions stored as
 # Markdown files in the personae directory.
 module OllamaChat::PersonaeManagement
-  # The initial_persona_prompt_name method retrieves the initial persona for
+  # The initial_persona_name method retrieves the initial persona for
   # the chat session.
   #
   # @return [ String, nil ] the persona name or nil if not set
-  def initial_persona_prompt_name
-    session&.default_persona_id
+  def initial_persona_name
+    session&.default_persona_name
   end
 
   # Retrieves the formatted roleplay prompt for the current default persona.
@@ -61,9 +61,9 @@ module OllamaChat::PersonaeManagement
   def set_default_persona_name(persona_name)
     if persona_name.present? && persona_name != :none
       @default_persona_name = Pathname.new(persona_name).basename.sub_ext('').to_path
-      @session.update(default_persona_id: default_persona_name)
+      @session.update(default_persona_name: default_persona_name)
     else
-      @session.update(default_persona_id: nil)
+      @session.update(default_persona_name: nil)
       @default_persona_name = nil
     end
     messages.set_system_prompt(session&.current_system_prompt.full?)
@@ -113,7 +113,7 @@ module OllamaChat::PersonaeManagement
   #   or nil if no persona is set.
   def setup_persona_from_session
     default_persona and return
-    if persona = initial_persona_prompt_name and
+    if persona = initial_persona_name and
       persona_pathname = personae_directory + (persona + '.md') and
       persona_pathname.exist?
     then

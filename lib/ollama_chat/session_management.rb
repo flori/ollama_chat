@@ -330,7 +330,7 @@ module OllamaChat::SessionManagement
         messages.read_conversation_jsonl(session.messages.to_s)
         session.current_collection.full? { set_current_collection(_1) }
         session.current_model.full? { use_model(_1) }
-        session.default_persona_id.full? { set_default_persona_name(_1) }
+        session.default_persona_name.full? { set_default_persona_name(_1) }
         session.current_system_prompt.full? { set_current_system_prompt(_1) }
         session.working_directory = Dir.pwd
         if session.lock?

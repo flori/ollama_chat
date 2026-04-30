@@ -40,7 +40,7 @@ module OllamaChat::Database::Models::Migrations
       String :name, null: false
       String :current_model
       String :current_collection
-      String :default_persona_id
+      String :default_persona_name
       String :current_system_prompt
       Boolean :tools_enabled, null: false
       Text :tools_default_enabled
