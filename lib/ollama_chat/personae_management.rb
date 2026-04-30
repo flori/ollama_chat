@@ -79,7 +79,7 @@ module OllamaChat::PersonaeManagement
   # @return [String, nil] The name of the persona that was set as default,
   #   or nil if the selection was cancelled or no persona was chosen.
   def set_default_persona
-    if persona = choose_persona
+    if persona = choose_persona(none: true)
       set_default_persona_name(persona)
     end
   end
@@ -330,14 +330,15 @@ module OllamaChat::PersonaeManagement
   #
   # @param chosen [Set, nil] Optional set of already selected personas
   # @return [String, Symbol, nil] The selected persona name, :none, or nil if user exits
-  def choose_persona(chosen: nil)
+  def choose_persona(chosen: nil, none: false)
     personae_list = available_personae.
       reject { chosen&.member?(_1) }
     if personae_list.empty?
       STDERR.puts "No personae defined."
       return
     end
-    personae_list.unshift('[NONE]').unshift('[EXIT]')
+    personae_list.unshift('[NONE]') if none
+    personae_list.unshift('[EXIT]')
     case chosen = OllamaChat::Utils::Chooser.choose(personae_list)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
@@ -380,11 +381,10 @@ module OllamaChat::PersonaeManagement
     result = {}
 
     personae.each do |persona|
-      persona  = persona_name_to_pathname(persona)
-      pathname = personae_directory + persona
-      pathname.exist? or next
-      _, profile = load_persona_file persona
-      result[persona.sub_ext('')] = {
+      pathname = persona_name_to_pathname(persona)
+      pathname, profile = load_persona_file(persona)
+      profile or next
+      result[persona] = {
         pathname:,
         profile: ,
       }
