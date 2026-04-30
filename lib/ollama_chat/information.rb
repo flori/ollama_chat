@@ -250,6 +250,13 @@ module OllamaChat::Information
     @server_url ||= ollama.base_url
   end
 
+  # Retrieves the name of the chat user.
+  #
+  # @return [String] the chat user's name or 'n/a' if not set
+  def user
+    OC::OLLAMA::CHAT::USER || 'n/a'
+  end
+
   # The runtime_information_values method compiles a set of key runtime details
   # such as languages, location description, default persona name, current git
   # branch and remote origin, client agent string, current directory, terminal
@@ -259,7 +266,7 @@ module OllamaChat::Information
   def runtime_information_values
     now = Time.now
     {
-      user:                 OC::OLLAMA::CHAT::USER || 'n/a',
+      user:                 ,
       languages:            config.languages * ', ',
       time:                 now.iso8601,
       weekday:              now.strftime('%A'),
