@@ -17,8 +17,7 @@ module OllamaChat::PersonaeManagement
   # @return [String, nil] The formatted persona profile or nil if none set
   def default_persona_profile
     if persona = default_persona and persona.exist?
-      persona_profile = persona.read
-      play_persona(persona:, persona_profile:)
+      play_persona(persona)
     end
   end
 
@@ -413,10 +412,10 @@ module OllamaChat::PersonaeManagement
   # @param persona [String, Pathname] The persona name or path to include in the prompt
   # @param persona_profile [String] The persona profile content
   # @return [String] Formatted roleplay prompt
-  def play_persona(persona:, persona_profile:)
-    persona_name = persona.basename.sub_ext('')
-    "Roleplay as persona %{persona_name} (no nead to read the file) loaded from %{persona}\n\n%{persona_profile}" % {
-      persona_name:, persona:, persona_profile:
+  def play_persona(persona)
+    pathname, profile = load_persona_file(persona)
+    "Roleplay as persona %{persona} (no nead to read the file) loaded from %{pathname}\n\n%{profile}" % {
+      persona:, pathname:, profile:
     }
   end
 
