@@ -414,6 +414,7 @@ module OllamaChat::PersonaeManagement
   # @return [String] Formatted roleplay prompt
   def play_persona(persona)
     pathname, profile = load_persona_file(persona)
+    profile = profile % { user: }
     "Roleplay as persona %{persona} (no nead to read the file) loaded from %{pathname}\n\n%{profile}" % {
       persona:, pathname:, profile:
     }
