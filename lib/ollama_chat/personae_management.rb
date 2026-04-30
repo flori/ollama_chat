@@ -18,7 +18,7 @@ module OllamaChat::PersonaeManagement
   def default_persona_profile
     if persona = default_persona and persona.exist?
       persona_profile = persona.read
-      play_persona_prompt(persona:, persona_profile:)
+      play_persona(persona:, persona_profile:)
     end
   end
 
@@ -130,7 +130,7 @@ module OllamaChat::PersonaeManagement
   #
   # @return [Array<String>] Sorted array of persona filenames without extension
   def available_personae
-    personae_directory.glob('*.md').map { pathname_to_persona_prompt_name(_1) }
+    personae_directory.glob('*.md').map { pathname_to_persona_name(_1) }
   end
 
   # Helper to wrap a persona name with its favourite status for the UI.
@@ -203,7 +203,7 @@ module OllamaChat::PersonaeManagement
   #   or nil if persona was not selected or deletion was cancelled
   def delete_persona
     if persona = choose_persona
-      pathname        = persona_prompt_name_to_pathname(persona)
+      pathname        = persona_name_to_pathname(persona)
       backup_pathname = persona_backup_pathname(persona)
       if pathname.exist?
         STDOUT.puts "Deleting '#{bold{persona}}'..."
@@ -234,7 +234,7 @@ module OllamaChat::PersonaeManagement
   # @return [String, nil] persona name or nil if cancelled
   def edit_persona
     if persona = choose_persona
-      pathname = persona_prompt_name_to_pathname(persona)
+      pathname = persona_name_to_pathname(persona)
       old_content = pathname.read
       if edit_file(pathname)
         changed = pathname.read != old_content
@@ -255,7 +255,7 @@ module OllamaChat::PersonaeManagement
   # any modifications are made to the original file.
   def backup_persona
     if persona = choose_persona
-      pathname        = persona_prompt_name_to_pathname(persona)
+      pathname        = persona_name_to_pathname(persona)
       old_content     = pathname.read
       backup_pathname = persona_backup_pathname(persona)
       backup_pathname.write(old_content)
@@ -302,7 +302,7 @@ module OllamaChat::PersonaeManagement
       table.headings = %w[ NAME SIZE #TOK ].map { |header| bold { header } }
 
       personae.map do |persona_name|
-        pathname = persona_prompt_name_to_pathname(persona_name)
+        pathname = persona_name_to_pathname(persona_name)
         pathname.exist? or next
         [ pathname, pathname.size ]
       end.compact.sort_by(&:last).reverse_each do |pathname, size_bytes|
@@ -380,12 +380,13 @@ module OllamaChat::PersonaeManagement
     result = {}
 
     personae.each do |persona|
-      persona = Pathname.new(persona).sub_ext('.md')
+      persona  = persona_name_to_pathname(persona)
       pathname = personae_directory + persona
       pathname.exist? or next
+      _, profile = load_persona_file persona
       result[persona.sub_ext('')] = {
-        pathname: ,
-        profile:  pathname.read,
+        pathname:,
+        profile: ,
       }
     end
 
@@ -399,7 +400,7 @@ module OllamaChat::PersonaeManagement
   # @return [Array<Pathname, String>] Returns the pathname and its content as a
   #   string
   def load_persona_file(persona)
-    pathname = persona_prompt_name_to_pathname(persona)
+    pathname = persona_name_to_pathname(persona)
     if pathname.exist?
       return pathname, pathname.read
     end
@@ -412,7 +413,7 @@ module OllamaChat::PersonaeManagement
   # @param persona [String, Pathname] The persona name or path to include in the prompt
   # @param persona_profile [String] The persona profile content
   # @return [String] Formatted roleplay prompt
-  def play_persona_prompt(persona:, persona_profile:)
+  def play_persona(persona:, persona_profile:)
     persona_name = persona.basename.sub_ext('')
     "Roleplay as persona %{persona_name} (no nead to read the file) loaded from %{persona}\n\n%{persona_profile}" % {
       persona_name:, persona:, persona_profile:
@@ -421,17 +422,17 @@ module OllamaChat::PersonaeManagement
 
   # Converts a persona prompt name to its full filesystem pathname.
   #
-  # @param persona_prompt_name [String] The name of the persona (without extension)
+  # @param persona_name [String] The name of the persona (without extension)
   # @return [Pathname] The full path to the .md persona file
-  def persona_prompt_name_to_pathname(persona_prompt_name)
-    personae_directory.join(persona_prompt_name).sub_ext('.md')
+  def persona_name_to_pathname(persona_name)
+    personae_directory.join(persona_name).sub_ext('.md')
   end
 
   # Converts a persona pathname to its prompt name.
   #
   # @param pathname [Pathname, String] The path to the persona file
   # @return [String] The persona name without extension
-  def pathname_to_persona_prompt_name(pathname)
+  def pathname_to_persona_name(pathname)
     pathname.basename.sub_ext('').to_s
   end
 
@@ -440,20 +441,20 @@ module OllamaChat::PersonaeManagement
   # @param action [String] The action being performed (e.g., 'to import')
   # @return [String, nil] The validated persona name or nil if cancelled
   def determine_valid_new_name_for_persona(action)
-    persona_prompt_name = nil
+    persona_name = nil
     loop do
-      persona_prompt_name = ask?(prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: ")
-      if persona_prompt_name.nil?
+      persona_name = ask?(prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: ")
+      if persona_name.nil?
         STDOUT.puts "Canceled."
         return nil
       end
-      if persona_prompt_name_to_pathname(persona_prompt_name).exist?
-        STDOUT.puts "Persona prompt named #{bold{persona_prompt_name}} already exists."
+      if persona_name_to_pathname(persona_name).exist?
+        STDOUT.puts "Persona prompt named #{bold{persona_name}} already exists."
       else
         break
       end
     end
-    persona_prompt_name
+    persona_name
   end
 
   # Interactively duplicates an existing persona profile to a new name.
@@ -466,11 +467,11 @@ module OllamaChat::PersonaeManagement
   #
   # @return [self, nil] returns self on success, or nil if the operation was
   #   cancelled during persona selection or name entry.
-  def duplicate_persona_prompt
+  def duplicate_persona
     persona          = choose_persona or return
-    pathname         = persona_prompt_name_to_pathname(persona)
+    pathname         = persona_name_to_pathname(persona)
     new_persona_name = determine_valid_new_name_for_persona('to ducplicate as') or return
-    new_pathname     = persona_prompt_name_to_pathname(new_persona_name)
+    new_pathname     = persona_name_to_pathname(new_persona_name)
     new_pathname.write(pathname.read)
     self
   end
@@ -479,12 +480,12 @@ module OllamaChat::PersonaeManagement
   #
   # @param pathname [Pathname, String] The path to the file to import
   # @return [String, nil] The name of the imported persona or nil if cancelled
-  def import_persona_prompt(pathname)
-    content                 = pathname.read
-    persona_prompt_name     = determine_valid_new_name_for_persona('to import') or return
-    persona_prompt_pathname = persona_prompt_name_to_pathname(persona_prompt_name)
-    persona_prompt_pathname.write(content)
-    persona_prompt_name
+  def import_persona(pathname)
+    content          = pathname.read
+    persona_name     = determine_valid_new_name_for_persona('to import') or return
+    persona_pathname = persona_name_to_pathname(persona_name)
+    persona_pathname.write(content)
+    persona_name
   end
 
   # Interactively exports a persona profile to a specified file.
@@ -498,9 +499,9 @@ module OllamaChat::PersonaeManagement
   #
   # @return [self, nil] returns self if the export was successful, or nil if
   #   the process was cancelled during persona selection or filename entry.
-  def export_persona_prompt
+  def export_persona
     persona  = choose_persona or return
-    pathname = persona_prompt_name_to_pathname(persona)
+    pathname = persona_name_to_pathname(persona)
     content  = pathname.read
     STDOUT.puts kramdown_ansi_parse(
       content + "\n---"

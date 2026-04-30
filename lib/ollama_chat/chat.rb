@@ -719,16 +719,16 @@ class OllamaChat::Chat
       backup_persona
       :next
     when 'duplicate'
-      duplicate_persona_prompt
+      duplicate_persona
       :next
     when 'import'
       filename = choose_filename('**/*.md')
-      if filename and name = import_persona_prompt(filename)
+      if filename and name = import_persona(filename)
         STDOUT.puts "Imported person as #{name.inspect}."
       end
       :next
     when 'export'
-      export_persona_prompt
+      export_persona
       :next
     when 'info'
       info_persona
