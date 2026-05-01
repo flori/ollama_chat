@@ -58,6 +58,7 @@ prompts:
     - Voice output is %{voice}. Speak naturally and short if voice
       output is enabled.
     - These tools have access to these allowed paths: %{tool_paths_allowed}
+    - Search in these collections with `retrieve_document_snippets`: %{collections}
   help: |
     Wait for the user to ask questions about the usage of chat commands. Just
     list the command names separated by spaces (no descriptions yet) and
@@ -130,6 +131,7 @@ embedding:
   batch_size: 20
   database_filename: null # ':memory:'
   collection: <%= OC::OLLAMA::CHAT::COLLECTION %>
+  collection_descriptions: {}
   found_texts_size: 16384
   found_texts_count: 10
   splitter:

@@ -282,6 +282,7 @@ module OllamaChat::Information
       voice:                voice.on? ? 'enabled' : 'disabled',
       markdown:             markdown.on? ? 'enabled' : 'disabled',
       tool_paths_allowed:   JSON.pretty_generate(tool_paths_allowed),
+      collections:          JSON.pretty_generate(config.embedding.collection_descriptions?),
     }
   end
 
