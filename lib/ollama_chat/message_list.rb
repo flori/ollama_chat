@@ -304,7 +304,11 @@ class OllamaChat::MessageList
       system = @chat.system_prompt(system_name).to_s
     end
     @messages.reject! { |msg| msg.role == 'system' }
-    if new_system_prompt = system.full? { _1.to_s % { persona: @chat.default_persona_profile } }
+    templates_values = {
+      persona:      @chat.default_persona_profile,
+      runtime_info: @chat.static_runtime_information,
+    }
+    if new_system_prompt = system.full? { _1.to_s % templates_values }
       @system = new_system_prompt
       @messages.unshift(
         OllamaChat::Message.new(role: 'system', content: self.system)

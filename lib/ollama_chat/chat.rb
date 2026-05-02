@@ -1087,7 +1087,7 @@ class OllamaChat::Chat
 
       runtime_info.on? && content and
         content << ?\n << {
-          ollama_chat_runtime_information: runtime_information
+          ollama_chat_runtime_information: dynamic_runtime_information
         }.to_json
 
       messages << OllamaChat::Message.new(role: 'user', content:, images: @images.dup)

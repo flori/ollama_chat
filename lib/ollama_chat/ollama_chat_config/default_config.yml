@@ -35,19 +35,22 @@ prompts:
 
     %{results}
   location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
-  runtime_info: |
+  static_runtime_info: |
+    - Name of the chat user: %{user}
+    - Languages the user prefers: %{languages}
+    - Location: %{location}
+    - Current directory is "%{current_directory}"
+    - Client is %{client}.
+    - These tools have access to these allowed paths: %{tool_paths_allowed}
+    - Search in these collections with `retrieve_document_snippets`: %{collections}
+  dynamic_runtime_info: |
     There is usually no reason to mention this information to the user unless
     asked about it.
 
-    - Name of the chat user: %{user}
-    - Languages the user prefers: %{languages}
     - Current time is %{time}
-    - Location: %{location}
-    - Current directory is "%{current_directory}"
     - **Git**:
       - Current branch is %{git_current_branch}
       - Current remote origin is %{git_remote_origin}
-    - Client is %{client}.
     - **Terminal**:
       - The height is %{terminal_rows} rows.
       - The width is %{terminal_cols} columns. **Always** aim to stay within
@@ -57,8 +60,6 @@ prompts:
       responses if it is disabled.
     - Voice output is %{voice}. Speak naturally and short if voice
       output is enabled.
-    - These tools have access to these allowed paths: %{tool_paths_allowed}
-    - Search in these collections with `retrieve_document_snippets`: %{collections}
   help: |
     Wait for the user to ask questions about the usage of chat commands. Just
     list the command names separated by spaces (no descriptions yet) and
@@ -102,8 +103,11 @@ prompts:
   session_summarize: "Summarize this %{role} message in one %{unit}: %{content}"
   session_title: "Create a title with a length of **less than %{length}** characters for this conversation. Output only the title and nothing else:\n\n%{content}"
 system_prompts:
-  default: <%= OC::OLLAMA::CHAT::SYSTEM || '%{persona}'.inspect %>
-  persona: '%{persona}'
+  default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
+  persona: |
+    %{persona}
+
+    %{runtime_info}
   assistant: You are a helpful assistant.
 voice:
   enabled: false

@@ -132,15 +132,18 @@ module OllamaChat::Information
     output.print '  '; location.show(output:)
   end
 
-  # Displays the current runtime environment details, such as git state,
-  # terminal dimensions, and tool path permissions.
+  # Displays the current runtime environment details, split into static
+  # (session-level) and dynamic (real-time) information.
   #
   # @param output [IO] the output stream to write the information to, defaults to STDOUT
   def info_runtime(output: STDOUT)
     output.puts "🏃 Runtime Information:"
     output.print '  '; runtime_info.show(output:)
-    output.puts 'Values:'
-    output.puts runtime_information_values.stringify_keys_recursive.to_yaml.
+    output.puts 'Static:'
+    output.puts static_runtime_information_values.stringify_keys_recursive.to_yaml.
+      sub(/\A---\s*\n/, '').gsub(/^/, '  ')
+    output.puts 'Dynamic:'
+    output.puts dynamic_runtime_information_values.stringify_keys_recursive.to_yaml.
       sub(/\A---\s*\n/, '').gsub(/^/, '  ')
   end
 
@@ -257,44 +260,65 @@ module OllamaChat::Information
     OC::OLLAMA::CHAT::USER || 'n/a'
   end
 
-  # The runtime_information_values method compiles a set of key runtime details
-  # such as languages, location description, default persona name, current git
-  # branch and remote origin, client agent string, current directory, terminal
-  # dimensions, timestamp, voice and markdown status, and allowed tool paths.
+  # Generates a hash containing static runtime information.
   #
-  # @return [Hash] a hash containing runtime information values.
-  def runtime_information_values
-    now = Time.now
+  # This method collects session-level constants including the user,
+  # language preferences, location, client version, working directory,
+  # allowed tool paths, and available RAG collections.
+  #
+  # @return [Hash] a hash containing static runtime data.
+  def static_runtime_information_values
     {
       user:                 ,
       languages:            config.languages * ', ',
-      time:                 now.iso8601,
-      weekday:              now.strftime('%A'),
       location:             location.on?.full? { location_description } || 'n/a',
-      default_persona:      default_persona_name.full? || 'n/a',
-      session_name:         session.name,
-      git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
-      git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
       client:               ,
       current_directory:    Pathname.pwd.expand_path.to_path,
-      terminal_rows:        Tins::Terminal.rows,
-      terminal_cols:        Tins::Terminal.cols,
-      voice:                voice.on? ? 'enabled' : 'disabled',
-      markdown:             markdown.on? ? 'enabled' : 'disabled',
       tool_paths_allowed:   JSON.pretty_generate(tool_paths_allowed),
       collections:          JSON.pretty_generate(config.embedding.collection_descriptions?),
     }
   end
 
-  # The runtime_information method generates a formatted string containing
-  # various runtime values such as languages, location description, git branch
-  # and origin, client agent, current directory, terminal size, time, voice and
-  # markdown status, and allowed tool paths.
-  # It returns the result of interpolating these values into the configured
-  # runtime_info prompt template.
+  # Generates a formatted string of static runtime information.
   #
-  # @return [String] the formatted runtime information string.
-  def runtime_information
-    prompt(:runtime_info).to_s % runtime_information_values
+  # This method interpolates the static runtime values into the
+  # configured `static_runtime_info` prompt template.
+  #
+  # @return [String] a formatted static runtime information string.
+  def static_runtime_information
+    prompt(:static_runtime_info).to_s % static_runtime_information_values
+  end
+
+  # The dynamic_runtime_information_values method compiles a set of
+  # volatile runtime details that change frequently.
+  #
+  # These include the current timestamp, weekday, session name, git
+  # branch and origin, terminal dimensions, and feature switch statuses.
+  #
+  # @return [Hash] a hash containing dynamic runtime values.
+  def dynamic_runtime_information_values
+    now = Time.now
+    {
+      time:                 now.iso8601,
+      weekday:              now.strftime('%A'),
+      session_name:         session.name,
+      git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
+      git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
+      terminal_rows:        Tins::Terminal.rows,
+      terminal_cols:        Tins::Terminal.cols,
+      voice:                voice.on? ? 'enabled' : 'disabled',
+      markdown:             markdown.on? ? 'enabled' : 'disabled',
+    }
+  end
+
+  # The dynamic_runtime_information method generates a formatted string
+  # containing real-time environment details (the "heartbeat").
+  #
+  # It returns the result of interpolating the dynamic values into the
+  # configured `dynamic_runtime_info` prompt template.
+  #
+  # @return [String] the formatted dynamic runtime information string.
+  def dynamic_runtime_information
+    prompt(:dynamic_runtime_info).to_s % dynamic_runtime_information_values
   end
 end

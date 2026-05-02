@@ -110,16 +110,16 @@ module OC
       description 'Redis URL for documents'
       default     { ENV['REDIS_URL'].full?  }
       sensitive   true
-      decode { URI.parse(it) }
-      check { value.scheme == 'redis' }
+      decode { URI.parse(it) if it.present? }
+      check { value.nil? || value.scheme == 'redis' }
     end
 
     REDIS_EXPIRING_URL = set do
       description 'Redis URL for caching'
       default     { OC::OLLAMA::REDIS_URL? || ENV['REDIS_URL'].full? }
       sensitive   true
-      decode { URI.parse(it) }
-      check { value.scheme == 'redis' }
+      decode { URI.parse(it) if it.present? }
+      check { value.nil? || value.scheme == 'redis' }
     end
 
     module CHAT
