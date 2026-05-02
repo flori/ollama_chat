@@ -428,9 +428,6 @@ class OllamaChat::MessageList
     else
       message_text += ":\n#{content}"
     end
-    message.images.full? { |images|
-      message_text += "\nImages: " + italic { images.map(&:path) * ', ' }
-    }
     message_text
   end
 
