@@ -328,10 +328,10 @@ module OllamaChat::SessionManagement
         session_close
         @session = chosen_session
         messages.read_conversation_jsonl(session.messages.to_s)
-        session.current_collection.full? { set_current_collection(_1) }
+        set_current_collection(session.current_collection.full? || :default)
         session.current_model.full? { use_model(_1) }
-        session.default_persona_name.full? { set_default_persona_name(_1) }
-        session.current_system_prompt.full? { set_current_system_prompt(_1) }
+        set_default_persona_name(session.default_persona_name.full? || :none)
+        set_current_system_prompt(session.current_system_prompt.full? || 'default')
         session.working_directory = Dir.pwd
         if session.lock?
           info_session
