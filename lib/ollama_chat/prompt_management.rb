@@ -63,7 +63,7 @@ module OllamaChat::PromptManagement
       end
     end
     patterns = ask?(
-      prompt: "❓ Enter file patterns to load file, C-c ⇒ cancel: ",
+      prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
       prefill: '**/*.{txt,md}'
     )
     patterns.nil? and return

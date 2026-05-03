@@ -126,7 +126,7 @@ module OllamaChat::SystemPromptManagement
   def add_new_system_prompt
     system_prompt_name = determine_valid_new_name_for_system_prompt('to add') or return
     patterns = ask?(
-      prompt: "❓ Enter file patterns to load file, C-c ⇒ cancel: ",
+      prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
       prefill: '**/*.{txt,md}'
     )
     patterns.nil? and return
