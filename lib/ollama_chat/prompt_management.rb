@@ -49,7 +49,9 @@ module OllamaChat::PromptManagement
   def add_new_prompt
     name = nil
     loop do
-      name = ask?(prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: ")
+      name = ask?(
+        prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: "
+      )
       if name.nil?
         STDOUT.puts "Canceled."
         return nil
@@ -115,7 +117,9 @@ module OllamaChat::PromptManagement
     )
     name = nil
     loop do
-      name = ask?(prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: ")
+      name = ask?(
+        prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: "
+      )
       if name.nil?
         STDOUT.puts "Canceled."
         return nil
@@ -233,7 +237,9 @@ module OllamaChat::PromptManagement
   def determine_valid_new_name_for_prompt(action)
     prompt_name = nil
     loop do
-      prompt_name = ask?(prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: ")
+      prompt_name = ask?(
+        prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: "
+      )
       if prompt_name.nil?
         STDOUT.puts "Canceled."
         return nil

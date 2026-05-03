@@ -503,7 +503,9 @@ class OllamaChat::Chat
     when 'summarize'
       opts = go_command('fs', opts)
       if summary = summarize_session(pretty: true, sentence: opts[?s]).full?
-        if opts[?f] and filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
+        if opts[?f] and
+            filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
+        then
           if filename.exist? && !confirm?(
               prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
               yes: /\Ay/i

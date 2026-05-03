@@ -449,7 +449,9 @@ module OllamaChat::PersonaeManagement
   def determine_valid_new_name_for_persona(action)
     persona_name = nil
     loop do
-      persona_name = ask?(prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: ")
+      persona_name = ask?(
+        prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: "
+      )
       if persona_name.nil?
         STDOUT.puts "Canceled."
         return nil

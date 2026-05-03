@@ -60,7 +60,9 @@ module OllamaChat::RAGHandling
     collection = OllamaChat::Utils::Chooser.choose(collections) || current_collection
     case collection
     when '[NEW]'
-      @documents.collection = ask?(prompt: "❓ Enter name of the new collection: ")
+      @documents.collection = ask?(
+        prompt: "❓ Enter name of the new collection: "
+      )
     when nil, '[EXIT]'
       STDOUT.puts "Exiting chooser."
     when /./

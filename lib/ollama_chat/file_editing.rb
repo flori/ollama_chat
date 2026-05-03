@@ -112,7 +112,9 @@ module OllamaChat::FileEditing
   #   operation was cancelled
   def determine_valid_output_filename(action)
     loop do
-      filename_str = ask?(prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: ")
+      filename_str = ask?(
+        prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: "
+      )
       if filename_str.nil?
         STDOUT.puts "Canceled."
         return nil

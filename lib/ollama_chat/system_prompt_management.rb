@@ -286,7 +286,9 @@ module OllamaChat::SystemPromptManagement
   def determine_valid_new_name_for_system_prompt(action)
     system_prompt_name = nil
     loop do
-      system_prompt_name = ask?(prompt: "❓ Enter new system prompt name #{action}, C-c ⇒ cancel: ")
+      system_prompt_name = ask?(
+        prompt: "❓ Enter new system prompt name #{action}, C-c ⇒ cancel: "
+      )
       if system_prompt_name.nil?
         STDOUT.puts "Canceled."
         return nil
