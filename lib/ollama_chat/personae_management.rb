@@ -416,7 +416,12 @@ module OllamaChat::PersonaeManagement
     pathname, profile = load_persona_file(persona)
     profile = profile.gsub(/%(?=[^{])/, '%%')
     profile = profile % { user: }
-    "Roleplay as persona %{persona} (no nead to read the file) loaded from %{pathname}\n\n%{profile}" % {
+    profile_intro = <<~EOT
+      Roleplay as persona %{persona} (no nead to read the file) loaded from %{pathname}
+
+      %{profile}
+    EOT
+    profile_intro % {
       persona:, pathname:, profile:
     }
   end
