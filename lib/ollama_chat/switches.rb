@@ -30,10 +30,9 @@ module OllamaChat::Switches
       alias_method :on?, :value
     end
 
-    # The off? method returns true if the switch is in the off state, false
-    # otherwise.
+    # Returns true if the switch is in the off state, false otherwise.
     #
-    # @return [ TrueClass, FalseClass ] indicating whether the switch is off
+    # @return [Boolean] indicating whether the switch is off
     def off?
       !on?
     end
@@ -46,12 +45,11 @@ module OllamaChat::Switches
     end
   end
 
-  # A switch class that manages boolean state with toggle and set
-  # functionality.
+  # A switch class that manages boolean state with toggle and set functionality.
   #
   # The Switch class provides a simple way to manage boolean configuration
   # options with methods to toggle, set, and query the current state. It
-  # includes messaging capabilities to provide message when the state changes.
+  # includes messaging capabilities to provide a message when the state changes.
   #
   # @example Creating and using a switch
   #   switch = Switch.new(value: false, msg: { true => 'Enabled', false => 'Disabled' })
@@ -60,37 +58,34 @@ module OllamaChat::Switches
   #   switch.off?    # Returns false
   #   switch.on?     # Returns true
   class Switch
-    # The initialize method sets up the switch with a default value and
-    # message.
+    # Initializes a new Switch instance.
     #
-    # @param msg [ Hash ] a hash containing true and false messages
-    # @param value [ Object ] the default state of the switch
+    # @param msg [Hash{Boolean => String}] a hash containing true and false messages
+    # @param value [Object] the initial state of the switch (coerced to boolean)
     def initialize(msg:, value:)
       @value = !!value
       @msg   = msg
     end
 
-    # The value reader returns the current value of the attribute.
+    # @!attribute [r] value
+    #   @return [Boolean] the current state of the switch
     attr_reader :value
 
-    # The set method assigns a boolean value to the instance variable @value
-    # and optionally displays it.
+    # Assigns a boolean value to the switch and optionally displays the result.
     #
-    # @param value [ Object ] the value to be converted to a boolean and
-    #   assigned
-    # @param show [ TrueClass, FalseClass ] determines whether to display the
-    #   value after setting
+    # @param value [Object] the value to be coerced to a boolean and assigned
+    # @param show [Boolean] determines whether to display the status message
     # @param output [IO] the output stream to write the message to
+    # @return [String, nil, Boolean] the result of the display operation or the show flag
     def set(value, show: false, output: STDOUT)
       @value = !!value
       show && self.show(output:)
     end
 
-    # The toggle method switches the current value of the instance variable and
-    # optionally displays it.
+    # Toggles the current boolean value and optionally displays the result.
     #
-    # @param show [ TrueClass, FalseClass ] determines whether to show the
-    #   value after toggling
+    # @param show [Boolean] determines whether to show the value after toggling
+    # @return [String, nil, Boolean] the result of the display operation or the show flag
     def toggle(show: true)
       @value = !@value
       show && self.show
@@ -99,56 +94,49 @@ module OllamaChat::Switches
     include CheckSwitch
   end
 
-  # The DatabaseSwitch class provides a mechanism for managing boolean
-  # configuration states that are persisted in the database.
+  # Manages boolean configuration states that are persisted in the database.
   #
   # This class acts as a wrapper around a database attribute, allowing for
   # toggling and setting of boolean values while ensuring that changes are
   # immediately saved to the associated session.
-  #
-  # It is used in the application's switches to manage settings like streaming,
-  # thinking modes, markdown output, and other session-specific toggles.
   class DatabaseSwitch
     # Initializes a new DatabaseSwitch instance.
     #
-    # @param chat [OllamaChat::Chat] the chat instance
-    # @param msg [Hash] the message hash containing display messages
-    # @param attribute [Symbol] the attribute name to switch
+    # @param chat [OllamaChat::Chat] the chat instance providing session access
+    # @param msg [Hash{Boolean => String}] the message hash containing display messages
+    # @param attribute [Symbol] the database attribute name to manage
     def initialize(chat:, msg:, attribute:)
       @chat      = chat
       @attribute = attribute
       @msg      = msg
     end
 
-    # The value method returns the current value of the attribute from the
-    # session.
+    # Returns the current value of the attribute from the session.
     #
-    # @return [Object] the value of the attribute
+    # @return [Boolean] the value of the attribute
     def value
       @chat.session.send(@attribute)
     end
 
-    # The attribute method returns the value of the attribute instance
-    # variable.
-    #
-    # @return [Object] the value of the attribute instance variable
+    # @!attribute [r] attribute
+    #   @return [Symbol] the session attribute name being managed
     attr_reader :attribute
 
-    # The set method updates the session attribute with the given value.
+    # Updates the session attribute with the given value and optionally displays it.
     #
-    # @param value [Object] the value to set
-    # @param show [TrueClass, FalseClass] whether to show the updated value
+    # @param value [Object] the value to be coerced to a boolean and saved
+    # @param show [Boolean] whether to show the updated value
     # @param output [IO] the output stream to use when showing the value
+    # @return [String, nil, Boolean] the result of the display operation or the show flag
     def set(value, show: false, output: STDOUT)
       @chat.session.update("#{attribute}": !!value)
       show && self.show(output:)
     end
 
-    # The toggle method switches the value of a session attribute and
-    # optionally displays the new state.
+    # Toggles the value of a session attribute and optionally displays the new state.
     #
-    # @param show [ TrueClass, FalseClass ] whether to show the updated state
-    #   after toggling
+    # @param show [Boolean] whether to show the updated state after toggling
+    # @return [String, nil, Boolean] the result of the display operation or the show flag
     def toggle(show: true)
       @chat.session.update("#{attribute}": !value)
       show && self.show
@@ -157,30 +145,29 @@ module OllamaChat::Switches
     include CheckSwitch
   end
 
-  # A switch class that manages a boolean state based on a proc value.
+  # Manages a boolean state based on a dynamic proc evaluation.
   #
-  # The CombinedSwitch class provides a way to manage a boolean configuration
-  # option where the state is determined by evaluating a stored proc. This is
-  # useful for complex conditions that depend on multiple factors or dynamic
-  # values, such as combining multiple switch states into a single effective
-  # state.
+  # The CombinedSwitch class is useful for complex conditions that depend on
+  # multiple factors or dynamic values, such as combining multiple switch
+  # states into a single effective state.
   #
   # @example Checking if embedding is currently performed
   #   # When embedding_enabled is true and embedding_paused is false,
   #   # the combined switch will return true
   #   combined_switch.value # => true
   class CombinedSwitch
-    # The initialize method sets up the switch with a value and message.
+    # Initializes a new CombinedSwitch instance.
     #
-    # @param value [ Object ] the value to be stored
-    # @param msg [ Hash ] the message hash containing true and false keys
+    # @param value [Proc] the proc used to determine the current state
+    # @param msg [Hash{Boolean => String}] the message hash containing true and false keys
     def initialize(value:, msg:)
       @value = value
       @msg   = msg
     end
 
-    # The value method returns the result of calling the stored proc with no
-    # arguments.
+    # Returns the result of calling the stored proc.
+    #
+    # @return [Boolean] the result of the dynamic evaluation
     def value
       @value.()
     end
@@ -188,80 +175,66 @@ module OllamaChat::Switches
     include CheckSwitch
   end
 
-  # The think method returns the current state of the stream switch.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the stream switch instance
+  # @!attribute [r] stream
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the stream switch instance
   attr_reader :stream
 
-  # The markdown attribute reader returns the markdown switch object.
-  # The voice reader returns the voice switch instance.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the markdown switch instance
+  # @!attribute [r] markdown
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the markdown switch instance
   attr_reader :markdown
 
-  # The think_loud method returns the current state of the think loud switch.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the think loud switch instance
+  # @!attribute [r] think_loud
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the think loud switch instance
   attr_reader :think_loud
 
-  # The switch that determines whether the `thinking` content is stripped from
-  # the message payload before it is sent to the Ollama API.
+  # Determines whether the `thinking` content is stripped from the message
+  # payload before it is sent to the Ollama API.
   #
-  # Enabling this (`true`) helps optimize the payload size and prevents
-  # the model from being potentially confused by its own internal
-  # reasoning traces from previous turns.
+  # Enabling this (`true`) optimizes payload size and prevents the model from
+  # being confused by its own internal reasoning traces from previous turns.
+  # Disabling this (`false`) preserves the model's "chain of thought" history.
   #
-  # Disabling this (`false`) preserves the model's "chain of thought"
-  # history, allowing it to reference its previous logic.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the think strip switch instance
+  # @!attribute [r] think_strip
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the think strip switch instance
   attr_reader :think_strip
 
-  # The voice reader returns the voice switch instance.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the voice switch instance
+  # @!attribute [r] voice
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the voice switch instance
   attr_reader :voice
 
-  # The embedding attribute reader returns the embedding switch object.
-  #
-  # @return [ OllamaChat::Switches::CombinedSwitch ] the embedding switch
-  #   instance
+  # @!attribute [r] embedding
+  #   @return [OllamaChat::Switches::CombinedSwitch] the combined embedding switch instance
   attr_reader :embedding
 
-  # The embedding_enabled reader returns the embedding enabled switch instance.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the embedding enabled switch
-  #   instance
+  # @!attribute [r] embedding_enabled
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the embedding enabled switch instance
   attr_reader :embedding_enabled
 
-  # The embedding_paused method returns the current state of the embedding pause flag.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the embedding pause flag switch instance
+  # @!attribute [r] embedding_paused
+  #   @return [OllamaChat::Switches::Switch] the embedding pause flag switch instance
   attr_reader :embedding_paused
 
-  # The location method returns the current location setting.
-  #
-  # @return [ OllamaChat::Switches::Switch ] the location setting object
+  # @!attribute [r] location
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the location setting switch instance
   attr_reader :location
 
-  # Provides access to the runtime_info switch controlling the visibility of
-  # runtime information in the chat
+  # Controls the visibility of runtime information in the chat.
   #
-  # @attr_reader [ Switches::Switch ] a Switch instance that manages runtime
-  #   info visibility
+  # @!attribute [r] runtime_info
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the runtime info visibility switch
   attr_reader :runtime_info
 
-  # Switch tools support on/off (off → skip all, on → honour per‑tool state)
+  # Controls tool support (off → skip all, on → honour per‑tool state).
   #
-  # @return [OllamaChat::Switch] the tools_support setting object
+  # @!attribute [r] tools_support
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the tools support setting switch
   attr_reader :tools_support
 
-  # The setup_switches method initializes various switches for configuring the
-  # application's behavior.
+  # Initializes the various switches for configuring the application's behavior.
   #
-  # This method creates and configures multiple switch objects that control
-  # different aspects of the application, such as streaming, thinking, markdown
-  # output, voice output, embedding, and location settings.
+  # This method creates and configures the database and local switch objects
+  # that control streaming, thinking, markdown output, voice output,
+  # embedding, and location settings.
   def setup_switches
     @stream = DatabaseSwitch.new(
       chat: self,
