@@ -246,10 +246,15 @@ module OllamaChat::SessionManagement
         end
       end
     end
-    if name && session.update(name:)
-      STDOUT.puts "Renamed current session to #{name.inspect}."
-    elsif name == session.name
+    if name == session.name
       STDOUT.puts "Keeping the old name #{name.inspect}."
+    elsif name
+      if exists = models::Session.where(name:).first
+        STDOUT.puts "Session with name #{name.inspect} already exists."
+      else
+        session.update(name:)
+        STDOUT.puts "Renamed current session to #{name.inspect}."
+      end
     else
       STDERR.puts "Could not rename current session!"
     end
