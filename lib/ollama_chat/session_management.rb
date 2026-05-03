@@ -322,7 +322,10 @@ module OllamaChat::SessionManagement
     loop do
       if chosen_session = choose_session(name, offer_new_session: true)
         if chosen_session.nil? || chosen_session == session
-          confirm?(prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ", timeout: 3)
+          confirm?(
+            prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ",
+            timeout: 3
+          )
           break
         end
         session_close
@@ -337,7 +340,10 @@ module OllamaChat::SessionManagement
           info_session
           break
         else
-          confirm?(prompt: "\n⏎  Could not switch, Press any key to continue (%s). ", timeout: 3)
+          confirm?(
+            prompt: "\n⏎  Could not switch, Press any key to continue (%s). ",
+            timeout: 3
+          )
           redo
         end
       else

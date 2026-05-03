@@ -57,7 +57,11 @@ module OllamaChat::ConfigHandling
     unless diff_tool = OC::DIFF_TOOL?
       exit 1
     end
-    if confirm?(prompt: '🔔 Do you want to fix the config? (y/n) ', yes: /\Ay/i)
+    if confirm?(
+        prompt: '🔔 Do you want to fix the config? (y/n) ',
+        yes: /\Ay/i
+      )
+    then
       cmd = [
         diff_tool,
         @ollama_chat_config.filename,
@@ -117,7 +121,11 @@ module OllamaChat::ConfigHandling
   #    `ollama_chat` if desired.
   def edit_config
     if result = edit_file(@ollama_chat_config.filename)
-      if confirm?(prompt: "🔔 Do you want to restart #{progname}? (y/n) ", yes: /\Ay/i)
+      if confirm?(
+          prompt: "🔔 Do you want to restart #{progname}? (y/n) ",
+          yes: /\Ay/i
+        )
+      then
         save_history
         session_close
         exec($0, *fix_session(ARGV))
@@ -134,7 +142,11 @@ module OllamaChat::ConfigHandling
   # @example Restarting the app after confirmation
   #   config.reload_config  # => restarts if user answers "y"
   def reload_config
-    if confirm?(prompt: "🔔 Do you want to restart #{progname}? (y/n) ", yes: /\Ay/i)
+    if confirm?(
+        prompt: "🔔 Do you want to restart #{progname}? (y/n) ",
+        yes: /\Ay/i
+      )
+    then
       save_history
       session_close
       exec($0, *fix_session(ARGV))

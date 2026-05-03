@@ -1013,7 +1013,11 @@ class OllamaChat::Chat
       @documents.clear
       STDOUT.puts "Cleared all tags."
     when 'all'
-      if confirm?(prompt: '🔔 Are you sure to clear messages and collection? (y/n) ', yes: /\Ay/i)
+      if confirm?(
+          prompt: '🔔 Are you sure to clear messages and collection? (y/n) ',
+          yes: /\Ay/i
+        )
+      then
         messages.clear
         @documents.clear
         links.clear
