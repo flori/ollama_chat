@@ -106,7 +106,7 @@ module OllamaChat::PromptManagement
   # 2. Displays the content of the selected prompt for verification.
   # 3. Requests a new name for the duplicate, validating that it does
   #    not already exist in the database.
-  # 4. Creates and saves the new prompt record using the {Duplicatable} mixin.
+  # 4. Creates and saves the new prompt record using the {OllamaChat::Database::Duplicatable} mixin.
   #
   # @return [self, nil] the current context on success, or nil if the user
   #   cancelled the operation or no prompt was selected.

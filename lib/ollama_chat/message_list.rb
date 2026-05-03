@@ -486,7 +486,7 @@ class OllamaChat::MessageList
   # Synchronizes the message list state with the active chat session.
   #
   # This method triggers the persistence of the current messages into the
-  # database via the associated {@chat} instance, ensuring that any
+  # database via the associated `@chat` instance, ensuring that any
   # recent mutations (like adding, clearing, or dropping messages) are
   # immediately captured in the persistent session store.
   #

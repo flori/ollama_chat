@@ -410,7 +410,6 @@ module OllamaChat::PersonaeManagement
   # Creates a formatted prompt string that includes the persona name and profile.
   #
   # @param persona [String, Pathname] The persona name or path to include in the prompt
-  # @param persona_profile [String] The persona profile content
   # @return [String] Formatted roleplay prompt
   def play_persona(persona)
     pathname, profile = load_persona_file(persona)

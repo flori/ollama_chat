@@ -33,7 +33,7 @@ module OllamaChat
   # Exception raised when a tool's logic determines that the arguments provided
   # within a tool call (the payload) are invalid, missing, or malformed.
   #
-  # Unlike {ArgumentError}, which typically indicates an issue with the
+  # Unlike {::ArgumentError}, which typically indicates an issue with the
   # method's signature call, {ToolFunctionArgumentError} specifically
   # targets the data provided by the LLM/caller for the tool's execution.
   class ToolFunctionArgumentError < OllamaChatError
