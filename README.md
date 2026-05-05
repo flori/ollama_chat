@@ -256,7 +256,7 @@ context, manipulate files, and retrieve external information.
 | **Filesystem** | `read_file`, `write_file`, `patch_file`, `directory_structure`, `execute_grep` | Read, write, and search files within allowed directories. |
 | **Ruby/Dev** | `resolve_tag`, `execute_ri`, `gem_path_lookup`, `run_tests` | Introspect Ruby code, check documentation, and run test suites. |
 | **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife` | Access the internet, fetch specific URLs, and look up technical standards. |
-| **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi` | General utility functions for time, location, and simple calculations. |
+| **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi`, `roll_dice` | General utility functions for time, location, and simple calculations. |
 | **Editor/Clip** | `copy_to_clipboard`, `paste_from_clipboard`, `paste_into_editor`, `open_file_in_editor` | Bridge the gap between the chat and the system clipboard or editor. |
 | **Knowledge** | `retrieve_document_snippets` | Search through project-specific documentation collections. |
 | **Multimodal** | `generate_image` | Generate images via a local ComfyUI server. |

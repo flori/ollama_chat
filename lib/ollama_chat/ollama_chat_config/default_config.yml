@@ -287,3 +287,6 @@ tools:
       default: true
       timeout_attempts: 23
       timeout_duration: 66
+    roll_dice:
+      default: true
+      result_display_timeout: 3
