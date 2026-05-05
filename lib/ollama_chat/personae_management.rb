@@ -383,6 +383,7 @@ module OllamaChat::PersonaeManagement
       pathname = persona_name_to_pathname(persona)
       pathname, profile = load_persona_file(persona)
       profile or next
+      profile = substitute_variables(profile)
       result[persona] = {
         pathname:,
         profile: ,
@@ -405,6 +406,18 @@ module OllamaChat::PersonaeManagement
     end
   end
 
+  # The substitute_variable method handles the substitution of variables in
+  # profiles. It replaces placeholders with actual values.
+  #
+  # @param profile [String] the profile string to be processed
+  #
+  # @return [String] the processed string with variables substituted
+  def substitute_variables(profile)
+    profile = profile.gsub(/%(?=[^{])/, '%%')
+    profile = profile % { user: }
+    profile
+  end
+
   # Generates the roleplay prompt string for a persona.
   #
   # Creates a formatted prompt string that includes the persona name and profile.
@@ -413,8 +426,7 @@ module OllamaChat::PersonaeManagement
   # @return [String] Formatted roleplay prompt
   def play_persona(persona)
     pathname, profile = load_persona_file(persona)
-    profile = profile.gsub(/%(?=[^{])/, '%%')
-    profile = profile % { user: }
+    profile = substitute_variables(profile)
     profile_intro = <<~EOT
       Roleplay as persona %{persona} (no nead to read the file) loaded from %{pathname}
 
