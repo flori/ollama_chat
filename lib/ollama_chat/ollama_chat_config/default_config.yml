@@ -60,6 +60,8 @@ prompts:
       responses if it is disabled.
     - Voice output is %{voice}. Speak naturally and short if voice
       output is enabled.
+    - Tools Support is %{tools_support}. Inform the user about this, if he
+      wants you to call a tool function.
   help: |
     Wait for the user to ask questions about the usage of chat commands. Just
     list the command names separated by spaces (no descriptions yet) and

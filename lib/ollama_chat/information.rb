@@ -308,6 +308,7 @@ module OllamaChat::Information
       terminal_cols:        Tins::Terminal.cols,
       voice:                voice.on? ? 'enabled' : 'disabled',
       markdown:             markdown.on? ? 'enabled' : 'disabled',
+      tools_support:        tools_support.on? ? 'enabled' : 'disabled',
     }
   end
 
