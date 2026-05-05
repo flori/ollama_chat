@@ -95,7 +95,7 @@ module OC
       description 'Ollama base URL to connect to'
       default     { 'http://%s' % OC::OLLAMA::HOST }
       sensitive   true
-      decode { URI.parse(it) }
+      decode { URI.parse(_1) if _1.present? }
       check { value.scheme =~ /\Ahttps?\z/ }
     end
 
@@ -110,7 +110,7 @@ module OC
       description 'Redis URL for documents'
       default     { ENV['REDIS_URL'].full?  }
       sensitive   true
-      decode { URI.parse(it) if it.present? }
+      decode { URI.parse(_1) if _1.present? }
       check { value.nil? || value.scheme == 'redis' }
     end
 
@@ -118,7 +118,7 @@ module OC
       description 'Redis URL for caching'
       default     { OC::OLLAMA::REDIS_URL? || ENV['REDIS_URL'].full? }
       sensitive   true
-      decode { URI.parse(it) if it.present? }
+      decode { URI.parse(_1) if _1.present? }
       check { value.nil? || value.scheme == 'redis' }
     end
 
