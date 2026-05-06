@@ -388,9 +388,17 @@ module OllamaChat::SessionManagement
         tokens      = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
         tokens_size = format_tokens(tokens)
         count       = session.messages.to_s.count(?\n)
+        locked      = if pid = session.locked?
+                        " 🔐#{pid} "
+                      else
+                        ' '
+                      end
+        display     = <<~EOT.strip
+          #{session.name} 🆔#{session.id}#{locked}📨#{count} 🧩#{tokens_size} ⏳#{duration}
+        EOT
         SearchUI::Wrapper.new(
           session.name,
-          display: "#{session.name} 🆔#{session.id} 📨#{count} 🧩#{tokens_size} ⏳#{duration}"
+          display:
         )
       }
       selector and sessions = sessions.select { _1 =~ selector }
