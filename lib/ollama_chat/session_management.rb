@@ -389,7 +389,11 @@ module OllamaChat::SessionManagement
         tokens_size = format_tokens(tokens)
         count       = session.messages.to_s.count(?\n)
         locked      = if pid = session.locked?
-                        " 🔐#{pid} "
+                        if pid == $$
+                          " 🔓#{pid} "
+                        else
+                          " 🔐#{pid} "
+                        end
                       else
                         ' '
                       end
