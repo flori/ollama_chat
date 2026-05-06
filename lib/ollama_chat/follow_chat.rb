@@ -190,11 +190,14 @@ class OllamaChat::FollowChat
           false
         end
 
+      size_bytes = result.to_s.size
+      tokens     = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
+
       tools_used[name] = {
         message:,
         warn:     ,
-        size:     format_bytes(result.to_s.size),
-        tokens:   format_tokens(result.to_s.size),
+        size:     format_bytes(size_bytes),
+        tokens:   format_tokens(tokens),
         duration: Tins::Duration.new(Time.now - start).to_s,
       }
     end
