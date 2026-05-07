@@ -91,13 +91,17 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/list 2")).to eq :next
     end
 
-    it 'returns :next when input is "/clear (messages|links|history|all)"' do
+    it 'returns :next when input is "/clear (messages|links|history|tags|images|all)"' do
       expect(chat).to receive(:clean).with('messages')
       expect(chat.handle_input("/clear messages")).to eq :next
       expect(chat).to receive(:clean).with('links')
       expect(chat.handle_input("/clear links")).to eq :next
       expect(chat).to receive(:clean).with('history')
       expect(chat.handle_input("/clear history")).to eq :next
+      expect(chat).to receive(:clean).with('tags')
+      expect(chat.handle_input("/clear tags")).to eq :next
+      expect(chat).to receive(:clean).with('images')
+      expect(chat.handle_input("/clear images")).to eq :next
       expect(chat).to receive(:clean).with('all')
       expect(chat.handle_input("/clear all")).to eq :next
     end

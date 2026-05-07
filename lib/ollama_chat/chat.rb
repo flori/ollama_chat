@@ -569,10 +569,10 @@ class OllamaChat::Chat
 
   command(
     name: :clear,
-    regexp: %r(^/clear(?:\s+(messages|links|history|tags|all))?$),
-    complete: [ 'clear', %w[ messages links history tags all ] ],
+    regexp: %r(^/clear(?:\s+(messages|links|history|tags|images|all))?$),
+    complete: [ 'clear', %w[ messages links history tags images all ] ],
     optional: true,
-    help: 'Clear messages, links, history, tags, or all'
+    help: 'Clear messages, links, history, tags, images or all'
   ) do |subcommand|
     if result = clean(subcommand)
       disable_content_parsing
@@ -1017,6 +1017,9 @@ class OllamaChat::Chat
     when 'tags'
       @documents.clear
       STDOUT.puts "Cleared all tags."
+    when 'images'
+      messages.clear_images
+      STDOUT.puts "Cleared all images."
     when 'all'
       if confirm?(
           prompt: '🔔 Are you sure to clear messages and collection? (y/n) ',

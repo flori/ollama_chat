@@ -207,6 +207,7 @@ class OllamaChat::MessageList
     messages.map do |message|
       message = message.dup
       message.content = message.stripped_content
+      message.images = nil
       message
     end
   end
@@ -406,6 +407,17 @@ class OllamaChat::MessageList
     @messages.clear
     input.each_line do |line|
       @messages << parse_message_from_json(line)
+    end
+    self
+  end
+
+
+  # Removes all images from all messages in the current list.
+  #
+  # @return [OllamaChat::MessageList] returns self to allow for method chaining
+  def clear_images
+    @messages.each do |message|
+      message.images = nil
     end
     self
   end

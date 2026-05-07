@@ -23,6 +23,10 @@ module OllamaChat::MessageMixin
   #   @option setter [String, nil] The thinking/reasoning process of the model.
   attr_writer :thinking
 
+  # @!attribute images
+  #   @option setter [Array<String>, nil] a list of image paths or data associated with the message.
+  attr_writer :images
+
   # Returns the content of the message with internal JSON markers stripped away.
   #
   # @return [String] The cleaned content.
@@ -31,8 +35,15 @@ module OllamaChat::MessageMixin
     strip_internal_marker(:ollama_chat_runtime_information, text)
   end
 
+  # @!attribute sender_name
+  #   @option getter [String, nil] The name of the message sender.
+  #   @option setter [String, nil] The name of the message sender.
   attr_accessor :sender_name
 
+  # Converts the message to a JSON-compatible hash, including the sender name if present.
+  #
+  # @param a [Array] optional arguments for JSON conversion.
+  # @return [Hash] a hash representation of the message.
   def as_json(*a)
     if sender_name
       { sender_name: } | super
