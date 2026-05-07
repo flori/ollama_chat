@@ -50,8 +50,9 @@ module OllamaChat::Utils::PNGCharacterExtractor
 
         if keyword == 'chara'
           begin
-            # The content is Base64 encoded UTF-8 JSON
+            # The content should be Base64 encoded UTF-8 JSON
             decoded_json = Base64.decode64(text)
+            decoded_json = decoded_json.encode('UTF-8', invalid: :replace, undef: :replace)
             JSON.parse(decoded_json)
             return decoded_json
           rescue JSON::ParserError, ArgumentError
