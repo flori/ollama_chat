@@ -41,6 +41,23 @@ module OllamaChat::PromptManagement
     end
   end
 
+  # Displays detailed information about a selected prompt template.
+  #
+  # @return [self, nil] the current context on success, or nil if cancelled
+  def info_prompt
+    if prompt = choose_prompt
+      use_pager do |output|
+        output.puts kramdown_ansi_parse(<<~EOT)
+          # Prompt #{prompt.name}
+          ---
+          #{prompt.to_s}
+          ---
+        EOT
+      end
+    end
+    self
+  end
+
   # Interactively prompts the user for a name and content (optionally loading
   # from a file) to create a new prompt template.
   #

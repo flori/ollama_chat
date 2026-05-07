@@ -401,12 +401,12 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ add delete edit list change duplicate export import ] ],
+    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import|info))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ add delete edit list change duplicate export import info ] ],
     optional: true,
     help: <<~EOT
       Manage the system prompt (add, delete, edit, list, change, duplicate,
-      export, import)
+      export, import, info)
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -427,6 +427,8 @@ class OllamaChat::Chat
       import_system_prompt(filename)
     when 'export'
       export_system_prompt
+    when 'info'
+      info_system_prompt
     when nil
       @messages.show_system_prompt
     end
@@ -614,12 +616,12 @@ class OllamaChat::Chat
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export))?(?:\s+(\S+))?$),
-    complete: [ 'prompt', %w[ add delete edit list duplicate import export ] ],
+    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export|info))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ add delete edit list duplicate import export info ] ],
     optional: true,
     help: <<~EOT,
       Manage preset prompt templates or prefill the prompt (add, delete, edit,
-      list, duplicate, import, export)
+      list, duplicate, import, export, info)
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -637,6 +639,8 @@ class OllamaChat::Chat
       import_prompt(filename)
     when 'export'
       export_prompt
+    when 'info'
+      info_prompt
     when nil
       @prefill_prompt = choose_prompt&.to_s
     end

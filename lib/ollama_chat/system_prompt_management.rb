@@ -118,6 +118,23 @@ module OllamaChat::SystemPromptManagement
     end
   end
 
+  # Displays detailed information about a selected system prompt.
+  #
+  # @return [self, nil] the current context on success, or nil if cancelled
+  def info_system_prompt
+    if system_prompt = choose_system_prompt
+      use_pager do |output|
+        output.puts kramdown_ansi_parse(<<~EOT)
+          # System Prompt #{system_prompt.name}
+          ---
+          #{system_prompt.to_s}
+          ---
+        EOT
+      end
+    end
+    self
+  end
+
   # Interactively prompts the user for a name and content to create a new
   # system prompt. Optionally sets the new prompt as the current one.
   #
