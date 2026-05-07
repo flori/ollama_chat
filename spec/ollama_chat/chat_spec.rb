@@ -288,7 +288,7 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/conversation save\s+(.+)$"' do
-      expect(chat.messages).to receive(:save_conversation).with('./some_file')
+      expect(chat.messages).to receive(:save_conversation).with('./some_file', messages: [])
       expect(chat.handle_input("/conversation save ./some_file")).to eq :next
     end
 

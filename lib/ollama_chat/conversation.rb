@@ -25,14 +25,14 @@ module OllamaChat::Conversation
   #
   # @example Save conversation with explicit filename
   #   chat.save_conversation('conversations/2023-10-15_my_session.json')
-  def save_conversation(filename)
+  def save_conversation(filename, clean: false)
     if File.exist?(filename)
       confirm?(
         prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
         yes: /\Ay/i
       ) or return
     end
-    if messages.save_conversation(filename)
+    if messages.save_conversation(filename, messages: clean ? messages.clean_messages : messages.messages)
       STDOUT.puts "Saved conversation to #{filename.to_s.inspect}."
     else
       STDERR.puts "Saving conversation to #{filename.to_s.inspect} failed."

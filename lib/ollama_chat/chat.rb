@@ -658,13 +658,14 @@ class OllamaChat::Chat
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(save|load)\s+(.+)$),
+    regexp: %r(^/conversation\s+(save|load)((?:\s+-(?:[c]))*)\s+(.+)$),
     complete: [ 'conversation', %w[ save load ] ],
-    help: 'Save or load conversations'
-  ) do |subcommand, path|
+    help: 'Load conversations or save conversations (-c to clean first)'
+  ) do |subcommand,opts,path|
+    opts = go_command('c', opts.to_s)
     case subcommand
     when 'save'
-      save_conversation(path)
+      save_conversation(path, clean: opts[?c])
     when 'load'
       load_conversation(path)
     end

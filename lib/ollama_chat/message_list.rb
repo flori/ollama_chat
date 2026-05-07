@@ -183,14 +183,32 @@ class OllamaChat::MessageList
   # The save_conversation method saves the current conversation to a file.
   #
   # @param filename [ String ] the path where the conversation will be saved
+  # @param messages [Array<OllamaChat::Message>] the messages to save.
+  #   Defaults to all current messages in the list.
   #
   # @return [ OllamaChat::MessageList ] self
-  def save_conversation(filename)
+  def save_conversation(filename, messages: @messages)
     filename = Pathname.new(filename).expand_path
     filename.extname == '.jsonl' ?
-      save_conversation_jsonl(filename) :
-      save_conversation_json(filename)
+      save_conversation_jsonl(filename, messages:) :
+      save_conversation_json(filename, messages:)
     self
+  end
+
+  # Returns a new list of messages with the content replaced by their stripped
+  # versions.
+  # This is used to create a "clean" version of the conversation for saving or
+  # displaying without mutating the original message objects.
+  #
+  # @param messages [Array<OllamaChat::Message>] the list of messages to clean
+  # @return [Array<OllamaChat::Message>] a new array containing duplicated
+  #   messages with stripped content
+  def clean_messages(messages: @messages)
+    messages.map do |message|
+      message = message.dup
+      message.content = message.stripped_content
+      message
+    end
   end
 
   # Displays the most recent messages from the conversation history.
@@ -207,9 +225,7 @@ class OllamaChat::MessageList
     last = (last || @messages.size).clamp(0, @messages.size)
     messages = @messages[-last..-1].to_ary
     use_pager do |output|
-      messages.each do |message|
-        message = message.dup
-        message.content = message.stripped_content
+      clean_messages(messages:).each do |message|
         output.puts message_text_for(message)
       end
     end
@@ -368,10 +384,12 @@ class OllamaChat::MessageList
 
   # Writes each message in the conversation to the output as a JSON line.
   #
-  # @param output [IO] the output stream to write the JSON lines to
+  # @param output [IO] the output stream to write the JSON lines
+  # @param messages [Array<OllamaChat::Message>] the messages to write.
+  #   Defaults to all current messages in the list.
   # @return [OllamaChat::MessageList] returns self to allow for method chaining
-  def write_conversation_jsonl(output)
-    @messages.each do |message|
+  def write_conversation_jsonl(output, messages: @messages)
+    messages.each do |message|
       output.puts JSON.dump(message)
     end
     self
@@ -379,8 +397,8 @@ class OllamaChat::MessageList
 
   # Loads conversation messages from a JSONL (JSON Lines) input stream. Each
   # line in the input is expected to be a valid JSON representation of a
-  # message. The method parses each line and adds the resulting message to the
-  # current conversation.
+  # message. The method parses each line and adds the resulting message to
+  # the current conversation.
   #
   # @param input [IO] the input stream containing JSONL formatted messages
   # @return [OllamaChat::MessageList] returns self to allow for method chaining
@@ -459,8 +477,8 @@ class OllamaChat::MessageList
   #
   # @param filename [Pathname] the path to the JSON file
   # @return [OllamaChat::MessageList] self
-  def save_conversation_json(filename)
-    filename.write JSON.dump(@messages)
+  def save_conversation_json(filename, messages: @messages)
+    filename.write JSON.dump(messages)
     self
   end
 
@@ -468,9 +486,9 @@ class OllamaChat::MessageList
   #
   # @param filename [Pathname] the path to the JSONL file
   # @return [OllamaChat::MessageList] self
-  def save_conversation_jsonl(filename)
+  def save_conversation_jsonl(filename, messages: @messages)
     filename.open(?w) do |output|
-      write_conversation_jsonl(output)
+      write_conversation_jsonl(output, messages:)
     end
     self
   end
