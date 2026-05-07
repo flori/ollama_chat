@@ -257,7 +257,14 @@ module OllamaChat::Information
   #
   # @return [String] the chat user's name or 'n/a' if not set
   def user
-    OC::OLLAMA::CHAT::USER || 'n/a'
+    user_name || 'n/a'
+  end
+
+  # Retrieves the name of the chat user.
+  #
+  # @return [String] the chat user's name or nil if not set
+  def user_name
+    OC::OLLAMA::CHAT::USER
   end
 
   # Generates a hash containing static runtime information.

@@ -430,20 +430,13 @@ class OllamaChat::MessageList
   #
   # @return [String] the formatted text representation of the message
   def message_text_for(message)
-    role_color = case message.role
-                 when 'user'      then 172
-                 when 'assistant' then 111
-                 when 'system'    then 213
-                 else                  210
-                 end
     thinking = if @chat.think_loud?
                  think_annotate do
                    message.thinking.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
                  end
                end
-    content = message.content.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
-    message_text = message_type(message.images) + " "
-    message_text += bold { color(role_color) { message.role } }
+    content       = message.content.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
+    message_text  = display_sender(message)
     if thinking
       message_text += [ ?:, thinking, talk_annotate { content } ].compact.
         map { _1.chomp } * ?\n

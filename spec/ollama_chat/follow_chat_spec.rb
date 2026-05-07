@@ -24,10 +24,11 @@ describe OllamaChat::FollowChat do
   end
 
   it 'can follow without markdown' do
+    expect(chat).to receive(:assistant).and_return nil
     message = OllamaChat::Message.new(role: 'assistant', content: 'world')
     response = double(message:, done: false)
     expect(output).to receive(:print).with(
-      "\e[2J", "\e[1;1H", "📨 \e[1m\e[38;5;111massistant:\e[0m\e[0m", "\n",
+      "\e[2J", "\e[1;1H", "📨 \e[1m\e[38;5;111massistant\e[0m\e[0m:", "\n",
       "world"
     )
     follow_chat.call(response)

@@ -5,6 +5,16 @@ OllamaChat::Message = Ollama::Message
 # Mixin to provide write access to attributes that are read-only in the base
 # class and add utility methods for content cleaning.
 module OllamaChat::MessageMixin
+  # Initializes a new message, ensuring the sender_name is set if provided.
+  #
+  # @param attributes [Hash] a hash of attributes to initialize the message.
+  def initialize(**attributes)
+    super
+    if sender_name = attributes[:sender_name]
+      self.sender_name = sender_name
+    end
+  end
+
   # @!attribute content
   #   @option setter [String] The content of the message.
   attr_writer :content
@@ -19,6 +29,16 @@ module OllamaChat::MessageMixin
   def stripped_content
     text = strip_internal_marker(:ollama_chat_retrieval_snippets)
     strip_internal_marker(:ollama_chat_runtime_information, text)
+  end
+
+  attr_accessor :sender_name
+
+  def as_json(*a)
+    if sender_name
+      { sender_name: } | super
+    else
+      super
+    end
   end
 
   private
@@ -42,5 +62,5 @@ end
 # Reopening the aliased class to include the MessageMixin for enhanced
 # functionality.
 class OllamaChat::Message
-  include OllamaChat::MessageMixin
+  prepend OllamaChat::MessageMixin
 end

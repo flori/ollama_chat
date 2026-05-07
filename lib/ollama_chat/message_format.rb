@@ -15,6 +15,39 @@
 # @example Annotating content with talk indicator
 #   talk_annotate { "Speaking..." } # => "💬\nSpeaking...\n" (when think is enabled)
 module OllamaChat::MessageFormat
+  # Returns the terminal color code associated with the message's role.
+  #
+  # @param message [ OllamaChat::Message ] the message object to determine the color for
+  # @return [ Integer ] the color code corresponding to the role
+  def role_color(message)
+    case message.role
+    when 'user'      then 172
+    when 'assistant' then 111
+    when 'system'    then 213
+    else                  210
+    end
+  end
+
+  # Formats the sender's identity for display in the terminal, including
+  # the message icon and the sender's name or role with appropriate coloring.
+  #
+  # @param message [ OllamaChat::Message ] the message object to format
+  # @return [ String ] the formatted string representing the sender
+  def display_sender(message)
+    color = role_color(message)
+    name  = case message.role
+            when 'user', 'assistant'
+              if sender_name = message.sender_name.full?
+                '%s (%s)' % [ sender_name, message.role ]
+              else
+                message.role
+              end
+            when 'system'
+              message.role
+            end
+    message_type(message.images) + " " + bold { color(color) { name } }
+  end
+
   # The message_type method determines the appropriate message icon based on
   # whether images are present.
   #

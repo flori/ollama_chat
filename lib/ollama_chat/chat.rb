@@ -1101,7 +1101,12 @@ class OllamaChat::Chat
           ollama_chat_runtime_information: dynamic_runtime_information
         }.to_json
 
-      messages << OllamaChat::Message.new(role: 'user', content:, images: @images.dup)
+      messages << OllamaChat::Message.new(
+        role:        'user',
+        sender_name: user_name,
+        content:     ,
+        images:      @images.dup
+      )
       @images.clear
       handler = OllamaChat::FollowChat.new(
         chat:     self,

@@ -21,6 +21,19 @@ module OllamaChat::PersonaeManagement
     end
   end
 
+  # Returns the name of the current default persona.
+  #
+  # If the default persona is set to :none or is not configured, it returns
+  # nil.
+  #
+  # @return [String, Symbol, nil] the name of the default persona, or nil if
+  #   none is set.
+  def assistant
+    if default_persona_name && default_persona_name != :none
+      default_persona_name
+    end
+  end
+
   private
 
   # Returns the directory path where persona files are stored.

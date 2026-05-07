@@ -30,8 +30,10 @@ class OllamaChat::FollowChat
     @output.sync = true
     @say         = voice ? Handlers::Say.new(voice:) : NOP
     @messages    = messages
-    @user        = nil
+    @sender      = nil
   end
+
+  attr_reader :chat
 
   # Returns the conversation history (an array of message objects).
   #
@@ -65,7 +67,7 @@ class OllamaChat::FollowChat
     if response&.message&.role == 'assistant'
       ensure_assistant_response_exists
       update_last_message(response)
-      if @chat.stream.on?
+      if chat.stream.on?
         display_formatted_terminal_output
       else
         if display_output
@@ -104,38 +106,38 @@ class OllamaChat::FollowChat
       if name =~ %r(/)
         new_name = File.basename(name.to_s)
         msg = "Received namespaced tool call for #{name}, correcting to #{new_name}"
-        @chat.log(:warn, msg)
+        chat.log(:warn, msg)
         name = new_name
       end
-      unless @chat.tool_configured?(name)
+      unless chat.tool_configured?(name)
         msg = "Error: Unconfigured tool named %s ignored => Skip.\n" % name
-        @chat.tool_call_results[name] << msg
-        @chat.log(:error, msg)
+        chat.tool_call_results[name] << msg
+        chat.log(:error, msg)
         next
       end
-      unless @chat.tool_registered?(name)
+      unless chat.tool_registered?(name)
         msg = "Error: Unregistered tool named %s ignored => Skip.\n" % name
-        @chat.tool_call_results[name] << msg
-        @chat.log(:error, msg)
+        chat.tool_call_results[name] << msg
+        chat.log(:error, msg)
         next
       end
-      unless @chat.tool_enabled?(name)
+      unless chat.tool_enabled?(name)
         msg = "Error: Disabled tool named %s ignored => Skip.\n" % name
-        @chat.tool_call_results[name] << msg
-        @chat.log(:error, msg)
+        chat.tool_call_results[name] << msg
+        chat.log(:error, msg)
         next
       end
       STDOUT.puts
       confirmed = :implicit
       function = JSON.pretty_generate(tool_call.function)
-      @chat.log(:info, function)
-      if @chat.tool_function(name).require_confirmation?
+      chat.log(:info, function)
+      if chat.tool_function(name).require_confirmation?
         prompt = "🔔 I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
           italic { function },
         ]
         prompt.gsub!('%', '%%')
-        if @chat.confirm?(prompt:, yes: /\Ay/i)
+        if chat.confirm?(prompt:, yes: /\Ay/i)
           confirmed = :explicit
         else
           confirmed = :denied
@@ -157,30 +159,30 @@ class OllamaChat::FollowChat
         STDOUT.printf(
           "\n%s Execution of tool %s denied by user.\n\n", ?🚫, bold { name }
         )
-        @chat.log(:warn,"Execution of tool %s was denied by user!" % name)
+        chat.log(:warn,"Execution of tool %s was denied by user!" % name)
       else
         symbol = confirmed == :implicit ? '☑️ ' : '✅'
         STDOUT.printf(
           "\n%s Execution of tool %s confirmed.\n\n", symbol, bold { name }
         )
         result = OllamaChat::Tools.registered[name].
-          execute(tool_call, chat: @chat)
+          execute(tool_call, chat: chat)
         if confirmed == :explicit
-          @chat.log(:info, "Execution of tool %s was explicitly confirmed." % name)
+          chat.log(:info, "Execution of tool %s was explicitly confirmed." % name)
         else
-          @chat.log(:info, "Execution of tool %s was implicitly confirmed." % name)
+          chat.log(:info, "Execution of tool %s was implicitly confirmed." % name)
         end
       end
 
-      @chat.tool_call_results[name] << result
+      chat.tool_call_results[name] << result
 
       data    = nil
       message = begin
                    data = JSON.parse(result)
-                   @chat.log(:info, JSON.pretty_generate(data))
+                   chat.log(:info, JSON.pretty_generate(data))
                    data['message']
                  rescue
-                   @chat.log(:info, result)
+                   chat.log(:info, result)
                    nil
                  end
       warn =
@@ -213,8 +215,8 @@ class OllamaChat::FollowChat
           🔧 Tool functions #{name} returned result (#{info[:size]}/#{info[:tokens]} in #{info[:duration]}).
           #{feedback_message}
         EOT
-        timeout = @chat.tool_function(name).result_display_timeout?
-        @chat.confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout:)
+        timeout = chat.tool_function(name).result_display_timeout?
+        chat.confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout:)
       end
     end
   end
@@ -243,17 +245,18 @@ class OllamaChat::FollowChat
   #
   # If the last message is not from an assistant, it adds a new assistant
   # message with empty content and optionally includes thinking content if the
-  # chat's think mode is enabled. It also updates the user display variable to
+  # chat's think mode is enabled. It also updates the sender display variable to
   # reflect the assistant's message type and styling.
   def ensure_assistant_response_exists
     if @messages&.last&.role != 'assistant'
-      @messages << Message.new(
-        role: 'assistant',
-        content: '',
-        thinking: ('' if @chat.think?)
+      message = Message.new(
+        role:        'assistant',
+        sender_name: chat.assistant,
+        content:     '',
+        thinking:    ('' if chat.think?)
       )
-      @user = message_type(@messages.last.images) + " " +
-        bold { color(111) { 'assistant:' } }
+      @messages << message
+      @sender = display_sender(message)
     end
   end
 
@@ -265,7 +268,7 @@ class OllamaChat::FollowChat
   #   and thinking
   def update_last_message(response)
     @messages.last.content << response.message&.content
-    if @chat.think? and response_thinking = response.message&.thinking.full?
+    if chat.think? and response_thinking = response.message&.thinking.full?
       @messages.last.thinking << response_thinking
     end
   end
@@ -286,14 +289,14 @@ class OllamaChat::FollowChat
   #   nil if thinking is disabled
   def prepare_last_message
     content, thinking = @messages.last.content, @messages.last.thinking
-    if @chat.markdown.on?
-      content = talk_annotate { truncate_for_terminal @chat.kramdown_ansi_parse(content) }
-      if @chat.think?
-        thinking = think_annotate { truncate_for_terminal@chat.kramdown_ansi_parse(thinking) }
+    if chat.markdown.on?
+      content = talk_annotate { truncate_for_terminal chat.kramdown_ansi_parse(content) }
+      if chat.think?
+        thinking = think_annotate { truncate_for_terminal chat.kramdown_ansi_parse(thinking) }
       end
     else
       content = talk_annotate { content }
-      @chat.think? and thinking = think_annotate { thinking }
+      chat.think? and thinking = think_annotate { thinking }
     end
     return content&.chomp, thinking&.chomp
   end
@@ -308,9 +311,9 @@ class OllamaChat::FollowChat
   def last_message_with_user
     content, thinking = prepare_last_message
     if thinking.present?
-      [ @user, ?\n, thinking, ?\n, content ]
+      [ @sender + ?:, ?\n, thinking, ?\n, content ]
     else
-      [ @user, ?\n, content ]
+      [ @sender + ?:, ?\n, content ]
     end
   end
 
@@ -336,7 +339,7 @@ class OllamaChat::FollowChat
   #   performed.
   def display_output
     @messages.use_pager do |output|
-      if @chat.markdown.on?
+      if chat.markdown.on?
         display_formatted_terminal_output(output)
       else
         output.print(*last_message_with_user)
@@ -384,6 +387,6 @@ class OllamaChat::FollowChat
   #
   # @param response [ Object ] the response object to be outputted
   def debug_output(response)
-    @chat.debug and @chat.log(:debug, response.to_json)
+    chat.debug and chat.log(:debug, response.to_json)
   end
 end
