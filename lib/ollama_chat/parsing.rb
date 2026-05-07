@@ -51,6 +51,12 @@ module OllamaChat::Parsing
       ps_read(source_io)
     when 'application/pdf'
       pdf_read(source_io)
+    when 'image/png'
+      if character = OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(source_io)
+        "Parsed character profile\n\n%s" % character
+      else
+        STDERR.puts "Could not parse character profile from #{source_io&.content_type} document."
+      end
     when %r(\Aapplication/(json|ld\+json|x-ruby|x-perl|x-gawk|x-python|x-javascript|x-c?sh|x-dosexec|x-shellscript|x-tex|x-latex|x-lyx|x-bibtex)), %r(\Atext/), nil
       source_io.read
     else
