@@ -255,6 +255,12 @@ module OllamaChat::Parsing
         case source_io&.content_type&.media_type
         when 'image'
           add_image(images, source_io, source)
+          if source_io&.content_type&.sub_type == 'png'
+            source_io.rewind
+            if character = OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(source_io)
+              contents << "Extracted character profile from %s\n\n%s" % [ source, character ]
+            end
+          end
         when 'text', 'application', nil
           case document_policy.selected
           when 'ignoring'

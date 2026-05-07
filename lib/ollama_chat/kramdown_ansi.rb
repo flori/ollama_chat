@@ -39,7 +39,13 @@ module OllamaChat::KramdownANSI
   # @return [ String ] the content formatted with ANSI escape sequences
   #   according to the configured styles
   def kramdown_ansi_parse(content)
+    retried = false
     content.nil? and return ''
     Kramdown::ANSI.parse(content, ansi_styles: @kramdown_ansi_styles)
+  rescue Encoding::UndefinedConversionError
+    return content if retried
+    retried = true
+    content = content.encode(invalid: :replace)
+    retry
   end
 end
