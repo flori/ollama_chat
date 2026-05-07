@@ -276,11 +276,14 @@ describe OllamaChat::Parsing do
       json_data = content.lines[2..-1].join('')
       json = JSON(json_data)
       expect(json.map { _1['name'] }.sort).to eq(
-        ["api_show.json", "api_tags.json", "api_version.json",
-         "conversation.json", "conversation.jsonl", "deep", "duckduckgo.html", "example.atom",
-         "example.csv", "example.html", "example.pdf", "example.ps",
-         "example.rb", "example.rss", "example.xml", "example_with_quote.html",
-         "kitten.jpg", "prompt.txt", "searxng.json", "pirateweather.json"].sort
+        [
+          "api_show.json", "api_tags.json", "api_version.json",
+          "conversation.json", "conversation.jsonl", "deep", "duckduckgo.html",
+          "example.atom", "example.csv", "example.html", "example.pdf",
+          "example.ps", "example.rb", "example.rss", "example.xml",
+          "example_with_quote.html", "kitten.jpg", "prompt.txt",
+          "searxng.json", "pirateweather.json", "fluffy.png",
+        ].sort
       )
     end
   end
