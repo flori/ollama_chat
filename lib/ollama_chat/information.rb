@@ -269,13 +269,13 @@ module OllamaChat::Information
   # @return [Hash] a hash containing static runtime data.
   def static_runtime_information_values
     {
-      user:                 ,
+      client:               ,
+      collections:          JSON.pretty_generate(config.embedding.collection_descriptions?),
+      current_directory:    Pathname.pwd.expand_path.to_path,
       languages:            config.languages * ', ',
       location:             location.on?.full? { location_description } || 'n/a',
-      client:               ,
-      current_directory:    Pathname.pwd.expand_path.to_path,
       tool_paths_allowed:   JSON.pretty_generate(tool_paths_allowed),
-      collections:          JSON.pretty_generate(config.embedding.collection_descriptions?),
+      user:                 ,
     }
   end
 
@@ -299,16 +299,16 @@ module OllamaChat::Information
   def dynamic_runtime_information_values
     now = Time.now
     {
-      time:                 now.iso8601,
-      weekday:              now.strftime('%A'),
-      session_name:         session.name,
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
       git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
-      terminal_rows:        Tins::Terminal.rows,
-      terminal_cols:        Tins::Terminal.cols,
-      voice:                voice.on? ? 'enabled' : 'disabled',
       markdown:             markdown.on? ? 'enabled' : 'disabled',
+      session_name:         session.name,
+      terminal_cols:        Tins::Terminal.cols,
+      terminal_rows:        Tins::Terminal.rows,
+      time:                 now.iso8601,
       tools_support:        tools_support.on? ? 'enabled' : 'disabled',
+      voice:                voice.on? ? 'enabled' : 'disabled',
+      weekday:              now.strftime('%A'),
     }
   end
 
