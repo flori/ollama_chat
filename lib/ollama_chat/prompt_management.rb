@@ -50,7 +50,9 @@ module OllamaChat::PromptManagement
         output.puts kramdown_ansi_parse(<<~EOT)
           # Prompt #{prompt.name}
           ---
+
           #{prompt.to_s}
+
           ---
         EOT
       end
@@ -225,6 +227,17 @@ module OllamaChat::PromptManagement
       )
       STDOUT.print start
       STDOUT.puts ' %s' % italic { content }
+    end
+  end
+
+  # Resets a prompt's content to the default value defined in the configuration.
+  #
+  # @param name [String, Symbol] the name of the prompt to reset
+  # @return [Boolean] true if the prompt was reset, false if no default was found
+  def reset_prompt_to_default(name)
+    if content = config.prompts[name.to_s]
+      store_prompt(name, content)
+      true
     end
   end
 

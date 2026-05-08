@@ -284,9 +284,13 @@ module OllamaChat::PersonaeManagement
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
           # Persona #{persona}
+
           File #{persona_path.to_path}
+
           ---
+
           #{persona_profile}
+
           ---
         EOT
       end

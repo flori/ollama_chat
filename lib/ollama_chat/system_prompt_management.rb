@@ -127,7 +127,9 @@ module OllamaChat::SystemPromptManagement
         output.puts kramdown_ansi_parse(<<~EOT)
           # System Prompt #{system_prompt.name}
           ---
+
           #{system_prompt.to_s}
+
           ---
         EOT
       end
@@ -277,6 +279,17 @@ module OllamaChat::SystemPromptManagement
     filename.write(prompt.to_s)
     STDOUT.puts "Prompt #{prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
     self
+  end
+
+  # Resets a system prompt's content to the default value defined in the configuration.
+  #
+  # @param name [String, Symbol] the name of the system prompt to reset
+  # @return [Boolean] true if the system prompt was reset, false if no default was found
+  def reset_system_prompt_to_default(name)
+    if content = config.system_prompts[name.to_s]
+      store_system_prompt(name, content)
+      true
+    end
   end
 
   private

@@ -401,12 +401,12 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import|info))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ add delete edit list change duplicate export import info ] ],
+    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import|info|reset))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ add delete edit list change duplicate export import info reset ] ],
     optional: true,
     help: <<~EOT
       Manage the system prompt (add, delete, edit, list, change, duplicate,
-      export, import, info)
+      export, import, info, reset)
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -429,6 +429,14 @@ class OllamaChat::Chat
       export_system_prompt
     when 'info'
       info_system_prompt
+    when 'reset'
+      if prompt = choose_system_prompt
+        if reset_system_prompt_to_default(prompt.name)
+          STDOUT.puts "Reset system prompt #{bold{prompt.name}} to default."
+        else
+          STDOUT.puts "No default value found for system prompt #{bold{prompt.name}}."
+        end
+      end
     when nil
       @messages.show_system_prompt
     end
@@ -616,12 +624,12 @@ class OllamaChat::Chat
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export|info))?(?:\s+(\S+))?$),
-    complete: [ 'prompt', %w[ add delete edit list duplicate import export info ] ],
+    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export|info|reset))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ add delete edit list duplicate import export info reset ] ],
     optional: true,
     help: <<~EOT,
       Manage preset prompt templates or prefill the prompt (add, delete, edit,
-      list, duplicate, import, export, info)
+      list, duplicate, import, export, info, reset)
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -641,6 +649,14 @@ class OllamaChat::Chat
       export_prompt
     when 'info'
       info_prompt
+    when 'reset'
+      if prompt = choose_prompt(default: true)
+        if reset_prompt_to_default(prompt.name)
+          STDOUT.puts "Reset prompt #{bold{prompt.name}} to default."
+        else
+          STDOUT.puts "No default value found for prompt #{bold{prompt.name}}."
+        end
+      end
     when nil
       @prefill_prompt = choose_prompt&.to_s
     end
@@ -826,8 +842,7 @@ class OllamaChat::Chat
         arg and patterns = arg.scan(/(\S+)/).flatten
         next provide_file_set_content(patterns, all:) { embed(_1) } || :next
       elsif arg
-        source = arg
-        next embed(source) || :next
+        next embed(arg) || :next
       else
         STDERR.puts "Need a source to embed for input!"
         next :next
