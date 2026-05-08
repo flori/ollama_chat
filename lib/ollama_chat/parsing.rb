@@ -65,28 +65,6 @@ module OllamaChat::Parsing
     end
   end
 
-  # The parse_csv method processes CSV content from an input source and
-  # converts it into a formatted string representation.
-  # It iterates through each row of the CSV, skipping empty rows, and
-  # constructs a structured output where each row's fields are formatted with
-  # indentation and separated by newlines. The resulting string includes double
-  # newlines between rows for readability.
-  #
-  # @param source_io [ IO ] the input source containing CSV data
-  #
-  # @return [ String ] a formatted string representation of the CSV content
-  def parse_csv(source_io)
-    result = +''
-    CSV.table(File.new(source_io), col_sep: ?,).each do |row|
-      next if row.fields.select(&:present?).none?
-      result << row.map { |pair|
-        pair.compact.map { _1.to_s.strip } * ': ' if pair.last.present?
-      }.select(&:present?).map { _1.prepend('  ') } * ?\n
-      result << "\n\n"
-    end
-    result
-  end
-
   # The parse_rss method processes an RSS feed source and converts it into a
   # formatted text representation.
   # It extracts the channel title and iterates through each item in the feed to
