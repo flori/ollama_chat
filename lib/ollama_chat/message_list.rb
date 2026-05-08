@@ -226,8 +226,15 @@ class OllamaChat::MessageList
     last = (last || @messages.size).clamp(0, @messages.size)
     messages = @messages[-last..-1].to_ary
     use_pager do |output|
-      clean_messages(messages:).each do |message|
+      my_messages = clean_messages(messages:)
+      my_messages = my_messages.with_infobar(
+        output: STDERR,
+        label: 'Message',
+        total: my_messages.size
+      )
+      my_messages.each do |message|
         output.puts message_text_for(message)
+        +infobar
       end
     end
     self
@@ -250,8 +257,15 @@ class OllamaChat::MessageList
     n = n.clamp(0..messages.size)
     n <= 0 and return
     use_pager do |output|
-      messages[-n..-1].to_a.each do |message|
+      last_messages = messages[-n..-1].to_a
+      last_messages = last_messages.with_infobar(
+        output: STDERR,
+        label: 'Message',
+        total: last_messages.size
+      )
+      last_messages.each do |message|
         output.puts message_text_for(message)
+        +infobar
       end
     end
     self
