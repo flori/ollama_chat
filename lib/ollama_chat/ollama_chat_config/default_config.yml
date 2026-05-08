@@ -108,7 +108,18 @@ prompts:
 
     %{context}
 
-    Summarize this %{sender_name} message in one %{unit}
+    Summarize the %{sender_name} message below in one %{unit}.
+
+    NEVER add any information to this message summary that already was included
+    in the context above.
+
+    Message
+
+    Thinking content was
+
+    %{message_thinking}
+
+    Response content was
 
     %{message_content}
   session_title: "Create a title with a length of **less than %{length}** characters for this conversation. Output only the title and nothing else:\n\n%{content}"

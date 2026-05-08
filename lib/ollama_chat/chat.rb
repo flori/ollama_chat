@@ -490,7 +490,7 @@ class OllamaChat::Chat
     regexp: %r(^/session(?:\s+(list|new|duplicate|rename|summarize|change|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
     complete: [ 'session', %w[ list new duplicate rename summarize change delete model\ options ] ],
     optional: true,
-    options: '[-c|-f] [name]',
+    options: '[-s|-f] [name]',
     help: <<~EOT
       Manage chat sessions (list, new, duplicate, rename, summarize, change,
       delete, model options).
