@@ -52,7 +52,7 @@ module OllamaChat::Parsing
     when 'application/pdf'
       pdf_read(source_io)
     when 'image/png'
-      if character = OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(source_io)
+      if character = parse_character_json(source_io)
         "Parsed character profile\n\n%s" % character
       else
         STDERR.puts "Could not parse character profile from #{source_io&.content_type} document."
@@ -185,6 +185,23 @@ module OllamaChat::Parsing
     )
   end
 
+  # Extracts and parses a character profile from a PNG image.
+  #
+  # Replaces the `{{user}}` placeholder with the current user's name or a
+  # default string if the name is unavailable.
+  #
+  # @param io [IO] the input stream containing the PNG data
+  # @return [String, nil] the parsed and personalized character profile, or nil
+  # if extraction fails
+  def parse_character_json(io)
+    char = OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(io) or return
+    if user_name
+      char.gsub('{{user}}', user_name)
+    else
+      char.gsub('{{user}}', 'the user')
+    end
+  end
+
   # Regular expression to scan content for url/file references
   CONTENT_REGEXP = %r{
     (https?://\S+)                         # Match HTTP/HTTPS URLs
@@ -241,7 +258,7 @@ module OllamaChat::Parsing
           add_image(images, source_io, source)
           if source_io&.content_type&.sub_type == 'png'
             source_io.rewind
-            if character = OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(source_io)
+            if character = parse_character_json(source_io)
               contents << "Extracted character profile from %s\n\n%s" % [ source, character ]
             end
           end
