@@ -7,6 +7,13 @@
 module OllamaChat::RAGHandling
   private
 
+  # Returns the name of the currently active document collection.
+  #
+  # @return [String, Symbol] the name of the current collection
+  def collection
+    @documents.collection
+  end
+
   # Clears documents from the collection through an interactive user interface.
   #
   # This method allows users to selectively clear documents by choosing
@@ -24,7 +31,7 @@ module OllamaChat::RAGHandling
       when '[ALL]'
         if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
           @documents.clear
-          STDOUT.puts "Cleared collection #{bold{@documents.collection}}."
+          STDOUT.puts "Cleared collection #{bold{collection}}."
           break
         else
           STDOUT.puts 'Cancelled.'
@@ -32,7 +39,7 @@ module OllamaChat::RAGHandling
         end
       when /./
         @documents.clear(tags: [ tag ])
-        STDOUT.puts "Cleared tag #{tag} from collection #{bold{@documents.collection}}."
+        STDOUT.puts "Cleared tag #{tag} from collection #{bold{collection}}."
         sleep 3
       end
     end
@@ -69,8 +76,8 @@ module OllamaChat::RAGHandling
       @documents.collection = collection
     end
   ensure
-    @session.update(current_collection: @documents.collection)
-    STDOUT.puts "Using collection #{bold{@documents.collection}}."
+    @session.update(current_collection: collection)
+    STDOUT.puts "Using collection #{bold{collection}}."
     info
   end
 
@@ -100,7 +107,7 @@ module OllamaChat::RAGHandling
   # This method retrieves the current collection and the full list of available
   # collections from the internal document handler, highlighting the active one.
   def list_collections
-    current_collection = @documents.collection
+    current_collection = collection
     STDOUT.puts @documents.collections.
       map { |c| current_collection == c ? bold { c } : c }
   end

@@ -18,7 +18,7 @@ location:
 runtime_info:
   enabled: true
 prompts:
-  embed: "This source was now embedded: %{source}"
+  embed: "This source was now embedded in %{collection}: %{source}"
   summarize: |
     Generate an abstract summary of the content in this document using
     %{words} words:

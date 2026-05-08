@@ -78,7 +78,7 @@ module OllamaChat::Information
       gsub(/(?<!\A)^/, ' ' * 4)
     output.puts <<~EOT
       Current Collection
-        Name: #{bold{@documents.collection}}
+        Name: #{bold{collection}}
         #Embeddings: #{@documents.size}
         #Tags: #{@documents.tags.size}
         Tags:

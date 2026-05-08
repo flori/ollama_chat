@@ -170,7 +170,8 @@ module OllamaChat::SourceFetching
   #   nil if embedding is disabled or fails
   def embed_source(source_io, source, count: nil)
     @embedding.on? or return parse_source(source_io)
-    m = "Embedding #{italic { source_io&.content_type }} document #{source.to_s.inspect}."
+    m = "Embedding #{italic { source_io&.content_type }} document "\
+      "#{source.to_s.inspect} in collection #{collection.inspect}."
     if count
       STDOUT.puts '%u. %s' % [ count, m ]
     else
@@ -227,14 +228,14 @@ module OllamaChat::SourceFetching
   #   nil if the operation fails
   def embed(source)
     if @embedding.on?
-      STDOUT.puts "Now embedding #{source.to_s.inspect}."
+      STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.inspect}."
       fetch_source(source) do |source_io|
         content = parse_source(source_io)
         content.present? or return
         source_io.rewind
         embed_source(source_io, source)
       end
-      prompt(:embed).to_s % { source: }
+      prompt(:embed).to_s % { source:, collection: collection }
     else
       STDOUT.puts "Embedding is off, so I will just give a small summary of this source."
       summarize(source)

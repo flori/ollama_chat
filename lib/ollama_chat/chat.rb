@@ -688,11 +688,11 @@ class OllamaChat::Chat
     when 'clear'
       clear_collection
     when 'change'
-      choose_collection(@documents.collection)
+      choose_collection(collection)
     when 'list'
       list_collections
     when 'rename'
-      rename_collection(@documents.collection)
+      rename_collection(collection)
     when nil
       collection_stats
     end
@@ -1030,7 +1030,7 @@ class OllamaChat::Chat
         @documents.clear
         links.clear
         clear_history
-        STDOUT.puts "Cleared messages and collection #{bold{@documents.collection}}."
+        STDOUT.puts "Cleared messages and collection #{bold{collection}}."
       else
         STDOUT.puts 'Cancelled.'
       end

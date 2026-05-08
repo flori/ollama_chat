@@ -31,7 +31,7 @@ describe OllamaChat::SourceFetching do
       './spec/assets/example.html'
     )
     expect(chat.embed('./spec/assets/example.html')).to eq(
-      'This source was now embedded: ./spec/assets/example.html'
+      'This source was now embedded in default: ./spec/assets/example.html'
     )
   end
 
