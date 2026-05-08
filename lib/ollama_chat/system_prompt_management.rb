@@ -248,7 +248,7 @@ module OllamaChat::SystemPromptManagement
       filename = choose_filename('**/*.md')
     end
     unless filename
-      STDOUT.puts "Canceled."
+      STDOUT.puts "Cancelled."
       return
     end
     system_prompt_name = determine_valid_new_name_for_system_prompt('to import') or return
@@ -320,7 +320,7 @@ module OllamaChat::SystemPromptManagement
         prompt: "❓ Enter new system prompt name #{action}, C-c ⇒ cancel: "
       )
       if system_prompt_name.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
       if system_prompt(system_prompt_name)

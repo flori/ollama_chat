@@ -481,7 +481,7 @@ module OllamaChat::PersonaeManagement
         prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: "
       )
       if persona_name.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
       if persona_name_to_pathname(persona_name).exist?

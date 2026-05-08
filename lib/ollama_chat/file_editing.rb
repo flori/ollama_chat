@@ -116,7 +116,7 @@ module OllamaChat::FileEditing
         prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: "
       )
       if filename_str.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
 

@@ -104,7 +104,7 @@ module OllamaChat::SessionManagement
         prefill: default_name
       )
       if session_name.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
       if models::Session.where(name: session_name).first
@@ -361,7 +361,7 @@ module OllamaChat::SessionManagement
           redo
         end
       else
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         break
       end
     end

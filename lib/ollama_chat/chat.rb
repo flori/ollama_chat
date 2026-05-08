@@ -359,7 +359,7 @@ class OllamaChat::Chat
 
   command(
     name: :favourite,
-    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system_prompt|persona))?$),
+    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system_prompt|persona))$),
     complete: [ 'favourite', %w[ add delete ], %w[ model prompt system_prompt persona ] ],
     help: 'Manage favorites for models, prompts, and personas (add, delete)'
   ) do |subcommand, type|

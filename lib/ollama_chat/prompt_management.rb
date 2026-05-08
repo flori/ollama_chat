@@ -72,7 +72,7 @@ module OllamaChat::PromptManagement
         prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: "
       )
       if name.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
       if prompt(name)
@@ -140,7 +140,7 @@ module OllamaChat::PromptManagement
         prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: "
       )
       if name.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
       if prompt(name)
@@ -179,7 +179,7 @@ module OllamaChat::PromptManagement
       filename = choose_filename('**/*.md')
     end
     unless filename
-      STDOUT.puts "Canceled."
+      STDOUT.puts "Cancelled."
       return
     end
     prompt_name = determine_valid_new_name_for_prompt('to import') or return
@@ -271,7 +271,7 @@ module OllamaChat::PromptManagement
         prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: "
       )
       if prompt_name.nil?
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return nil
       end
       if prompt(prompt_name)

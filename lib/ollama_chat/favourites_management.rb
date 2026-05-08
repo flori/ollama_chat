@@ -52,7 +52,7 @@ module OllamaChat::FavouritesManagement
       to_select.unshift('[EXIT]')
       case chosen = OllamaChat::Utils::Chooser.choose(to_select)
       when '[EXIT]', nil
-        STDOUT.puts "Canceled."
+        STDOUT.puts "Cancelled."
         return
       when SearchUI::Wrapper
         models::Favourite.create(context: type, name: chosen.value)
@@ -72,7 +72,7 @@ module OllamaChat::FavouritesManagement
     to_select = [ '[EXIT]' ] + to_select
     case chosen = OllamaChat::Utils::Chooser.choose(to_select)
     when '[EXIT]', nil
-      STDOUT.puts "Canceled."
+      STDOUT.puts "Cancelled."
       return
     when SearchUI::Wrapper
       models::Favourite.where(context: type, name: chosen.value).destroy
