@@ -279,9 +279,9 @@ module OllamaChat::SessionManagement
         }
       ).response
       if pretty
-        contents << '**%s**: %s' % [ message.role, summary ]
+        contents << '**%s**: %s' % [ sender_name_displayed(message), summary ]
       else
-        contents << '%s: %s' % [ message.role, summary ]
+        contents << '%s: %s' % [ sender_name_displayed(message), summary ]
       end
       +infobar
     end

@@ -28,6 +28,20 @@ module OllamaChat::MessageFormat
     end
   end
 
+  # Returns the display name for the message sender.
+  # If a full sender name is available, it returns the name and the role.
+  # Otherwise, it returns only the role.
+  #
+  # @param message [ OllamaChat::Message ] the message object
+  # @return [ String ] the formatted sender name or role
+  def sender_name_displayed(message)
+    if sender_name = message.ask_and_send(:sender_name).full?
+      '%s (%s)' % [ sender_name, message.role ]
+    else
+      message.role
+    end
+  end
+
   # Formats the sender's identity for display in the terminal, including
   # the message icon and the sender's name or role with appropriate coloring.
   #
@@ -35,16 +49,7 @@ module OllamaChat::MessageFormat
   # @return [ String ] the formatted string representing the sender
   def display_sender(message)
     color = role_color(message)
-    name  = case message.role
-            when 'user', 'assistant'
-              if sender_name = message.sender_name.full?
-                '%s (%s)' % [ sender_name, message.role ]
-              else
-                message.role
-              end
-            when 'system'
-              message.role
-            end
+    name  = sender_name_displayed(message)
     message_type(message.images) + " " + bold { color(color) { name } }
   end
 
