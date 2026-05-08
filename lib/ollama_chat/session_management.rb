@@ -273,15 +273,18 @@ module OllamaChat::SessionManagement
     contents = []
     total = messages.each_message.count
     messages.each_message.with_infobar(label: 'Summarizing message', total:) do |message|
-      summary = generate(
+      sender_name     = sender_name_displayed(message)
+      message_content = message.content.full? or next
+      context         = contents * "\n\n"
+      summary         = generate(
         prompt:  prompt(:session_summarize).to_s % {
-          role: message.role, unit:, content: message.content
+          sender_name:, unit:, message_content:, context:
         }
       ).response
       if pretty
-        contents << '**%s**: %s' % [ sender_name_displayed(message), summary ]
+        contents << '**%s**: %s' % [ sender_name, summary ]
       else
-        contents << '%s: %s' % [ sender_name_displayed(message), summary ]
+        contents << '%s: %s' % [ sender_name, summary ]
       end
       +infobar
     end
