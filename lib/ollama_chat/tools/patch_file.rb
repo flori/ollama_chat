@@ -70,11 +70,14 @@ class OllamaChat::Tools::PatchFile
     path = assert_valid_path(path, config.tools.functions.patch_file.allowed?, check: :file)
 
     result = apply_patch(chat, path, content)
-    message = if result[:success]
-                 "Successfully applied patch to #{path.to_s.inspect}."
-               else
-                 "Failed to apply patch to file #{path.to_s.inspect}."
-               end
+    message =
+      if result[:success]
+        "Successfully applied patch to #{path.to_s.inspect}."
+      elsif result[:content_unchanged]
+        "User rejected to apply patch to file #{path.to_s.inspect}. Ask the user about what you did wrong."
+      else
+        "Failed to apply patch to file #{path.to_s.inspect}."
+      end
     (result | {
       path:    path.to_s,
       message: ,
@@ -84,7 +87,6 @@ class OllamaChat::Tools::PatchFile
       error:   e.class,
       success: false,
       message: "Failed to apply patch to file #{path.to_s.inspect}: #{e.message}",
-      result:  '',
     }.to_json
   end
 
@@ -112,12 +114,15 @@ class OllamaChat::Tools::PatchFile
     old_digest = digest(path)
     diff_tool = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'
     File.exist?(diff_tool) or raise "Diff tool #{diff_tool.inspect} does not exist"
-    result = { result: '', success: false }
+    result = { success: false }
     basename = [ path.basename.sub_ext(''), path.extname ].map(&:to_s).all_full?
     chat.edit_text_block(content, basename:) do |patched|
       cmd = [ diff_tool, path, patched.path ].map(&:to_s)
       if system(*cmd)
-        result[:success] = $?.success? && digest(path) != old_digest
+        if result[:success] = $?.success?
+          result[:content_unchanged] = digest(path) == old_digest
+          result[:success] &&= !result[:content_unchanged]
+        end
       end
     end
     result
