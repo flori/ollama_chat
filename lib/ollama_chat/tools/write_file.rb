@@ -67,34 +67,33 @@ class OllamaChat::Tools::WriteFile
     config = opts[:chat].config
     args   = tool_call.function.arguments
 
-    target_path = assert_valid_path(args.path, config.tools.functions.write_file.allowed?)
+    path = assert_valid_path(args.path, config.tools.functions.write_file.allowed?)
 
     # Ensure the parent directory exists
-    target_path.parent.mkpath
+    path.parent.mkpath
 
     bytes_written = args.content&.size.to_i
 
     # Write the file
     case args.mode
     when 'append'
-      File.open(target_path, 'a') { |f| f.write(args.content) }
+      File.open(path, 'a') { |f| f.write(args.content) }
     when 'overwrite', nil
-      File.secure_write(target_path, args.content)
+      File.secure_write(path, args.content)
     else
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
 
     bytes_written = format_bytes(bytes_written)
-    path          = target_path.to_s.inspect
 
-    message = <<~EOT % { bytes_written:, path: }
+    message = <<~EOT % { bytes_written:, path: path.to_s.inspect }
       Wrote %{bytes_written} to file %{path}.
     EOT
 
     {
       success: true,
-      path:    ,
-      message:,
+      path:    path.to_s,
+      message: ,
     }.to_json
   rescue => e
     {
