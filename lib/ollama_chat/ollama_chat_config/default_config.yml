@@ -299,6 +299,7 @@ tools:
       allowed:
         - './tmp'
     retrieve_document_snippets:
+      result_display_timeout: 3
       default: true
     compute_bmi:
       result_display_timeout: 3
