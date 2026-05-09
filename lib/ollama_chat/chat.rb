@@ -719,12 +719,12 @@ class OllamaChat::Chat
 
   command(
     name: :persona,
-    regexp: %r(^/persona(?:\s+(add|delete|edit|backup|import|export|duplicate|info|list|load))?$),
-    complete: [ 'persona', %w[ add delete edit backup import export duplicate info list load ] ],
+    regexp: %r(^/persona(?:\s+(add|delete|edit|backup|import|export|duplicate|info|list|load|play))?$),
+    complete: [ 'persona', %w[ add delete edit backup import export duplicate info list load play ] ],
     optional: true,
     help: <<~EOT,
-      Manage and activate personas for roleplay (add, delete, edit, backup,
-      import, export, duplicate, info, list, load)
+      Manage and activate personas for roleplay (select, add, delete, edit,
+      backup, import, export, duplicate, info, list, load, play)
     EOT
   ) do |subcommand|
     disable_content_parsing
@@ -765,8 +765,11 @@ class OllamaChat::Chat
       else
         :next
       end
-    else
+    when 'play'
       set_default_persona
+      :next
+    else
+      select_persona_path
       :next
     end
   end

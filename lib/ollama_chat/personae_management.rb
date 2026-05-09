@@ -259,6 +259,19 @@ module OllamaChat::PersonaeManagement
     end
   end
 
+  # Prompts the user to select a persona, copies its filesystem path to the
+  # clipboard, and sets it as the prefill prompt for the next interaction.
+  #
+  # @return [String, nil] the filesystem path of the selected persona,
+  #   or nil if the selection was cancelled.
+  def select_persona_path
+    persona = choose_persona or return
+    path = persona_name_to_pathname(persona).to_s
+    perform_copy_to_clipboard(text: path)
+    @prefill_prompt = path
+    path
+  end
+
   # Backs up the content of a selected persona file.
   #
   # Prompts the user to select a persona from the available list. If a persona
