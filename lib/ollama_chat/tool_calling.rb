@@ -177,9 +177,12 @@ module OllamaChat::ToolCalling
     config.tools.functions.to_h.
       select { |name, value| tool_enabled?(name) && value[:allowed].present? }.
       sort_by(&:first).
-      each_with_object({}) { |(name, value), hash|
-        hash[name] = value[:allowed].map { Pathname.new(_1).expand_path.to_s }
-      }
+      each_with_object({}) do |(name, value), hash|
+        hash[name] = value[:allowed].filter_map do
+          pathname = Pathname.new(_1).expand_path
+          pathname.exist?.full? { pathname.to_path }
+        end
+      end
   end
 
   private
