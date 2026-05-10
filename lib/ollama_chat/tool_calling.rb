@@ -194,13 +194,13 @@ module OllamaChat::ToolCalling
   # @return [ String, nil ] a formatted string containing tool call results or
   #   nil if no results exist
   def handle_tool_call_results?
-    @tool_call_results.present? or return
     content = @tool_call_results.each_with_object([]) do |(name, results), ary|
-      ary << results.each_with_index.map { |result, index|
+      ary.concat results.each_with_index.map { |result, index|
         "Tool (index=%u) %s returned\n%s" % [ index, name, result ]
       }
-    end.join(?\n)
+    end * ?\n
+    content.full?
+  ensure
     @tool_call_results.clear
-    content
   end
 end
