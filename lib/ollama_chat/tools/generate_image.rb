@@ -95,18 +95,20 @@ class OllamaChat::Tools::GenerateImage
       filename:, subfolder: '', type: 'output', rand:
     )
 
+    message = "Image successfully generated! The user can view it here,"\
+      " give this URL to the user: #{view_url}"
     {
-      status: 'success',
-      url: view_url,
-      prompt:,
-      message: "Image successfully generated! You can view it here: #{view_url}",
+      status:   'success',
+      message:  ,
+      url:      view_url,
+      prompt:   ,
       duration: Tins::Duration.new(Time.now - started).to_s,
     }.to_json
   rescue => e
     {
-      error: e.class,
+      error:    e.class,
       message: "Failed to generate image: #{e.message}",
-      prompt:,
+      prompt:   ,
     }.to_json
   end
 
