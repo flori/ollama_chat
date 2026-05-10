@@ -42,7 +42,7 @@ module OllamaChat::CommandConcern
     #
     # @return [Array<String>]
     def command_completions
-      commands.each_value.map(&:completions).compact.inject(&:concat).
+      commands.each_value.filter_map(&:completions).inject(&:concat).
         map { _1.join(' ').strip.gsub(/\s+/, ' ') }.uniq.sort
     end
 

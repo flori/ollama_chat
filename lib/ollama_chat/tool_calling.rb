@@ -55,7 +55,7 @@ module OllamaChat::ToolCalling
   # @return [ Hash ] a hash containing the registered tools
   def tools
     @tools_support.off? and return []
-    enabled_tools.map { OllamaChat::Tools.registered[it]&.to_hash }.compact
+    enabled_tools.filter_map { OllamaChat::Tools.registered[it]&.to_hash }
   end
 
   # The default_enabled_tools method returns an array of tool names that are

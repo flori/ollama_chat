@@ -465,7 +465,7 @@ class OllamaChat::MessageList
     message_text  = display_sender(message)
     if thinking
       message_text += [ ?:, thinking, talk_annotate { content } ].compact.
-        map { _1.chomp } * ?\n
+        map(&:chomp) * ?\n
     else
       message_text += ":\n#{content}"
     end
