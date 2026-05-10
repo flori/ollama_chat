@@ -249,7 +249,7 @@ module OllamaChat::SessionManagement
     end
     if name == session.name
       STDOUT.puts "Keeping the old name #{name.inspect}."
-    elsif name
+    elsif name.present?
       if exists = models::Session.where(name:).first
         STDOUT.puts "Session with name #{name.inspect} already exists."
       else
@@ -316,7 +316,6 @@ module OllamaChat::SessionManagement
       Kramdown::ANSI::Width.truncate(name, length:)
     end
   end
-
 
   # Closes the current session by persisting final messages and releasing
   # the process lock. This should be called during application shutdown
