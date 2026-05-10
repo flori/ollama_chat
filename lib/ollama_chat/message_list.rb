@@ -433,7 +433,7 @@ class OllamaChat::MessageList
     @messages.each do |message|
       message.images = nil
     end
-    self
+    sync
   end
 
   private
