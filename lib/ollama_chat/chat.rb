@@ -1115,6 +1115,8 @@ class OllamaChat::Chat
 
       content = content.encode(invalid: :replace)
 
+      content.present? or next
+
       parse_content? and content = parse_content(content, @images)
 
       runtime_info.on? && content and
