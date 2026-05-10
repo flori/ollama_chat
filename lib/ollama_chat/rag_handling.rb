@@ -22,7 +22,7 @@ module OllamaChat::RAGHandling
   # or completes a clear operation.
   def clear_collection
     loop do
-      tags = @documents.tags.add('[EXIT]').add('[ALL]')
+      tags = @documents.tags.to_a.unshift('[ALL]').unshift('[EXIT]')
       tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
       case tag
       when nil, '[EXIT]'
