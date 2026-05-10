@@ -325,7 +325,8 @@ class OllamaChat::Chat
 
   command(
     name: :document_policy,
-    regexp: %r(^/document_policy$),
+    regexp: %r(^/document policy$),
+    complete: %w[ document policy ],
     help: 'Select a scanning policy for documents'
   ) do
     document_policy.choose
@@ -665,7 +666,8 @@ class OllamaChat::Chat
 
   command(
     name: :change_response,
-    regexp: %r(^/change_response$),
+    regexp: %r(^/change response$),
+    complete: %w[ change response ],
     help: 'Edit the last assistant response in the editor',
   ) do
     change_response

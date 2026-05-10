@@ -154,8 +154,8 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/revise edit")).to eq :redo
     end
 
-    it 'returns :next when input is "/change_response"' do
-      expect(chat.handle_input("/change_response")).to eq :next
+    it 'returns :next when input is "/change response"' do
+      expect(chat.handle_input("/change response")).to eq :next
     end
 
     it 'returns :next when input is "/collection(clear|change)"' do
@@ -177,10 +177,10 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/info")).to eq :next
     end
 
-    it 'returns :next when input is "/document_policy"' do
+    it 'returns :next when input is "/document policy"' do
       expect_any_instance_of(OllamaChat::StateSelectors::DatabaseStateSelector).to\
         receive(:choose)
-      expect(chat.handle_input("/document_policy")).to eq :next
+      expect(chat.handle_input("/document policy")).to eq :next
     end
 
     describe '/input' do
