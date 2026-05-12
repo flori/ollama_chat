@@ -42,8 +42,10 @@ module OllamaChat::CommandConcern
     #
     # @return [Array<String>]
     def command_completions
-      commands.each_value.filter_map(&:completions).inject(&:concat).
-        map { _1.join(' ').strip.gsub(/\s+/, ' ') }.uniq.sort
+      commands.each_value.filter_map {
+        _1&.completions&.each_with_index&.map { |c, i| [ c, c.size == 1 ? -1 : i ] }
+      }.inject(&:concat).map { [ _2, _1.join(' ').strip.gsub(/\s+/, ' ') ] }.
+        sort_by(&:first).transpose[1]
     end
 
     # Build a formatted help table for all registered commands.

@@ -402,12 +402,12 @@ class OllamaChat::Chat
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(add|delete|edit|list|change|duplicate|export|import|info|reset))?(?:\s+(\S+))?$),
-    complete: [ 'system', %w[ add delete edit list change duplicate export import info reset ] ],
+    regexp: %r(^/system(?:\s+(change|info|edit|add|delete|list|duplicate|export|import|reset))?(?:\s+(\S+))?$),
+    complete: [ 'system', %w[ change info edit add delete list duplicate export import reset ] ],
     optional: true,
     help: <<~EOT
-      Manage the system prompt (add, delete, edit, list, change, duplicate,
-      export, import, info, reset)
+      Manage the system prompt (change, info, edit, add, delete, list, duplicate,
+      export, import, reset)
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -455,10 +455,10 @@ class OllamaChat::Chat
 
   command(
     name: :tools,
-    regexp: %r(^/tools(?:\s+(enable|disable|on|off))?),
-    complete: [ 'tools', %w[ enable disable on off ] ],
+    regexp: %r(^/tools(?:\s+(on|off|enable|disable))?),
+    complete: [ 'tools', %w[ on off enable disable ] ],
     optional: true,
-    help: 'Manage tool support and enabled tools (enable, disable, on, off)'
+    help: 'Manage tool support and enabled tools (on, off, enable, disable)'
   ) do |subcommand|
     case subcommand
     when nil
@@ -488,12 +488,12 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(list|new|duplicate|rename|summarize|change|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ list new duplicate rename summarize change delete model\ options ] ],
+    regexp: %r(^/session(?:\s+(change|list|new|duplicate|rename|summarize|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ change list new duplicate rename summarize delete model\ options ] ],
     optional: true,
     options: '[-s|-f] [name]',
     help: <<~EOT
-      Manage chat sessions (list, new, duplicate, rename, summarize, change,
+      Manage chat sessions (change, list, new, duplicate, rename, summarize,
       delete, model options).
       For summarize: -s (single sentence), -f (output to markdown file)
     EOT
@@ -578,10 +578,10 @@ class OllamaChat::Chat
 
   command(
     name: :clear,
-    regexp: %r(^/clear(?:\s+(messages|links|history|tags|images|all))?$),
-    complete: [ 'clear', %w[ messages links history tags images all ] ],
+    regexp: %r(^/clear(?:\s+(messages|images|links|history|tags|all))?$),
+    complete: [ 'clear', %w[ messages images links history tags all ] ],
     optional: true,
-    help: 'Clear messages, links, history, tags, images or all'
+    help: 'Clear messages, images, links, history, tags or all'
   ) do |subcommand|
     if result = clean(subcommand)
       disable_content_parsing
@@ -625,12 +625,12 @@ class OllamaChat::Chat
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(add|delete|edit|list|duplicate|import|export|info|reset))?(?:\s+(\S+))?$),
-    complete: [ 'prompt', %w[ add delete edit list duplicate import export info reset ] ],
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset ] ],
     optional: true,
     help: <<~EOT,
-      Manage preset prompt templates or prefill the prompt (add, delete, edit,
-      list, duplicate, import, export, info, reset)
+      Manage preset prompt templates or prefill the prompt (edit, info, add,
+      delete, list, duplicate, import, export, reset)
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -694,12 +694,12 @@ class OllamaChat::Chat
 
   command(
     name: :collection,
-    regexp: %r(^/collection(?:\s+(clear|change|list|rename))?$),
-    complete: [ 'collection', %w[ clear change list rename ] ],
+    regexp: %r(^/collection(?:\s+(change|clear|list|rename))?$),
+    complete: [ 'collection', %w[ change clear list rename ] ],
     optional: true,
     help: <<~EOT
-      Manage the current RAG document collection: clear, change, rename, list
-      and show
+      Manage the current RAG document collection: change, clear, list,
+      rename and show
     EOT
   ) do |subcommand|
     case subcommand
@@ -721,12 +721,12 @@ class OllamaChat::Chat
 
   command(
     name: :persona,
-    regexp: %r(^/persona(?:\s+(add|delete|edit|backup|import|export|duplicate|info|list|load|play))?$),
-    complete: [ 'persona', %w[ add delete edit backup import export duplicate info list load play ] ],
+    regexp: %r(^/persona(?:\s+(play|load|edit|info|list|add|delete|backup|import|export|duplicate))?$),
+    complete: [ 'persona', %w[ play load edit info list add delete backup import export duplicate ] ],
     optional: true,
     help: <<~EOT,
-      Manage and activate personas for roleplay (select, add, delete, edit,
-      backup, import, export, duplicate, info, list, load, play)
+      Manage and activate personas for roleplay (play, load, edit, info, list,
+      add, delete, backup, import, export, duplicate)
     EOT
   ) do |subcommand|
     disable_content_parsing
@@ -798,13 +798,13 @@ class OllamaChat::Chat
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|summary|context|embedding)(?:\s*(?=\z))?)?((?:\s+-(?:[ap]|w\s*\d+))*)(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[ap]|w\s*\d+))*)(?:\s+(.+))?$),
     optional: true,
-    complete: [ 'input', [ 'path', 'summary', 'context', 'embedding', '', ] ],
+    complete: [ 'input', %w[ path context embedding summary ] ],
     options: '[-w|-a|-p] [arg…]',
     help: <<~EOT
       Import content from files, URLs, or globs into the context
-      Use subcommands: context, embedding, path, summary,
+      Use subcommands: path, context, embedding, summary,
         import (the default).
       Options:
         -p (enable pattern mode to allow using globs/wildcards)
