@@ -14,6 +14,24 @@ module OllamaChat::RAGHandling
     @documents.collection
   end
 
+  # Temporarily switches the RAG collection to the specified collection.
+  #
+  # The current collection is stored and restored after the block is executed,
+  # ensuring the state remains consistent regardless of whether the block
+  # completes successfully or raises an error.
+  #
+  # @param other_collection [String, nil] the collection to switch to.
+  #   If nil, the current collection is used.
+  # @yield The code to execute within the context of the switched collection.
+  # @return [Object] the result of the block.
+  def switch_collection(other_collection = nil)
+    other_collection ||= collection
+    old_collection, @documents.collection = collection, other_collection
+    yield
+  ensure
+    @documents.collection = old_collection
+  end
+
   # Clears documents from the collection through an interactive user interface.
   #
   # This method allows users to selectively clear documents by choosing
