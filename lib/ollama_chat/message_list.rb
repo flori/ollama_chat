@@ -256,6 +256,7 @@ class OllamaChat::MessageList
     messages = @messages.reject { |message| message.role == 'user' }
     n = n.clamp(0..messages.size)
     n <= 0 and return
+    last_message_user_message = (last.content if last&.role == 'user')
     use_pager do |output|
       last_messages = messages[-n..-1].to_a
       last_messages = last_messages.with_infobar(
@@ -266,6 +267,22 @@ class OllamaChat::MessageList
       last_messages.each do |message|
         output.puts message_text_for(message)
         +infobar
+      end
+    ensure
+      if last_message_user_message
+        message_content = Kramdown::ANSI::Width.truncate(
+          last_message_user_message.inspect,
+          length: Tins::Terminal.columns * 0.9
+        )
+        msg = <<~EOT
+
+          ⚠️ Last message is actually #{bold{'user message'}}, see:
+
+          #{message_content}
+
+          You might want to drop it.
+        EOT
+        output.puts msg
       end
     end
     self
