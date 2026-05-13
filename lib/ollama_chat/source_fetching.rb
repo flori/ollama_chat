@@ -171,7 +171,7 @@ module OllamaChat::SourceFetching
   def embed_source(source_io, source, count: nil, reembed: false)
     @embedding.on? or return parse_source(source_io)
     m = "Embedding #{italic { source_io&.content_type }} document "\
-      "#{source.to_s.inspect} in collection #{collection.inspect}."
+      "#{source.to_s.inspect} in collection #{collection.to_s.inspect}."
     if count
       STDOUT.puts '%u. %s' % [ count, m ]
     else
@@ -230,7 +230,7 @@ module OllamaChat::SourceFetching
   def embed(source, reembed: false)
     if @embedding.on?
       reembed and msg_reembed = ", reembed ↪️"
-      STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.inspect}#{msg_reembed}."
+      STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.to_s.inspect}#{msg_reembed}."
       fetch_source(source) do |source_io|
         content = parse_source(source_io)
         content.present? or return
