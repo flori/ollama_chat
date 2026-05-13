@@ -1106,6 +1106,8 @@ class OllamaChat::Chat
         end
       end
 
+      content = content.strip if content =~ %r(\A/[^/])
+
       if type == :terminal_input
         case next_action = handle_input(content)
         when :next
