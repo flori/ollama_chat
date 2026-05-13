@@ -54,21 +54,32 @@ module OllamaChat::SessionManagement
       table.headings = %w[ ID NAME SIZE #TOK COUNT UPDATED ].map { |header| bold { header } }
       now = Time.now
       models::Session.order(Sequel.desc(:updated_at)).each do |s|
-        name        = Kramdown::ANSI::Width.truncate(s.name, length: 40)
+        name        = Kramdown::ANSI::Width.truncate(s.name, length: 32)
+        name        = session.id == s.id ? bold { name } : name
+        name        = if pid = s.locked?
+                        if pid == $$
+                          "#{name} 🔓"
+                        else
+                          "#{name} 🔐"
+                        end
+                      else
+                        name
+                      end
         size_bytes  = s.messages.to_s.size
         size        = format_bytes(size_bytes)
         tokens      = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
         tokens_size = format_tokens(tokens)
         table << [
           s.id.to_s,
-          session.id == s.id ? bold { name } : name,
+          name,
           size,
           tokens_size,
           s.messages.to_s.count(?\n),
           s.age(now:),
         ]
       end
-      table.align_column 2, :right
+      table.align_column 0, :right
+      table.align_column 2, :left
       table.align_column 3, :right
       table.align_column 4, :right
       table.align_column 5, :right
