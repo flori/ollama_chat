@@ -288,24 +288,38 @@ module OllamaChat::PersonaeManagement
     end
   end
 
+  # Generates a formatted description of a persona, including its path and profile.
+  #
+  # @param persona [String] The persona name.
+  # @param substitute_variables [Boolean] Whether to substitute variables in the profile.
+  # @return [String, nil] The formatted description or nil if the persona is not found.
+  def persona_description(persona, substitute_variables: false)
+    persona_path, persona_profile = load_persona_file(persona)
+    if substitute_variables
+      persona_profile = self.substitute_variables(persona_profile)
+    end
+    persona_profile or return
+    <<~EOT
+      # Persona #{persona}
+
+      File #{persona_path.to_path}
+
+      ---
+
+      #{persona_profile}
+
+      ---
+    EOT
+  end
+
   # Displays detailed information about a selected persona.
   #
   # Shows the persona's profile using kramdown formatting with ansi parsing.
   def info_persona
     if persona = choose_persona
-      persona_path, persona_profile = load_persona_file(persona)
+      description = persona_description(persona) or return
       use_pager do |output|
-        output.puts kramdown_ansi_parse(<<~EOT)
-          # Persona #{persona}
-
-          File #{persona_path.to_path}
-
-          ---
-
-          #{persona_profile}
-
-          ---
-        EOT
+        output.puts kramdown_ansi_parse(description)
       end
     end
   end
@@ -398,29 +412,23 @@ module OllamaChat::PersonaeManagement
     personae_result(chosen)
   end
 
-  # Returns a JSON hash with results for one or more personae.
+  # Compiles the descriptions for one or more personae into a single string.
   #
-  # Loads the profile file for each persona and returns the results as JSON.
+  # Loads the profile for each persona and concatenates their descriptions.
   #
-  # @param personae [String, Array<String>] Persona name(s) to load
-  # @return [String] JSON string containing persona profile information
+  # @param personae [String, Array<String>] Persona name(s) to load.
+  # @return [String, nil] A string containing all descriptions, or nil if the result is blank.
   def personae_result(personae)
     personae = Array(personae)
 
-    result = {}
+    result = +''
 
     personae.each do |persona|
-      pathname = persona_name_to_pathname(persona)
-      pathname, profile = load_persona_file(persona)
-      profile or next
-      profile = substitute_variables(profile)
-      result[persona] = {
-        pathname:,
-        profile: ,
-      }
+      description = persona_description(persona, substitute_variables: true) or next
+      result << description << "\n"
     end
 
-    result.to_json
+    result.full?
   end
 
   # Loads a persona file from disk.
@@ -436,7 +444,7 @@ module OllamaChat::PersonaeManagement
     end
   end
 
-  # The substitute_variable method handles the substitution of variables in
+  # The substitute_variables method handles the substitution of variables in
   # profiles. It replaces placeholders with actual values.
   #
   # @param profile [String] the profile string to be processed
