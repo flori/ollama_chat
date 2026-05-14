@@ -798,7 +798,7 @@ class OllamaChat::Chat
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[ap]|[cw]\s*\d+))*)(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apr]|c\s*\w+|w\s*\d+))*)(?:\s+(.+))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: '[-w|-a|-p] [arg…]',
@@ -811,6 +811,7 @@ class OllamaChat::Chat
         -w <words> (summary subcommand only, default 100)
         -a (pattern mode only, include all files for patterns)
         -c <collection> use this collection (embedding subcommand only)
+        -r rembed a document (embedding subcommand only)
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -842,14 +843,14 @@ class OllamaChat::Chat
         next context_spook(nil) || :next
       end
     when 'embedding'
-      opts = go_command('pac:', opts)
+      opts = go_command('parc:', opts)
       switch_collection(opts[?c]) do
         if opts[?p]
           all = opts.fetch(?a, false)
           arg and patterns = arg.scan(/(\S+)/).flatten
-          next provide_file_set_content(patterns, all:) { embed(_1) } || :next
+          next provide_file_set_content(patterns, all:) { embed(_1, reembed: opts[?r]) } || :next
         elsif arg
-          next embed(arg) || :next
+          next embed(arg, reembed: opts[?r]) || :next
         else
           STDERR.puts "Need a source to embed for input!"
           next :next
