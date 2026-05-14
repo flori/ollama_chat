@@ -374,7 +374,7 @@ module OllamaChat::PersonaeManagement
   # @param chosen [Set, nil] Optional set of already selected personas
   # @return [String, Symbol, nil] The selected persona name, :none, or nil if user exits
   def choose_persona(chosen: nil, none: false)
-    personae_list = available_personae.
+    personae_list = available_personae_names.
       reject { chosen&.member?(_1) }
     if personae_list.empty?
       STDERR.puts "No personae defined."
@@ -382,14 +382,14 @@ module OllamaChat::PersonaeManagement
     end
     personae_list.unshift('[NONE]') if none
     personae_list.unshift('[EXIT]')
-    case chosen = OllamaChat::Utils::Chooser.choose(personae_list)
+    case persona = OllamaChat::Utils::Chooser.choose(personae_list)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
     when '[NONE]'
       :none
     else
-      chosen
+      persona.value
     end
   end
 
