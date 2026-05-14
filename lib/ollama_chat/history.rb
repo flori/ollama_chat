@@ -7,7 +7,7 @@
 # can maintain state across invocations by loading previous command histories.
 #
 # @example Initializing chat history
-#   chat.init_chat_history
+#   chat.init_history
 #
 # @example Saving chat history
 #   chat.save_history
@@ -17,7 +17,7 @@
 module OllamaChat::History
   private
 
-  # The init_chat_history method initializes the chat session by loading
+  # The init_history method initializes the chat session by loading
   # previously saved command history from a JSON or JSONL file.
   #
   # This method checks for the existence of a chat history file and, if found,
@@ -25,13 +25,9 @@ module OllamaChat::History
   # history and replaces it with the saved history data. Any errors during the
   # loading process are caught and logged as warnings, but do not interrupt the
   # execution flow.
-  def init_chat_history
+  def init_history
     if OC::OLLAMA::CHAT::HISTORY.exist?
-      if OC::OLLAMA::CHAT::HISTORY.extname == '.jsonl'
-        history_data = OC::OLLAMA::CHAT::HISTORY.each_line.map { JSON.load(_1) }
-      else
-        history_data = JSON.load(OC::OLLAMA::CHAT::HISTORY.read)
-      end
+      history_data = OllamaChat::Utils::JSONJSONLIO.new(OC::OLLAMA::CHAT::HISTORY).read.to_a
       Readline::HISTORY.clear
       Readline::HISTORY.push(*history_data)
     end
@@ -47,12 +43,11 @@ module OllamaChat::History
   # errors during the write operation by catching exceptions and issuing a
   # warning message.
   def save_history
-    File.secure_write(OC::OLLAMA::CHAT::HISTORY) do |out|
-      if OC::OLLAMA::CHAT::HISTORY.extname == '.jsonl'
-        Readline::HISTORY.each { out.puts JSON.dump(_1) }
-      else
-        out.write JSON.dump(Readline::HISTORY)
-      end
+    File.secure_write(OC::OLLAMA::CHAT::HISTORY) do |output|
+      OllamaChat::Utils::JSONJSONLIO.new(OC::OLLAMA::CHAT::HISTORY).write_io(
+        output:,
+        collection: Readline::HISTORY
+      )
     end
   rescue => e
     msg = "Caught #{e.class} while saving #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"

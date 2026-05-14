@@ -174,9 +174,10 @@ class OllamaChat::MessageList
       STDERR.puts "File #{filename.to_s.inspect} doesn't exist. Choose another filename."
       return
     end
-    @messages = filename.extname == '.jsonl' ?
-      load_conversation_jsonl(filename) :
-      load_conversation_json(filename)
+    @messages = OllamaChat::Utils::JSONJSONLIO.new(filename).read(
+      jsonl_transform: method(:parse_message_from_json),
+      json_transform:  method(:construct_message_from_hash)
+    ).to_a
     sync
   end
 
@@ -188,10 +189,7 @@ class OllamaChat::MessageList
   #
   # @return [ OllamaChat::MessageList ] self
   def save_conversation(filename, messages: @messages)
-    filename = Pathname.new(filename).expand_path
-    filename.extname == '.jsonl' ?
-      save_conversation_jsonl(filename, messages:) :
-      save_conversation_json(filename, messages:)
+    OllamaChat::Utils::JSONJSONLIO.new(filename).write(collection: messages)
     self
   end
 
@@ -421,9 +419,7 @@ class OllamaChat::MessageList
   #   Defaults to all current messages in the list.
   # @return [OllamaChat::MessageList] returns self to allow for method chaining
   def write_conversation_jsonl(output, messages: @messages)
-    messages.each do |message|
-      output.puts JSON.dump(message)
-    end
+    OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').write_io(output:, collection: messages)
     self
   end
 
@@ -435,13 +431,12 @@ class OllamaChat::MessageList
   # @param input [IO] the input stream containing JSONL formatted messages
   # @return [OllamaChat::MessageList] returns self to allow for method chaining
   def read_conversation_jsonl(input)
-    @messages.clear
-    input.each_line do |line|
-      @messages << parse_message_from_json(line)
-    end
+    @messages = OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').read_io(
+      input:,
+      jsonl_transform: method(:parse_message_from_json)
+    ).to_a
     self
   end
-
 
   # Removes all images from all messages in the current list.
   #
@@ -489,16 +484,6 @@ class OllamaChat::MessageList
     message_text
   end
 
-  # Loads a conversation from a standard JSON file.
-  #
-  # @param filename [Pathname] the path to the JSON file
-  # @return [Array<OllamaChat::Message>] an array of messages
-  def load_conversation_json(filename)
-    JSON.parse(filename.read).map {
-      OllamaChat::Message.from_hash(_1 | { 'content' => nil })
-    }
-  end
-
   # Loads a conversation from a JSONL (JSON Lines) file.
   #
   # @param filename [Pathname] the path to the JSONL file
@@ -507,15 +492,6 @@ class OllamaChat::MessageList
     filename.each_line.map {
       parse_message_from_json(_1)
     }
-  end
-
-  # Saves the conversation to a standard JSON file.
-  #
-  # @param filename [Pathname] the path to the JSON file
-  # @return [OllamaChat::MessageList] self
-  def save_conversation_json(filename, messages: @messages)
-    filename.write JSON.dump(messages)
-    self
   end
 
   # Saves the conversation to a JSONL (JSON Lines) file.
@@ -534,7 +510,16 @@ class OllamaChat::MessageList
   # @param string [String] the JSON string representing the message
   # @return [OllamaChat::Message] a new message instance created from the JSON data
   def parse_message_from_json(string)
-    OllamaChat::Message.from_hash(JSON.parse(string) | { 'content' => nil })
+    construct_message_from_hash(JSON.parse(string))
+  end
+
+  # Constructs a message instance from a hash, ensuring that a 'content' key
+  # is present even if it is nil.
+  #
+  # @param hash [Hash] the message data
+  # @return [OllamaChat::Message] a new message instance
+  def construct_message_from_hash(hash)
+    OllamaChat::Message.from_hash(hash | { 'content' => nil })
   end
 
   # Synchronizes the message list state with the active chat session.

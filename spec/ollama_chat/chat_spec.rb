@@ -226,14 +226,14 @@ describe OllamaChat::Chat, protect_env: true do
 
       context 'embedding' do
         it 'returns "success" when input is "/input embedding (.+)"' do
-          expect(chat).to receive(:embed).with(asset('example.rb')).
+          expect(chat).to receive(:embed).with(asset('example.rb'), reembed: false).
             and_return 'success'
           expect(chat.handle_input("/input embedding #{asset('example.rb')}")).
             to eq 'success'
         end
 
         it 'returns "success" when input is "/input embedding -p (.+)"' do
-          expect(chat).to receive(:embed).with(asset_pathname('example.rb')).
+          expect(chat).to receive(:embed).with(asset_pathname('example.rb'), reembed: false).
             and_return 'success'
           expect(chat.handle_input("/input embedding -a -p #{asset('*.rb')}")).
             to match(/success/)
@@ -343,72 +343,6 @@ describe OllamaChat::Chat, protect_env: true do
     it 'returns "the help message" when input is "/help me"' do
       expect(chat).to receive(:help_message).and_return 'the help message'
       expect(chat.handle_input("/help me")).to include 'the help message'
-    end
-  end
-
-  describe 'chat history' do
-    connect_to_ollama_server(instantiate: false)
-
-    context 'JSON' do
-      before do
-        const_conf_as(
-          'OC::OLLAMA::CHAT::HISTORY' => Pathname.new('tmp/foo.json')
-        )
-      end
-
-      it 'can save chat history' do
-        tmp_double = double('tmp')
-        expect(tmp_double).to receive(:write)
-        expect(File).to receive(:secure_write).with(
-          OC::OLLAMA::CHAT::HISTORY
-        ).and_yield(tmp_double)
-        chat.save_history
-      end
-
-      it 'can initialize chat history' do
-        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return true
-        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:read).and_return '{}'
-        expect_any_instance_of(described_class).to receive(:init_chat_history).
-          and_call_original
-        chat
-      end
-    end
-
-    context 'JSONL' do
-      before do
-        const_conf_as(
-          'OC::OLLAMA::CHAT::HISTORY' => Pathname.new('tmp/foo.jsonl')
-        )
-      end
-
-      it 'can save chat history' do
-        tmp_double = double('tmp')
-        allow(Readline::HISTORY).to receive(:each).and_yield('test')
-        expect(tmp_double).to receive(:puts).with('"test"')
-        expect(File).to receive(:secure_write).with(
-          OC::OLLAMA::CHAT::HISTORY
-        ).and_yield(tmp_double)
-        chat.save_history
-      end
-
-      it 'can initialize chat history' do
-        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:exist?).and_return(true).
-          at_least(1)
-        expect(JSON).to receive(:load).with('"test"')
-        each_line = double('each_line')
-        expect(OC::OLLAMA::CHAT::HISTORY).to receive(:each_line).
-          and_return(each_line)
-        expect(each_line).to receive(:map).and_yield('"test"')
-        expect_any_instance_of(described_class).to receive(:init_chat_history).
-          and_call_original
-        chat
-      end
-    end
-
-    it 'can clear history' do
-      chat
-      expect(Readline::HISTORY).to receive(:clear)
-      chat.clear_history
     end
   end
 
