@@ -165,8 +165,7 @@ class OllamaChat::FollowChat
         STDOUT.printf(
           "\n%s Execution of tool %s confirmed.\n\n", symbol, bold { name }
         )
-        result = OllamaChat::Tools.registered[name].
-          execute(tool_call, chat: chat)
+        result = OllamaChat::Tools.registered[name].execute(tool_call, chat: chat)
         if confirmed == :explicit
           chat.log(:info, "Execution of tool %s was explicitly confirmed." % name)
         else

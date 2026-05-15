@@ -18,7 +18,7 @@ location:
 runtime_info:
   enabled: true
 prompts:
-  embed: "This source was now embedded in %{collection}: %{source}"
+  embed: "This source has been added to or updated in collection %{collection}: %{source}"
   summarize: |
     Generate an abstract summary of the content in this document using
     %{words} words:
@@ -153,7 +153,7 @@ embedding:
     options: {}
     # Retrieval prompt template:
     prompt: 'Represent this sentence for searching relevant passages: %s'
-  batch_size: 20
+  batch_size: 100
   database_filename: null # ':memory:'
   collection: <%= OC::OLLAMA::CHAT::COLLECTION %>
   collection_descriptions: {}
@@ -161,7 +161,7 @@ embedding:
   found_texts_count: 10
   splitter:
     name: Semantic
-    chunk_size: 1024
+    chunk_size: 512
     breakpoint: interquartile
     percentage: 50
 cache: Documentrix::Documents::SQLiteCache

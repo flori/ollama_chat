@@ -610,7 +610,7 @@ class OllamaChat::Chat
     help: 'Revise the last message or edit the query'
   ) do |subcommand|
     if message = messages.second_last
-      content = message.stripped_content
+      content = message.content
       messages.drop(1)
       if subcommand == 'edit'
         content = edit_text(content)
@@ -678,6 +678,7 @@ class OllamaChat::Chat
     name: :conversation,
     regexp: %r(^/conversation\s+(save|load)((?:\s+-(?:[c]))*)\s+(.+)$),
     complete: [ 'conversation', %w[ save load ] ],
+    options: '[-c]',
     help: 'Load conversations or save conversations (-c to clean first)'
   ) do |subcommand,opts,path|
     opts = go_command('c', opts.to_s)
@@ -801,7 +802,7 @@ class OllamaChat::Chat
     regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apr]|c\s*\w+|w\s*\d+))*)(?:\s+(.+))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
-    options: '[-w|-a|-p] [arg…]',
+    options: '[-w|-a|-p|-c <collection>] [arg…]',
     help: <<~EOT
       Import content from files, URLs, or globs into the context
       Use subcommands: path, context, embedding, summary,
@@ -811,7 +812,6 @@ class OllamaChat::Chat
         -w <words> (summary subcommand only, default 100)
         -a (pattern mode only, include all files for patterns)
         -c <collection> use this collection (embedding subcommand only)
-        -r rembed a document (embedding subcommand only)
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -843,14 +843,14 @@ class OllamaChat::Chat
         next context_spook(nil) || :next
       end
     when 'embedding'
-      opts = go_command('parc:', opts)
+      opts = go_command('pac:', opts)
       switch_collection(opts[?c]) do
         if opts[?p]
           all = opts.fetch(?a, false)
           arg and patterns = arg.scan(/(\S+)/).flatten
-          next provide_file_set_content(patterns, all:) { embed(_1, reembed: opts[?r]) } || :next
+          next provide_file_set_content(patterns, all:) { embed(_1) } || :next
         elsif arg
-          next embed(arg, reembed: opts[?r]) || :next
+          next embed(arg) || :next
         else
           STDERR.puts "Need a source to embed for input!"
           next :next
@@ -1076,13 +1076,23 @@ class OllamaChat::Chat
   # interaction.
   def interact_with_user
     loop do
+      content           = nil
+      tools_were_called = false
       enable_content_parsing
-      type           = :terminal_input
-      input_prompt   = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
+      type              = :terminal_input
+      input_prompt      = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
       begin
-        if content = handle_tool_call_results?
-          disable_content_parsing
-        else
+        tools_were_called = handle_tool_call_results? { |index, tool_name, content|
+          messages << OllamaChat::Message.new(
+            role:        'user', # XXX this should be 'tool' but it doesn't currently seem to work in Ollama API
+            sender_name: tool_name,
+            tool_name:   ,
+            content:     ,
+            images:      @images.dup
+          )
+        }
+        tools_were_called and type = :tool_input
+        unless tools_were_called
           content = enable_command_completion do
             if prefill_prompt = @prefill_prompt.full?
               Reline.pre_input_hook = -> {
@@ -1121,23 +1131,31 @@ class OllamaChat::Chat
         end
       end
 
-      content = content.encode(invalid: :replace)
+      unless type == :tool_input
+        content = content.encode(invalid: :replace)
 
-      content.present? or next
+        content.present? or next
 
-      parse_content? and content = parse_content(content, @images)
+        parse_content? and content = parse_content(content, @images)
 
-      runtime_info.on? && content and
-        content << ?\n << {
-          ollama_chat_runtime_information: dynamic_runtime_information
-        }.to_json
+        if runtime_info.on?
+          tool_name = 'runtime_information'
+          messages << OllamaChat::Message.new(
+            role:        'user',
+            tool_name:   ,
+            sender_name: tool_name,
+            content:     dynamic_runtime_information,
+            images:      @images.dup
+          )
+        end
 
-      messages << OllamaChat::Message.new(
-        role:        'user',
-        sender_name: user_name,
-        content:     ,
-        images:      @images.dup
-      )
+        messages << OllamaChat::Message.new(
+          role:        'user',
+          sender_name: user_name,
+          content:     ,
+          images:      @images.dup
+        )
+      end
       @images.clear
       handler = OllamaChat::FollowChat.new(
         chat:     self,
@@ -1193,7 +1211,7 @@ class OllamaChat::Chat
     rescue Interrupt
       STDOUT.puts "Type /quit to quit."
     ensure
-        self.server_socket_message = nil
+      self.server_socket_message = nil
     end
     0
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e

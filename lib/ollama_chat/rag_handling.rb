@@ -83,7 +83,7 @@ module OllamaChat::RAGHandling
     collections = collections.filter_map(&:to_s).uniq.sort
     collections.unshift('[EXIT]').unshift('[NEW]')
     collection = OllamaChat::Utils::Chooser.choose(collections) || current_collection
-    case collection
+    case collection&.to_s
     when '[NEW]'
       @documents.collection = ask?(
         prompt: "❓ Enter name of the new collection: "

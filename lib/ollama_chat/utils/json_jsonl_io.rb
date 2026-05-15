@@ -20,7 +20,6 @@ class OllamaChat::Utils::JSONJSONLIO
   # Writes a collection to the file.
   #
   # @param opts [Hash] additional options passed to #write_io.
-  # @return [void]
   def write(**opts)
     filename.open(?w) do |output|
       write_io(output:, **opts)
@@ -31,7 +30,6 @@ class OllamaChat::Utils::JSONJSONLIO
   #
   # @param output [IO] the IO object to write to.
   # @param collection [Enumerable] the collection of elements to write.
-  # @return [void]
   def write_io(output:, collection:)
     case @type
     when :json

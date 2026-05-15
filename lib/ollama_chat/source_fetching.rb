@@ -168,7 +168,7 @@ module OllamaChat::SourceFetching
   #
   # @return [Array, String, nil] The embedded chunks or processed content, or
   #   nil if embedding is disabled or fails
-  def embed_source(source_io, source, count: nil, reembed: false)
+  def embed_source(source_io, source, count: nil)
     @embedding.on? or return parse_source(source_io)
     m = "Embedding #{italic { source_io&.content_type }} document "\
       "#{source.to_s.inspect} in collection #{collection.to_s.inspect}."
@@ -177,8 +177,11 @@ module OllamaChat::SourceFetching
     else
       STDOUT.puts m
     end
+    unless @documents.source_modified?(source)
+      STDOUT.puts "Source #{source.to_s.inspect} already up-to-date. => Skipping."
+      return
+    end
     text = parse_source(source_io) or return
-    text.downcase!
     splitter_config = config.embedding.splitter
     inputs = nil
     case splitter_config.name
@@ -206,14 +209,19 @@ module OllamaChat::SourceFetching
     end
     inputs or return
     source = source.to_s
+    command = false
     if source.start_with?(?!)
       source = Kramdown::ANSI::Width.truncate(
         source[1..-1].gsub(/\W+/, ?_),
         length: 10
       )
+      command = true
     end
-    reembed and @documents.remove(source)
-    @documents.add(inputs, source:, batch_size: config.embedding.batch_size?)
+    if !command
+      @documents.source_update(inputs, source:, batch_size: config.embedding.batch_size?)
+    else
+      @documents.add(inputs, source:, batch_size: config.embedding.batch_size?)
+    end
   end
 
   # Embeds content from the specified source.
@@ -227,15 +235,14 @@ module OllamaChat::SourceFetching
   #
   # @return [String, nil] The formatted embedding result or summary message, or
   #   nil if the operation fails
-  def embed(source, reembed: false)
+  def embed(source)
     if @embedding.on?
-      reembed and msg_reembed = ", reembed ↪️"
-      STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.to_s.inspect}#{msg_reembed}."
+      STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.to_s.inspect}."
       fetch_source(source) do |source_io|
         content = parse_source(source_io)
         content.present? or return
         source_io.rewind
-        embed_source(source_io, source, reembed:)
+        embed_source(source_io, source)
       end
       prompt(:embed).to_s % { source:, collection: collection }
     else

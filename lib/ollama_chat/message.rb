@@ -27,14 +27,6 @@ module OllamaChat::MessageMixin
   #   @option setter [Array<String>, nil] a list of image paths or data associated with the message.
   attr_writer :images
 
-  # Returns the content of the message with internal JSON markers stripped away.
-  #
-  # @return [String] The cleaned content.
-  def stripped_content
-    text = strip_internal_marker(:ollama_chat_retrieval_snippets)
-    strip_internal_marker(:ollama_chat_runtime_information, text)
-  end
-
   # @!attribute sender_name
   #   @option getter [String, nil] The name of the message sender.
   #   @option setter [String, nil] The name of the message sender.
@@ -50,23 +42,6 @@ module OllamaChat::MessageMixin
     else
       super
     end
-  end
-
-  private
-
-  # Removes lines that are JSON objects containing the given key.
-  #
-  # @param name [String, Symbol] the key to look for in each line.
-  # @param text [String] the text to process (defaults to the message content).
-  # @return [String] the text with matching marker lines removed.
-  def strip_internal_marker(name, text = content)
-    return if text.nil?
-    name = name.to_s
-    text.each_line.map do |line|
-      JSON(line).fetch(name) and next
-    rescue
-      line
-    end.compact.join
   end
 end
 

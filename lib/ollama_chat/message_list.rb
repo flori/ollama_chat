@@ -150,7 +150,7 @@ class OllamaChat::MessageList
   # @yield [ message ]
   #
   # @return [Enumerator] if no block is given, returns an enumerator
-  # @return [void] if a block is given, returns nil after yielding all matching
+  # @return [nil] if a block is given, returns nil after yielding all matching
   #   messages
   def each_message(role: %w[ user assistant ], &block)
     block or return enum_for(__method__, role:)
@@ -204,7 +204,7 @@ class OllamaChat::MessageList
   def clean_messages(messages: @messages)
     messages.map do |message|
       message = message.dup
-      message.content = message.stripped_content
+      message.content = '' if message.tool_name.present?
       message.images = nil
       message
     end
@@ -286,42 +286,35 @@ class OllamaChat::MessageList
     self
   end
 
-  # Removes the last `n` exchanges from the message list.
+  # Removes the last `n` conversation exchanges from the message list.
   #
-  # An "exchange" is defined as a pair consisting of a user message and an
-  # assistant response. This method handles the edge case where the conversation
-  # ends with a dangling user message (without a response) by removing that
-  # message first before proceeding to remove complete exchanges.
+  # An exchange is typically defined as a pair of user and assistant messages.
+  # This method iterates backwards through the history and removes messages
+  # until the requested number of exchanges have been dropped. It will stop
+  # if it encounters a system message.
   #
-  # @param n [Integer] The number of exchanges to remove.
-  # @return [Integer] The actual number of complete exchanges removed.
-  #   May be less than `n` if the message list is shorter than requested.
+  # @param n [Object] The number of exchanges to drop.
   #
-  # @note
-  #   - System messages are preserved and are not counted as part of an exchange.
-  #   - If a trailing user message exists, it is dropped first, and the count
-  #     of exchanges to be removed is decremented by one.
+  # @return [Integer] The actual number of exchanges that were dropped.
+  #
+  # @note This method automatically synchronizes the message list with the
+  #   session store.
   def drop(n)
     n = n.to_i.clamp(1, Float::INFINITY)
-    non_system_messages = @messages.reject { _1.role == 'system' }
-    if non_system_messages&.last&.role == 'user'
-      @messages.pop
-      n -= 1
-    end
-    if n == 0
-      STDOUT.puts "Dropped the last exchange."
-      return 1
-    end
-    if non_system_messages.empty?
-      STDOUT.puts "No more exchanges can be dropped."
-      return 0
-    end
+    i = 0
     m = 0
-    while @messages.size > 1 && n > 0
-      @messages.pop(2)
-      m += 1
-      n -= 1
+    @messages.reverse_each.each_cons(2) do |message, before|
+      message.role == 'system' and break
+      if message.role == 'assistant'
+        i += 1
+      elsif message.role == 'user'
+        i += 1
+        next if before.role == 'user'
+        m += 1
+      end
+      m >= n and break
     end
+    i.times { @messages.pop }
     STDOUT.puts "Dropped the last #{m} exchanges."
     m
   ensure

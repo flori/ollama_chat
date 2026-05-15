@@ -21,15 +21,27 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
         arguments: double(
           query: 'Ruby array',
           collection: nil,
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
         )
       )
     )
 
     tool = described_class.new
     expect(tool).to receive(:find_document_records).with(
-      kind_of(OllamaChat::Chat), kind_of(String)
+      kind_of(OllamaChat::Chat), kind_of(String), 16384, 10, nil
     ).and_return(
-      [ double('Record', text: 'quux', source: 'foo', tags: %w[ bar ], tags_set: []) ]
+      [
+        double(
+          'Record',
+          text:       'quux',
+          source:     'foo',
+          tags:       %w[ bar ],
+          tags_set:   [],
+          similarity: 0.666
+        )
+      ]
     )
 
     result = tool.execute(tool_call, chat:)
@@ -40,7 +52,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     expect(json.prompt).to eq(
       "Consider these snippets generated from retrieval when formulating your response!"
     )
-    expect(json.ollama_chat_retrieval_snippets.size).to eq 1
+    expect(json.snippets.size).to eq 1
   end
 
   it 'switches to the specified collection and restores the original' do
@@ -50,7 +62,10 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
         name: 'retrieve_document_snippets',
         arguments: double(
           query: 'Hobbits',
-          collection: 'tolkien'
+          collection: 'tolkien',
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
         )
       )
     )

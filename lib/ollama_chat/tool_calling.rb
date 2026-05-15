@@ -187,22 +187,12 @@ module OllamaChat::ToolCalling
 
   private
 
-  # The handle_tool_call_results? method processes and returns results from
-  # tool calls.
-  #
-  # This method checks if there are any pending tool call results and formats
-  # them into a string message. It clears the tool call results after
-  # processing.
-  #
-  # @return [ String, nil ] a formatted string containing tool call results or
-  #   nil if no results exist
-  def handle_tool_call_results?
-    content = @tool_call_results.each_with_object([]) do |(name, results), ary|
-      ary.concat results.each_with_index.map { |result, index|
-        "Tool (index=%u) %s returned\n%s" % [ index, name, result ]
+  def handle_tool_call_results?(&block)
+    @tool_call_results.each do |tool_name, results|
+      results.each_with_index { |content, index|
+        block.(index, tool_name, content)
       }
-    end * ?\n
-    content.full?
+    end.present?
   ensure
     @tool_call_results.clear
   end

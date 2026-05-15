@@ -17,6 +17,10 @@ xdg_state_home = Pathname.pwd.join('tmp')
 xdg_state_home.join('state', 'ollama_chat').mkpath
 ENV['XDG_STATE_HOME'] = xdg_state_home.to_s
 
+xdg_cache_home = Pathname.pwd.join('tmp')
+xdg_cache_home.join('cache', 'ollama_chat').mkpath
+ENV['XDG_CACHE_HOME'] = xdg_cache_home.to_s
+
 require 'ollama_chat'
 
 ComplexConfig::Provider.deep_freeze = false
