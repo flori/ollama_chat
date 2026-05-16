@@ -213,16 +213,20 @@ class OllamaChat::MessageList
   # Displays the most recent messages from the conversation history.
   #
   # This method prints a specified number of trailing messages to the console
-  # using the pager for better readability. If no count is provided, the entire
+  # using the pager for better readability. Tool messages are automatically
+  # excluded from the output. If no count is provided, the entire
   # conversation is displayed.
   #
   # @param last [Integer, nil] The number of recent messages to display.
-  #   Defaults to the total size of the message list if nil.
+  #   Defaults to the total size of the messages list if nil.
+  # @param messages [Array<OllamaChat::Message>] The messages to display.
+  #   Defaults to the internal message list of this instance.
   #
   # @return [OllamaChat::MessageList] self, allowing for method chaining.
-  def list_conversation(last = nil)
-    last = (last || @messages.size).clamp(0, @messages.size)
-    messages = @messages[-last..-1].to_ary
+  def list_conversation(last = nil, messages: @messages)
+    messages = messages.reject { _1.tool_name.present? }
+    last = (last || messages.size).clamp(0, messages.size)
+    messages = messages[-last..-1].to_ary
     use_pager do |output|
       my_messages = clean_messages(messages:)
       my_messages = my_messages.with_infobar(
