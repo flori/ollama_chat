@@ -146,17 +146,21 @@ class OllamaChat::MessageList
   # Iterates over messages in the conversation, yielding those matching the
   # specified roles.
   #
-  # @param role [Array<String>] the roles to include when iterating
-  # @yield [ message ]
+  # @param role [Array<String>] the roles to include when iterating.
+  #   Defaults to `['user', 'assistant']`.
+  # @param tool [Boolean] Whether to include messages that are tool calls/responses.
+  #   Defaults to `false`.
+  # @yield [ message ] yields each matching message.
   #
-  # @return [Enumerator] if no block is given, returns an enumerator
+  # @return [Enumerator] if no block is given, returns an enumerator.
   # @return [nil] if a block is given, returns nil after yielding all matching
-  #   messages
-  def each_message(role: %w[ user assistant ], &block)
-    block or return enum_for(__method__, role:)
+  #   messages.
+  def each_message(role: %w[ user assistant ], tool: false, &block)
+    block or return enum_for(__method__, role:, tool:)
 
     @messages.each do |message|
       role.include?(message.role) or next
+      !tool && message.tool_name.present? and next
       yield message
     end
     nil

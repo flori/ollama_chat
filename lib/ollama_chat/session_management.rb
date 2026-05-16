@@ -280,10 +280,11 @@ module OllamaChat::SessionManagement
   # @param sentence [Boolean] whether to summarize each message in one sentence (default: false)
   # @return [String, nil] the session summary or nil if empty
   def summarize_session(pretty: false, sentence: false)
-    unit     = sentence ? 'sentence' : 'paragraph'
-    contents = []
-    total = messages.each_message.count
-    messages.each_message.with_infobar(label: 'Summarizing message', total:) do |message|
+    unit                  = sentence ? 'sentence' : 'paragraph'
+    contents              = []
+    messages_to_summarize = messages.each_message
+    total                 = messages_to_summarize.count
+    messages_to_summarize.with_infobar(label: 'Summarizing message', total:) do |message|
       message_content  = message.content.full?
       message_thinking = message.thinking.full?
       unless message_content || message_thinking
