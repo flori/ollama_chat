@@ -222,9 +222,10 @@ class OllamaChat::MessageList
     use_pager do |output|
       messages = clean_messages(messages:)
       messages = messages.with_infobar(
-        output: STDERR,
-        label: 'Message',
-        total: messages.size
+        output:  STDERR,
+        label:   'Message',
+        total:   messages.size,
+        message: @chat.infobar_message,
       )
       messages.each do |message|
         output.puts message_text_for(message)
@@ -254,9 +255,10 @@ class OllamaChat::MessageList
     use_pager do |output|
       last_messages = messages[-n..-1].to_a
       last_messages = last_messages.with_infobar(
-        output: STDERR,
-        label: 'Message',
-        total: last_messages.size
+        output:  STDERR,
+        label:   'Message',
+        total:   last_messages.size,
+        message: @chat.infobar_message,
       )
       last_messages.each do |message|
         output.puts message_text_for(message)

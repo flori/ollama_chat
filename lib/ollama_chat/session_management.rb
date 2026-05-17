@@ -283,8 +283,12 @@ module OllamaChat::SessionManagement
     unit                  = sentence ? 'sentence' : 'paragraph'
     contents              = []
     messages_to_summarize = messages.each_message
-    total                 = messages_to_summarize.count
-    messages_to_summarize.with_infobar(label: 'Summarizing message', total:) do |message|
+    messages_to_summarize = messages_to_summarize.with_infobar(
+      label:   'Summarizing message',
+      total:   messages_to_summarize.count,
+      message: infobar_message,
+    )
+    messages_to_summarize.each do |message|
       message_content  = message.content.full?
       message_thinking = message.thinking.full?
       unless message_content || message_thinking

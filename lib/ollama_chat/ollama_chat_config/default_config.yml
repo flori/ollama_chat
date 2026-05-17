@@ -17,6 +17,12 @@ location:
   units: SI (International System of Units) # or USCS (United States Customary System)
 runtime_info:
   enabled: true
+infobar:
+  message:
+    :format: '%l %c/%t in %te %r ETA %e @%E %s'
+    '%s':
+      :frames: :braille181
+      :message: ✓
 prompts:
   embed: "This source has been added to or updated in collection %{collection}: %{source}"
   summarize: |

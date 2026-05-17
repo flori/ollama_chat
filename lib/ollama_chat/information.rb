@@ -267,6 +267,16 @@ module OllamaChat::Information
     OC::OLLAMA::CHAT::USER
   end
 
+  # Returns the infobar message configuration as a hash.
+  #
+  # This configuration is used by the `infobar` gem to define the progress
+  # bar's format and spinner settings.
+  #
+  # @return [Hash] the infobar message configuration
+  def infobar_message
+    config.infobar.message.to_h
+  end
+
   # Generates a hash containing static runtime information.
   #
   # This method collects session-level constants including the user,
