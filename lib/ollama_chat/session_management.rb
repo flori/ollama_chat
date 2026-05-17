@@ -326,8 +326,13 @@ module OllamaChat::SessionManagement
   # @param length [Integer] the maximum length of the title (default: 128)
   # @return [String, nil] the derived session name or nil
   def derive_session_name(length: 128)
-    content = summarize_session(sentence: true) or return
-    generate(prompt: prompt(:session_title).to_s % { length:, content: }).response.full? do |name|
+    content = messages.each_message.inject('') do |c, message|
+      message.content.present? or next c
+      sender_name = sender_name_displayed(message)
+      c << "%s: %s\n\n" % [ sender_name, message.content ]
+    end
+    prompt = prompt(:session_title).to_s % { length:, content: }
+    generate(prompt:).response.full? do |name|
       name = name.
         gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
         gsub(/\s+/, ' ')
