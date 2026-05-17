@@ -513,25 +513,38 @@ class OllamaChat::Chat
       rename_session
     when 'summarize'
       opts = go_command('fs', opts)
-      if summary = summarize_session(pretty: true, sentence: opts[?s]).full?
-        if opts[?f] and
-            filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
+      if opts[?f] and
+          filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
         then
-          if filename.exist? && !confirm?(
-              prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
-              yes: /\Ay/i
+        if filename.exist? && !confirm?(
+            prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
+            yes: /\Ay/i
           )
-            then
-            STDERR.puts "File not written!"
-            next :next
-          end
-          filename.write(summary)
-          STDERR.puts "File successfully written."
-        else
-          use_pager do |output|
-            output.puts kramdown_ansi_parse(summary)
-          end
+        then
+          STDERR.puts "File not written!"
+          next :next
         end
+        summary = summarize_session(pretty: true, sentence: opts[?s]) do |content|
+          infobar.puts kramdown_ansi_parse(content)
+        end
+        if summary.full?
+          filename.write(summary)
+          STDOUT.puts "File successfully written."
+        else
+          STDERR.puts "Nothing to summarize!"
+          next :next
+        end
+      end
+      summary = summarize_session(pretty: true, sentence: opts[?s]) do |content|
+        infobar.puts kramdown_ansi_parse(content) << ?\n
+      end
+      if summary.full?
+        use_pager do |output|
+          output.puts kramdown_ansi_parse(summary)
+        end
+      else
+        STDERR.puts "Nothing to summarize!"
+        next :next
       end
     when 'change'
       change_session(name)

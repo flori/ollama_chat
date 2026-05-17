@@ -279,7 +279,7 @@ module OllamaChat::SessionManagement
   # @param pretty [Boolean] whether to format the summary in markdown (default: false)
   # @param sentence [Boolean] whether to summarize each message in one sentence (default: false)
   # @return [String, nil] the session summary or nil if empty
-  def summarize_session(pretty: false, sentence: false)
+  def summarize_session(pretty: false, sentence: false, &block)
     unit                  = sentence ? 'sentence' : 'paragraph'
     contents              = []
     messages_to_summarize = messages.each_message
@@ -302,11 +302,13 @@ module OllamaChat::SessionManagement
           sender_name:, unit:, message_content:, message_thinking:, context:
         }
       ).response
-      if pretty
-        contents << '**%s**: %s' % [ sender_name, summary ]
-      else
-        contents << '%s: %s' % [ sender_name, summary ]
-      end
+      content = if pretty
+                  '**%s**: %s' % [ sender_name, summary ]
+                else
+                  '%s: %s' % [ sender_name, summary ]
+                end
+      block&.(content)
+      contents << content
       +infobar
     end
     contents.empty? and return
