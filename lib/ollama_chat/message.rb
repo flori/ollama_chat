@@ -32,6 +32,14 @@ module OllamaChat::MessageMixin
   #   @option setter [String, nil] The name of the message sender.
   attr_accessor :sender_name
 
+  # Returns true if the message is a tool message.
+  #
+  # @return [Boolean] true if the message has a present tool name, false
+  #   otherwise.
+  def tool?
+    tool_name.present?
+  end
+
   # Converts the message to a JSON-compatible hash, including the sender name if present.
   #
   # @param a [Array] optional arguments for JSON conversion.

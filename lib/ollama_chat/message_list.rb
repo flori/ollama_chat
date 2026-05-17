@@ -133,16 +133,6 @@ class OllamaChat::MessageList
     }
   end
 
-  # The second_last method returns the second-to-last message from the
-  # conversation if there are more than one non-system messages.
-  #
-  # @return [ OllamaChat::Message ] the second-to-last message
-  def second_last
-    if @messages.reject { _1.role == 'system' }.size > 1
-      @messages[-2]
-    end
-  end
-
   # Iterates over messages in the conversation, yielding those matching the
   # specified roles.
   #
@@ -160,7 +150,7 @@ class OllamaChat::MessageList
 
     @messages.each do |message|
       role.include?(message.role) or next
-      !tool && message.tool_name.present? and next
+      !tool && message.tool? and next
       yield message
     end
     nil
@@ -208,7 +198,7 @@ class OllamaChat::MessageList
   def clean_messages(messages: @messages)
     messages.map do |message|
       message = message.dup
-      message.content = '' if message.tool_name.present?
+      message.content = '' if message.tool?
       message.images = nil
       message
     end
@@ -223,22 +213,20 @@ class OllamaChat::MessageList
   #
   # @param last [Integer, nil] The number of recent messages to display.
   #   Defaults to the total size of the messages list if nil.
-  # @param messages [Array<OllamaChat::Message>] The messages to display.
-  #   Defaults to the internal message list of this instance.
   #
   # @return [OllamaChat::MessageList] self, allowing for method chaining.
-  def list_conversation(last = nil, messages: @messages)
-    messages = messages.reject { _1.tool_name.present? }
+  def list_conversation(last = nil)
+    messages = @messages.reject(&:tool?)
     last = (last || messages.size).clamp(0, messages.size)
     messages = messages[-last..-1].to_ary
     use_pager do |output|
-      my_messages = clean_messages(messages:)
-      my_messages = my_messages.with_infobar(
+      messages = clean_messages(messages:)
+      messages = messages.with_infobar(
         output: STDERR,
         label: 'Message',
-        total: my_messages.size
+        total: messages.size
       )
-      my_messages.each do |message|
+      messages.each do |message|
         output.puts message_text_for(message)
         +infobar
       end

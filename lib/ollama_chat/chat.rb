@@ -603,14 +603,14 @@ class OllamaChat::Chat
   end
 
   command(
-    name: :revise,
-    regexp: %r(^/revise(?:\s+(edit))?$),
-    complete: [ 'revise', %w[ edit ] ],
+    name: :regenerate,
+    regexp: %r(^/regenerate(?:\s+(edit))?$),
+    complete: [ 'regenerate', %w[ edit ] ],
     optional: true,
-    help: 'Revise the last message or edit the query'
+    help: 'Regenerate the last response (optionally edit the user message)'
   ) do |subcommand|
-    if message = messages.second_last
-      content = message.content
+    if message = messages.find_last { !_1.tool? && _1.role == 'user' }
+      content = message.content.to_s
       messages.drop(1)
       if subcommand == 'edit'
         content = edit_text(content)
