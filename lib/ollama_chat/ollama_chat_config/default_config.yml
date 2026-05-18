@@ -170,6 +170,7 @@ embedding:
     chunk_size: 512
     breakpoint: interquartile
     percentage: 50
+    force: true
 cache: Documentrix::Documents::SQLiteCache
 redis:
   documents:
