@@ -225,6 +225,12 @@ describe OllamaChat::Chat, protect_env: true do
       end
 
       context 'embedding' do
+        before do
+          expect(chat).to receive(:confirm?).
+            with(prompt: /current collection/, yes: /\Ay/i).
+            and_return true
+        end
+
         it 'returns "success" when input is "/input embedding (.+)"' do
           expect(chat).to receive(:embed).with(asset('example.rb')).
             and_return 'success'

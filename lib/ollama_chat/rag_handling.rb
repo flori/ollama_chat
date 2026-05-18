@@ -27,7 +27,7 @@ module OllamaChat::RAGHandling
   def switch_collection(other_collection = nil)
     other_collection ||= collection
     old_collection, @documents.collection = collection, other_collection
-    yield
+    yield other_collection
   ensure
     @documents.collection = old_collection
   end

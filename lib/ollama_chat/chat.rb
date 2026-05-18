@@ -857,7 +857,15 @@ class OllamaChat::Chat
       end
     when 'embedding'
       opts = go_command('pac:', opts)
-      switch_collection(opts[?c]) do
+      switch_collection(opts[?c]) do |other_collection|
+        if collection == other_collection and !confirm?(
+          prompt: "🔔 Are you sure to embed into current collection #{other_collection.to_s.inspect}? (y/n) ",
+          yes: /\Ay/i
+        )
+        then
+          STDOUT.puts 'Cancelled.'
+          next :next
+        end
         if opts[?p]
           all = opts.fetch(?a, false)
           arg and patterns = arg.scan(/(\S+)/).flatten
