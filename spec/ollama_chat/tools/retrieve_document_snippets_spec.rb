@@ -20,6 +20,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
         name: 'retrieve_document_snippets',
         arguments: double(
           query: 'Ruby array',
+          tags: nil,
           collection: nil,
           min_similarity: nil,
           text_size: nil,
@@ -30,7 +31,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
 
     tool = described_class.new
     expect(tool).to receive(:find_document_records).with(
-      kind_of(OllamaChat::Chat), kind_of(String), 16384, 10, nil
+      kind_of(OllamaChat::Chat), kind_of(String), nil, 16384, 10, nil
     ).and_return(
       [
         double(
@@ -55,6 +56,45 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     expect(json.snippets.size).to eq 1
   end
 
+  it 'works with a valid query and tags' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'retrieve_document_snippets',
+        arguments: double(
+          query: 'Ruby array',
+          tags: 'ruby,expert',
+          collection: nil,
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
+        )
+      )
+    )
+
+    tool = described_class.new
+    expect(tool).to receive(:find_document_records).with(
+      kind_of(OllamaChat::Chat), kind_of(String), ['ruby', 'expert'], 16384, 10, nil
+    ).and_return(
+      [
+        double(
+          'Record',
+          text:       'quux',
+          source:     'foo',
+          tags:       %w[ ruby expert ],
+          tags_set:   [],
+          similarity: 0.666
+        )
+      ]
+    )
+
+    result = tool.execute(tool_call, chat:)
+
+    expect(result).to be_a(String)
+    json = json_object(result)
+    expect(json.snippets.size).to eq 1
+  end
+
   it 'switches to the specified collection and restores the original' do
     tool_call = double(
       'ToolCall',
@@ -62,6 +102,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
         name: 'retrieve_document_snippets',
         arguments: double(
           query: 'Hobbits',
+          tags: nil,
           collection: 'tolkien',
           min_similarity: nil,
           text_size: nil,

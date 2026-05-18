@@ -168,7 +168,7 @@ module OllamaChat::SourceFetching
   #
   # @return [Array, String, nil] The embedded chunks or processed content, or
   #   nil if embedding is disabled or fails
-  def embed_source(source_io, source, count: nil)
+  def embed_source(source_io, source, tags: [], count: nil)
     @embedding.on? or return parse_source(source_io)
     m = "Embedding #{italic { source_io&.content_type }} document "\
       "#{source.to_s.inspect} in collection #{collection.to_s.inspect}."
@@ -218,9 +218,9 @@ module OllamaChat::SourceFetching
       command = true
     end
     if !command
-      @documents.source_update(inputs, source:, batch_size: config.embedding.batch_size?)
+      @documents.source_update(inputs, source:, tags:, batch_size: config.embedding.batch_size?)
     else
-      @documents.add(inputs, source:, batch_size: config.embedding.batch_size?)
+      @documents.add(inputs, source:, tags:, batch_size: config.embedding.batch_size?)
     end
   end
 
@@ -235,14 +235,14 @@ module OllamaChat::SourceFetching
   #
   # @return [String, nil] The formatted embedding result or summary message, or
   #   nil if the operation fails
-  def embed(source)
+  def embed(source, tags: [])
     if @embedding.on?
       STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.to_s.inspect}."
       fetch_source(source) do |source_io|
         content = parse_source(source_io)
         content.present? or return
         source_io.rewind
-        embed_source(source_io, source)
+        embed_source(source_io, source, tags:)
       end
       prompt(:embed).to_s % { source:, collection: collection }
     else

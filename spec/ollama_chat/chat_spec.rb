@@ -232,14 +232,16 @@ describe OllamaChat::Chat, protect_env: true do
         end
 
         it 'returns "success" when input is "/input embedding (.+)"' do
-          expect(chat).to receive(:embed).with(asset('example.rb')).
+          expect(chat).to receive(:embed).
+            with(asset('example.rb'), tags: nil).
             and_return 'success'
           expect(chat.handle_input("/input embedding #{asset('example.rb')}")).
             to eq 'success'
         end
 
         it 'returns "success" when input is "/input embedding -p (.+)"' do
-          expect(chat).to receive(:embed).with(asset_pathname('example.rb')).
+          expect(chat).to receive(:embed).
+            with(asset_pathname('example.rb'), tags: nil).
             and_return 'success'
           expect(chat.handle_input("/input embedding -a -p #{asset('*.rb')}")).
             to match(/success/)

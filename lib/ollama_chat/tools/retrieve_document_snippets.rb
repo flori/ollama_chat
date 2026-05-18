@@ -42,15 +42,30 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
           properties: {
             query: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The query or text to search for in the document collection.'
+              description: <<~EOT,
+                The query or text to search for in the document collection.
+              EOT
+            ),
+            tags: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: <<~EOT,
+                A comma-separated list of tags (e.g., 'tag1,tag2'). The search
+                will be filtered to only return snippets that match at least
+                one of the provided tags.
+              EOT
             ),
             collection: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The document collection to search in for the query or text.'
+              description: <<~EOT,
+                The document collection to search in for the query or text.
+              EOT
             ),
             min_similarity: Tool::Function::Parameters::Property.new(
               type: 'number',
-              description: 'The minimum similarity score required for a snippet to be returned. Higher values are more restrictive.'
+              description: <<~EOT,
+                The minimum similarity score required for a snippet to be
+                returned. Higher values are more restrictive.
+              EOT
             ),
             text_size: Tool::Function::Parameters::Property.new(
               type: 'integer',
@@ -83,6 +98,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
 
     query = args.query.to_s
     query.blank? and raise OllamaChat::OllamaChatError, 'Empty query'
+    tags           = args.tags.full?(:split, ?,)
     text_size      = args.text_size.full? || chat.config.embedding.found_texts_size?
     text_count     = args.text_count.full? || chat.config.embedding.found_texts_count?
     min_similarity = args.min_similarity.full?
@@ -94,7 +110,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       chat.documents.collection = collection
     end
 
-    records = find_document_records(chat, query, text_size, text_count, min_similarity)
+    records = find_document_records(chat, query, tags, text_size, text_count, min_similarity)
 
     message = records.map { |record|
       link = if record.source =~ %r(\Ahttps?://)
@@ -132,8 +148,8 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
   #
   # @return [Array<Documentrix::Utils::TagResult>] an array of found document
   #   records
-  def find_document_records(chat, query, text_size, text_count, min_similarity)
-    tags = Documentrix::Utils::Tags.new(valid_tag: /\A#*([\w\]\[]+)/)
+  def find_document_records(chat, query, tags, text_size, text_count, min_similarity)
+    tags = Documentrix::Utils::Tags.new(tags, valid_tag: /\A#*([-\w.\]\[]+)/)
 
     chat.documents.find_where(
       query.first(chat.config.embedding.model.context_length),

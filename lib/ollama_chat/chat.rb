@@ -812,10 +812,10 @@ class OllamaChat::Chat
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apr]|c\s*\w+|w\s*\d+))*)(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apr]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+(.+))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
-    options: '[-w|-a|-p|-c <collection>] [arg…]',
+    options: '[-w|-a|-p|-c <collection>|-t <tags>] [arg…]',
     help: <<~EOT
       Import content from files, URLs, or globs into the context
       Use subcommands: path, context, embedding, summary,
@@ -825,6 +825,7 @@ class OllamaChat::Chat
         -w <words> (summary subcommand only, default 100)
         -a (pattern mode only, include all files for patterns)
         -c <collection> use this collection (embedding subcommand only)
+        -t <tag1,tag2,…> the custom tags to appy (embedding subcommand only)
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -856,7 +857,7 @@ class OllamaChat::Chat
         next context_spook(nil) || :next
       end
     when 'embedding'
-      opts = go_command('pac:', opts)
+      opts = go_command('pac:t:', opts)
       switch_collection(opts[?c]) do |other_collection|
         if collection == other_collection and !confirm?(
           prompt: "🔔 Are you sure to embed into current collection #{other_collection.to_s.inspect}? (y/n) ",
@@ -866,12 +867,13 @@ class OllamaChat::Chat
           STDOUT.puts 'Cancelled.'
           next :next
         end
+        tags = opts[?t].full?(:split, ?,)
         if opts[?p]
           all = opts.fetch(?a, false)
           arg and patterns = arg.scan(/(\S+)/).flatten
-          next provide_file_set_content(patterns, all:) { embed(_1) } || :next
+          next provide_file_set_content(patterns, all:) { embed(_1, tags:) } || :next
         elsif arg
-          next embed(arg) || :next
+          next embed(arg, tags:) || :next
         else
           STDERR.puts "Need a source to embed for input!"
           next :next
