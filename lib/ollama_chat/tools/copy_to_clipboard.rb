@@ -30,6 +30,10 @@ class OllamaChat::Tools::CopyToClipboard
             text: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: 'Text to copy to the clipboard (nil = last assistant reply)'
+            ),
+            edit: Tool::Function::Parameters::Property.new(
+              type: 'boolean',
+              description: 'True if the copied text should be edited by the user, (default: false)'
             )
           },
           required: []
@@ -45,16 +49,20 @@ class OllamaChat::Tools::CopyToClipboard
   # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
   def execute(tool_call, **opts)
-    text = tool_call.function.arguments.text
+    args = tool_call.function.arguments
+    edit = !!args.edit
+    text = args.text.full?
 
     chat = opts[:chat]
-    chat.perform_copy_to_clipboard(text:, content: true)
+    chat.perform_copy_to_clipboard(text:, content: true, edit:)
 
-    message = if text.nil?
-                "The last response has been successfully copied to the system clipboard."
-              else
-                "The provided text has been successfully copied to the system clipboard."
-              end
+    message =
+      if text.nil?
+        "The last response has been successfully copied to the system clipboard."
+      else
+        "The provided text has been successfully copied to the system clipboard."
+      end
+
     {
       success:  true,
       message: ,

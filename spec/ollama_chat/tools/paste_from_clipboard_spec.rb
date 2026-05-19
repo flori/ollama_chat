@@ -22,12 +22,14 @@ describe OllamaChat::Tools::PasteFromClipboard do
       'ToolCall',
       function: double(
         name: 'paste_from_clipboard',
-        arguments: double()
+        arguments: double(
+          edit: nil
+        )
       )
     )
 
-    # Test that perform_paste_from_clipboard is called
-    expect(chat).to receive(:perform_paste_from_clipboard).
+    # Test that perform_paste_from_clipboard is called with edit: false
+    expect(chat).to receive(:perform_paste_from_clipboard).with(edit: false).
       and_return 'Hello World'
 
     result = described_class.new.execute(tool_call, chat: chat)
@@ -40,17 +42,44 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(json.message).to eq "Pasted 11.0 B of content."
   end
 
+  it 'can be executed with edit option' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'paste_from_clipboard',
+        arguments: double(
+          edit: true
+        )
+      )
+    )
+
+    # Test that perform_paste_from_clipboard is called with edit: true
+    expect(chat).to receive(:perform_paste_from_clipboard).with(edit: true).
+      and_return 'Hello Edited World'
+
+    result = described_class.new.execute(tool_call, chat: chat)
+
+    # Should return valid JSON
+    expect(result).to be_a(String)
+    json = json_object(result)
+    expect(json.error).to be_nil
+    expect(json.success).to be true
+    expect(json.message).to eq "Pasted 18.0 B of content."
+  end
+
   it 'can handle execution errors gracefully' do
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'paste_from_clipboard',
-        arguments: double()
+        arguments: double(
+          edit: nil
+        )
       )
     )
 
     # Test that perform_paste_from_clipboard raises an error
-    expect(chat).to receive(:perform_paste_from_clipboard).
+    expect(chat).to receive(:perform_paste_from_clipboard).with(edit: false).
       and_raise(OllamaChat::OllamaChatError, 'No content available to paste from the system clipboard.')
 
     result = described_class.new.execute(tool_call, chat: chat)
@@ -67,12 +96,14 @@ describe OllamaChat::Tools::PasteFromClipboard do
       'ToolCall',
       function: double(
         name: 'paste_from_clipboard',
-        arguments: double()
+        arguments: double(
+          edit: nil
+        )
       )
     )
 
     # Test that perform_paste_from_clipboard raises an exception
-    expect(chat).to receive(:perform_paste_from_clipboard).
+    expect(chat).to receive(:perform_paste_from_clipboard).with(edit: false).
       and_raise(RuntimeError, 'some kind of exception')
 
     result = described_class.new.execute(tool_call, chat: chat)

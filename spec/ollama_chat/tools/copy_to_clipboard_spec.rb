@@ -23,13 +23,14 @@ describe OllamaChat::Tools::CopyToClipboard do
       function: double(
         name: 'copy_to_clipboard',
         arguments: double(
-          text: nil
+          text: nil,
+          edit: nil
         )
       )
     )
 
     # Test that perform_copy_to_clipboard is called with content: true
-    expect(chat).to receive(:perform_copy_to_clipboard).with(text: nil, content: true)
+    expect(chat).to receive(:perform_copy_to_clipboard).with(text: nil, content: true, edit: false)
 
     result = described_class.new.execute(tool_call, chat: chat)
 
@@ -49,13 +50,14 @@ describe OllamaChat::Tools::CopyToClipboard do
       function: double(
         name: 'copy_to_clipboard',
         arguments: double(
-          text:
+          text: ,
+          edit: nil
         )
       )
     )
 
     # Test that perform_copy_to_clipboard is called with the custom text
-    expect(chat).to receive(:perform_copy_to_clipboard).with(text:, content: true)
+    expect(chat).to receive(:perform_copy_to_clipboard).with(text:, content: true, edit: false)
 
     result = described_class.new.execute(tool_call, chat: chat)
 
@@ -67,19 +69,45 @@ describe OllamaChat::Tools::CopyToClipboard do
     expect(json.message).to eq 'The provided text has been successfully copied to the system clipboard.'
   end
 
+  it 'can be executed with edit option' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'copy_to_clipboard',
+        arguments: double(
+          text: nil,
+          edit: true
+        )
+      )
+    )
+
+    # Test that perform_copy_to_clipboard is called with edit: true
+    expect(chat).to receive(:perform_copy_to_clipboard).with(text: nil, content: true, edit: true)
+
+    result = described_class.new.execute(tool_call, chat: chat)
+
+    # Should return valid JSON
+    expect(result).to be_a(String)
+    json = json_object(result)
+    expect(json.error).to be_nil
+    expect(json.success).to be true
+    expect(json.message).to eq 'The last response has been successfully copied to the system clipboard.'
+  end
+
   it 'can handle execution errors gracefully' do
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'copy_to_clipboard',
         arguments: double(
-          text: nil
+          text: nil,
+          edit: nil
         )
       )
     )
 
     # Test that perform_copy_to_clipboard raises an error
-    expect(chat).to receive(:perform_copy_to_clipboard).with(text:nil, content: true).
+    expect(chat).to receive(:perform_copy_to_clipboard).with(text:nil, content: true, edit: false).
       and_raise(OllamaChat::OllamaChatError, 'No response available to copy to the system clipboard.')
 
     result = described_class.new.execute(tool_call, chat: chat)
@@ -97,13 +125,14 @@ describe OllamaChat::Tools::CopyToClipboard do
       function: double(
         name: 'copy_to_clipboard',
         arguments: double(
-          text: nil
+          text: nil,
+          edit: nil
         )
       )
     )
 
     # Test that perform_copy_to_clipboard raises an exception
-    expect(chat).to receive(:perform_copy_to_clipboard).with(text: nil, content: true).
+    expect(chat).to receive(:perform_copy_to_clipboard).with(text: nil, content: true, edit: false).
       and_raise(RuntimeError, 'some kind of exception')
 
     result = described_class.new.execute(tool_call, chat: chat)

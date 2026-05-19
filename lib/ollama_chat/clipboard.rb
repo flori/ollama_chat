@@ -11,16 +11,23 @@ module OllamaChat::Clipboard
   # its content to the system clipboard using the command specified in
   # the configuration (config.copy).
   #
+  # @param text [String, nil] The text to copy. If nil, the last assistant
+  #   message is used (default: nil)
   # @param content [true, false] If true, copies the content of the message;
   #   if false, copies the entire message object (default: false)
+  # @param edit [true, false] If true, opens the content in the editor for
+  #   modification before copying (default: true)
+  #
+  # @return [TrueClass] if the copying has been performed successfully.
   #
   # @raise [OllamaChat::OllamaChatError] if the clipboard command specified
   #   in config.copy is not found in the system's PATH
   # @raise [OllamaChat::OllamaChatError] if no assistant message is available
   #   to copy to the clipboard
-  def perform_copy_to_clipboard(text: nil, content: false)
+  def perform_copy_to_clipboard(text: nil, content: false, edit: true)
     text ||= last_message_content(content:)
     if text
+      edit and text = edit_text(text)
       copy = `which #{config.copy}`.chomp
       if copy.present?
         IO.popen(copy, 'w') do |clipboard|
@@ -43,6 +50,8 @@ module OllamaChat::Clipboard
   # content from the system clipboard. It uses the command specified in the
   # configuration (`config.paste`) to fetch clipboard content.
   #
+  # @param edit [true, false] If true, opens the retrieved content in the
+  #   editor for modification before returning it (default: false)
   # @return [String] The content retrieved from the system clipboard
   # @raise [OllamaChat::OllamaChatError] if the clipboard command is not found
   #   or if there is no content available to paste
@@ -51,7 +60,7 @@ module OllamaChat::Clipboard
   #   # Assuming config.paste is "pfc"
   #   content = perform_paste_from_clipboard
   #   # => "Some content from clipboard"
-  def perform_paste_from_clipboard
+  def perform_paste_from_clipboard(edit: false)
     paste = `which #{config.paste}`.chomp
     if paste.present?
       IO.popen(paste, 'r') do |clipboard|
@@ -60,6 +69,7 @@ module OllamaChat::Clipboard
           raise OllamaChat::OllamaChatError,
             "No content available to paste from the system clipboard."
         else
+          edit and text = edit_text(text)
           return text
         end
       end
@@ -97,8 +107,13 @@ module OllamaChat::Clipboard
   # clipboard in the chat. It calls perform_copy_to_clipboard internally and
   # handles any OllamaChat::OllamaChatError exceptions by printing the error
   # message to standard error and does not re-raise the exception.
-  def copy_to_clipboard
-    perform_copy_to_clipboard
+  #
+  # @param edit [true, false] If true, opens the content in the editor for
+  #   modification before copying (default: true)
+  #
+  # @return [TrueClass] if the copying has been performed successfully.
+  def copy_to_clipboard(edit: false)
+    perform_copy_to_clipboard(edit:)
     STDOUT.puts "The last response has been successfully copied to the system clipboard."
     true
   rescue OllamaChat::OllamaChatError => e
@@ -111,8 +126,13 @@ module OllamaChat::Clipboard
   # configured paste command and integrates it into the chat session. It
   # handles clipboard errors gracefully by displaying error messages to
   # standard error.
-  def paste_from_clipboard
-    result = perform_paste_from_clipboard
+  #
+  # @param edit [true, false] If true, opens the content in the editor for
+  #   modification before returning (default: false)
+  # @return [String, nil] The content retrieved from the system clipboard,
+  #   or nil if an error occurred
+  def paste_from_clipboard(edit: false)
+    result = perform_paste_from_clipboard(edit:)
     STDOUT.puts "The clipboard content has been successfully copied to the chat."
     result
   rescue OllamaChat::OllamaChatError => e

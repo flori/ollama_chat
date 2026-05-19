@@ -24,7 +24,12 @@ class OllamaChat::Tools::PasteFromClipboard
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
-          properties: {},
+          properties: {
+            edit: Tool::Function::Parameters::Property.new(
+              type: 'boolean',
+              description: 'True if the pasted text should be edited by the user, (default: false)'
+            )
+          },
           required: []
         )
       )
@@ -38,11 +43,13 @@ class OllamaChat::Tools::PasteFromClipboard
   # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
-  def execute(_tool_call, **opts)
+  def execute(tool_call, **opts)
+    args = tool_call.function.arguments
+    edit = !!args.edit
     chat = opts[:chat]
 
     # Use the chat instance's clipboard paste functionality
-    content = chat.perform_paste_from_clipboard
+    content = chat.perform_paste_from_clipboard(edit:)
     message = "Pasted #{format_bytes(content.to_s.size)} of content."
 
     {
