@@ -95,8 +95,10 @@ module OllamaChat::Dialog
     patterns ||= '**/*'
     patterns = Array(patterns).map { Pathname.new(_1).expand_path }
     files = Set[]
-    while filename = choose_filename(patterns, chosen: files)
-      files << filename.expand_path
+    choose_with_state do
+      while filename = choose_filename(patterns, chosen: files)
+        files << filename.expand_path
+      end
     end
     files
   end

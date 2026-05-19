@@ -341,7 +341,7 @@ module OllamaChat::ModelHandling
       if models.size == 1
         models.first.value
       elsif cli_model == ''
-        OllamaChat::Utils::Chooser.choose(models)&.value || current_model
+        choose_entry(models)&.value || current_model
       else
         cli_model || current_model
       end

@@ -9,9 +9,11 @@ describe OllamaChat::InputContent do
     it 'can read content from a selected file' do
       selected_filename = Pathname.new('spec/assets/example.rb')
       # Mock the file selection process
-      expect(chat).to receive(:choose_filename).with([ kind_of(Pathname) ], chosen: Set[]).
+      expect(chat).to receive(:choose_filename).
+        with([ kind_of(Pathname) ], chosen: Set[]).
         and_return(selected_filename)
-      expect(chat).to receive(:choose_filename).with([ kind_of(Pathname) ], chosen: Set[selected_filename.expand_path]).
+      expect(chat).to receive(:choose_filename).
+        with([ kind_of(Pathname) ], chosen: Set[selected_filename.expand_path]).
         and_return nil
 
       # Test that it returns the file content
@@ -20,7 +22,8 @@ describe OllamaChat::InputContent do
     end
 
     it 'returns nil when no file is selected' do
-      expect(chat).to receive(:choose_filename).with([ kind_of(Pathname) ], chosen: Set[]).
+      expect(chat).to receive(:choose_filename).
+        with([ kind_of(Pathname) ], chosen: Set[]).
         and_return(nil)
       expect(chat.input(nil)).to be_nil
     end
@@ -45,7 +48,7 @@ describe OllamaChat::InputContent do
       expect(files).to_not be_empty
 
       # Mock the selection process
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).
+      expect(chat).to receive(:choose_entry).
         with(files.unshift('[EXIT]')).and_return(files[1])
 
       result = chat.choose_filename('spec/assets/**/*.txt')
@@ -53,12 +56,12 @@ describe OllamaChat::InputContent do
     end
 
     it 'returns nil when user exits selection' do
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).and_return(nil)
+      expect(chat).to receive(:choose_entry).and_return(nil)
       expect(chat.choose_filename('spec/assets/*')).to be_nil
     end
 
     it 'returns nil when user chooses exit' do
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).and_return('[EXIT]')
+      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
       expect(chat.choose_filename('spec/assets/*')).to be_nil
     end
   end

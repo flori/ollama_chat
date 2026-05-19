@@ -159,10 +159,10 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/collection(clear|change)"' do
-      expect(OllamaChat::Utils::Chooser).to receive(:choose)
+      expect(chat).to receive(:choose_entry)
       expect(STDOUT).to receive(:puts).with(/Exiting/)
       expect(chat.handle_input("/collection clear")).to eq :next
-      expect(OllamaChat::Utils::Chooser).to receive(:choose)
+      expect(chat).to receive(:choose_entry)
       expect(chat).to receive(:info)
       expect(STDOUT).to receive(:puts).with(/./)
       expect(chat.handle_input("/collection change")).to eq :next
@@ -178,8 +178,8 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/document policy"' do
-      expect_any_instance_of(OllamaChat::StateSelectors::DatabaseStateSelector).to\
-        receive(:choose)
+      expect_any_instance_of(OllamaChat::StateSelectors::DatabaseStateSelector).
+        to receive(:choose_entry)
       expect(chat.handle_input("/document policy")).to eq :next
     end
 

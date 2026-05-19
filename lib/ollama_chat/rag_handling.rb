@@ -39,26 +39,24 @@ module OllamaChat::RAGHandling
   # collection. It provides a loop for multiple deletions until the user exits
   # or completes a clear operation.
   def clear_collection
-    loop do
-      tags = @documents.tags.to_a.unshift('[ALL]').unshift('[EXIT]')
-      tag = OllamaChat::Utils::Chooser.choose(tags, prompt: 'Clear? %s')
-      case tag
-      when nil, '[EXIT]'
-        STDOUT.puts "Exiting chooser."
-        break
-      when '[ALL]'
-        if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
-          @documents.clear
-          STDOUT.puts "Cleared collection #{bold{collection}}."
+    choose_with_state do
+      loop do
+        tags = @documents.tags.to_a.unshift('[ALL]').unshift('[EXIT]')
+        tag = choose_entry(tags, prompt: 'Clear? %s')
+        case tag
+        when nil, '[EXIT]'
+          STDOUT.puts "Exiting chooser."
           break
-        else
-          STDOUT.puts 'Cancelled.'
-          sleep 3
+        when '[ALL]'
+          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
+            @documents.clear
+            STDOUT.puts "Cleared collection #{bold{collection}}."
+            break
+          end
+        when /./
+          @documents.clear(tags: [ tag ])
+          STDOUT.puts "Cleared tag #{tag} from collection #{bold{collection}}."
         end
-      when /./
-        @documents.clear(tags: [ tag ])
-        STDOUT.puts "Cleared tag #{tag} from collection #{bold{collection}}."
-        sleep 3
       end
     end
   end
@@ -82,7 +80,7 @@ module OllamaChat::RAGHandling
     collections = [ current_collection ] + @documents.collections.to_a
     collections = collections.filter_map(&:to_s).uniq.sort
     collections.unshift('[EXIT]').unshift('[NEW]')
-    collection = OllamaChat::Utils::Chooser.choose(collections) || current_collection
+    collection = choose_entry(collections) || current_collection
     case collection&.to_s
     when '[NEW]'
       @documents.collection = ask?(

@@ -42,42 +42,49 @@ module OllamaChat::FavouritesManagement
   #       for adding new favourites to the database.
   def add_favourite(type)
     all_things = favourite_all_things(type)
-    loop do
-      selected = models::Favourite.where(context: type).map(&:name)
-      to_select = all_things - selected
-      if to_select.empty?
-        STDOUT.puts "All items are already favourited."
-        return
-      end
-      to_select.unshift('[EXIT]')
-      case chosen = OllamaChat::Utils::Chooser.choose(to_select)
-      when '[EXIT]', nil
-        STDOUT.puts "Cancelled."
-        return
-      when SearchUI::Wrapper
-        models::Favourite.create(context: type, name: chosen.value)
-        STDOUT.puts "Added #{bold{chosen.value}} to favourites."
-        confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
+    choose_with_state do
+      loop do
+        selected = models::Favourite.where(context: type).map(&:name)
+        to_select = all_things - selected
+        if to_select.empty?
+          STDOUT.puts "All items are already favourited."
+          return
+        end
+        to_select.unshift('[EXIT]')
+        case chosen = choose_entry(to_select)
+        when '[EXIT]', nil
+          STDOUT.puts "Cancelled."
+          return
+        when SearchUI::Wrapper
+          models::Favourite.create(context: type, name: chosen.value)
+        end
       end
     end
   end
 
-  # The delete_favourite method removes a favourite item from the database.
+  # The delete_favourite method removes favourite items from the database.
+  # It iterates through current favourites and allows the user to select
+  # items for removal in a loop, maintaining search state between selections.
   #
   # @param type [ String ] the context type of the favourite to delete
+  #
+  # @note This method uses a chooser to present options and handles user input
+  #       for removing favourites from the database.
   def delete_favourite(type)
     all_things = favourite_all_things(type)
-    to_select = models::Favourite.where(context: type).map(&:name)
-    to_select = all_things.select { to_select.member?(_1.value) }
-    to_select = [ '[EXIT]' ] + to_select
-    case chosen = OllamaChat::Utils::Chooser.choose(to_select)
-    when '[EXIT]', nil
-      STDOUT.puts "Cancelled."
-      return
-    when SearchUI::Wrapper
-      models::Favourite.where(context: type, name: chosen.value).destroy
-      STDOUT.puts "Removed #{bold{chosen.value}} from favourites."
-      confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
+    choose_with_state do
+      loop do
+        to_select = models::Favourite.where(context: type).map(&:name)
+        to_select = all_things.select { to_select.member?(_1.value) }
+        to_select = [ '[EXIT]' ] + to_select
+        case chosen = choose_entry(to_select)
+        when '[EXIT]', nil
+          STDOUT.puts "Cancelled."
+          return
+        when SearchUI::Wrapper
+          models::Favourite.where(context: type, name: chosen.value).destroy
+        end
+      end
     end
   end
 

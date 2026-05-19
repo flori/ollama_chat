@@ -122,7 +122,7 @@ describe OllamaChat::StateSelectors::StateSelector do
   describe '#choose' do
     it 'allows user to select a state from available options' do
       # Mock the chooser to return a specific choice
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).with(
+      expect(selector).to receive(:choose_entry).with(
         %w[ [EXIT] enabled disabled low high ]
       ).and_return(double(value: 'low'))
 
@@ -131,14 +131,14 @@ describe OllamaChat::StateSelectors::StateSelector do
     end
 
     it 'exits when user selects [EXIT]' do
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).and_return('[EXIT]')
+      expect(selector).to receive(:choose_entry).and_return('[EXIT]')
 
       selector.choose
       expect(selector.selected).to eq default
     end
 
     it 'exits when user cancels selection' do
-      expect(OllamaChat::Utils::Chooser).to receive(:choose).and_return(nil)
+      expect(selector).to receive(:choose_entry).and_return(nil)
 
       selector.choose
       expect(selector.selected).to eq default

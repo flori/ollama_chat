@@ -159,8 +159,8 @@ module OllamaChat::PersonaeManagement
   # Retrieves a list of available personas, decorated with their favourite
   # status.
   #
-  # @return [Array<SearchUI::Wrapper>] a list of wrappers containing the persona name
-  #   and its decorated display string
+  # @return [Array<SearchUI::Wrapper>] a list of wrappers containing the
+  #   persona name and its decorated display string
   def available_personae_names
     favs = all_favourited('persona')
     personae_directory.glob('*.md').map(&:basename).sort.map { |bn|
@@ -171,10 +171,10 @@ module OllamaChat::PersonaeManagement
 
   # Creates a new persona file interactively.
   #
-  # The method prompts the user to enter a name for the persona, creates an empty Markdown
-  # file with that name in the personas directory (if it does not already exist), opens
-  # the file in the configured editor, and finally returns the result of calling
-  # `#personae_result` on the created file.
+  # The method prompts the user to enter a name for the persona, creates an
+  # empty Markdown file with that name in the personas directory (if it does
+  # not already exist), opens the file in the configured editor, and finally
+  # returns the result of calling `#personae_result` on the created file.
   def add_persona
     persona_name = ask?(
       prompt: "❓ Enter the name of the new persona (or press return to cancel): "
@@ -240,8 +240,8 @@ module OllamaChat::PersonaeManagement
 
   # Interactive method to edit an existing persona file.
   #
-  # Prompts the user to select a persona, opens it for editing, backups the
-  # old content, and returns the result after editing.
+  # Prompts the user to select a persona, opens it for editing, backups the old
+  # content, and returns the result after editing.
   #
   # @return [String, nil] persona name or nil if cancelled
   def edit_persona
@@ -288,7 +288,8 @@ module OllamaChat::PersonaeManagement
     end
   end
 
-  # Generates a formatted description of a persona, including its path and profile.
+  # Generates a formatted description of a persona, including its path and
+  # profile.
   #
   # @param persona [String] The persona name.
   # @param substitute_variables [Boolean] Whether to substitute variables in the profile.
@@ -369,10 +370,12 @@ module OllamaChat::PersonaeManagement
   # Interactive method to select a persona from a list.
   #
   # Allows the user to choose a persona from available options or exit.
-  # Selected persona is returned if successful, nil if user exits
+  # Selected persona is returned if successful, nil if user exits.
   #
   # @param chosen [Set, nil] Optional set of already selected personas
-  # @return [String, Symbol, nil] The selected persona name, :none, or nil if user exits
+  # @param none [Boolean] whether to include a '[NONE]' option in the list
+  # @return [String, Symbol, nil] The selected persona name, :none, or nil if
+  #   user exits
   def choose_persona(chosen: nil, none: false)
     personae_list = available_personae_names.
       reject { chosen&.member?(_1) }
@@ -382,7 +385,7 @@ module OllamaChat::PersonaeManagement
     end
     personae_list.unshift('[NONE]') if none
     personae_list.unshift('[EXIT]')
-    case persona = OllamaChat::Utils::Chooser.choose(personae_list)
+    case persona = choose_entry(personae_list)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
@@ -399,9 +402,11 @@ module OllamaChat::PersonaeManagement
   # each loaded persona.
   def load_personae
     chosen = Set[]
-    while persona = choose_persona(chosen: chosen)
-      persona == :none and next
-      chosen << persona
+    choose_with_state do
+      while persona = choose_persona(chosen: chosen)
+        persona == :none and next
+        chosen << persona
+      end
     end
 
     if chosen.empty?
@@ -417,7 +422,8 @@ module OllamaChat::PersonaeManagement
   # Loads the profile for each persona and concatenates their descriptions.
   #
   # @param personae [String, Array<String>] Persona name(s) to load.
-  # @return [String, nil] A string containing all descriptions, or nil if the result is blank.
+  # @return [String, nil] A string containing all descriptions, or nil if the
+  #   result is blank.
   def personae_result(personae)
     personae = Array(personae)
 
@@ -460,7 +466,8 @@ module OllamaChat::PersonaeManagement
   #
   # Creates a formatted prompt string that includes the persona name and profile.
   #
-  # @param persona [String, Pathname] The persona name or path to include in the prompt
+  # @param persona [String, Pathname] The persona name or path to include in
+  #   the prompt
   # @return [String] Formatted roleplay prompt
   def play_persona(persona)
     pathname, profile = load_persona_file(persona)

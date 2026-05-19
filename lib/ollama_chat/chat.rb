@@ -67,6 +67,7 @@ class OllamaChat::Chat
   include OllamaChat::PromptHandling
   include OllamaChat::SystemPromptManagement
   include OllamaChat::PromptManagement
+  include OllamaChat::Utils::Chooser
   include OllamaChat::Utils::ValueFormatter
 
   # Initializes a new OllamaChat::Chat instance with the given command-line

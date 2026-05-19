@@ -55,7 +55,7 @@ module OllamaChat::InputContent
     files = patterns.flat_map { Pathname.glob(_1) }
     files = files.reject { chosen&.member?(_1.expand_path) }.select { _1.file? }
     files.unshift('[EXIT]')
-    case chosen_file = OllamaChat::Utils::Chooser.choose(files)
+    case chosen_file = choose_entry(files)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return

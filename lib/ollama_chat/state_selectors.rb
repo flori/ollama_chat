@@ -14,6 +14,7 @@ module OllamaChat::StateSelectors
   # consistency across both memory-based and database-backed state selectors.
   module Common
     include Term::ANSIColor
+    include OllamaChat::Utils::Chooser
 
     # The name reader returns the name of the state selector.
     #
@@ -89,7 +90,7 @@ module OllamaChat::StateSelectors
         SearchUI::Wrapper.new(state, display:)
       end
 
-      case chosen = OllamaChat::Utils::Chooser.choose(states)
+      case chosen = choose_entry(states)
       when '[EXIT]', nil
         STDOUT.puts "Exiting chooser."
       when

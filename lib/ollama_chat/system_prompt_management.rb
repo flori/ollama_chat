@@ -85,7 +85,7 @@ module OllamaChat::SystemPromptManagement
   def change_system_prompt(default)
     prompts = all_system_prompts
     prompts.unshift('[MODEL DEFAULT]').unshift('[EXIT]')
-    chosen = OllamaChat::Utils::Chooser.choose(prompts)
+    chosen = choose_entry(prompts)
     system_prompt_name =
       case chosen
       when '[EXIT]'
@@ -109,7 +109,7 @@ module OllamaChat::SystemPromptManagement
   def choose_system_prompt
     prompts = all_system_prompts
     prompts.unshift('[EXIT]')
-    case chosen = OllamaChat::Utils::Chooser.choose(prompts)
+    case chosen = choose_entry(prompts)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return

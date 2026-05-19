@@ -124,21 +124,21 @@ module OllamaChat::ToolCalling
   # tools and handles the user's selection by updating the session's default
   # tools configuration in the database.
   def enable_tool
-    loop do
-      select_tools = configured_tools - enabled_tools
-      select_tools = [ '[EXIT]' ] + select_tools
-      case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
-      when '[EXIT]', nil
-        STDOUT.puts "Exiting chooser."
-        return
-      when *select_tools
-        session.tools_default_enabled[chosen] = true
-        if session.save
-          STDOUT.puts "Enabled tool %s" % bold { chosen }
-        else
-          STDOUT.puts "Could not enable tool %s" % bold { chosen }
+    choose_with_state do
+      loop do
+        select_tools = configured_tools - enabled_tools
+        select_tools = [ '[EXIT]' ] + select_tools
+        case chosen = choose_entry(select_tools)
+        when '[EXIT]', nil
+          STDOUT.puts "Exiting chooser."
+          return
+        when *select_tools
+          session.tools_default_enabled[chosen] = true
+          unless session.save
+            STDOUT.puts "Could not enable tool %s" % bold { chosen }
+            confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
+          end
         end
-        confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
     end
   end
@@ -151,21 +151,21 @@ module OllamaChat::ToolCalling
   # display the available tools and handles the user's selection by updating
   # the session's default tools configuration in the database.
   def disable_tool
-    loop do
-      select_tools = enabled_tools
-      select_tools = [ '[EXIT]' ] + select_tools
-      case chosen = OllamaChat::Utils::Chooser.choose(select_tools)
-      when '[EXIT]', nil
-        STDOUT.puts "Exiting chooser."
-        return
-      when *select_tools
-        session.tools_default_enabled[chosen] = false
-        if session.save
-          STDOUT.puts "Disabled tool %s" % bold { chosen }
-        else
-          STDOUT.puts "Could not disable tool %s" % bold { chosen }
+    choose_with_state do
+      loop do
+        select_tools = enabled_tools
+        select_tools = [ '[EXIT]' ] + select_tools
+        case chosen = choose_entry(select_tools)
+        when '[EXIT]', nil
+          STDOUT.puts "Exiting chooser."
+          return
+        when *select_tools
+          session.tools_default_enabled[chosen] = false
+          unless session.save
+            STDOUT.puts "Could not disable tool %s" % bold { chosen }
+            confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
+          end
         end
-        confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
       end
     end
   end

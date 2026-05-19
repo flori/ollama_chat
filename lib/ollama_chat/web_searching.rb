@@ -105,26 +105,26 @@ module OllamaChat::WebSearching
   def manage_links(command)
     case command
     when 'clear'
-      loop do
-        links_options = links.dup.add('[EXIT]').add('[ALL]')
-        link = OllamaChat::Utils::Chooser.choose(links_options, prompt: 'Clear? %s')
-        case link
-        when nil, '[EXIT]'
-          STDOUT.puts "Exiting chooser."
-          break
-        when '[ALL]'
-          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
-            links.clear
-            STDOUT.puts "Cleared all links in list."
+      choose_with_state do
+        loop do
+          links_options = links.dup.add('[EXIT]').add('[ALL]')
+          link = choose_entry(links_options, prompt: 'Clear? %s')
+          case link
+          when nil, '[EXIT]'
+            STDOUT.puts "Exiting chooser."
             break
-          else
-            STDOUT.puts 'Cancelled.'
-            sleep 3
+          when '[ALL]'
+            if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
+              links.clear
+              STDOUT.puts "Cleared all links in list."
+              break
+            else
+              STDOUT.puts 'Cancelled.'
+              confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
+            end
+          when /./
+            links.delete(link)
           end
-        when /./
-          links.delete(link)
-          STDOUT.puts "Cleared link from links in list."
-          sleep 3
         end
       end
     when nil

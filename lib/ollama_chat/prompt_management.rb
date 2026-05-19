@@ -32,7 +32,7 @@ module OllamaChat::PromptManagement
   def choose_prompt(default: nil)
     prompts = all_prompts(default: default)
     prompts.unshift('[EXIT]')
-    case chosen = OllamaChat::Utils::Chooser.choose(prompts)
+    case chosen = choose_entry(prompts)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return

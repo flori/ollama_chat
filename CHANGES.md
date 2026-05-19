@@ -39,7 +39,7 @@
   - Wrapped `enable_tool` and `disable_tool` in a `loop do` in
     `lib/ollama_chat/tool_calling.rb`.  
   - Modified `select_tools` to place `[EXIT]` at the start.  
-  - Handled user choice with `OllamaChat::Utils::Chooser.choose(select_tools)`
+  - Handled user choice with `choose(select_tools)`
     and exited on `[EXIT]` or `nil`.
 
 ## 2026-03-29 v0.0.85
