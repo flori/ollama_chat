@@ -33,8 +33,8 @@ describe OllamaChat::Tools::PatchFile do
 
     # Mock arguments to respond to .full? as used in the tool
     args_double = double('Arguments',
-      path: double(full?: test_file),
-      content: double(full?: new_content)
+      path: test_file,
+      content: new_content
     )
 
     tool_call = double(
@@ -67,8 +67,8 @@ describe OllamaChat::Tools::PatchFile do
 
   it 'can handle execution errors gracefully when file does not exist' do
     args_double = double('Arguments',
-      path: double(full?: './tmp/nonexistent.txt'),
-      content: double(full?: 'Some content')
+      path: './tmp/nonexistent.txt',
+      content: 'Some content'
     )
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
@@ -81,8 +81,8 @@ describe OllamaChat::Tools::PatchFile do
 
   it 'can handle execution errors gracefully when path is not allowed' do
     args_double = double('Arguments',
-      path: double(full?: '/etc/passwd'),
-      content: double(full?: 'Some content')
+      path: '/etc/passwd',
+      content: 'Some content'
     )
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
@@ -95,8 +95,8 @@ describe OllamaChat::Tools::PatchFile do
 
   it 'can handle execution errors gracefully when content is missing' do
     args_double = double('Arguments',
-      path: double(full?: './tmp/test.txt'),
-      content: double(full?: nil)
+      path: './tmp/test.txt',
+      content: nil
     )
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
@@ -112,8 +112,8 @@ describe OllamaChat::Tools::PatchFile do
     File.write(test_file, "Hello\nWorld\n")
 
     args_double = double('Arguments',
-      path: double(full?: test_file),
-      content: double(full?: 'New Content')
+      path: test_file,
+      content: 'New Content'
     )
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 

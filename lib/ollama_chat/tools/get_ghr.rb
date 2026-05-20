@@ -22,17 +22,31 @@ class OllamaChat::Tools::GetGHR
       type: 'function',
       function: Tool::Function.new(
         name:,
-        description: 'Fetch GitHub release information via the GHR API. Provide user and repo for specific releases, or omit both for a general overview of tracked repositories.',
+        description: <<~EOT,
+          Fetch GitHub release information via the GHR API. Provide user and
+          repo for specific releases (sorted by version descending), or omit
+          both for a general overview of tracked repositories including user
+          and repo. Pagination is supported using 'offset' and
+          'limit' parameters.
+        EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
           properties: {
             user: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The GitHub username or organization (e.g., "acidanthera").',
+              description: 'The GitHub username or organization (e.g., "flori").',
             ),
             repo: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The GitHub repository name (e.g., "AppleALC").',
+              description: 'The GitHub repository name (e.g., \"ghr\").',
+            ),
+            offset: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'The number of records to skip (default: 0).',
+            ),
+            limit: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'The maximum number of records to return (default: 10).',
             ),
           },
           required: []
@@ -57,12 +71,14 @@ class OllamaChat::Tools::GetGHR
     args = tool_call.function.arguments
     user = args.user.full?
     repo = args.repo.full?
+    offset = args.offset.full?
+    limit = args.limit.full?
 
     ghr_url = OC::OLLAMA::CHAT::TOOLS::GHR_URL or
       raise '%s env var not configured' % OC::OLLAMA::CHAT::TOOLS::GHR_URL!.env_var_name
 
     if user && repo
-      url = ghr_url + "/repos/#{user}:#{repo}.json"
+      url = ghr_url + "/repos/#{user}:#{repo}/releases.json"
     elsif !user && !repo
       url = ghr_url + '/repos.json'
     else
@@ -70,18 +86,30 @@ class OllamaChat::Tools::GetGHR
         'Both user and repo must be provided for a specific lookup, or both omitted for an overview.'
     end
 
+    query = []
+    query << "offset=#{offset}" if offset
+    query << "limit=#{limit}" if limit
+    url.query = query.full? { _1 * ?& }
+
+    data = get_ghr_data(chat, url)
+
+    if user && repo
+      { user:, repo: }.stringify_keys.merge(data).to_json
+    else
+      data.to_json
+    end
+  rescue => e
+    { error: e.class, message: e.message, user:, repo: }.to_json
+  end
+
+  private
+
+  def get_ghr_data(chat, url)
     headers = {
       'Accept' => 'application/json',
     }
     content = chat.get_url(url, headers:, reraise: true, &valid_json?)
-
-    if user && repo
-      { user:, repo:, releases: JSON.parse(content) }.to_json
-    else
-      { repos: JSON.parse(content) }.to_json
-    end
-  rescue => e
-    { error: e.class, message: e.message, user:, repo: }.to_json
+    JSON.parse(content)
   end
 
   self

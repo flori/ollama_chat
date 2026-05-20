@@ -6,7 +6,7 @@ describe OllamaChat::Tools::GetGHR do
   connect_to_ollama_server
 
   before do
-    const_conf_as('OC::OLLAMA::CHAT::TOOLS::GHR_URL' => 'https://ghr.example.com')
+    const_conf_as('OC::OLLAMA::CHAT::TOOLS::GHR_URL' => URI.parse('https://ghr.example.com'))
   end
 
   it 'can have name' do
@@ -30,18 +30,20 @@ describe OllamaChat::Tools::GetGHR do
       function: double(
         name: 'get_ghr',
         arguments: double(
-          user: double(full?: user),
-          repo: double(full?: repo)
+          user:,
+          repo:,
+          offset: nil,
+          limit: nil
         )
       )
     )
 
-    url = "https://ghr.example.com/repos/#{user}:#{repo}.json"
+    url = "https://ghr.example.com/repos/#{user}:#{repo}/releases.json"
 
     stub_request(:get, url)
       .to_return(
         status: 200,
-        body: '[{"version": "1.0", "date": "2023-01-01"}]',
+        body: '{"releases": [{"version": "1.0", "date": "2023-01-01"}]}',
         headers: { 'Content-Type' => 'application/json' }
       )
 
@@ -60,8 +62,10 @@ describe OllamaChat::Tools::GetGHR do
       function: double(
         name: 'get_ghr',
         arguments: double(
-          user: double(full?: nil),
-          repo: double(full?: nil)
+          user: nil,
+          repo: nil,
+          offset: nil,
+          limit: nil
         )
       )
     )
@@ -71,7 +75,7 @@ describe OllamaChat::Tools::GetGHR do
     stub_request(:get, url)
       .to_return(
         status: 200,
-        body: '["repo1", "repo2"]',
+        body: '{"repos": ["repo1", "repo2"], "total": 2}',
         headers: { 'Content-Type' => 'application/json' }
       )
 
@@ -87,8 +91,10 @@ describe OllamaChat::Tools::GetGHR do
       function: double(
         name: 'get_ghr',
         arguments: double(
-          user: double(full?: 'acidanthera'),
-          repo: double(full?: nil)
+          user: 'acidanthera',
+          repo: nil,
+          offset: nil,
+          limit: nil
         )
       )
     )
@@ -109,13 +115,15 @@ describe OllamaChat::Tools::GetGHR do
       function: double(
         name: 'get_ghr',
         arguments: double(
-          user: double(full?: user),
-          repo: double(full?: repo)
+          user:,
+          repo:,
+          offset: nil,
+          limit: nil
         )
       )
     )
 
-    url = "https://ghr.example.com/repos/#{user}:#{repo}.json"
+    url = "https://ghr.example.com/repos/#{user}:#{repo}/releases.json"
 
     stub_request(:get, url).to_return(status: 404, body: 'Not Found')
 
@@ -124,5 +132,104 @@ describe OllamaChat::Tools::GetGHR do
 
     expect(json.error).to eq 'JSON::ParserError'
     expect(json.message).to eq 'require JSON data'
+  end
+
+  it 'can be executed successfully for a specific repository with pagination' do
+    user = 'acidanthera'
+    repo = 'AppleALC'
+    offset = 0
+    limit = 10
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'get_ghr',
+        arguments: double(
+          user:,
+          repo:,
+          offset:,
+          limit:
+        )
+      )
+    )
+
+    url = "https://ghr.example.com/repos/#{user}:#{repo}/releases.json?offset=#{offset}&limit=#{limit}"
+
+    stub_request(:get, url)
+      .to_return(
+        status: 200,
+        body: '{"releases": [{"version": "1.0", "date": "2023-01-01"}]}',
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    result = described_class.new.execute(tool_call, chat:)
+    expect(result).to be_a String
+  end
+
+  it 'can be executed successfully for an overview with pagination' do
+    offset = 10
+    limit = 20
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'get_ghr',
+        arguments: double(
+          user: nil,
+          repo: nil,
+          offset:,
+          limit:
+        )
+      )
+    )
+
+    url = "https://ghr.example.com/repos.json?offset=#{offset}&limit=#{limit}"
+
+    stub_request(:get, url)
+      .to_return(
+        status: 200,
+        body: '{"repos": ["repo1", "repo2"], "total": 2}',
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    result = described_class.new.execute(tool_call, chat:)
+    expect(result).to be_a String
+  end
+
+  it 'handles pagination correctly when only one parameter is provided' do
+    # Case 1: Only limit for a specific repo
+    user = 'acidanthera'
+    repo = 'AppleALC'
+    limit = 5
+
+    tool_call_limit = double(
+      'ToolCall',
+      function: double(
+        name: 'get_ghr',
+        arguments: double(user:, repo:, offset: nil, limit:)
+      )
+    )
+
+    url_limit = "https://ghr.example.com/repos/#{user}:#{repo}/releases.json?limit=#{limit}"
+    stub_request(:get, url_limit).
+      to_return(status: 200, body: '{"releases": []}', headers: { 'Content-Type' => 'application/json' })
+
+    expect { described_class.new.execute(tool_call_limit, chat:) }.not_to raise_error
+
+    # Case 2: Only offset for an overview
+    offset = 5
+    tool_call_offset = double(
+      'ToolCall',
+      function: double(
+        name: 'get_ghr',
+        arguments: double(user: nil, repo: nil, offset:, limit: nil)
+      )
+    )
+
+    url_offset = "https://ghr.example.com/repos.json?offset=#{offset}"
+    stub_request(:get, url_offset).
+      to_return(status: 200, body: '{"repos": [], "total": 0}', headers: { 'Content-Type' => 'application/json' })
+
+    expect { described_class.new.execute(tool_call_offset, chat:) }.not_to raise_error
   end
 end
