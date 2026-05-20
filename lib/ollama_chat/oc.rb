@@ -197,6 +197,13 @@ module OC
           check   { value.blank? || File.exist?(value) }
         end
 
+        GHR_URL = set do
+          description 'Base URL for GHR api server, e. g. https://ghr.example.com'
+          sensitive   true
+          decode { URI.parse(_1) if _1.present? }
+          check { value.blank? || value.scheme =~ /\Ahttps?\z/ }
+        end
+
         module JIRA
           description 'Jira tool configuration'
 
