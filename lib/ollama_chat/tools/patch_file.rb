@@ -115,7 +115,7 @@ class OllamaChat::Tools::PatchFile
     diff_tool = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'
     File.exist?(diff_tool) or raise "Diff tool #{diff_tool.inspect} does not exist"
     result = { success: false }
-    basename = [ path.basename.sub_ext(''), path.extname ].map(&:to_s).all_full?
+    basename = [ path.basename.sub_ext(''), path.extname.full? ].compact.map(&:to_s)
     chat.edit_text_block(content, basename:) do |patched|
       cmd = [ diff_tool, path, patched.path ].map(&:to_s)
       if system(*cmd)
