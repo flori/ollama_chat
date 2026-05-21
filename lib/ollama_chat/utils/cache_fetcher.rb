@@ -26,7 +26,7 @@ class OllamaChat::Utils::CacheFetcher
   # The get method retrieves cached content by key and yields it as an IO object.
   # It first checks if the body and content type are present in the cache.
   # If both are found, it creates a StringIO object from the body,
-  # extends it with HeaderExtension, sets the content type,
+  # extends it with ResponseMetadata, sets the content type,
   # and then yields the IO object to the provided block.
   #
   # @param url [ String ] the URL used as a key for caching
@@ -41,7 +41,7 @@ class OllamaChat::Utils::CacheFetcher
     if body && content_type
       io = StringIO.new(body)
       io.rewind
-      io.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
+      io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
       io.content_type = content_type
       block.(io)
       io

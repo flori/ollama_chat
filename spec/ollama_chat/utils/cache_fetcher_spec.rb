@@ -31,7 +31,7 @@ describe OllamaChat::Utils::CacheFetcher do
 
   it 'has #put' do
     io = StringIO.new('world')
-    io.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
+    io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
     io.content_type = MIME::Types['text/plain'].first
     io.ex = 666
     expect(cache).to receive(:set).with('body-69ce405ab83f42dffa9fd22bbd47783f', 'world', ex: 666)

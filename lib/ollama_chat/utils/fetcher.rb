@@ -30,10 +30,10 @@ class OllamaChat::Utils::Fetcher
   #
   # @example Extending an IO object with header metadata
   #   io = StringIO.new("content")
-  #   io.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
+  #   io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
   #   io.content_type = MIME::Types['text/plain'].first
   #   io.ex = 3600
-  module HeaderExtension
+  module ResponseMetadata
     # The content_type method accesses the content type attribute of the object.
     #
     # @return [ String ] the content type of the object.
@@ -88,7 +88,7 @@ class OllamaChat::Utils::Fetcher
   #
   # The method streams the HTTP response into a temporary file (or a
   # `StringIO` in the event of a failure).  The temporary file is
-  # extended with `HeaderExtension`, so the block can inspect
+  # extended with `ResponseMetadata`, so the block can inspect
   # `tmp.content_type` and `tmp.ex`.  After the block returns the
   # temporary file is closed and discarded.  If a cache is supplied
   # and the response is not a `StringIO`, the temporary file is written
@@ -104,7 +104,7 @@ class OllamaChat::Utils::Fetcher
   #
   # @yield [tmp] Gives the caller a `Tempfile` (or a `StringIO` in case of
   #   failure) that contains the fetched content.  The yielded object
-  #   is already extended with `HeaderExtension`, so the block can read
+  #   is already extended with `ResponseMetadata`, so the block can read
   #   `tmp.content_type` and `tmp.ex`.
   #
   # @return [Object] the value returned by the block.  If no block is
@@ -169,7 +169,7 @@ class OllamaChat::Utils::Fetcher
   def self.read(filename, &block)
     if File.exist?(filename)
       File.open(filename) do |file|
-        file.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
+        file.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
         file.content_type = MIME::Types.type_for(filename).first
         block.(file)
       end
@@ -199,7 +199,7 @@ class OllamaChat::Utils::Fetcher
           tmp.write io.read(1 << 14)
         end
         tmp.rewind
-        tmp.extend(OllamaChat::Utils::Fetcher::HeaderExtension)
+        tmp.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
         tmp.content_type = MIME::Types['text/plain'].first
         block.(tmp)
       end
@@ -208,7 +208,7 @@ class OllamaChat::Utils::Fetcher
     msg = "Cannot execute #{command.inspect} (#{e})"
     @debug && !e.is_a?(RuntimeError) and msg += "\n#{e.backtrace * ?\n}"
     STDERR.puts msg
-    yield HeaderExtension.failed
+    yield ResponseMetadata.failed
   end
 
   # The initialize method sets up the fetcher instance with debugging and HTTP
@@ -237,7 +237,7 @@ class OllamaChat::Utils::Fetcher
   #   being written to the temporary file.
   #
   # The temporary file is yielded to the caller.  The file is extended
-  # with `HeaderExtension`, so the block can inspect `content_type` and
+  # with `ResponseMetadata`, so the block can inspect `content_type` and
   # `ex` (cache‑expiry in seconds).  After the block returns, the
   # temporary file is closed and discarded.
   #
@@ -258,7 +258,7 @@ class OllamaChat::Utils::Fetcher
   #
   # @yield [tmp] Gives the caller a `Tempfile` (or a `StringIO` in the
   #   unlikely event of a failure) that contains the fetched content.
-  #   The yielded object is already extended with `HeaderExtension`,
+  #   The yielded object is already extended with `ResponseMetadata`,
   #   so the block can read `tmp.content_type` and `tmp.ex`.
   #
   # @return [Object] the value returned by the block.  If no block is
@@ -317,7 +317,7 @@ class OllamaChat::Utils::Fetcher
     msg = "Cannot get #{url.to_s.inspect} (#{e}): #{response&.status_line || 'n/a'}"
     @debug && !e.is_a?(RuntimeError) and msg += "\n#{e.backtrace * ?\n}"
     STDERR.puts msg
-    yield HeaderExtension.failed
+    yield ResponseMetadata.failed
     reraise and raise e
   end
 
@@ -363,7 +363,7 @@ class OllamaChat::Utils::Fetcher
   # Decorates a temporary IO object with header information from an HTTP
   # response.
   #
-  # This method extends the given temporary IO object with HeaderExtension
+  # This method extends the given temporary IO object with ResponseMetadata
   # module and populates it with content type and cache expiration information
   # extracted from the provided response headers.
   #
@@ -372,7 +372,7 @@ class OllamaChat::Utils::Fetcher
   # @option response [Hash] :headers HTTP headers hash
   def decorate_io(tmp, response)
     tmp.rewind
-    tmp.extend(HeaderExtension)
+    tmp.extend(ResponseMetadata)
     if content_type = MIME::Types[response.headers['content-type']].first
       tmp.content_type = content_type
     end
