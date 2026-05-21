@@ -35,14 +35,18 @@ class OllamaChat::Utils::CacheFetcher
   # @return [ io ] the cached IO object if found
   def get(url, &block)
     block or raise ArgumentError, 'require block argument'
-    body         = @cache[key(:body, url)]
-    content_type = @cache[key(:content_type, url)]
+    body            = @cache[key(:body, url)]
+    content_type    = @cache[key(:content_type, url)]
+    response_status = @cache[key(:response_status, url)]
+    response_reason = @cache[key(:response_reason, url)]
     content_type = MIME::Types[content_type].first
     if body && content_type
       io = StringIO.new(body)
       io.rewind
       io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
       io.content_type = content_type
+      io.response_status = response_status.to_i if response_status
+      io.response_reason = response_reason
       block.(io)
       io
     end
@@ -63,6 +67,8 @@ class OllamaChat::Utils::CacheFetcher
     content_type.nil? and return
     @cache.set(key(:body, url), body, ex: io.ex)
     @cache.set(key(:content_type,  url), content_type.to_s, ex: io.ex)
+    @cache.set(key(:response_status, url), io.response_status, ex: io.ex)
+    @cache.set(key(:response_reason, url), io.response_reason, ex: io.ex)
     self
   end
 

@@ -67,7 +67,12 @@ module OllamaChat::SourceFetching
       raise "invalid source #{source.inspect}"
     end
   rescue => e
-    STDERR.puts "Cannot fetch source #{source.to_s.inspect}: #{e.class} #{e}\n#{e.backtrace * ?\n}"
+    msg = "Fetching source #{source.to_s.inspect}: #{e.class} #{e}"
+    STDERR.puts "#{msg}\n#{e.backtrace * ?\n}"
+    confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout: 3)
+    msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
+    block.(msg)
+    msg
   end
 
   # Adds an image to the images collection from the given source IO and source

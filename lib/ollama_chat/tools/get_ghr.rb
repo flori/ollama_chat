@@ -115,7 +115,7 @@ class OllamaChat::Tools::GetGHR
     headers = {
       'Accept' => 'application/json',
     }
-    content = chat.get_url(url, headers:, reraise: true, &valid_json?)
+    content = chat.get_url(url, headers:, &valid_json?)
     JSON.parse(content)
   end
 

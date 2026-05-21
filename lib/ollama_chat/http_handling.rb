@@ -44,18 +44,16 @@ module OllamaChat::HTTPHandling
   #
   # @param url [String] the target URL.
   # @param headers [Hash] optional additional headers.
-  # @param reraise [Boolean] whether to re‑raise errors from the fetcher.
   # @param cache [Object] optional cache object to use.
   # @yield [IO] yields a temporary file handle for the caller to consume.
   # @return [Object] the result of the block or the fetcher.
-  def get_url(url, headers: nil, reraise: false, cache: nil, &block)
+  def get_url(url, headers: nil, cache: nil, &block)
     headers = config.request_headers?.to_h | headers
     OllamaChat::Utils::Fetcher.get(
       url,
       headers:      ,
       cache:        ,
       debug:        ,
-      reraise:      ,
       http_options: http_options(OllamaChat::Utils::Fetcher.normalize_url(url)),
       &block
     )

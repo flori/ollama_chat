@@ -18,11 +18,17 @@ describe OllamaChat::Utils::CacheFetcher do
   it 'has #get' do
     expect(cache).to receive(:[]).with('body-69ce405ab83f42dffa9fd22bbd47783f').and_return 'world'
     expect(cache).to receive(:[]).with('content_type-69ce405ab83f42dffa9fd22bbd47783f').and_return 'text/plain'
+    expect(cache).to receive(:[]).with('response_status-69ce405ab83f42dffa9fd22bbd47783f').and_return 200
+    expect(cache).to receive(:[]).with('response_reason-69ce405ab83f42dffa9fd22bbd47783f').and_return 'OK'
+
     yielded_io = nil
     block = -> io { yielded_io = io }
     fetcher.get(url, &block)
+
     expect(yielded_io).to be_a StringIO
     expect(yielded_io.read).to eq 'world'
+    expect(yielded_io.response_status).to eq 200
+    expect(yielded_io.response_reason).to eq 'OK'
   end
 
   it '#get needs block' do
@@ -33,9 +39,15 @@ describe OllamaChat::Utils::CacheFetcher do
     io = StringIO.new('world')
     io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
     io.content_type = MIME::Types['text/plain'].first
+    io.response_status = 200
+    io.response_reason = 'OK'
     io.ex = 666
+
     expect(cache).to receive(:set).with('body-69ce405ab83f42dffa9fd22bbd47783f', 'world', ex: 666)
     expect(cache).to receive(:set).with('content_type-69ce405ab83f42dffa9fd22bbd47783f', 'text/plain', ex: 666)
+    expect(cache).to receive(:set).with('response_status-69ce405ab83f42dffa9fd22bbd47783f', 200, ex: 666)
+    expect(cache).to receive(:set).with('response_reason-69ce405ab83f42dffa9fd22bbd47783f', 'OK', ex: 666)
+
     fetcher.put(url, io)
   end
 end

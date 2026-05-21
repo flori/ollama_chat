@@ -65,7 +65,7 @@ describe OllamaChat::Tools::GetCVE do
 
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
-    expect(json.error).to eq 'JSON::ParserError'
-    expect(json.message).to eq 'require JSON data'
+    expect(json.error).to eq 'OllamaChat::HTTPError'
+    expect(json.message).to eq 'request failed with status 404'
   end
 end

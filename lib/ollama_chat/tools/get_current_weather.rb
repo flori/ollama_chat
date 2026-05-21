@@ -94,7 +94,7 @@ class OllamaChat::Tools::GetCurrentWeather
       'User-Agent'     => OllamaChat::Chat.user_agent,
       'apikey'         => api_key,
     }
-    chat.get_url(url, headers:, reraise: true, &valid_json?)
+    chat.get_url(url, headers:, &valid_json?)
   end
 
   self

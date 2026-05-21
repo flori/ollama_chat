@@ -77,7 +77,6 @@ class OllamaChat::Tools::GetJiraIssue
       url,
       user:     env::USER,
       password: env::API_TOKEN,
-      reraise:  true,
       &valid_json?
     )
   end

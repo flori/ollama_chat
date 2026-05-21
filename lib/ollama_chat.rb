@@ -46,6 +46,13 @@ module OllamaChat
     attr_accessor :status
   end
 
+  # Error raised when a system command fails to execute.
+  #
+  # This is typically raised by {OllamaChat::Utils::Fetcher.execute} when an
+  # exception occurs during the shell command execution process.
+  class ExecuteError < OllamaChatError
+  end
+
   # UnknownModelError is raised when a requested model cannot be found or does
   # not exist on the Ollama server.
   class UnknownModelError < OllamaChatError

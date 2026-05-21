@@ -57,7 +57,7 @@ class OllamaChat::Tools::GetCVE
     headers = {
       'Accept' => 'application/json',
     }
-    chat.get_url(url, headers:, reraise: true, &valid_json?)
+    chat.get_url(url, headers:, &valid_json?)
   rescue => e
     { error: e.class, message: e.message }.to_json
   end

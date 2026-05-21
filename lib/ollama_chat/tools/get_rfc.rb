@@ -58,7 +58,6 @@ class OllamaChat::Tools::GetRFC
       headers: {
         'Accept' => 'text/plain',
       },
-      reraise: true,
       &:read
     )
     {

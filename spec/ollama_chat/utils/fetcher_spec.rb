@@ -98,31 +98,13 @@ describe OllamaChat::Utils::Fetcher do
     end
   end
 
-  it 'can #get and finally fail' do
-    stub_request(:get, url).
-      with(headers: fetcher.headers).
-      to_return(status: 500)
-    expect(STDERR).to receive(:puts).with(/cannot.*get.*#{url}/i)
-    fetcher.get(url) do |tmp|
-      expect(tmp).to be_a StringIO
-      expect(tmp.read).to eq ''
-      expect(tmp.content_type).to eq 'text/plain'
-      expect(tmp).not_to be_http
-    end
-  end
-
-  it 'can #get and finally fail with reraise' do
+  it 'can #get and finally fail with exception' do
     stub_request(:get, url).
       with(headers: fetcher.headers).
       to_return(status: 500)
     expect {
-      fetcher.get(url, reraise: true) do |tmp|
-        expect(tmp).to be_a StringIO
-        expect(tmp.read).to eq ''
-        expect(tmp.content_type).to eq 'text/plain'
-        expect(tmp).not_to be_http
-      end
-    }.to raise_error OllamaChat::HTTPError, /request failed: 500/
+      fetcher.get(url)
+    }.to raise_error OllamaChat::HTTPError, /request failed with status 500/
   end
 
   it 'can redirect' do
@@ -147,15 +129,11 @@ describe OllamaChat::Utils::Fetcher do
     end
   end
 
-  it 'can .execute and fail' do
+  it 'can .execute and raise exception' do
     expect(IO).to receive(:popen).and_raise StandardError
-    expect(STDERR).to receive(:puts).with(/cannot.*execute.*foobar/i)
-    described_class.execute('foobar') do |file|
-      expect(file).to be_a StringIO
-      expect(file.read).to be_empty
-      expect(file.content_type).to eq 'text/plain'
-      expect(file).not_to be_http
-    end
+    expect {
+      described_class.execute('foobar')
+    }.to raise_error(OllamaChat::ExecuteError)
   end
 
   describe '.normalize_url' do
