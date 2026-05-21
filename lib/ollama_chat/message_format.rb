@@ -28,6 +28,19 @@ module OllamaChat::MessageFormat
     end
   end
 
+  # Returns the formatting template for the message sender's role.
+  #
+  # The template is retrieved from the chat configuration based on the
+  # message's role.
+  # If no specific template is found for the role, it falls back to the default
+  # role template.
+  #
+  # @param message [ OllamaChat::Message ] the message object
+  # @return [ String ] the formatting template string
+  def role_template(message)
+    chat.config.roles[message.role] || chat.config.roles.default
+  end
+
   # Returns the display name for the message sender.
   # If a full sender name is available, it returns the name and the role.
   # Otherwise, it returns only the role.
@@ -36,7 +49,7 @@ module OllamaChat::MessageFormat
   # @return [ String ] the formatted sender name or role
   def sender_name_displayed(message)
     if sender_name = message.ask_and_send(:sender_name).full?
-      '%s (%s)' % [ sender_name, message.role ]
+      role_template(message) % { sender_name: }
     else
       message.role
     end
@@ -63,6 +76,18 @@ module OllamaChat::MessageFormat
     images.present? ? ?📸 : ?📨
   end
 
+  # Returns the current chat context.
+  #
+  # This method ensures that the formatting logic has access to the chat's
+  # configuration (e.g., whether 'think_loud' is enabled). It returns `self`
+  # if the object is already a `OllamaChat::Chat` instance, otherwise it
+  # returns the `@chat` instance variable.
+  #
+  # @return [ OllamaChat::Chat ] the chat context
+  def chat
+    self.is_a?(OllamaChat::Chat) ? self : @chat
+  end
+
   # The think_annotate method processes a string and conditionally annotates it
   # with a thinking emoji if the think feature is enabled.
   #
@@ -72,7 +97,7 @@ module OllamaChat::MessageFormat
   def think_annotate(&block)
     string = block.()
     string.to_s.size == 0 and return
-    if @chat.think_loud?
+    if chat.think_loud?
       "💭\n#{string}\n"
     end
   end
@@ -86,7 +111,7 @@ module OllamaChat::MessageFormat
   def talk_annotate(&block)
     string = block.()
     string.to_s.size == 0 and return
-    if @chat.think_loud?
+    if chat.think_loud?
       "💬\n#{string}\n"
     else
       string
