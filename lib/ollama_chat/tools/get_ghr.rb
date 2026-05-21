@@ -23,11 +23,18 @@ class OllamaChat::Tools::GetGHR
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Fetch GitHub release information via the GHR API. Provide user and
-          repo for specific releases (sorted by version descending), or omit
-          both for a general overview of tracked repositories including user
-          and repo. Pagination is supported using 'offset' and
-          'limit' parameters.
+          Fetch GitHub release information via the GHR API.
+
+          This tool operates in two modes:
+          1. Overview Mode: Omit both 'user' and 'repo' to retrieve a general
+             overview of all tracked repositories, including their user:repo
+             pairs.
+          2. Specific Release Mode: Provide both 'user' and 'repo' to fetch
+             releases for a specific repository, sorted by version descending. If
+             the repository is not registered at GHR, a 404 error is returned.
+
+          Pagination using 'offset' and 'limit' parameters is supported in both
+          modes.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
