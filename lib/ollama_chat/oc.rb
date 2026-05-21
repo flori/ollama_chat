@@ -204,6 +204,15 @@ module OC
           check { value.blank? || value.scheme =~ /\Ahttps?\z/ }
         end
 
+        RUBY_EVAL_IMAGE_TEMPLATE = set do
+          description <<~EOT
+            Docker image template for ruby, e. g. "ruby:%{version}-alpine",
+            version will be substitued with the ruby version requested.'
+          EOT
+          default 'ruby:%{version}-alpine'
+          required true
+        end
+
         module JIRA
           description 'Jira tool configuration'
 

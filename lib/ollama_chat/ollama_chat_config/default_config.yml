@@ -322,3 +322,6 @@ tools:
     get_ghr:
       default: true
       result_display_timeout: 3
+    eval_ruby:
+      default: false
+      result_display_timeout: 3
