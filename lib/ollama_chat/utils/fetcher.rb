@@ -34,13 +34,31 @@ class OllamaChat::Utils::Fetcher
   #   io.content_type = MIME::Types['text/plain'].first
   #   io.ex = 3600
   module ResponseMetadata
-    # The content_type method accesses the content type attribute of the object.
-    #
-    # @return [ String ] the content type of the object.
+    # @!attribute [rw] content_type
+    #   @return [ String ] the content type of the object.
     attr_accessor :content_type
 
-    # The ex accessor is used to get or set the expiry value in seconds.
+    # @!attribute [rw] ex
+    #   @return [ Integer ] the expiry value in seconds.
     attr_accessor :ex
+
+    # @!attribute [rw] response_status
+    #   @return [ Integer ] the HTTP response status code.
+    attr_accessor :response_status
+
+    # @!attribute [rw] response_reason
+    #   @return [ String ] the HTTP response reason phrase.
+    attr_accessor :response_reason
+
+    # Returns true if the metadata belongs to an HTTP response.
+    #
+    # This is determined by the presence of a response status code.
+    #
+    # @return [ Boolean ] true if the response is an HTTP response, false
+    #   otherwise.
+    def http?
+      !response_status.nil?
+    end
 
     # The failed method creates a StringIO object with a text/plain content type.
     #
@@ -373,6 +391,8 @@ class OllamaChat::Utils::Fetcher
   def decorate_io(tmp, response)
     tmp.rewind
     tmp.extend(ResponseMetadata)
+    tmp.response_status = response.status
+    tmp.response_reason = response.reason_phrase
     if content_type = MIME::Types[response.headers['content-type']].first
       tmp.content_type = content_type
     end

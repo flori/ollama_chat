@@ -28,6 +28,9 @@ describe OllamaChat::Utils::Fetcher do
       expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
+      expect(tmp.response_status).to eq 200
+      expect(tmp.response_reason).to be_a String
+      expect(tmp).to be_http
     end
   end
 
@@ -43,6 +46,9 @@ describe OllamaChat::Utils::Fetcher do
       expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
+      expect(tmp.response_status).to eq 200
+      expect(tmp.response_reason).to be_a String
+      expect(tmp).to be_http
     end
   end
 
@@ -65,6 +71,9 @@ describe OllamaChat::Utils::Fetcher do
       expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
+      expect(tmp.response_status).to eq 200
+      expect(tmp.response_reason).to be_a String
+      expect(tmp).to be_http
     end
   end
 
@@ -83,6 +92,9 @@ describe OllamaChat::Utils::Fetcher do
       expect(tmp).to be_a File
       expect(tmp.read).to eq 'world'
       expect(tmp.content_type).to eq 'text/plain'
+      expect(tmp.response_status).to eq 200
+      expect(tmp.response_reason).to be_a String
+      expect(tmp).to be_http
     end
   end
 
@@ -95,6 +107,7 @@ describe OllamaChat::Utils::Fetcher do
       expect(tmp).to be_a StringIO
       expect(tmp.read).to eq ''
       expect(tmp.content_type).to eq 'text/plain'
+      expect(tmp).not_to be_http
     end
   end
 
@@ -107,6 +120,7 @@ describe OllamaChat::Utils::Fetcher do
         expect(tmp).to be_a StringIO
         expect(tmp.read).to eq ''
         expect(tmp.content_type).to eq 'text/plain'
+        expect(tmp).not_to be_http
       end
     }.to raise_error OllamaChat::HTTPError, /request failed: 500/
   end
@@ -120,6 +134,7 @@ describe OllamaChat::Utils::Fetcher do
       expect(file).to be_a File
       expect(file.read).to include 'can .read'
       expect(file.content_type).to eq 'application/x-ruby'
+      expect(file).not_to be_http
     end
   end
 
@@ -128,6 +143,7 @@ describe OllamaChat::Utils::Fetcher do
       expect(file).to be_a File
       expect(file.read).to eq "hello world\n"
       expect(file.content_type).to eq 'text/plain'
+      expect(file).not_to be_http
     end
   end
 
@@ -138,6 +154,7 @@ describe OllamaChat::Utils::Fetcher do
       expect(file).to be_a StringIO
       expect(file.read).to be_empty
       expect(file.content_type).to eq 'text/plain'
+      expect(file).not_to be_http
     end
   end
 
