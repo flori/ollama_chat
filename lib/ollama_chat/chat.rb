@@ -713,12 +713,12 @@ class OllamaChat::Chat
 
   command(
     name: :collection,
-    regexp: %r(^/collection(?:\s+(change|clear|list|rename))?$),
-    complete: [ 'collection', %w[ change clear list rename ] ],
+    regexp: %r(^/collection(?:\s+(change|clear|list|rename|update))?$),
+    complete: [ 'collection', %w[ change clear list rename update ] ],
     optional: true,
     help: <<~EOT
       Manage the current RAG document collection: change, clear, list,
-      rename and show
+      rename, update and show
     EOT
   ) do |subcommand|
     case subcommand
@@ -730,6 +730,8 @@ class OllamaChat::Chat
       list_collections
     when 'rename'
       rename_collection(collection)
+    when 'update'
+      update_collection
     when nil
       collection_stats
     end

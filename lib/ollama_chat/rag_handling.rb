@@ -127,4 +127,30 @@ module OllamaChat::RAGHandling
     STDOUT.puts @documents.collections.
       map { |c| current_collection == c ? bold { c } : c }
   end
+
+  # Updates the documents in the current collection by re-embedding any sources
+  # that have been modified since they were first added.
+  #
+  # This method iterates through all records in the active collection and
+  # identifies unique sources. For each modified source, it preserves the
+  # existing tags, removes the stale records, and re-embeds the current
+  # version of the source.
+  #
+  # @return [NilClass] always returns nil
+  def update_collection
+    seen = {}
+    @documents.each_record do |record|
+      source = @documents.normalize_source(record.source) or next
+      seen.key?(source) and next
+      seen[source] = true
+      unless @documents.source_modified?(source)
+        infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
+        next
+      end
+      tags = record.tags_set
+      @documents.source_remove(source)
+      embed(source, tags:)
+    end
+    nil
+  end
 end
