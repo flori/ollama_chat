@@ -12,6 +12,17 @@
 # The module is deliberately lightweight – it delegates the actual network
 # call to `OllamaChat::Utils::Fetcher`.
 module OllamaChat::HTTPHandling
+  # Returns the links set for this object, initializing it lazily if needed.
+  #
+  # The links set is memoized, meaning it will only be created once per object
+  # instance and subsequent calls will return the same Set instance.
+  #
+  # @return [Set] A Set object containing all links associated with this
+  #   instance
+  def links
+    @links ||= OllamaChat::LinksSet.new(chat)
+  end
+
   # Returns a hash of HTTP options suitable for `Net::HTTP` or a
   # compatible client.
   #

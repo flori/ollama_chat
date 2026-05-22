@@ -255,17 +255,6 @@ module OllamaChat::SourceFetching
     end
   end
 
-  # Returns the links set for this object, initializing it lazily if needed.
-  #
-  # The links set is memoized, meaning it will only be created once per object
-  # instance and subsequent calls will return the same Set instance.
-  #
-  # @return [Set] A Set object containing all links associated with this
-  #   instance
-  def links
-    @links ||= Set.new
-  end
-
   private
 
   # Reads a file and extends it with header extension metadata. It then yields

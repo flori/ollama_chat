@@ -13,6 +13,33 @@ module OllamaChat::SessionManagement
     output = StringIO.new
     messages.write_conversation_jsonl(output)
     session.update(messages: output.string)
+    self
+  end
+
+  # Persists a collection of links to the session in the database.
+  #
+  # This method serializes the links into JSONL format and updates the
+  # `links` attribute of the current session.
+  #
+  # @param links [Enumerable] The collection of links to save.
+  def store_links_in_session(links)
+    output = StringIO.new
+    OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').write_io(
+      output:, collection: links
+    )
+    session.update(links: output.string)
+    self
+  end
+
+  # Loads the collection of links from the current session.
+  #
+  # This method reads the `links` attribute from the session and
+  # deserializes it from JSONL format.
+  #
+  # @return [Array<String>] The list of links associated with the session.
+  def load_links_from_session
+    input = StringIO.new(session.links)
+    OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').read_io(input:)
   end
 
   # The session reader returns the current session object.
@@ -347,6 +374,7 @@ module OllamaChat::SessionManagement
   # future instances.
   def session_close
     store_messages_in_session
+    links.sync
     session.unlock
   end
 

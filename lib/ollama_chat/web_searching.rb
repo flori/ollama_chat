@@ -107,7 +107,7 @@ module OllamaChat::WebSearching
     when 'clear'
       choose_with_state do
         loop do
-          links_options = links.dup.add('[EXIT]').add('[ALL]')
+          links_options = links.to_a.unshift('[ALL]').unshift('[EXIT]')
           link = choose_entry(links_options, prompt: 'Clear? %s')
           case link
           when nil, '[EXIT]'
