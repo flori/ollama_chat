@@ -45,9 +45,12 @@ module OllamaChat::HTTPHandling
   # @param url [String] the target URL.
   # @param headers [Hash] optional additional headers.
   # @param cache [Object] optional cache object to use.
+  # @param remember [Boolean] whether to add the URL to the session's links set
+  #   (defaults to true).
   # @yield [IO] yields a temporary file handle for the caller to consume.
   # @return [Object] the result of the block or the fetcher.
-  def get_url(url, headers: nil, cache: nil, &block)
+  def get_url(url, headers: nil, cache: nil, remember: true, &block)
+    remember and links.add(url.to_s)
     headers = config.request_headers?.to_h | headers
     OllamaChat::Utils::Fetcher.get(
       url,

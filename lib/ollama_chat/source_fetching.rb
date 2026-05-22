@@ -41,7 +41,6 @@ module OllamaChat::SourceFetching
         block.(tmp)
       end
     when %r{\Ahttps?://\S+}
-      links.add(source.to_s)
       get_url(source, cache:) do |tmp|
         block.(tmp)
       end

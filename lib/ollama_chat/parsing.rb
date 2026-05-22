@@ -236,7 +236,6 @@ module OllamaChat::Parsing
       check_exist = false
       case
       when url
-        links.add(url.to_s)
         source = url
       when file_url
         check_exist = true

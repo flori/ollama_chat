@@ -95,6 +95,8 @@ class OllamaChat::Tools::GenerateImage
       filename:, subfolder: '', type: 'output', rand:
     )
 
+    chat.links.add(view_url.to_s)
+
     message = "Image successfully generated! The user can view it here,"\
       " give this URL to the user: #{view_url}"
     {

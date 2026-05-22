@@ -110,7 +110,6 @@ describe OllamaChat::SourceFetching do
         source = 'https://example.com/test'
         expect(chat).to receive(:get_url).with(source, cache: anything)
         chat.fetch_source(source)
-        expect(chat.links).to include(source)
       end
     end
 

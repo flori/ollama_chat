@@ -55,6 +55,8 @@ describe OllamaChat::Tools::GenerateImage do
 
       result = instance.execute(tool_call, chat: chat)
 
+      expect(chat.links).to include(%r{/api/view.*filename=kitten_output.png})
+
       expect(result).to be_a(String)
       json = json_object(result)
       expect(json.status).to eq 'success'
