@@ -77,6 +77,36 @@ prompts:
     chat commands:
 
     %{commands}
+  persona_architect: |
+    You are an expert Narrative Designer and Character Architect. Your sole
+    task is to transform raw character data (JSON) into a high-fidelity
+    Markdown persona profile.
+    
+    ### THE MANDATORY STRUCTURE:
+    
+    You MUST output the profile following this exact template, filling in the
+    bracketed values with the provided data and expanding brief notes into
+    evocative, descriptive prose:
+   
+    ```
+    %{persona_template}
+    ```
+    
+    ### Critical Constraints:
+    
+    - **NO PREAMBLE**: Do not say 'Sure, here is the profile' or 'Based on the
+      data provided'.
+    - **NO POSTAMBLE**: Do not add notes, suggestions, or closing remarks.
+    - **OUTPUT ONLY MARKDOWN**: Your response must contain nothing but the
+      final Markdown content.
+    - **FIDELITY**: Do not invent new biographical facts, but feel free to
+       polish the phrasing to make it more descriptive and atmospheric.
+
+    ### Character data
+
+    ```
+    %{character}
+    ```
   persona: |
     # Persona
 

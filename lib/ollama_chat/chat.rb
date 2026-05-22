@@ -770,7 +770,7 @@ class OllamaChat::Chat
     when 'import'
       filename = choose_filename('**/*.md')
       if filename and name = import_persona(filename)
-        STDOUT.puts "Imported person as #{name.inspect}."
+        STDOUT.puts "Imported persona as #{name.inspect}."
       end
       :next
     when 'export'
@@ -793,6 +793,61 @@ class OllamaChat::Chat
       :next
     else
       select_persona_path
+      :next
+    end
+  end
+
+  command(
+    name: :character,
+    regexp: %r(^/character(?:\s+(info|load|import))(?:\s+(\S+))?$),
+    complete: [ 'character', %w[ info load import ] ],
+    help: 'Display character info, load or import a character from JSON/PNG as persona'
+  ) do |subcommand, path|
+    path = if path
+             Pathname.new(path)
+           else
+             choose_filename('**/*.{png,json}')
+           end
+    case
+    when path.nil?
+      STDOUT.puts 'Cancelled.'
+      next :next
+    when !path.exist?
+      STDERR.puts "Path #{path.to_s.inspect} does not exist!"
+      next :next
+    end
+    data = case path.extname
+           when '.json'
+             path.read
+           when '.png'
+             path.open do |io|
+               OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(io)
+             end
+           else
+             STDERR.puts "Only json and png characters are supported!"
+             next :next
+           end
+    json_to_yaml = -> d {
+      yaml = YAML.dump(JSON(d)).sub(%r{\A---\n}, '')
+      Kramdown::ANSI::Width.wrap(
+        yaml,
+        length: Tins::Terminal.columns * 0.9
+      )
+    }
+    case subcommand
+    when 'info'
+      puts json_to_yaml.(data)
+      :next
+    when 'load'
+      disable_content_parsing
+      data
+    when 'import'
+      markdown = convert_json_character_to_markdown(data)
+      Tempfile.create('character.md') do |tmp|
+        tmp.puts markdown
+        tmp.flush
+        import_persona(Pathname.new(tmp.path))
+      end
       :next
     end
   end

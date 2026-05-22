@@ -552,6 +552,26 @@ module OllamaChat::PersonaeManagement
     persona_name
   end
 
+  # Transforms raw character data (JSON or YAML) into a high-fidelity,
+  # structured Markdown persona profile using the persona architect prompt and
+  # the current persona template.
+  #
+  # This method leverages the LLM to interpret raw attributes and expand them
+  # into evocative prose, ensuring the final output conforms to the system's
+  # standard persona structure. It also normalizes placeholder syntax to ensure
+  # compatibility with the internal persona system.
+  #
+  # @param character [String] the raw character data in JSON format
+  # @return [String] the resulting structured Markdown persona profile
+  def convert_json_character_to_markdown(character)
+    generate(
+      prompt:  prompt(:persona_architect).to_s % {
+        character:,
+        persona_template: prompt(:persona).to_s
+      }
+    ).response.gsub('{{user}}', '%{user}')
+  end
+
   # Interactively exports a persona profile to a specified file.
   #
   # The process follows these steps:
