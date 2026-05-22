@@ -15,7 +15,7 @@ require 'pathname'
 #   config = OllamaChat::OllamaChatConfig.new
 #   config.default_config_path # => Path to the default configuration file
 #   config.config_dir_path     # => Path to the configuration directory
-#   config.cache_dir_path      # => Path to the cache directory
+#   config.state_home_path     # => Path to the cache directory
 #   config.database_path       # => Path to the documents database file
 class OllamaChat::OllamaChatConfig
   include ComplexConfig
@@ -39,9 +39,7 @@ class OllamaChat::OllamaChatConfig
   # @param filename [ String, nil ] the path to the configuration file
   def initialize(filename = nil)
     @filename = filename || default_path
-    unless cache_dir_path.directory?
-      mkdir_p cache_dir_path.to_s
-    end
+    state_home_path.mkpath
     @config = Provider.config(@filename, '⚙️')
     retried = false
   rescue ConfigurationFileMissing
@@ -90,12 +88,12 @@ class OllamaChat::OllamaChatConfig
     OC::XDG_CONFIG_HOME
   end
 
-  # The cache_dir_path method returns the path to the ollama_chat cache
-  # directory within the XDG cache home directory.
+  # Returns the path to the state directory, where the documents database for
+  # RAG is stored.
   #
-  # @return [ Pathname ] the pathname object representing the cache directory path
-  def cache_dir_path
-    OC::XDG_CACHE_HOME
+  # @return [String] the path to the state directory
+  def state_home_path
+    OC::XDG_STATE_HOME
   end
 
   # The database_path method constructs the full path to the documents database
@@ -103,7 +101,7 @@ class OllamaChat::OllamaChatConfig
   #
   # @return [ Pathname ] the full path to the documents database file
   def database_path
-    cache_dir_path + 'documents.db'
+    state_home_path + 'documents.db'
   end
 
   # The diff_tool method returns the preferred diff tool command.
