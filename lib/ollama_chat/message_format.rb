@@ -42,14 +42,21 @@ module OllamaChat::MessageFormat
   end
 
   # Returns the display name for the message sender.
-  # If a full sender name is available, it returns the name and the role.
-  # Otherwise, it returns only the role.
+  #
+  # If a full sender name is available, it returns either the formatted
+  # template or the raw name based on the `template` parameter.
+  # Otherwise, it returns the message role.
   #
   # @param message [ OllamaChat::Message ] the message object
-  # @return [ String ] the formatted sender name or role
-  def sender_name_displayed(message)
+  # @param template [ Boolean ] whether to apply the role formatting template (default: true)
+  # @return [ String ] the formatted sender name, the raw name, or the role
+  def sender_name_displayed(message, template: true)
     if sender_name = message.ask_and_send(:sender_name).full?
-      role_template(message) % { sender_name: }
+      if template
+        role_template(message) % { sender_name: }
+      else
+        sender_name
+      end
     else
       message.role
     end

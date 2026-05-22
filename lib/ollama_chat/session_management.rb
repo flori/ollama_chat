@@ -295,17 +295,18 @@ module OllamaChat::SessionManagement
         -infobar
         next
       end
-      sender_name = sender_name_displayed(message)
-      context     = contents * "\n\n"
-      summary     = generate(
+      sender_name_output = sender_name_displayed(message)
+      sender_name        = sender_name_displayed(message, template: false)
+      context            = contents * "\n\n"
+      summary            = generate(
         prompt:  prompt(:session_summarize).to_s % {
           sender_name:, unit:, message_content:, message_thinking:, context:
         }
       ).response
       content = if pretty
-                  '**%s**: %s' % [ sender_name, summary ]
+                  '**%s**: %s' % [ sender_name_output, summary ]
                 else
-                  '%s: %s' % [ sender_name, summary ]
+                  '%s: %s' % [ sender_name_output, summary ]
                 end
       block&.(content)
       contents << content
