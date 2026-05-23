@@ -70,6 +70,18 @@ module OllamaChat::SessionManagement
       new_session
   end
 
+  # Returns the session associated with the stored @previous_session_id,
+  # provided the session exists in the database and is not currently locked.
+  #
+  # @return [OllamaChat::Database::Models::Session, nil] the previous session
+  #   if it exists and is unlocked, otherwise nil
+  def previous_session
+    @previous_session_id  or return
+    prev = models::Session.where(id: @previous_session_id).first
+    prev.locked? and return
+    prev
+  end
+
   # Lists all sessions in a formatted table.
   def list_sessions
     use_pager do |output|
@@ -386,6 +398,7 @@ module OllamaChat::SessionManagement
   # @param name [String] the name or ID of the session to switch to
   def change_session(name)
     name.full? or name = ??
+    previous_session_id = nil
     loop do
       if chosen_session = choose_session(name, offer_new_session: true)
         if chosen_session.nil? || chosen_session == session
@@ -396,6 +409,7 @@ module OllamaChat::SessionManagement
           break
         end
         session_close
+        previous_session_id = session.id
         @session = chosen_session
         messages.read_conversation_jsonl(session.messages.to_s)
         set_current_collection(session.current_collection.full? || :default)
@@ -419,6 +433,9 @@ module OllamaChat::SessionManagement
       end
     end
   ensure
+    if previous_session_id && previous_session_id != session.id
+      @previous_session_id = previous_session_id
+    end
     session.update(working_directory: Dir.pwd)
   end
 

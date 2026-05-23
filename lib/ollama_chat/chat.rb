@@ -493,12 +493,12 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(change|list|new|duplicate|rename|summarize|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ change list new duplicate rename summarize delete model\ options ] ],
+    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ change previous list new duplicate rename summarize delete model\ options ] ],
     optional: true,
     options: '[-s|-f] [name]',
     help: <<~EOT
-      Manage chat sessions (change, list, new, duplicate, rename, summarize,
+      Manage chat sessions (change, previous, list, new, duplicate, rename, summarize,
       delete, model options).
       For summarize: -s (single sentence), -f (output to markdown file)
     EOT
@@ -555,6 +555,12 @@ class OllamaChat::Chat
       change_session(name)
     when 'model options'
       edit_session_model_options
+    when 'previous'
+      if prev = previous_session
+        change_session(prev.id)
+      else
+        STDOUT.puts "No previous session defined."
+      end
     end
     :next
   end
