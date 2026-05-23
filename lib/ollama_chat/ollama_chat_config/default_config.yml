@@ -274,6 +274,11 @@ tools:
       require_confirmation: true
       allowed:
         - './tmp'
+    delete_file:
+      default: true
+      require_confirmation: true
+      allowed:
+        - './tmp'
     read_file:
       default: true
       require_confirmation: false
