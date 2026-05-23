@@ -220,6 +220,7 @@ module OllamaChat::SessionManagement
                end
     session or abort "No session named #{bold{session_name.inspect}} found."
     if session.lock?
+      session.update(working_directory: Dir.pwd)
       session
     else
       raise OllamaChat::OllamaChatError,
@@ -305,6 +306,7 @@ module OllamaChat::SessionManagement
   #
   # @param pretty [Boolean] whether to format the summary in markdown (default: false)
   # @param sentence [Boolean] whether to summarize each message in one sentence (default: false)
+  # @param block [Proc] a block to handle each summary fragment
   # @return [String, nil] the session summary or nil if empty
   def summarize_session(pretty: false, sentence: false, &block)
     unit                  = sentence ? 'sentence' : 'paragraph'
@@ -352,7 +354,7 @@ module OllamaChat::SessionManagement
   # Derives a title for the session based on its content.
   #
   # @param length [Integer] the maximum length of the title (default: 128)
-  # @return [String, nil] the derived session name or nil
+  # @return [String, nil] the derived session name, or nil
   def derive_session_name(length: 128)
     content = messages.each_message.inject('') do |c, message|
       message.content.present? or next c
@@ -406,7 +408,7 @@ module OllamaChat::SessionManagement
           break
         else
           confirm?(
-            prompt: "\n⏎  Could not switch, Press any key to continue (%s). ",
+            prompt: "\n⏎  Session locked: could not switch, Press any key to continue (%s). ",
             timeout: 3
           )
           redo
@@ -416,12 +418,15 @@ module OllamaChat::SessionManagement
         break
       end
     end
+  ensure
+    session.update(working_directory: Dir.pwd)
   end
 
   # Finds or selects a session based on a name, ID, or pattern.
   #
   # @param session_name [String] the name, ID, or pattern to search for
   # @param except_id [String, Integer, nil] an ID to exclude from the search results
+  # @param offer_new_session [Boolean] whether to offer creating a new session
   # @return [OllamaChat::Database::Models::Session, nil] the chosen session or nil
   def choose_session(session_name, except_id: nil, offer_new_session: false)
     session_name = session_name.to_s

@@ -111,6 +111,7 @@ module OllamaChat::Information
   #   to STDOUT
   def info_session(output: STDOUT)
     output.print "🗣️ Current session: "; show_session(output:)
+    output.puts "  Current Session Working Directory: \"#{bold{session.working_directory}}\""
     output.puts "  Current System Prompt: #{bold{current_system_prompt_name}}"
     if name = default_persona_name
       output.puts "  💃 Persona: #{bold{name}}"
