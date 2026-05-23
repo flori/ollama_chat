@@ -7,6 +7,7 @@
 module OllamaChat::Tools::Concern
   extend Tins::Concern
   include OllamaChat::Utils::ValueFormatter
+  include OllamaChat::Utils::Backup
 
   included do
     include Ollama

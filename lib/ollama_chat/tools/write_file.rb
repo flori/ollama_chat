@@ -70,16 +70,24 @@ class OllamaChat::Tools::WriteFile
     path = assert_valid_path(args.path, config.tools.functions.write_file.allowed?)
 
     # Ensure the parent directory exists
-    path.parent.mkpath
+    path.dirname.mkpath
 
     bytes_written = args.content&.size.to_i
+
+    backup_path = nil
 
     # Write the file
     case args.mode
     when 'append'
-      File.open(path, 'a') { |f| f.write(args.content) }
+      File.open(path, 'a') do |f|
+        backup_path = perform_backup(path)
+        f.write(args.content)
+      end
     when 'overwrite', nil
-      File.secure_write(path, args.content)
+      File.secure_write(path) do |output|
+        backup_path = perform_backup(path)
+        output.write args.content
+      end
     else
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
@@ -93,6 +101,7 @@ class OllamaChat::Tools::WriteFile
     {
       success: true,
       path:    path.to_s,
+      backup:  backup_path.to_s,
       message: ,
     }.to_json
   rescue => e

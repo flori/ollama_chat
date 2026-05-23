@@ -112,20 +112,27 @@ class OllamaChat::Tools::PatchFile
   # @return [Hash] result containing success status and any output
   def apply_patch(chat, path, content)
     old_digest = digest(path)
-    diff_tool = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'
+    diff_tool  = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'
     File.exist?(diff_tool) or raise "Diff tool #{diff_tool.inspect} does not exist"
-    result = { success: false }
-    basename = [ path.basename.sub_ext(''), path.extname.full? ].compact.map(&:to_s)
+    result      = { success: false }
+    basename    = [ path.basename.sub_ext(''), path.extname.full? ].compact.map(&:to_s)
+    backup_path = nil
     chat.edit_text_block(content, basename:) do |patched|
       cmd = [ diff_tool, path, patched.path ].map(&:to_s)
+      backup_path = perform_backup path
       if system(*cmd)
         if result[:success] = $?.success?
           result[:content_unchanged] = digest(path) == old_digest
+          if result[:content_unchanged]
+            backup_path.delete
+          else
+            result[:backup_path] = backup_path
+          end
           result[:success] &&= !result[:content_unchanged]
         end
       end
     end
-    result
+    return result
   end
 
   self
