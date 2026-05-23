@@ -279,6 +279,11 @@ tools:
       require_confirmation: true
       allowed:
         - './tmp'
+    move_file:
+      default: true
+      require_confirmation: true
+      allowed:
+        - './tmp'
     read_file:
       default: true
       require_confirmation: false

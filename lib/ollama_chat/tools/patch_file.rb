@@ -26,9 +26,13 @@ class OllamaChat::Tools::PatchFile
           temporary file and launches a interactive diff session (e.g.,
           vimdiff) between the current file and the proposal, allowing the
           user to selectively apply changes. Path of the file must be given,
-          existing, and be allowed. Returns JSON with success or failure
-          result. Do not call this tool function unless explicitly requested by
-          the user.
+          existing, and be allowed.
+
+          Returns JSON with success or failure result. In the success case
+          a backup is created from the unchanged file.
+
+          Do not call this tool function unless explicitly requested by the
+          user.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

@@ -20,7 +20,8 @@ class OllamaChat::Tools::DeleteFile
         name: self.class.register_name,
         description: <<~EOT,
           File deleter – Deletes a file at the given path.
-          A backup is automatically created before deletion. Path must be allowed.
+          A backup is automatically created before deletion. Path must be
+          allowed.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

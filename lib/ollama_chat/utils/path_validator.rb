@@ -30,6 +30,7 @@ module OllamaChat::Utils::PathValidator
   #   * `:file` - Verifies that the path exists and is a file.
   #   * `:directory` - Verifies that the path exists and is a directory.
   #   * `true` - Verifies only that the path exists (resolves symlinks).
+  #   * `true` - Verifies only that the path does not exist (resolves symlinks).
   #   * `nil` (default) - No existence or type check is performed.
   #
   # @return [Pathname] The canonicalised absolute path if validation passes.
@@ -54,12 +55,17 @@ module OllamaChat::Utils::PathValidator
       when :file
         target_path.file? or
           raise OllamaChat::InvalidPathError,
-          "#{target_path.to_s.inspect} is not a file"
+            "#{target_path.to_s.inspect} is not a file"
       when :directory
         target_path.directory? or
           raise OllamaChat::InvalidPathError,
-          "#{target_path.to_s.inspect} is not a file"
+            "#{target_path.to_s.inspect} is not a directory"
       end
+    elsif check == false
+      target_path = target_path.cleanpath
+      target_path.exist? and
+        raise OllamaChat::InvalidPathError,
+          "#{target_path.to_s.inspect} does already exist"
     end
 
     allowed_dirs, rest = Array(allowed).map do |p|

@@ -23,7 +23,9 @@ class OllamaChat::Tools::WriteFile
         name:,
         description: <<~EOT,
           File writer – Saves content into path, either overwriting or
-          appending based on mode. Path must be allowed; no return value.
+          appending based on mode.
+          A backup is automatically created before writing, if the file already
+          exists. Path must be allowed.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
