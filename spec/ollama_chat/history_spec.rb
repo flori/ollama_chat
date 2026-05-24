@@ -31,8 +31,8 @@ describe OllamaChat::History do
         and_return(%w[HISTORY])
       expect_any_instance_of(described_class).to receive(:init_history).
         and_call_original
-      expect(Readline::HISTORY).to receive(:clear)
-      expect(Readline::HISTORY).to receive(:push).with("HISTORY")
+      expect(Reline::HISTORY).to receive(:clear)
+      expect(Reline::HISTORY).to receive(:push).with("HISTORY")
       chat
     end
   end
@@ -46,7 +46,7 @@ describe OllamaChat::History do
 
     it 'can save chat history' do
       tmp_double = double('tmp')
-      allow(Readline::HISTORY).to receive(:each).and_yield('test')
+      allow(Reline::HISTORY).to receive(:each).and_yield('test')
       expect(tmp_double).to receive(:puts).with('"test"')
       expect(File).to receive(:secure_write).with(
         OC::OLLAMA::CHAT::HISTORY
@@ -60,8 +60,8 @@ describe OllamaChat::History do
       allow(JSON).to receive(:parse).and_call_original.at_least(1)
       expect_any_instance_of(OllamaChat::Utils::JSONJSONLIO).to receive(:read).
         and_return(%w[HISTORY])
-      expect(Readline::HISTORY).to receive(:clear)
-      expect(Readline::HISTORY).to receive(:push).with("HISTORY")
+      expect(Reline::HISTORY).to receive(:clear)
+      expect(Reline::HISTORY).to receive(:push).with("HISTORY")
       expect_any_instance_of(described_class).to receive(:init_history).
         and_call_original
       chat
@@ -92,7 +92,7 @@ describe OllamaChat::History do
 
   it 'can clear history' do
     chat
-    expect(Readline::HISTORY).to receive(:clear)
+    expect(Reline::HISTORY).to receive(:clear)
     expect(chat).to receive(:save_history)
     chat.clear_history
   end

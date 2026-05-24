@@ -21,15 +21,15 @@ module OllamaChat::History
   # previously saved command history from a JSON or JSONL file.
   #
   # This method checks for the existence of a chat history file and, if found,
-  # loads its contents into the Readline::HISTORY array. It clears the current
+  # loads its contents into the Reline::HISTORY array. It clears the current
   # history and replaces it with the saved history data. Any errors during the
   # loading process are caught and logged as warnings, but do not interrupt the
   # execution flow.
   def init_history
     if OC::OLLAMA::CHAT::HISTORY.exist?
       history_data = OllamaChat::Utils::JSONJSONLIO.new(OC::OLLAMA::CHAT::HISTORY).read.to_a
-      Readline::HISTORY.clear
-      Readline::HISTORY.push(*history_data)
+      Reline::HISTORY.clear
+      Reline::HISTORY.push(*history_data)
     end
   rescue => e
     msg = "Caught #{e.class} while loading #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
@@ -38,7 +38,7 @@ module OllamaChat::History
 
   # The save_history method persists the current command history to a file.
   #
-  # This method serializes the Readline::HISTORY array into JSON or JSONL
+  # This method serializes the Reline::HISTORY array into JSON or JSONL
   # format and writes it to the chat history filename. It handles potential
   # errors during the write operation by catching exceptions and issuing a
   # warning message.
@@ -46,7 +46,7 @@ module OllamaChat::History
     File.secure_write(OC::OLLAMA::CHAT::HISTORY) do |output|
       OllamaChat::Utils::JSONJSONLIO.new(OC::OLLAMA::CHAT::HISTORY).write_io(
         output:,
-        collection: Readline::HISTORY
+        collection: Reline::HISTORY
       )
     end
   rescue => e
@@ -57,14 +57,14 @@ module OllamaChat::History
   # The clear_history method clears the Readline history array and ensures that
   # the chat history is saved afterwards.
   #
-  # This method removes all entries from the Readline::HISTORY array,
+  # This method removes all entries from the Reline::HISTORY array,
   # effectively clearing the command history maintained by the readline
   # library. It then calls save_history to persist this cleared state to the
   # configured history file. The method uses an ensure block to guarantee that
   # save_history is called even if an exception occurs during the clearing
   # process.
   def clear_history
-    Readline::HISTORY.clear
+    Reline::HISTORY.clear
   ensure
     save_history
   end
