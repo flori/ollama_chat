@@ -173,21 +173,23 @@ module OllamaChat::SessionManagement
   #
   # @return [nil]
   def set_new_session
-    name = determine_valid_new_name_for_session('to create')
-    @session = new_session
-    session.lock? or raise OllamaChat::OllamaChatError,
-      "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
-    if name.full?
-      session.update(name:)
-    else
-      session.touch
+    switch_history(:session_name) do
+      name = determine_valid_new_name_for_session('to create')
+      @session = new_session
+      session.lock? or raise OllamaChat::OllamaChatError,
+        "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
+      if name.full?
+        session.update(name:)
+      else
+        session.touch
+      end
+      messages.clear
+      session.current_model.full? {
+        use_model(_1)
+        copy_model_options_to_session
+      }
+      nil
     end
-    messages.clear
-    session.current_model.full? {
-      use_model(_1)
-      copy_model_options_to_session
-    }
-    nil
   end
 
   # Duplicates the current session into a new one.
@@ -275,43 +277,45 @@ module OllamaChat::SessionManagement
   # @note The use of `1.times do` and `redo` ensures a single-retry
   #   capability for automatic name derivation.
   def rename_session
-    name = nil
-    1.times do
-      derived = false
-      prefill ||= session.name
-      name = ask?(
-        prompt: "❓ Enter the new name for the session (C-u ⇒ auto, C-c ⇒ cancel): ",
-        prefill:
-      )
-      if name.nil?
-        STDERR.puts "\nInterrupt: Session renaming was cancelled."
-        return
-      end
-      if name.empty?
-        if derived
-          break
-        else
-          derived = true
-          if prefill = derive_session_name.full?
-            redo
+    switch_history(:session_name) do
+      name = nil
+      1.times do
+        derived = false
+        prefill ||= session.name
+        name = ask?(
+          prompt: "❓ Enter the new name for the session (C-u ⇒ auto, C-c ⇒ cancel): ",
+          prefill:
+        )
+        if name.nil?
+          STDERR.puts "\nInterrupt: Session renaming was cancelled."
+          return
+        end
+        if name.empty?
+          if derived
+            break
+          else
+            derived = true
+            if prefill = derive_session_name.full?
+              redo
+            end
           end
         end
       end
-    end
-    if name == session.name
-      STDOUT.puts "Keeping the old name #{name.inspect}."
-    elsif name.present?
-      if exists = models::Session.where(name:).first
-        STDOUT.puts "Session with name #{name.inspect} already exists."
+      if name == session.name
+        STDOUT.puts "Keeping the old name #{name.inspect}."
+      elsif name.present?
+        if exists = models::Session.where(name:).first
+          STDOUT.puts "Session with name #{name.inspect} already exists."
+        else
+          session.update(name:)
+          STDOUT.puts "Renamed current session to #{name.inspect}."
+        end
       else
-        session.update(name:)
-        STDOUT.puts "Renamed current session to #{name.inspect}."
+        STDERR.puts "Could not rename current session!"
       end
-    else
-      STDERR.puts "Could not rename current session!"
+    rescue Sequel::UniqueConstraintViolation
+      STDERR.puts "Could not rename session to #{name.inspect}, already exists!"
     end
-  rescue Sequel::UniqueConstraintViolation
-    STDERR.puts "Could not rename session to #{name.inspect}, already exists!"
   end
 
   # Generates a summary of the current session's conversation.

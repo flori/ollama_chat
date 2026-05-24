@@ -143,17 +143,19 @@ module OllamaChat::SystemPromptManagement
   # @return [Boolean, nil] true if the prompt was added and set as current,
   #   false if added but not set, or nil if the process was cancelled
   def add_new_system_prompt
-    system_prompt_name = determine_valid_new_name_for_system_prompt('to add') or return
-    patterns = ask?(
-      prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
-      prefill: '**/*.{txt,md}'
-    )
-    patterns.nil? and return
-    content = nil
-    patterns.present? and content = load_prompt_from_file(patterns)
-    system_prompt = edit_text(content)
-    store_system_prompt(system_prompt_name, system_prompt).to_s
-    ask_to_set_current_system_prompt(system_prompt_name)
+    switch_history(:add_system_prompt) do
+      system_prompt_name = determine_valid_new_name_for_system_prompt('to add') or return
+      patterns = ask?(
+        prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
+        prefill: '**/*.{txt,md}'
+      )
+      patterns.nil? and return
+      content = nil
+      patterns.present? and content = load_prompt_from_file(patterns)
+      system_prompt = edit_text(content)
+      store_system_prompt(system_prompt_name, system_prompt).to_s
+      ask_to_set_current_system_prompt(system_prompt_name)
+    end
   end
 
   # Interactively selects an existing system prompt and allows the user to

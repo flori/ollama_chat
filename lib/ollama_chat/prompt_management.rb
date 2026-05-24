@@ -66,31 +66,33 @@ module OllamaChat::PromptManagement
   # @return [Boolean, nil] true if the prompt was added, nil if the process was
   #   cancelled
   def add_new_prompt
-    name = nil
-    loop do
-      name = ask?(
-        prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: "
+    switch_history(:add_prompt) do
+      name = nil
+      loop do
+        name = ask?(
+          prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: "
+        )
+        if name.nil?
+          STDOUT.puts "Cancelled."
+          return nil
+        end
+        if prompt(name)
+          STDOUT.puts "Prompt named #{bold{name}} already exists."
+        else
+          break
+        end
+      end
+      patterns = ask?(
+        prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
+        prefill: '**/*.{txt,md}'
       )
-      if name.nil?
-        STDOUT.puts "Cancelled."
-        return nil
-      end
-      if prompt(name)
-        STDOUT.puts "Prompt named #{bold{name}} already exists."
-      else
-        break
-      end
+      patterns.nil? and return
+      content = nil
+      patterns.present? and content = load_prompt_from_file(patterns)
+      prompt = edit_text(content)
+      store_prompt(name, prompt).to_s
+      true
     end
-    patterns = ask?(
-      prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
-      prefill: '**/*.{txt,md}'
-    )
-    patterns.nil? and return
-    content = nil
-    patterns.present? and content = load_prompt_from_file(patterns)
-    prompt = edit_text(content)
-    store_prompt(name, prompt).to_s
-    true
   end
 
   # Interactively selects an existing non-default prompt and deletes it after
