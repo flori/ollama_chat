@@ -67,7 +67,7 @@ class OllamaChat::Tools::EvalRuby
       OC::OLLAMA::CHAT::TOOLS::RUBY_EVAL_IMAGE_TEMPLATE % { version: },
       'irb',
       '--prompt',
-      'xmp'
+      'simple'
     ]
 
     stdout, stderr, status = Open3.capture3(*cmd, stdin_data: source)
