@@ -126,7 +126,6 @@ module OllamaChat::ConfigHandling
           yes: /\Ay/i
         )
       then
-        save_history
         session_close
         exec($0, *fix_session(ARGV))
       else
@@ -147,7 +146,6 @@ module OllamaChat::ConfigHandling
         yes: /\Ay/i
       )
     then
-      save_history
       session_close
       exec($0, *fix_session(ARGV))
     else

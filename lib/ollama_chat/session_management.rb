@@ -77,7 +77,7 @@ module OllamaChat::SessionManagement
   #   if it exists and is unlocked, otherwise nil
   def previous_session
     @previous_session_id  or return
-    prev = models::Session.where(id: @previous_session_id).first
+    prev = models::Session.where(id: @previous_session_id).first or return
     prev.locked? and return
     prev
   end
@@ -173,23 +173,26 @@ module OllamaChat::SessionManagement
   #
   # @return [nil]
   def set_new_session
-    switch_history(:session_name) do
-      name = determine_valid_new_name_for_session('to create')
-      @session = new_session
-      session.lock? or raise OllamaChat::OllamaChatError,
-        "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
-      if name.full?
-        session.update(name:)
-      else
-        session.touch
-      end
-      messages.clear
-      session.current_model.full? {
-        use_model(_1)
-        copy_model_options_to_session
-      }
-      nil
+    name = switch_history(:session_name) do
+      determine_valid_new_name_for_session('to create')
     end
+    session_close
+    @previous_session_id = @session.id
+    @session = new_session
+    session.lock? or raise OllamaChat::OllamaChatError,
+      "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
+    if name.full?
+      session.update(name:)
+    else
+      session.touch
+    end
+    session_apply
+    messages.clear
+    session.current_model.full? {
+      use_model(_1)
+      copy_model_options_to_session
+    }
+    nil
   end
 
   # Duplicates the current session into a new one.
@@ -234,12 +237,17 @@ module OllamaChat::SessionManagement
                end
     session or abort "No session named #{bold{session_name.inspect}} found."
     if session.lock?
-      session.update(working_directory: Dir.pwd)
-      session
+      session_apply
     else
       raise OllamaChat::OllamaChatError,
         "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
     end
+  end
+
+  def session_apply
+    session.update(working_directory: Dir.pwd)
+    init_history
+    session
   end
 
   # Deletes the current session and prompts the user to pick a new one to
@@ -393,6 +401,7 @@ module OllamaChat::SessionManagement
   def session_close
     store_messages_in_session
     links.sync
+    save_history
     session.unlock
   end
 
@@ -420,8 +429,8 @@ module OllamaChat::SessionManagement
         session.current_model.full? { use_model(_1) }
         set_default_persona_name(session.default_persona_name.full? || :none)
         set_current_system_prompt(session.current_system_prompt.full? || 'default')
-        session.working_directory = Dir.pwd
         if session.lock?
+          session_apply
           info_session
           break
         else

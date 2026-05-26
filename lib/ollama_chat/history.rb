@@ -5,15 +5,6 @@
 # clearing command-line history within the OllamaChat application. It handles
 # persistence of user input history to a file and ensures that chat sessions
 # can maintain state across invocations by loading previous command histories.
-#
-# @example Initializing chat history
-#   chat.init_history
-#
-# @example Saving chat history
-#   chat.save_history
-#
-# @example Clearing chat history
-#   chat.clear_history
 module OllamaChat::History
   class << self
     # A hash storing multiple history namespaces.
@@ -85,14 +76,11 @@ module OllamaChat::History
   # execution flow.
   def init_history
     switch_history(:chat) do
-      if OC::OLLAMA::CHAT::HISTORY.exist?
-        history_data = OllamaChat::Utils::JSONJSONLIO.new(OC::OLLAMA::CHAT::HISTORY).read.to_a
-        Reline::HISTORY.clear
-        Reline::HISTORY.push(*history_data)
-      end
-    rescue => e
-      msg = "Caught #{e.class} while loading #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
-      log(:error, msg, warn: true)
+      input = StringIO.new(session.history)
+      history_data = OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').
+        read_io(input:).to_a
+      Reline::HISTORY.clear
+      Reline::HISTORY.push(*history_data)
     end
   end
 
@@ -104,15 +92,10 @@ module OllamaChat::History
   # warning message.
   def save_history
     switch_history(:chat) do
-      File.secure_write(OC::OLLAMA::CHAT::HISTORY) do |output|
-        OllamaChat::Utils::JSONJSONLIO.new(OC::OLLAMA::CHAT::HISTORY).write_io(
-          output:,
-          collection: Reline::HISTORY
-        )
-      end
-    rescue => e
-      msg = "Caught #{e.class} while saving #{OC::OLLAMA::CHAT::HISTORY.inspect}: #{e}"
-      log(:error, msg, warn: true)
+      output = StringIO.new
+      OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').
+        write_io(output:, collection: Reline::HISTORY)
+      session.history = output.string
     end
   end
 

@@ -120,7 +120,6 @@ class OllamaChat::Chat
     @images               = []
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
     @tool_call_results    = Hash.new { |h, name| h[name] = [] }
-    init_history
     setup_personae_directory
     @opts[?S] and init_server_socket
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
@@ -1309,7 +1308,6 @@ class OllamaChat::Chat
     log(:error, e)
     fix_config(e)
   ensure
-    save_history
     session_close
   end
 
