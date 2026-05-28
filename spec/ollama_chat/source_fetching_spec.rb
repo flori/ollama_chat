@@ -125,6 +125,7 @@ describe OllamaChat::SourceFetching do
       it 'handles invalid sources by printing to STDERR' do
         source = 'invalid source'
         expect(STDERR).to receive(:puts).with(/Fetching source /)
+        expect(chat).to receive(:confirm?)
         called = false
         chat.fetch_source(source) { called = true }
         expect(called).to eq true

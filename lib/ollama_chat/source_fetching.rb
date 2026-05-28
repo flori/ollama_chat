@@ -68,7 +68,7 @@ module OllamaChat::SourceFetching
   rescue => e
     msg = "Fetching source #{source.to_s.inspect}: #{e.class} #{e}"
     STDERR.puts "#{msg}\n#{e.backtrace * ?\n}"
-    confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout: 3)
+    confirm?(prompt: '⏎  Press any key to continue (%s). ', output: STDERR, timeout: 3)
     msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
     block.(msg)
     msg

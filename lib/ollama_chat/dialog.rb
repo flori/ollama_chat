@@ -30,14 +30,16 @@ module OllamaChat::Dialog
   #
   # @param prompt   [String]  the prompt to display to the user
   # @param timeout  [Integer, nil] optional timeout in seconds; if nil, the
-  #   method blocks until input, if 0 the method immediatly returns the default
+  #   method blocks until input, if 0 the method immediately returns the default
   #   value.
   # @param default  [Object, nil]  value returned when the timeout expires
   #   (defaults to `nil`)
+  # @param yes      [Object, nil]  value that is considered a positive response
+  # @param output   [IO]  the IO object to write the prompt to
   #
   # @return [Object] the character entered by the user, or the `default` value
   #   if a timeout occurs
-  def confirm?(prompt:, timeout: nil, default: nil, yes: nil)
+  def confirm?(prompt:, timeout: nil, default: nil, yes: nil, output: STDOUT)
     return default if timeout&.zero?
     if prompt.include?('%s')
       prompt = prompt % (timeout ? ('timeout in %us' % timeout) : 'no timeout')
@@ -57,23 +59,23 @@ module OllamaChat::Dialog
     case
     when yes.nil?
       if keypress
-        STDOUT.puts "⌨️ #{answer}"
+        output.puts "⌨️ #{answer}"
       else
-        STDOUT.puts "⌛️ #{answer}"
+        output.puts "⌛️ #{answer}"
       end
       answer
     when answer =~ yes
       if keypress
-        STDOUT.puts "✅ #{answer}"
+        output.puts "✅ #{answer}"
       else
-        STDOUT.puts "☑️  #{answer}"
+        output.puts "☑️  #{answer}"
       end
       answer
     else
       if keypress
-        STDOUT.puts "🚫 #{answer}"
+        output.puts "🚫 #{answer}"
       else
-        STDOUT.puts "⌛️ #{answer}"
+        output.puts "⌛️ #{answer}"
       end
       nil
     end
