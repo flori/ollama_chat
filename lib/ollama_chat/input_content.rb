@@ -122,6 +122,9 @@ module OllamaChat::InputContent
   def all_file_set(patterns)
     files = Set[]
     patterns.each do |pattern|
+      if pattern.start_with?(?~)
+        pattern = Pathname.new(pattern).expand_path.to_s
+      end
       files.merge(Pathname.glob(pattern))
     end
     files.map(&:expand_path)
