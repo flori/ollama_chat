@@ -246,13 +246,13 @@ class OllamaChat::MessageList
   #
   # @return [OllamaChat::MessageList, nil] self if messages were displayed,
   #   or nil if no valid messages were found to show.
-  def show_last(n = nil)
+  def show_last(n = nil, pager: true)
     n ||= 1
     messages = @messages.reject { |message| message.role == 'user' }
     n = n.clamp(0..messages.size)
     n <= 0 and return
     last_message_user_message = (last.content if last&.role == 'user')
-    use_pager do |output|
+    outputter = -> output do
       last_messages = messages[-n..-1].to_a
       last_messages = last_messages.with_infobar(
         output:  STDERR,
@@ -280,6 +280,11 @@ class OllamaChat::MessageList
         EOT
         output.puts msg
       end
+    end
+    if pager
+      use_pager(&outputter)
+    else
+      outputter.(STDOUT)
     end
     self
   end

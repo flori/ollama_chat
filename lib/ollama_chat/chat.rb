@@ -579,12 +579,16 @@ class OllamaChat::Chat
 
   command(
     name: :last,
-    regexp: %r(^/last(?:\s+(\d*))?$),
-    options: '[n=1]',
-    help: 'Show the last n or the most recent system/assistant message'
-  ) do
-    n = _1.to_i.clamp(1..)
-    messages.show_last(n)
+    regexp:  %r(^/last(?:\s+(-p))?(?:\s+(\d*))?$),
+    options: '[-p|n=1]',
+    help:    <<~EOT
+      Show the last n or the most recent system/assistant message (-p for plain
+      output = no pager)
+    EOT
+  ) do |opts,number|
+    opts = go_command('p', opts.to_s)
+    n    = number.to_i.clamp(1..)
+    messages.show_last(n, pager: !opts[?p])
     :next
   end
 
