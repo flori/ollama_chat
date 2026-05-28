@@ -13,8 +13,8 @@ require 'webmock/rspec'
 WebMock.disable_net_connect!
 require 'const_conf/spec'
 
-xdg_state_home = Pathname.pwd.join('tmp')
-xdg_state_home.join('state', 'ollama_chat').mkpath
+xdg_state_home = Pathname.pwd.join('tmp').join('local', 'state')
+xdg_state_home.mkpath
 ENV['XDG_STATE_HOME'] = xdg_state_home.to_s
 
 xdg_cache_home = Pathname.pwd.join('tmp')

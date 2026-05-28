@@ -30,8 +30,8 @@ module OC
 
   XDG_STATE_HOME = set do
     description 'XDG State home directory path'
-    default { '~/.local' }
-    decode  { Pathname.new(_1).join('state', 'ollama_chat').expand_path }
+    default { '~/.local/state' }
+    decode  { Pathname.new(_1).join('ollama_chat').expand_path }
   end
 
   PAGER = set do
