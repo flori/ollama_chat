@@ -1,5 +1,94 @@
 # Changes
 
+## 2026-05-28 v0.0.87
+
+### Features
+
+- **Session Management**
+    - Implemented a Sequel-based database for persistent storage of `sessions`,
+      `model_options`, `favourites`, and `prompts`.
+    - Added Vim-style exclusive session locking using `locked_by_pid` to
+      prevent concurrent access.
+    - Introduced session duplication via `OllamaChat::Database::Duplicatable`
+      and the `/session duplicate` command.
+    - Added support for directory-aware session retrieval using
+      `working_directory`.
+    - Implemented a `/session previous` action to quickly switch back to the
+      last active session.
+    - Added a `-n` flag to create a new session upon startup.
+
+- **Persona & Prompt Management**
+    - Transitioned system prompts and user prompts to a database-backed
+      registry.
+    - Added support for importing character profiles from `.png` (via `tEXt`
+      chunks) and `.json` files using
+      `OllamaChat::Utils::PNGCharacterExtractor`.
+    - Implemented a comprehensive management interface for prompts and
+      personae, including `add`, `edit`, `delete`, `duplicate`, and `export`
+      subcommands.
+    - Added variable interpolation (e.g., `{{user}}`) in persona profiles.
+    - Introduced a `/character` command for persona import and information.
+
+- **RAG & Document Handling**
+    - Added support for multiple document collections, including the ability to
+      specify a `collection` during retrieval via `retrieve_document_snippets`.
+    - Implemented tagging for document embedding and retrieval, including a
+      `-t` flag for the `/input` command.
+    - Added the ability to update existing collections and re-embed modified
+      sources.
+    - Integrated `documentrix` version **0.3.0**, **0.3.1**, **0.3.2**, and
+      **0.4.0**.
+
+- **Tooling & Extensions**
+    - Implemented several new tools:
+        - `EvalRuby`: Sandboxed Ruby execution via Docker.
+        - `GenerateImage`: Image generation via ComfyUI.
+        - `GetGHR`: GitHub release information fetching.
+        - `ComputeBMI`: BMI calculation.
+        - `RollDice`: Dice notation parsing (e.g., `2d6`).
+        - `DeleteFile` and `MoveFile`: Destructive file operations with
+          automatic safety backups via `OllamaChat::Utils::Backup`.
+    - Enhanced `PatchFile` to use interactive diff sessions (e.g., `vimdiff`)
+      instead of unified patches.
+    - Added a `TokenEstimator` utility to provide crude token approximations
+      for sessions and personae.
+
+- **User Interface & UX**
+    - Replaced `Readline` with `Reline` for improved history management and
+      input prefilling.
+    - Introduced an `infobar` for real-time progress streaming during long
+      operations (e.g., session summarization).
+    - Added visual indicators (emojis like `🔓`, `🔐`, `🟢`, `⚫️`) to session
+      and state selection lists.
+    - Implemented bidirectional clipboard editing for `/copy` and `/paste`
+      commands.
+    - Added a `-p` flag to the `/last` command to bypass the pager.
+
+### Refactorings & Improvements
+
+- **Security**
+    - Hardened tools against shell injection by switching to the array form of
+      `system` and using `Shellwords.escape` or `Open3.popen2e`.
+    - Improved `OllamaChat::Utils::PathValidator` to prevent symlink traversal using `realpath`.
+
+- **Core Logic**
+    - Refactored `OllamaChat::MessageList` to support both JSON and JSONL
+      formats via `OllamaChat::Utils::JSONJSONLIO`.
+    - Centralized link tracking within `get_url` in `OllamaChat::HTTPHandling`.
+    - Moved the documents database from the cache directory to the state home
+      (`OC::XDG_STATE_HOME`).
+    - Refactored `OllamaChat::Utils::Chooser` into a stateful mixin.
+
+- **Configuration & CI**
+    - Switched CI Docker images from `alpine` to `debian trixie` for Ruby
+      versions **4.0**, **3.4**, **3.3**, and **3.2**.
+    - Made message sender role formatting configurable via `role_template` in
+      `default_config.yml`.
+
+- **Documentation**
+    - Performed extensive updates to YARD documentation across the codebase for
+      improved technical precision.
+
 ## 2026-04-02 v0.0.86
 
 - Updated `play_persona_prompt` in `lib/ollama_chat/personae_management.rb` to
