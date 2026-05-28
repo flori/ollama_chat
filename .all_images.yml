@@ -1,5 +1,6 @@
 dockerfile: |-
-  RUN apk add --no-cache build-base yaml-dev openssl-dev git ghostscript
+  RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libyaml-dev libssl-dev git ghostscript
 
 script: &script |-
   echo -e "\e[1m"
@@ -26,7 +27,7 @@ after: |-
 fail_fast: true
 
 images:
-  ruby:4.0-alpine: *script
-  ruby:3.4-alpine: *script
-  ruby:3.3-alpine: *script
-  ruby:3.2-alpine: *script
+  ruby:4.0-trixie: *script
+  ruby:3.4-trixie: *script
+  ruby:3.3-trixie: *script
+  ruby:3.2-trixie: *script
