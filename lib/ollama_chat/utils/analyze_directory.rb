@@ -95,7 +95,7 @@ module OllamaChat::Utils::AnalyzeDirectory
   #
   # @api private
   def recurse_generate_structure(path = '.', exclude: [], suffix: nil, depth: 0)
-    exclude = Array(exclude).map { |p| Pathname.new(p).expand_path }
+    exclude = Array(exclude).map(&:to_s)
     extname = suffix&.sub(/\A(?<!.)/, ?.)
     path    = Pathname.new(path).expand_path
     entries = []
@@ -106,7 +106,7 @@ module OllamaChat::Utils::AnalyzeDirectory
       # Skip symlinks
       next if child.symlink?
       # Skip user‑excluded paths
-      next if exclude.any? { |e| child.fnmatch?(e.to_s, File::FNM_PATHNAME) }
+      next if exclude.any? { |e| child.basename.fnmatch?(e.to_s, File::FNM_PATHNAME) }
 
       if child.directory?
         entries << {

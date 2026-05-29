@@ -92,7 +92,7 @@ describe OllamaChat::Utils::AnalyzeDirectory do
     after { FileUtils.remove_entry(@tmp_dir) }
 
     it 'skips directories listed in the exclude list' do
-      result = generate.call(@tmp_dir, exclude: [File.join(@tmp_dir, 'exclude_me')])
+      result = generate.call(@tmp_dir, exclude: %w[ exclude_me ])
       names  = result.map { |e| e[:name] }
 
       expect(names).not_to include('exclude_me')
