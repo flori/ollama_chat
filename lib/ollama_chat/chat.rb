@@ -534,6 +534,7 @@ class OllamaChat::Chat
         if summary.full?
           filename.write(summary)
           STDOUT.puts "File successfully written."
+          next :next
         else
           STDERR.puts "Nothing to summarize!"
           next :next
