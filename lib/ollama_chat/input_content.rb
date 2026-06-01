@@ -140,10 +140,12 @@ module OllamaChat::InputContent
   # @param patterns [Array<String>] # the glob patterns used to find files
   # @param all [TrueClass, FalseClass] whether to process all matching files
   #   or let the caller choose a subset
+  # @param skip_blank [TrueClass, FalseClass] whether to skip appending
+  #   to the result if the block returns a blank result
   #
   # @yield [filename] the block that processes each filename
   # @return [String] the concatenated result of the block applied to each file
-  def provide_file_set_content(patterns, all: false, &block)
+  def provide_file_set_content(patterns, all: false, skip_blank: false, &block)
     total = 0
     all and file_set_each(patterns, all:) { total += 1 }
     count = 0
@@ -154,7 +156,10 @@ module OllamaChat::InputContent
       else
         STDOUT.puts "Handling File (#{bold{count}}):"
       end
-      result << ("%s:\n\n%s\n\n" % [ filename, block.(filename) ])
+      block_result = block.(filename)
+      if !skip_blank || block_result.present?
+        result << ("%s:\n\n%s\n\n" % [ filename, block_result ])
+      end
     end.full?
   end
 end

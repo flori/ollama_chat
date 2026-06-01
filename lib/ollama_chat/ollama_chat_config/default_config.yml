@@ -24,7 +24,7 @@ infobar:
       :frames: :braille181
       :message: ✓
 prompts:
-  embed: "This source has been added to or updated in collection %{collection}: %{source}"
+  embed: "This source has been added to or updated in collection \"%{collection}\"."
   summarize: |
     Generate an abstract summary of the content in this document using
     %{words} words:

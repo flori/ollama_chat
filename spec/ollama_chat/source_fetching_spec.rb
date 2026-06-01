@@ -31,7 +31,7 @@ describe OllamaChat::SourceFetching do
       './spec/assets/example.html'
     )
     expect(chat.embed('./spec/assets/example.html')).to eq(
-      'This source has been added to or updated in collection default: ./spec/assets/example.html'
+      'This source has been added to or updated in collection "default".'
     )
   end
 

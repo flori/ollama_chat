@@ -908,7 +908,7 @@ class OllamaChat::Chat
         words = opts.fetch(?w, 100)
         all   = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
-        next provide_file_set_content(patterns, all:) { summarize(_1, words:) } || :next
+        next provide_file_set_content(patterns, all:, skip_blank: true) { summarize(_1, words:) } || :next
       elsif arg
         words = opts.fetch(?w, 100)
         source = arg
@@ -943,7 +943,7 @@ class OllamaChat::Chat
         if opts[?p]
           all = opts.fetch(?a, false)
           arg and patterns = arg.scan(/(\S+)/).flatten
-          next provide_file_set_content(patterns, all:) { embed(_1, tags:) } || :next
+          next provide_file_set_content(patterns, all:, skip_blank: true) { embed(_1, tags:) } || :next
         elsif arg
           next embed(arg, tags:) || :next
         else
@@ -973,7 +973,7 @@ class OllamaChat::Chat
       if opts[?p]
         all = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
-        next provide_file_set_content(patterns, all:) { import(_1) } || :next
+        next provide_file_set_content(patterns, all:, skip_blank: true) { import(_1) } || :next
       elsif arg
         source = arg
         next import(source) || :next

@@ -174,13 +174,6 @@ module OllamaChat::SourceFetching
   #   nil if embedding is disabled or fails
   def embed_source(source_io, source, tags: [], count: nil)
     @embedding.on? or return parse_source(source_io)
-    m = "Embedding #{italic { source_io&.content_type }} document "\
-      "#{source.to_s.inspect} in collection #{collection.to_s.inspect}."
-    if count
-      STDOUT.puts '%u. %s' % [ count, m ]
-    else
-      STDOUT.puts m
-    end
     unless @documents.source_modified?(source)
       STDOUT.puts "Source #{source.to_s.inspect} already up-to-date. => Skipping."
       return
@@ -212,6 +205,13 @@ module OllamaChat::SourceFetching
       )
     end
     inputs or return
+    m = "Embedded #{italic { source_io&.content_type }} document "\
+      "#{source.to_s.inspect} in collection #{collection.to_s.inspect}."
+    if count
+      STDOUT.puts '%u. %s' % [ count, m ]
+    else
+      STDOUT.puts m
+    end
     source = source.to_s
     command = false
     if source.start_with?(?!)
@@ -231,8 +231,7 @@ module OllamaChat::SourceFetching
   # Embeds content from the specified source.
   #
   # This method fetches content from a given source (command, URL, or file) and
-  # processes it for embedding using the embed_source method. If embedding is
-  # disabled, it falls back to generating a summary instead.
+  # processes it for embedding using the embed_source method.
   #
   # @param source [String] The source identifier which can be a command, URL,
   #   or file path
@@ -240,19 +239,14 @@ module OllamaChat::SourceFetching
   # @return [String, nil] The formatted embedding result or summary message, or
   #   nil if the operation fails
   def embed(source, tags: [])
-    if @embedding.on?
-      STDOUT.puts "Now embedding #{source.to_s.inspect} in collection #{collection.to_s.inspect}."
-      fetch_source(source) do |source_io|
-        content = parse_source(source_io)
-        content.present? or return
-        source_io.rewind
-        embed_source(source_io, source, tags:)
-      end
-      prompt(:embed).to_s % { source:, collection: collection }
-    else
-      STDOUT.puts "Embedding is off, so I will just give a small summary of this source."
-      summarize(source)
+    @embedding.on? or return
+    fetch_source(source) do |source_io|
+      content = parse_source(source_io)
+      content.present? or return
+      source_io.rewind
+      embed_source(source_io, source, tags:) or return
     end
+    prompt(:embed).to_s % { collection: collection }
   end
 
   private
