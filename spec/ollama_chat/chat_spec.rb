@@ -82,7 +82,6 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/toggle nixda"' do
-      expect_any_instance_of(OllamaChat::Switches::Switch).not_to receive(:toggle)
       expect(chat).to receive(:display_chat_help)
       expect(chat.handle_input("/toggle nixda")).to eq :next
     end

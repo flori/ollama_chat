@@ -10,6 +10,46 @@ describe OllamaChat::Switches do
       )
     end
 
+    context 'callbacks' do
+      let(:callback_on) { double('callback_on') }
+      let(:callback_off) { double('callback_off') }
+      let :switch do
+        described_class.new(
+          value: false,
+          msg: { true => "On", false => "Off" },
+          callbacks: {
+            [false, true]  => callback_on,
+            [true, false]  => callback_off
+          }
+        )
+      end
+
+      it 'triggers the on-callback when switching from false to true' do
+        expect(callback_on).to receive(:call).with(false, true)
+        expect(callback_off).not_to receive(:call)
+        switch.set(true)
+      end
+
+      it 'triggers the off-callback when switching from true to false' do
+        expect(callback_on).to receive(:call).with(false, true)
+        switch.set(true) # Setup state to true
+        expect(callback_off).to receive(:call).with(true, false)
+        expect(callback_on).not_to receive(:call)
+        switch.set(false)
+      end
+
+      it 'does not trigger any callback when value remains the same' do
+        expect(callback_on).not_to receive(:call)
+        expect(callback_off).not_to receive(:call)
+        switch.set(false)
+      end
+
+      it 'triggers callbacks via toggle' do
+        expect(callback_on).to receive(:call).with(false, true)
+        switch.toggle
+      end
+    end
+
     context 'default to false' do
       let :config do
         double(test: false)
@@ -77,9 +117,46 @@ describe OllamaChat::Switches do
       )
     end
 
+    context 'callbacks' do
+      let(:callback_on) { double('callback_on') }
+      let(:callback_off) { double('callback_off') }
+      let :switch do
+        described_class.new(
+          chat: chat,
+          attribute: :test,
+          msg: { true => "On", false => "Off" },
+          callbacks: {
+            [false, true]  => callback_on,
+            [true, false]  => callback_off
+          }
+        )
+      end
+
+      it 'triggers the on-callback when switching from false to true' do
+        expect(session).to receive(:send).with(:test).and_return false, true, true
+        expect(session).to receive(:update).with("test": true)
+        expect(callback_on).to receive(:call).with(false, true)
+        switch.set(true)
+      end
+
+      it 'triggers the off-callback when switching from true to false' do
+        expect(session).to receive(:send).with(:test).and_return true, false, false
+        expect(session).to receive(:update).with("test": false)
+        expect(callback_off).to receive(:call).with(true, false)
+        switch.set(false)
+      end
+
+      it 'does not trigger callbacks when value remains the same' do
+        expect(session).to receive(:send).with(:test).and_return false, false
+        expect(session).to receive(:update).with("test": false)
+        expect(callback_on).not_to receive(:call)
+        switch.set(false)
+      end
+    end
+
     context 'default to false' do
       it 'can be switched on' do
-        expect(session).to receive(:send).with(:test).and_return false, true
+        expect(session).to receive(:send).with(:test).and_return false, false, true, true
         expect(session).to receive(:update).with("test": true)
         expect {
           switch.set(true)
@@ -89,7 +166,7 @@ describe OllamaChat::Switches do
       end
 
       it 'can be toggled on' do
-        expect(session).to receive(:send).with(:test).and_return false, false, true, true
+        expect(session).to receive(:send).with(:test).and_return false, false, false, true, true, true
         expect(session).to receive(:update).with("test": true)
         expect(STDOUT).to receive(:puts).with('Enabled.')
         expect {
@@ -102,7 +179,7 @@ describe OllamaChat::Switches do
 
     context 'default to true' do
       it 'can be switched on' do
-        expect(session).to receive(:send).with(:test).and_return true, false
+        expect(session).to receive(:send).with(:test).and_return true, true, false, false
         expect(session).to receive(:update).with("test": false)
         expect {
           switch.set(false)
@@ -112,7 +189,7 @@ describe OllamaChat::Switches do
       end
 
       it 'can be toggled off' do
-        expect(session).to receive(:send).with(:test).and_return true, true, false, false
+        expect(session).to receive(:send).with(:test).and_return true, true, true, false, false, false
         expect(session).to receive(:update).with("test": false)
         expect(STDOUT).to receive(:puts).with('Disabled.')
         expect {

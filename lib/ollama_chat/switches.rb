@@ -45,6 +45,47 @@ module OllamaChat::Switches
     end
   end
 
+  # A module that intercepts switch state changes to execute registered callbacks.
+  #
+  # This module is designed to be prepended into switch classes. It captures
+  # the value before and after a change occurs, then triggers any proc
+  # associated with that specific transition in the `@callbacks` hash.
+  module PerformCallbacks
+    # Intercepts the set operation to trigger state-transition callbacks.
+    #
+    # @param a [Array] positional arguments passed to the original set method
+    # @param kw [Hash] keyword arguments passed to the original set method
+    # @return [Object] the result of the original set method
+    def set(*a, **kw)
+      before_value = value
+      result = super
+      perform_callbacks(before_value)
+      result
+    end
+
+    # Intercepts the toggle operation to trigger state-transition callbacks.
+    #
+    # @param kw [Hash] keyword arguments passed to the original toggle method
+    # @return [Object] the result of the original toggle method
+    def toggle(**kw)
+      before_value = value
+      result = super
+      perform_callbacks(before_value)
+      result
+    end
+
+    private
+
+    # Executes the callback proc associated with the current state transition.
+    #
+    # @param before_value [Boolean] the state of the switch before the change
+    # @return [self] the current instance
+    def perform_callbacks(before_value)
+      @callbacks[[ before_value, value ]]&.(before_value, value)
+      self
+    end
+  end
+
   # A switch class that manages boolean state with toggle and set functionality.
   #
   # The Switch class provides a simple way to manage boolean configuration
@@ -62,9 +103,12 @@ module OllamaChat::Switches
     #
     # @param msg [Hash{Boolean => String}] a hash containing true and false messages
     # @param value [Object] the initial state of the switch (coerced to boolean)
-    def initialize(msg:, value:)
-      @value = !!value
-      @msg   = msg
+    # @param callbacks [Hash{[Boolean, Boolean] => Proc}] optional mapping of
+    #   state transitions to callback procs. Keys are `[old_value, new_value]`.
+    def initialize(msg:, value:, callbacks: {})
+      @value     = !!value
+      @msg       = msg
+      @callbacks = callbacks.to_h
     end
 
     # @!attribute [r] value
@@ -92,6 +136,7 @@ module OllamaChat::Switches
     end
 
     include CheckSwitch
+    prepend PerformCallbacks
   end
 
   # Manages boolean configuration states that are persisted in the database.
@@ -105,10 +150,13 @@ module OllamaChat::Switches
     # @param chat [OllamaChat::Chat] the chat instance providing session access
     # @param msg [Hash{Boolean => String}] the message hash containing display messages
     # @param attribute [Symbol] the database attribute name to manage
-    def initialize(chat:, msg:, attribute:)
+    # @param callbacks [Hash{[Boolean, Boolean] => Proc}] optional mapping of
+    #   state transitions to callback procs. Keys are `[old_value, new_value]`.
+    def initialize(chat:, msg:, attribute:, callbacks: {})
       @chat      = chat
       @attribute = attribute
-      @msg      = msg
+      @msg       = msg
+      @callbacks = callbacks.to_h
     end
 
     # Returns the current value of the attribute from the session.
@@ -143,6 +191,7 @@ module OllamaChat::Switches
     end
 
     include CheckSwitch
+    prepend PerformCallbacks
   end
 
   # Manages a boolean state based on a dynamic proc evaluation.
