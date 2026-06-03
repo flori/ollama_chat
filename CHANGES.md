@@ -1,5 +1,38 @@
 # Changes
 
+## 2026-06-03 v0.0.88
+
+### Added
+
+- Implemented a transition callback system for switches via the
+  `PerformCallbacks` module, allowing `OllamaChat::Switches::Switch` and
+  `OllamaChat::Switches::DatabaseSwitch` to trigger procs on state changes.
+- Added conditional inclusion of `runtime_info` in the system prompt based on
+  the state of `@chat.runtime_info.on?`.
+- Automated system prompt resets when toggling runtime information by adding
+  callbacks to the `@runtime_info` switch that trigger `reset_system_prompt`.
+
+### Changed
+
+- Updated `lib/ollama_chat/chat.rb` to utilize `@messages.system_name` instead
+  of `@system` within the `change_system_prompt` method.
+- Refactored file handling in `lib/ollama_chat/input_content.rb` by adding a
+  `skip_blank` parameter to `provide_file_set_content`, and updated
+  `summarize`, `embed`, and `import` commands to use `skip_blank: true`.
+- Simplified directory exclusion logic in `analyze_directory.rb` by using
+  strings and `child.basename.fnmatch?` for pattern matching instead of
+  expanded `Pathname` objects.
+- Refactored `embed` and `embed_source` in `lib/ollama_chat/source_fetching.rb`
+  using guard clauses and updated the corresponding prompt in
+  `default_config.yml`. You might need to reset the prompt for it to continue
+  working.
+- Clarified documentation for the `suffix` parameter in the
+  `directory_structure` tool, including notes on filtering by file extensions.
+
+### Fixed
+
+- Corrected control flow within the summary writing loop.
+
 ## 2026-05-28 v0.0.87
 
 ### Features
