@@ -348,7 +348,7 @@ class OllamaChat::MessageList
     @messages.reject! { |msg| msg.role == 'system' }
     templates_values = {
       persona:      @chat.default_persona_profile,
-      runtime_info: @chat.static_runtime_information,
+      runtime_info: (@chat.static_runtime_information if @chat.runtime_info.on?),
     }
     if new_system_prompt = system.full? { _1.to_s % templates_values }
       @system = new_system_prompt
