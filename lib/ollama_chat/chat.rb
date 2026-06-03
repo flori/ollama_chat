@@ -424,7 +424,7 @@ class OllamaChat::Chat
     when 'list'
       list_system_prompts
     when 'change'
-      change_system_prompt(@system)
+      change_system_prompt(@messages.system_name)
       @messages.show_system_prompt
     when 'duplicate'
       duplicate_system_prompt

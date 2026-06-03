@@ -364,12 +364,20 @@ module OllamaChat::Switches
       }
     )
 
+    reset_system_prompt = -> * {
+      messages.set_system_prompt(messages.system_name)
+    }
+
     @runtime_info = DatabaseSwitch.new(
       chat: self,
       attribute: :runtime_info_enabled,
       msg: {
         true  => "Runtime Information enabled.",
         false => "Runtime Information disabled.",
+      },
+      callbacks: {
+        [ false, true ] => reset_system_prompt,
+        [ true, false ] => reset_system_prompt,
       }
     )
 
