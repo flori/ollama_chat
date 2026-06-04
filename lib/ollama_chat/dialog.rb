@@ -139,7 +139,7 @@ module OllamaChat::Dialog
   # @param opt [Object] The arguments to be parsed. This object is converted
   #   to a string, stripped of whitespace, and split into an array of strings.
   # @return [Hash{String => Object}] A hash mapping option names to their values.
-  def go_command(s, opt)
-    Tins::GO.go(s, opt.to_s.strip.split(/\s+/))
+  def go_command(s, opt, defaults: {})
+    Tins::GO.go(s, opt.to_s.strip.split(/\s+/), defaults:)
   end
 end

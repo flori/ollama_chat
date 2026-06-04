@@ -144,8 +144,44 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/model options"' do
-      expect(chat).to receive(:edit_model_options)
+      expect(chat).to receive(:edit_model_options).with(nil, profile: 'default')
       expect(chat.handle_input("/model options")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options -p foo"' do
+      expect(chat).to receive(:edit_model_options).with(nil, profile: 'foo')
+      expect(chat.handle_input("/model options -p foo")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options from session"' do
+      expect(chat).to receive(:copy_model_options_from_session).with(profile: 'default')
+      expect(chat.handle_input("/model options from session")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options from session -p foo"' do
+      expect(chat).to receive(:copy_model_options_from_session).with(profile: 'foo')
+      expect(chat.handle_input("/model options from session -p foo")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options to session"' do
+      expect(chat).to receive(:copy_model_options_to_session).with(profile: 'default')
+      expect(chat.handle_input("/model options to session")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options to session -p foo"' do
+      expect(chat).to receive(:copy_model_options_to_session).with(profile: 'foo')
+      expect(chat.handle_input("/model options to session -p foo")).to eq :next
+    end
+
+    it 'returns :next when input is "/session model options change"' do
+      expect(chat).to receive(:choose_profile_for_model).with(nil).and_return('default')
+      expect(chat).to receive(:copy_model_options_to_session).with(profile: 'default')
+      expect(chat.handle_input("/session model options change")).to eq :next
+    end
+
+    it 'returns :next when input is "/session model options change -p foo"' do
+      expect(chat).to receive(:copy_model_options_to_session).with(profile: 'foo')
+      expect(chat.handle_input("/session model options change -p foo")).to eq :next
     end
 
     it 'returns :next when input is "/system change"' do

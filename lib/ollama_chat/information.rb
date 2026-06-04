@@ -96,11 +96,22 @@ module OllamaChat::Information
     output.puts "🧠 Current chat model is #{bold{@model}}."
     output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
     output.puts   "  Families: #{Array(@model_metadata&.families) * ', '}"
+
+    profiles = models::ModelOptions.where(model_name: @model).order(:profile).all
+    if profiles.full?
+      output.puts "  Stored Profile Options:"
+      profiles.each do |p|
+        output.puts <<~EOT.gsub(/^/, '      ')
+          #{bold{p.profile}}:
+            #{JSON.pretty_generate(p.options)}
+        EOT
+      end
+    elsif config.model.options.full?
+      output.puts "  Default Options: #{JSON.pretty_generate(mo).gsub(/(?<!\A)^/, '  ')}"
+    end
+
     if model_options.present?
       output.puts "  Session Options: #{JSON.pretty_generate(model_options).gsub(/(?<!\A)^/, '  ')}"
-    end
-    if mo = get_stored_model_options(@model).full? || config.model.options
-      output.puts "  Default Options: #{JSON.pretty_generate(mo).gsub(/(?<!\A)^/, '  ')}"
     end
   end
 

@@ -37,8 +37,9 @@ module OllamaChat::ModelHandling
   #
   # @param model_name [String] the name of the model to look up
   # @return [Hash] the model options as a hash with symbolized keys
-  def get_stored_model_options(model_name)
-    models::ModelOptions.where(model_name:).first&.options.
+  def get_stored_model_options(model_name, profile: nil)
+    profile ||= 'default'
+    models::ModelOptions.where(model_name:, profile:).first&.options.
       to_h.symbolize_keys_recursive
   end
 
@@ -48,8 +49,9 @@ module OllamaChat::ModelHandling
   #
   # @param model_name [String] the name of the model to check
   # @return [OllamaChat::Database::Models::ModelOptions, nil] the model options record or nil
-  def stored_model_options_exist?(model_name)
-    models::ModelOptions.where(model_name:).first
+  def stored_model_options_exist?(model_name, profile: nil)
+    profile ||= 'default'
+    models::ModelOptions.where(model_name:, profile:).first
   end
 
   # Retrieves the model options currently associated with the active session.
@@ -89,13 +91,14 @@ module OllamaChat::ModelHandling
   # @param model_name [String] the name of the model to target
   # @param model_options [Hash, Ollama::Options] the options to persist
   # @return [Hash] the updated model options hash
-  def store_model_options(model_name, model_options)
-    options = model_options.to_h.symbolize_keys_recursive.compact
-    mo = nil
-    if mo = stored_model_options_exist?(model_name)
+  def store_model_options(model_name, model_options, profile: nil)
+    profile ||= 'default'
+    options   = model_options.to_h.symbolize_keys_recursive.compact
+    mo        = nil
+    if mo = stored_model_options_exist?(model_name, profile:)
       mo.update(options:)
     else
-      mo = models::ModelOptions.create(model_name:, options:)
+      mo = models::ModelOptions.create(model_name:, options:, profile:)
     end
     mo.options
   end
@@ -106,12 +109,13 @@ module OllamaChat::ModelHandling
   #
   # @param model_name [String] the name of the model whose options are to be
   #   edited.
-  def edit_model_options(model_name)
-    model_options      = get_stored_model_options(model_name)
-    model_options      = fill_up_model_options(model_options)
-    model_options_json = edit_text(JSON.pretty_generate(model_options))
-    model_options      = JSON.load(model_options_json)
-    store_model_options(model_name, model_options)
+  def edit_model_options(model_name, profile: nil)
+    profile            ||= 'default'
+    model_options        = get_stored_model_options(model_name, profile:)
+    model_options        = fill_up_model_options(model_options)
+    model_options_json   = edit_text(JSON.pretty_generate(model_options))
+    model_options        = JSON.load(model_options_json)
+    store_model_options(model_name, model_options, profile:)
   rescue JSON::ParserError => e
     log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
   end
@@ -120,10 +124,10 @@ module OllamaChat::ModelHandling
   #
   # @return [self] the instance of the module
   def edit_session_model_options
-    model_options      = get_session_model_options
-    model_options      = fill_up_model_options(model_options)
-    model_options_json = edit_text(JSON.pretty_generate(model_options))
-    model_options      = JSON.load(model_options_json).compact
+    model_options        = get_session_model_options
+    model_options        = fill_up_model_options(model_options)
+    model_options_json   = edit_text(JSON.pretty_generate(model_options))
+    model_options        = JSON.load(model_options_json).compact
     session.update(model_options:)
     self
   rescue JSON::ParserError => e
@@ -133,20 +137,39 @@ module OllamaChat::ModelHandling
   # This method retrieves the options stored for the current session and
   # updates the active model options to match, ensuring the model behavior
   # aligns with the session's specific configuration.
-  def copy_model_options_from_session
-    model_name    = @model
-    model_options = get_session_model_options
-    store_model_options(model_name, model_options)
-    STDOUT.puts "Default model options of #{bold{model_name}} were copied from session model options."
+  def copy_model_options_from_session(profile: nil)
+    profile       ||= 'default'
+    model_name      = @model
+    model_options   = get_session_model_options
+    store_model_options(model_name, model_options, profile:)
+    STDOUT.puts "Model options #{italic{profile}} for #{bold{model_name}} were copied from session model options."
   end
 
   # Resets the session's model options to match the stored defaults for the
   # current model.
-  def copy_model_options_to_session
-    model_name = @model
-    stored_model_options = get_stored_model_options(model_name)
+  def copy_model_options_to_session(profile: nil)
+    profile              ||= 'default'
+    model_name             = @model
+    stored_model_options   = get_stored_model_options(model_name, profile:)
     session.update(model_options: stored_model_options)
-    STDOUT.puts "Default model options of #{bold{model_name}} were copied to session model options."
+    STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} were copied to session model options."
+  end
+
+  # Presents a list of stored profiles for the given model and prompts the user
+  # to select one.
+  #
+  # @param model_name [String] the name of the model whose profiles are to be listed
+  # @return [String, nil] the selected profile name, or nil if none was chosen
+  def choose_profile_for_model(model_name)
+    profiles = models::ModelOptions.where(model_name:).order(:profile).map(&:profile)
+    profiles = [ '[EXIT]' ] + profiles
+    case chosen = choose_entry(profiles, prompt: "Choose profile for #{bold{model_name}}: ")
+    when '[EXIT]', nil
+      STDOUT.puts "Cancelled."
+      return
+    else
+      chosen
+    end
   end
 
   # The model_present? method checks if the specified Ollama model is
@@ -254,8 +277,9 @@ module OllamaChat::ModelHandling
   #   retained instead of reverting to model defaults.
   #
   # @return [ ModelMetadata ] the metadata for the selected model.
-  def use_model(model = nil, keep_options: false)
-    old_model = @model
+  def use_model(model = nil, keep_options: false, profile: nil)
+    profile   ||= 'default'
+    old_model   = @model
 
     if model.nil?
       @model = choose_model('', @model)
@@ -272,10 +296,10 @@ module OllamaChat::ModelHandling
     if old_model != @model
       default_model_options = get_default_model_options
       session_model_options = get_session_model_options
-      unless stored_model_options_exist?(@model)
-        store_model_options(@model, default_model_options)
+      unless stored_model_options_exist?(@model, profile:)
+        store_model_options(@model, default_model_options, profile:)
       end
-      stored_model_options = get_stored_model_options(@model)
+      stored_model_options = get_stored_model_options(@model, profile:)
       if session_model_options.blank?
         if stored_model_options.present?
           session.update(model_options: stored_model_options)
@@ -312,7 +336,6 @@ module OllamaChat::ModelHandling
   #
   # @return [Array<SearchUI::Wrapper>] a sorted list of available models with
   #   metadata
-  #
   def all_models
     favs = all_favourited('model')
     ollama.tags.models.sort_by(&:name).

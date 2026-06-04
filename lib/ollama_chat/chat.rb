@@ -379,27 +379,31 @@ class OllamaChat::Chat
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))$),
+    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))(?:\s+(-p\s*\w+))?$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
     help: <<~EOT
       Change the model or manage model options (change, options, options from
       session, options to session)
     EOT
-  ) do |subcommand|
+  ) do |subcommand, opts|
     case subcommand
     when 'change'
+      opts = go_command('p:', opts, defaults: { ?p => 'default' })
       begin
-        use_model
+        use_model(profile: opts[?p])
       rescue OllamaChat::UnknownModelError => e
         msg = "Caught #{e.class}: #{e}"
         log(:error, msg, warn: true)
       end
     when 'options'
-      edit_model_options(@model)
+      opts = go_command('p:', opts, defaults: { ?p => 'default' })
+      edit_model_options(@model, profile: opts[?p])
     when 'options from session'
-      copy_model_options_from_session
+      opts = go_command('p:', opts, defaults: { ?p => 'default' })
+      copy_model_options_from_session(profile: opts[?p])
     when 'options to session'
-      copy_model_options_to_session
+      opts = go_command('p:', opts, defaults: { ?p => 'default' })
+      copy_model_options_to_session(profile: opts[?p])
     end
     :next
   end
@@ -492,10 +496,10 @@ class OllamaChat::Chat
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options))?((?:\s+-(?:[sf]))*)(?:\s+(.+))?$),
-    complete: [ 'session', %w[ change previous list new duplicate rename summarize delete model\ options ] ],
+    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options change|model options))?((?:\s+-(?:[sf]|p\s*\w+))*)(?:\s+(.+))?$),
+    complete: [ 'session', %w[ change previous list new duplicate rename summarize delete model\ options\ change model\ options ] ],
     optional: true,
-    options: '[-s|-f] [name]',
+    options: '[-s|-f|-p profile] [name]',
     help: <<~EOT
       Manage chat sessions (change, previous, list, new, duplicate, rename, summarize,
       delete, model options).
@@ -555,6 +559,11 @@ class OllamaChat::Chat
       change_session(name)
     when 'model options'
       edit_session_model_options
+    when 'model options change'
+      opts = go_command('p:', opts)
+      if profile = opts[?p] || choose_profile_for_model(@model)
+        copy_model_options_to_session(profile:)
+      end
     when 'previous'
       if prev = previous_session
         change_session(prev.id)
