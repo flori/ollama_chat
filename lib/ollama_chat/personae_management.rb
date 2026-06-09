@@ -351,14 +351,11 @@ module OllamaChat::PersonaeManagement
         [ pathname, pathname.size ]
       end.compact.sort_by(&:last).reverse_each do |pathname, size_bytes|
         persona_name = pathname.basename.sub_ext('').to_s
-        size_bytes   = pathname.size
-        size         = format_bytes(size_bytes)
-        tokens       = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
-        tokens_size  = format_tokens(tokens)
+        es           = OllamaChat::TokenEstimator.estimate(size_bytes)
         is_default   = default_persona_name == persona_name
         display_name = prefix_favourite(is_default ? bold { persona_name } : persona_name, favs[persona_name])
 
-        table << [ display_name, size, tokens_size, ]
+        table << [ display_name, es.bytes_formatted, es.tokens_formatted, ]
       end
 
       table.align_column 1, :right

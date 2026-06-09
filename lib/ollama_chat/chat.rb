@@ -33,6 +33,7 @@ require 'context_spook'
 class OllamaChat::Chat
   include Tins::GO
   include Term::ANSIColor
+  include OllamaChat::TokenEstimator
   include OllamaChat::HTTPHandling
   include OllamaChat::Commands
   include OllamaChat::Logging

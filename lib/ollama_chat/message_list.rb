@@ -380,9 +380,7 @@ class OllamaChat::MessageList
   def show_system_prompt
     current_system = system.to_s
     size_bytes     = current_system.size
-    size           = format_bytes(size_bytes)
-    tokens         = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
-    tokens_size    = format_tokens(tokens)
+    es             = OllamaChat::TokenEstimator.estimate(size_bytes)
     system_prompt  = @chat.kramdown_ansi_parse(current_system).
        gsub(/\n+\z/, '').full?
     if system_prompt.blank?
@@ -398,7 +396,7 @@ class OllamaChat::MessageList
       #{system_prompt}
 
       System prompt name:   #{bold{system_name}}
-      System prompt length: 👾#{size} 🧩#{tokens_size}
+      System prompt length: 👾#{es.bytes_formatted} 🧩#{es.tokens_formatted}
       EOT
     end
     self

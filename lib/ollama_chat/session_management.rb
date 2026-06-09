@@ -104,15 +104,12 @@ module OllamaChat::SessionManagement
                       else
                         name
                       end
-        size_bytes  = s.messages.to_s.size
-        size        = format_bytes(size_bytes)
-        tokens      = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
-        tokens_size = format_tokens(tokens)
+        es = OllamaChat::TokenEstimator.estimate(s.messages.to_s)
         table << [
           s.id.to_s,
           name,
-          size,
-          tokens_size,
+          es.bytes_formatted,
+          es.tokens_formatted,
           s.messages.to_s.count(?\n),
           s.age(now:),
         ]
@@ -130,12 +127,10 @@ module OllamaChat::SessionManagement
   #
   # @param output [IO] the output stream to write the information to (default: STDOUT)
   def show_session(output: STDOUT)
-    size_bytes = session.messages.to_s.size
-    messages_size  = format_bytes(size_bytes)
-    tokens         = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
-    tokens_size    = format_tokens(tokens)
+    size_bytes     = session.messages.to_s.size
+    es             = OllamaChat::TokenEstimator.estimate(size_bytes)
     messages_count = session.messages.to_s.count(?\n)
-    output.puts "#{bold{session.name}} (#{italic{session.id}}), #{messages_size}/#{tokens_size}, #{messages_count} messages"
+    output.puts "#{bold{session.name}} (#{italic{session.id}}), #{es.bytes_formatted}/#{es.tokens_formatted}, #{messages_count} messages"
   end
 
   # Interactively prompts the user for a unique session name.
@@ -476,22 +471,20 @@ module OllamaChat::SessionManagement
     elsif selector
       now = Time.now
       sessions = session_query.order(Sequel.desc(:updated_at)).map { |session|
-        duration    = session.age(now:)
-        size_bytes  = session.messages.to_s.size
-        tokens      = OllamaChat::Utils::TokenEstimator.estimate(size_bytes)
-        tokens_size = format_tokens(tokens)
-        count       = session.messages.to_s.count(?\n)
-        locked      = if pid = session.locked?
-                        if pid == $$
-                          " 🔓#{pid} "
-                        else
-                          " 🔐#{pid} "
-                        end
-                      else
-                        ' '
-                      end
+        duration = session.age(now:)
+        es       = OllamaChat::TokenEstimator.estimate(session.messages.to_s)
+        count    = session.messages.to_s.count(?\n)
+        locked   = if pid = session.locked?
+                     if pid == $$
+                       " 🔓#{pid} "
+                     else
+                       " 🔐#{pid} "
+                     end
+                   else
+                     ' '
+                   end
         display     = <<~EOT.strip
-          #{session.name} 🆔#{session.id}#{locked}📨#{count} 🧩#{tokens_size} ⏳#{duration}
+          #{session.name} 🆔#{session.id}#{locked}📨#{count} 🧩#{es.tokens_formatted} ⏳#{duration}
         EOT
         SearchUI::Wrapper.new(
           session.name,
