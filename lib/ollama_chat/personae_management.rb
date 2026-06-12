@@ -267,7 +267,7 @@ module OllamaChat::PersonaeManagement
   def select_persona_path
     persona = choose_persona or return
     path = persona_name_to_pathname(persona).to_s
-    perform_copy_to_clipboard(text: path)
+    perform_copy_to_clipboard(text: path, edit: false)
     @prefill_prompt = path
     path
   end
