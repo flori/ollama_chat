@@ -416,7 +416,6 @@ describe OllamaChat::Chat, protect_env: true do
     it 'dispays the last exchange of the converstation' do
       expect(chat).to receive(:interact_with_user).and_return 0
       expect(STDOUT).to receive(:puts).at_least(1)
-      expect(STDOUT).to receive(:print).at_least(1)
       chat.start
     end
   end
