@@ -98,7 +98,7 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/list(?:\s+(\d*))? "' do
-      expect(chat.messages).to receive(:list_conversation).with(4)
+      expect(chat.messages).to receive(:list_conversation).with(4, think_loud: true)
       expect(chat.handle_input("/list 2")).to eq :next
     end
 

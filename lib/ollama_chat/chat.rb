@@ -578,12 +578,23 @@ class OllamaChat::Chat
 
   command(
     name: :list,
-    regexp: %r(^/list(?:\s+(\d*))?$),
-    options: '[n=1]',
-    help: 'List the last n or all conversation exchanges'
-  ) do
-    n = 2 * _1.to_i if _1
-    messages.list_conversation(n)
+    regexp: %r(^/list((?:\s+(?:-[ts]))*)(?:\s+(\d*))?$),
+    options: '[-t|-s|n=1]',
+    help: <<~EOT
+      List the last n or all conversation exchanges.
+      Flags: -t (force show thinking), -s (suppress thinking).
+    EOT
+  ) do |opts,number|
+    opts = go_command('ts', opts.to_s)
+    n    = 2 * number.to_i if number
+    think_loud = if opts[?t]
+                   true
+                 elsif opts[?s]
+                   false
+                 else
+                   self.think_loud.on?
+                 end
+    messages.list_conversation(n, think_loud:)
     :next
   end
 

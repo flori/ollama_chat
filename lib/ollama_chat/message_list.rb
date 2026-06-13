@@ -213,9 +213,11 @@ class OllamaChat::MessageList
   #
   # @param last [Integer, nil] The number of recent messages to display.
   #   Defaults to the total size of the messages list if nil.
+  # @param think_loud [Boolean] Whether to force show or suppress thinking content.
+  #   Defaults to the global chat setting.
   #
   # @return [OllamaChat::MessageList] self, allowing for method chaining.
-  def list_conversation(last = nil)
+  def list_conversation(last = nil, think_loud: @chat.think_loud.on?)
     messages = @messages.reject(&:tool?)
     last = (last || messages.size).clamp(0, messages.size)
     messages = messages[-last..-1].to_ary
@@ -228,7 +230,7 @@ class OllamaChat::MessageList
         message: @chat.infobar_message,
       )
       messages.each do |message|
-        output.puts message_text_for(message)
+        output.puts message_text_for(message, think_loud:)
         +infobar
       end
     end
