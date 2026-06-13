@@ -122,9 +122,9 @@ class OllamaChat::MessageList
   # @example Find the last user message regardless of content
   #   last_user = message_list.find_last { |m| m.role == 'user' }
   #
-  # @note The method iterates in reverse order (`reverse_each`) so that
-  #   the *most recent* matching message is returned.  It also respects
-  #   the `content` flag to skip empty messages, which is handy when the
+  # @note The method iterates in reverse order (`reverse_each`) so that the
+  #   *most recent* matching message is returned. It also respects the
+  #   `content` flag to skip empty messages, which is handy when the
   #   chat history contains empty messages e. g. when tool calling.
   def find_last(content: false, &block)
     @messages.reverse_each.find { |m|
@@ -243,10 +243,13 @@ class OllamaChat::MessageList
   #
   # @param n [Integer, nil] The number of non-user messages to display.
   #   Defaults to 1 if not specified.
+  # @param pager [Boolean] whether to use a pager for output (default: true).
+  # @param think_loud [Boolean] Whether to force show or suppress thinking content.
+  #   Defaults to the global chat setting.
   #
   # @return [OllamaChat::MessageList, nil] self if messages were displayed,
   #   or nil if no valid messages were found to show.
-  def show_last(n = nil, pager: true)
+  def show_last(n = nil, pager: true, think_loud: @chat.think_loud.on?)
     n ||= 1
     messages = @messages.reject { |message| message.role == 'user' }
     n = n.clamp(0..messages.size)
@@ -261,7 +264,7 @@ class OllamaChat::MessageList
         message: @chat.infobar_message,
       )
       last_messages.each do |message|
-        output.puts message_text_for(message)
+        output.puts message_text_for(message, think_loud:)
         +infobar
       end
     ensure
@@ -461,18 +464,20 @@ class OllamaChat::MessageList
   # thinking annotations and image references within the message.
   #
   # @param message [Object] the message object containing role, content, thinking, and images
+  # @param think_loud [Boolean] Whether to force show or suppress thinking content.
+  #   Defaults to the global chat setting.
   #
   # @return [String] the formatted text representation of the message
-  def message_text_for(message)
-    thinking = if @chat.think_loud?
-                 think_annotate do
+  def message_text_for(message, think_loud: @chat.think_loud.on?)
+    thinking = if think_loud
+                 think_annotate(think_loud:) do
                    message.thinking.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
                  end
                end
     content       = message.content.full? { @chat.markdown.on? ? @chat.kramdown_ansi_parse(_1) : _1 }
     message_text  = display_sender(message)
     if thinking
-      message_text += [ ?:, thinking, talk_annotate { content } ].compact.
+      message_text += [ ?:, thinking, talk_annotate(think_loud:) { content } ].compact.
         map(&:chomp) * ?\n
     else
       message_text += ":\n#{content}"
@@ -493,6 +498,7 @@ class OllamaChat::MessageList
   # Saves the conversation to a JSONL (JSON Lines) file.
   #
   # @param filename [Pathname] the path to the JSONL file
+  # @param messages [Array] the messages to save
   # @return [OllamaChat::MessageList] self
   def save_conversation_jsonl(filename, messages: @messages)
     filename.open(?w) do |output|

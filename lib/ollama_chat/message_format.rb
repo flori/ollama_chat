@@ -17,7 +17,8 @@
 module OllamaChat::MessageFormat
   # Returns the terminal color code associated with the message's role.
   #
-  # @param message [ OllamaChat::Message ] the message object to determine the color for
+  # @param message [ OllamaChat::Message ] the message object to determine the
+  #   color for
   # @return [ Integer ] the color code corresponding to the role
   def role_color(message)
     case message.role
@@ -48,7 +49,9 @@ module OllamaChat::MessageFormat
   # Otherwise, it returns the message role.
   #
   # @param message [ OllamaChat::Message ] the message object
-  # @param template [ Boolean ] whether to apply the role formatting template (default: true)
+  # @param template [ Boolean ] whether to apply the role formatting template
+  #   (default: true)
+  #
   # @return [ String ] the formatted sender name, the raw name, or the role
   def sender_name_displayed(message, template: true)
     if sender_name = message.ask_and_send(:sender_name).full?
@@ -98,13 +101,16 @@ module OllamaChat::MessageFormat
   # The think_annotate method processes a string and conditionally annotates it
   # with a thinking emoji if the think feature is enabled.
   #
-  # @param block [ Proc ] a block that returns a string to be processed
+  # @param think_loud [ Boolean ] whether to annotate the content (defaults to
+  #   current chat setting) @param block [ Proc ] a block that returns a string
+  # to be processed
   #
-  # @return [ String, nil ] the annotated string with a thinking emoji if enabled, otherwise nil
-  def think_annotate(&block)
+  # @return [ String, nil ] the annotated string with a thinking emoji if
+  #   enabled, otherwise nil
+  def think_annotate(think_loud: chat.think_loud?, &block)
     string = block.()
     string.to_s.size == 0 and return
-    if chat.think_loud?
+    if think_loud
       "💭\n#{string}\n"
     end
   end
@@ -112,13 +118,15 @@ module OllamaChat::MessageFormat
   # The talk_annotate method processes a string output by a block and
   # conditionally adds annotation.
   #
+  # @param think_loud [ Boolean ] whether to annotate the content (defaults to
+  #   current chat setting)
   # @param block [ Proc ] a block that returns a string to be processed
   #
   # @return [ String, nil ] the annotated string if it has content, otherwise nil
-  def talk_annotate(&block)
+  def talk_annotate(think_loud: chat.think_loud?, &block)
     string = block.()
     string.to_s.size == 0 and return
-    if chat.think_loud?
+    if think_loud
       "💬\n#{string}\n"
     else
       string

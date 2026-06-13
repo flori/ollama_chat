@@ -123,12 +123,12 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :next when input is "/last 2"' do
-      expect(chat.messages).to receive(:show_last).with(2, pager: true)
+      expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: true)
       expect(chat.handle_input("/last 2")).to eq :next
     end
 
     it 'returns :next when input is "/last -p 2"' do
-      expect(chat.messages).to receive(:show_last).with(2, pager: false)
+      expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: false)
       expect(chat.handle_input("/last -p 2")).to eq :next
     end
 
