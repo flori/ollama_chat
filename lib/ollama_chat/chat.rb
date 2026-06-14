@@ -288,24 +288,30 @@ class OllamaChat::Chat
 
   command(
     name: :copy,
-    regexp: %r(^/copy(?:\s+(edit))?$),
-    complete: [ 'copy', %w[ edit ] ],
+    regexp: %r(^/copy(\s+-e)?\s*$),
     optional: true,
-    help: 'Copy the last response to the clipboard (optionally edit it first)'
-  ) do |subcommand|
-    copy_to_clipboard(edit: subcommand == 'edit')
+    help: <<~EOT
+        Copy the last response to the clipboard.
+         Flags: -e to edit before copying.
+    EOT
+  ) do |opts|
+    opts = go_command('e', opts)
+    copy_to_clipboard(edit: opts[?e])
     :next
   end
 
   command(
     name: :paste,
-    regexp: %r(^/paste(?:\s+(edit))?$),
-    complete: [ 'paste', %w[ edit ] ],
+    regexp: %r(^/paste(\s+-e)?\s*$),
     optional: true,
-    help: 'Paste content from the clipboard (optionally edit it afterwards)'
-  ) do |subcommand|
+    help: <<~EOT
+        Paste content from the clipboard.
+         Flags: -e to edit after pasting.
+    EOT
+  ) do |opts|
     disable_content_parsing
-    paste_from_clipboard(edit: subcommand == 'edit')
+    opts = go_command('e', opts)
+    paste_from_clipboard(edit: opts[?e])
   end
 
   ## Settings

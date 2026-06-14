@@ -39,9 +39,9 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/copy")).to eq :next
     end
 
-    it 'returns :next when input is "/copy edit"' do
-      expect(chat).to receive(:copy_to_clipboard).with(edit: true)
-      expect(chat.handle_input("/copy edit")).to eq :next
+    it 'returns :next when input is "/copy -e"' do
+      expect(chat).to receive(:copy_to_clipboard).with(edit: 1)
+      expect(chat.handle_input("/copy -e")).to eq :next
     end
 
     it 'returns "pasted this" when input is "/paste"' do
@@ -50,10 +50,10 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/paste")).to eq "pasted this"
     end
 
-    it 'returns "pasted this" when input is "/paste edit"' do
-      expect(chat).to receive(:paste_from_clipboard).with(edit: true).
+    it 'returns "pasted this" when input is "/paste -e"' do
+      expect(chat).to receive(:paste_from_clipboard).with(edit: 1).
         and_return "pasted this"
-      expect(chat.handle_input("/paste edit")).to eq "pasted this"
+      expect(chat.handle_input("/paste -e")).to eq "pasted this"
     end
 
     it 'returns :next when input is "/toggle markdown"' do

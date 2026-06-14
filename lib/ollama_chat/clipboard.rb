@@ -15,7 +15,7 @@ module OllamaChat::Clipboard
   #   message is used (default: nil)
   # @param content [true, false] If true, copies the content of the message;
   #   if false, copies the entire message object (default: false)
-  # @param edit [true, false] If true, opens the content in the editor for
+  # @param edit [truthy/falsy] If true, opens the content in the editor for
   #   modification before copying (default: true)
   #
   # @return [TrueClass] if the copying has been performed successfully.
@@ -50,7 +50,7 @@ module OllamaChat::Clipboard
   # content from the system clipboard. It uses the command specified in the
   # configuration (`config.paste`) to fetch clipboard content.
   #
-  # @param edit [true, false] If true, opens the retrieved content in the
+  # @param edit [truthy/falsy] If true, opens the retrieved content in the
   #   editor for modification before returning it (default: false)
   # @return [String] The content retrieved from the system clipboard
   # @raise [OllamaChat::OllamaChatError] if the clipboard command is not found
@@ -108,7 +108,7 @@ module OllamaChat::Clipboard
   # handles any OllamaChat::OllamaChatError exceptions by printing the error
   # message to standard error and does not re-raise the exception.
   #
-  # @param edit [true, false] If true, opens the content in the editor for
+  # @param edit [truthy/falsy] If true, opens the content in the editor for
   #   modification before copying (default: true)
   #
   # @return [TrueClass] if the copying has been performed successfully.
@@ -127,7 +127,7 @@ module OllamaChat::Clipboard
   # handles clipboard errors gracefully by displaying error messages to
   # standard error.
   #
-  # @param edit [true, false] If true, opens the content in the editor for
+  # @param edit [truthy/falsy] If true, opens the content in the editor for
   #   modification before returning (default: false)
   # @return [String, nil] The content retrieved from the system clipboard,
   #   or nil if an error occurred
