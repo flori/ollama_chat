@@ -45,12 +45,16 @@ module OllamaChat::MessageOutput
   #
   # @param filename [ String ] the path to the file where the last assistant
   #   message should be written
+  # @param edit [ Boolean ] whether to edit the content before saving (defaults to false)
   #
   # @return [ OllamaChat::Chat ] returns self
-  def output(filename)
+  def output(filename, edit: false)
     if message = @messages.last and message.role == 'assistant'
+      and content = message.content
+    then
       begin
-        if attempt_to_write_file(filename, message)
+        content = edit_text(content) if edit
+        if attempt_to_write_file(filename, content)
           STDOUT.puts "Last response was written to #{filename.inspect}."
         end
         self
@@ -74,13 +78,12 @@ module OllamaChat::MessageOutput
   #
   # @param filename [ String ] the path to the file where the content should be
   #   written
-  # @param message [ OllamaChat::Message ] the message object containing the
-  #   content to write
+  # @param content [ String ] the actual text content to be written to the file
   #
   # @return [ TrueClass ] returns true if the file was successfully written
   # @return [ nil ] returns nil if the user chose not to overwrite or if an
   #   error occurred
-  def attempt_to_write_file(filename, message)
+  def attempt_to_write_file(filename, content)
     path = Pathname.new(filename.to_s).expand_path
     if !path.exist? ||
         confirm?(
@@ -89,7 +92,7 @@ module OllamaChat::MessageOutput
         )
     then
       File.open(path, ?w) do |output|
-        output.write(message.content)
+        output.write(content)
       end
     else
       return

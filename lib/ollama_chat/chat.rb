@@ -1040,11 +1040,15 @@ class OllamaChat::Chat
 
   command(
     name: :output,
-    regexp: %r(^/output\s+(.+)$),
-    options: 'path',
-    help: 'Save the last response to a file',
-  ) do |path|
-    output(path)
+    regexp: %r(^/output(\s+-e)?\s+(.+)$),
+    options: '[-e] path',
+    help: <<~EOT
+      Save the last response to a file.
+      Flags: -e to edit before saving.
+    EOT
+  ) do |opts, path|
+    opts = go_command('e', opts)
+    output(path, edit: opts[?e])
     :next
   end
 
