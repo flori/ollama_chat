@@ -384,17 +384,17 @@ module OllamaChat::Commands
 
   command(
     name: :regenerate,
-    regexp: %r(^/regenerate(?:\s+(edit))?$),
-    complete: [ 'regenerate', %w[ edit ] ],
-    optional: true,
-    help: 'Regenerate the last response (optionally edit the user message)'
-  ) do |subcommand|
+    regexp: %r(^/regenerate(\s+-e)?\s*$),
+    help: <<~EOT
+      Regenerate the last response.
+      Flags: -e to edit the user message before regenerating.
+    EOT
+  ) do |opts|
+    opts = go_command('e', opts)
     if message = messages.find_last { !_1.tool? && _1.role == 'user' }
       content = message.content.to_s
       messages.drop(1)
-      if subcommand == 'edit'
-        content = edit_text(content)
-      end
+      content = edit_text(content) if opts[?e]
     else
       STDOUT.puts "Not enough messages in this conversation."
       next :redo
