@@ -15,16 +15,20 @@ module OllamaChat::MessageOutput
   # input.
   #
   # @param cmd [ String ] the command to which the output should be piped
+  # @param edit [ truthy/falsy ] whether to edit the content before piping (defaults to false)
   #
   # @return [ OllamaChat::Chat ] returns self
   # @return [ nil ] returns nil if the command is not provided or if there is
   #   no assistant message
-  def pipe(cmd)
+  def pipe(cmd, edit: false)
     cmd.present? or return
-    if message = @messages.last and message.role == 'assistant'
+    if message = @messages.last and message.role == 'assistant' and
+      content = message.content
+    then
+      content = edit_text(content) if edit
       begin
         IO.popen(cmd, ?w) do |output|
-          output.write(message.content)
+          output.write(content)
         end
         exit_code = $?&.exitstatus
         if exit_code == 0
@@ -45,12 +49,12 @@ module OllamaChat::MessageOutput
   #
   # @param filename [ String ] the path to the file where the last assistant
   #   message should be written
-  # @param edit [ Boolean ] whether to edit the content before saving (defaults to false)
+  # @param edit [ truthy/falsy ] whether to edit the content before saving (defaults to false)
   #
   # @return [ OllamaChat::Chat ] returns self
   def output(filename, edit: false)
-    if message = @messages.last and message.role == 'assistant'
-      and content = message.content
+    if message = @messages.last and message.role == 'assistant' and
+      content = message.content
     then
       begin
         content = edit_text(content) if edit

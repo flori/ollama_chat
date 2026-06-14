@@ -346,6 +346,30 @@ describe OllamaChat::Chat, protect_env: true do
       end
     end
 
+    describe '/output' do
+      it 'can output last response with "/output foo.md"' do
+        expect(chat).to receive(:output).with('foo.md', edit: false)
+        expect(chat.handle_input("/output foo.md")).to eq :next
+      end
+
+      it 'can output last response with editing with "/output -e foo.md"' do
+        expect(chat).to receive(:output).with('foo.md', edit: 1)
+        expect(chat.handle_input("/output -e foo.md")).to eq :next
+      end
+    end
+
+    describe '/pipe' do
+      it 'can pipe last response with "/pipe true"' do
+        expect(chat).to receive(:pipe).with('true', edit: false)
+        expect(chat.handle_input("/pipe true")).to eq :next
+      end
+
+      it 'can pipe last response with editing with "/pipe -e true"' do
+        expect(chat).to receive(:pipe).with('true', edit: 1)
+        expect(chat.handle_input("/pipe -e true")).to eq :next
+      end
+    end
+
     it 'returns "the response" when input is "/web\s+(?:(\d+)\s+)?(.+)"' do
       expect(chat).to receive(:web).with('23', 'query').and_return 'the response'
       expect(chat.handle_input("/web 23 query")).to eq 'the response'

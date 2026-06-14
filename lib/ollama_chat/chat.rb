@@ -1017,11 +1017,15 @@ class OllamaChat::Chat
 
   command(
     name: :pipe,
-    regexp: %r(^/pipe\s+(.+)$),
+    regexp: %r(^/pipe(\s+-e)?\s+(.+)$),
     options: 'path',
-    help: 'Pipe the last response into another command\'s stdin',
-  ) do |command|
-    pipe(command)
+    help: <<~EOT
+     Pipe the last response into another command's stdin.
+      Flags: -e to edit before piping.
+    EOT
+  ) do |opts, command|
+    opts = go_command('e', opts)
+    pipe(command, edit: opts[?e])
     :next
   end
 
