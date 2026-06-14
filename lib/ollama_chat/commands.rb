@@ -10,7 +10,7 @@ module OllamaChat::Commands
     regexp: %r(^/copy(\s+-e)?\s*$),
     help: <<~EOT
         Copy the last response to the clipboard.
-         Flags: -e to edit before copying.
+         Options: -e to edit before copying.
     EOT
   ) do |opts|
     opts = go_command('e', opts)
@@ -23,7 +23,7 @@ module OllamaChat::Commands
     regexp: %r(^/paste(\s+-e)?\s*$),
     help: <<~EOT
         Paste content from the clipboard.
-         Flags: -e to edit after pasting.
+         Options: -e to edit after pasting.
     EOT
   ) do |opts|
     disable_content_parsing
@@ -306,7 +306,7 @@ module OllamaChat::Commands
     options: '[-t|-s|n=1]',
     help: <<~EOT
       List the last n or all conversation exchanges.
-      Flags: -t (force show thinking), -s (suppress thinking).
+      Options: -t (force show thinking), -s (suppress thinking).
     EOT
   ) do |opts,number|
     opts = go_command('ts', opts.to_s)
@@ -328,7 +328,7 @@ module OllamaChat::Commands
     options: '[-p|-t|-s|n=1]',
     help:    <<~EOT
       Show the last n or the most recent system/assistant message.
-      Flags: -p (plain output, no pager), -t (force show thinking),
+      Options: -p (plain output, no pager), -t (force show thinking),
       -s (suppress thinking).
     EOT
   ) do |opts,number|
@@ -387,7 +387,7 @@ module OllamaChat::Commands
     regexp: %r(^/regenerate(\s+-e)?\s*$),
     help: <<~EOT
       Regenerate the last response.
-      Flags: -e to edit the user message before regenerating.
+      Options: -e to edit the user message before regenerating.
     EOT
   ) do |opts|
     opts = go_command('e', opts)
@@ -636,20 +636,22 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apr]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+(.+))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
-    options: '[-w|-a|-p|-c <collection>|-t <tags>] [arg…]',
+    options: "[\n  -w|-a|-p|-e|\n  -c <collection>|\n  -t <tags>\n]\n[arg…]",
     help: <<~EOT
       Import content from files, URLs, or globs into the context
       Use subcommands: path, context, embedding, summary,
         import (the default).
       Options:
-        -p (enable pattern mode to allow using globs/wildcards)
-        -w <words> (summary subcommand only, default 100)
-        -a (pattern mode only, include all files for patterns)
+        -p enable pattern mode to allow using globs/wildcards)
+        -w <words> summary subcommand only (default 100)
+        -a pattern mode only, include all files for patterns
         -c <collection> use this collection (embedding subcommand only)
         -t <tag1,tag2,…> the custom tags to appy (embedding subcommand only)
+        -e edit content before importing, only standard command and path with
+           single source are supported.
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -704,7 +706,7 @@ module OllamaChat::Commands
         end
       end
     when 'path'
-      opts = go_command('pa', opts)
+      opts = go_command('pae', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
@@ -715,20 +717,25 @@ module OllamaChat::Commands
         next provide_file_set_content(patterns, all:, &read) || :next
       elsif arg
         filename = Pathname.new(arg).expand_path
-        next filename.file? && filename.read || :next
+        filename.file? or next :next
+        content = filename.read
+        content = edit_text(content) if opts[?e]
+        content
       else
         STDERR.puts "Need a filename to read for input!"
         next :next
       end
     else
-      opts = go_command('pa', opts)
+      opts = go_command('pae', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
         arg and patterns = arg.scan(/(\S+)/).flatten
         next provide_file_set_content(patterns, all:, skip_blank: true) { import(_1) } || :next
       elsif arg
         source = arg
-        next import(source) || :next
+        content = import(source) or next :next
+        content = edit_text(content) if opts[?e]
+        content
       else
         STDERR.puts "Need a source to import for input!"
         next :next
@@ -744,7 +751,7 @@ module OllamaChat::Commands
     options: 'path',
     help: <<~EOT
      Pipe the last response into another command's stdin.
-      Flags: -e to edit before piping.
+      Options: -e to edit before piping.
     EOT
   ) do |opts, command|
     opts = go_command('e', opts)
@@ -771,7 +778,7 @@ module OllamaChat::Commands
     options: '[-e] path',
     help: <<~EOT
       Save the last response to a file.
-      Flags: -e to edit before saving.
+      Options: -e to edit before saving.
     EOT
   ) do |opts, path|
     opts = go_command('e', opts)
