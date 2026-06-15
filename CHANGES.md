@@ -1,5 +1,58 @@
 # Changes
 
+## 2026-06-15 v0.0.89
+
+### New Features
+
+- **Model Option Profiles**: Added support for model option profiles, including
+  a new `profile` column in the database with a composite unique index on
+  `[:model_name, :profile]`. 
+    - Enhanced `OllamaChat::ModelHandling` methods (`get_stored_model_options`,
+      `store_model_options`) to support a `profile` parameter.
+    - Implemented `choose_profile_for_model` for interactive profile selection.
+    - Added the `-p` flag to `/model` and `/session` commands via
+      `lib/ollama_chat/dialog.rb`.
+- **Thinking Visibility Overrides**: Introduced `-t` and `-s` flags for the
+  `/list` and `/last` commands to override thinking visibility, propagating the
+  `think_loud` parameter through `OllamaChat::MessageList#list_conversation`,
+  `OllamaChat::MessageList#show_last`, and `OllamaChat::MessageFormat`.
+- **Session Information**: The application now calls `info_session` during the
+  initialization of `OllamaChat::Chat` to display session information on
+  startup.
+
+### Enhancements & Refactoring
+
+- **Command Standardization**: 
+    - Standardized the use of the `-e` flag for editing across multiple
+      commands: `/input`, `/regenerate`, `/pipe`, `/output`, `/copy`, and
+      `/paste`.
+    - Replaced "Flags:" with "Options:" in help text for several chat commands.
+    - Added a specific editor hook using `edit_text` for the `/input` command
+      to allow editing imported content.
+- **Code Architecture**: 
+    - Extracted all chat command definitions into a new separate module
+      `OllamaChat::Commands` located in `lib/ollama_chat/commands.rb`.
+    - Updated `OllamaChat::Chat` and the main library entry point to utilize
+      this new module instead of inline definitions or
+      `OllamaChat::CommandConcern`.
+- **Message Output**: 
+    - Enhanced `OllamaChat::MessageOutput#pipe` and `#output` to accept an
+      `edit` parameter.
+    - Refactored `OllamaChat::MessageOutput#attempt_to_write_file` to receive
+      raw content instead of a message object.
+
+### Bug Fixes & Documentation
+
+- **Persona Management**: Updated `select_persona_path` in
+  `lib/ollama_chat/personae_management.rb` to pass `edit: false` to
+  `perform_copy_to_clipboard`, preventing persona path copies from triggering
+  edit mode.
+- **Documentation**: Corrected YARD documentation for the `edit` parameter in
+  `lib/ollama_chat/clipboard.rb` and `lib/ollama_chat/message_output.rb`,
+  changing the type from `Boolean` to `truthy/falsy`.
+- **Packaging**: Added `lib/ollama_chat/commands.rb` to the `files` and
+  `extra_rdoc_files` sections of the gemspec.
+
 ## 2026-06-03 v0.0.88
 
 ### Added
