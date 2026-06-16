@@ -138,8 +138,9 @@ module OllamaChat::RAGHandling
   # existing tags, removes the stale records, and re-embeds the current
   # version of the source.
   #
-  # @return [NilClass] always returns nil
+  # @return [String] a newline-separated string of embedding result messages.
   def update_collection
+    results = []
     seen = {}
     @documents.each_record do |record|
       source = @documents.normalize_source(record.source) or next
@@ -151,8 +152,9 @@ module OllamaChat::RAGHandling
       end
       tags = record.tags_set
       @documents.source_remove(source)
-      embed(source, tags:)
+      r = embed(source, tags:) or next
+      results << r
     end
-    nil
+    results * "\n"
   end
 end

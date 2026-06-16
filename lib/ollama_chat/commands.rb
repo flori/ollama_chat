@@ -493,7 +493,7 @@ module OllamaChat::Commands
     when 'rename'
       rename_collection(collection)
     when 'update'
-      update_collection
+      results = update_collection and next results
     when nil
       collection_stats
     end
