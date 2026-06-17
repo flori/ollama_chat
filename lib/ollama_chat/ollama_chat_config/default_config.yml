@@ -158,7 +158,39 @@ prompts:
     Response content was
 
     %{message_content}
-  session_title: "Create a title with a length of **less than %{length}** characters for this conversation. Output only the title and nothing else:\n\n%{content}"
+  session_title: |
+    Create a title with a length of **less than %{length}** characters for this
+    conversation. Output only the title and nothing else:
+
+    %{content}
+  suggest_coding: |
+    Analyze the conversation history above. Generate exactly 3 distinct,
+    concise follow-up prompts that the user might want to ask next to further
+    their goal. 
+
+    Criteria:
+    1. One prompt should dive deeper into the current technical implementation.
+    2. One prompt should challenge a potential edge case or optimization.
+    3. One prompt should suggest a logical next step or a broader architectural question.
+
+    Output only the text of these suggestions, separated by an empty line, 
+    without any numbering, bullet points, or introductory text.
+  suggest_roleplaying: |
+    Analyze the conversation history and the current narrative state of this
+    roleplay/story. Generate exactly 3 distinct, concise prompts that the
+    user could use to respond as their character.
+
+    Criteria:
+    1. One prompt should be an active choice or bold action that pushes the
+       plot forward or creates tension.
+    2. One prompt should focus on character interaction, exploring emotional
+       depth, a social reaction, or a subtle nuance in dialogue.
+    3. One prompt should introduce a sudden complication, a risky gamble, or an
+       unexpected event. This prompt MUST explicitly include a suggested dice roll
+       (e.g., "Roll 1d20") to determine the success or failure of the action.
+
+    Output only the text of these suggestions, separated by an empty line, 
+    without any numbering, bullet points, or introductory text.
 system_prompts:
   default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
   persona: |

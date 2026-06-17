@@ -49,7 +49,10 @@ describe OllamaChat::InputContent do
 
       # Mock the selection process
       expect(chat).to receive(:choose_entry).
-        with(files.unshift('[EXIT]')).and_return(files[1])
+        with(
+          files.unshift('[EXIT]'),
+          prompt: 'Select a file to import: ',
+        ).and_return(files[1])
 
       result = chat.choose_filename('spec/assets/**/*.txt')
       expect(result).to eq Pathname.new(files[1])

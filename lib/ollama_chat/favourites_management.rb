@@ -51,7 +51,7 @@ module OllamaChat::FavouritesManagement
           return
         end
         to_select.unshift('[EXIT]')
-        case chosen = choose_entry(to_select)
+        case chosen = choose_entry(to_select, prompt: 'Select an item to mark as favourite: ')
         when '[EXIT]', nil
           STDOUT.puts "Cancelled."
           return
@@ -77,7 +77,7 @@ module OllamaChat::FavouritesManagement
         to_select = models::Favourite.where(context: type).map(&:name)
         to_select = all_things.select { to_select.member?(_1.value) }
         to_select = [ '[EXIT]' ] + to_select
-        case chosen = choose_entry(to_select)
+        case chosen = choose_entry(to_select, prompt: 'Select a favourite to remove: ')
         when '[EXIT]', nil
           STDOUT.puts "Cancelled."
           return

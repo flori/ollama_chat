@@ -163,7 +163,10 @@ module OllamaChat::Commands
     when 'info'
       info_system_prompt
     when 'reset'
-      if prompt = choose_system_prompt
+      if prompt = choose_system_prompt(
+          prompt: 'Which system law needs to be restored to its origin? '
+        )
+      then
         if reset_system_prompt_to_default(prompt.name)
           STDOUT.puts "Reset system prompt #{bold{prompt.name}} to default."
         else
@@ -405,12 +408,12 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(\s+-e)?(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset))?(?:\s+(\S+))?$),
-    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset ] ],
+    regexp: %r(^/prompt(\s+-e)?(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|suggest))?(?:\s+(\S+))?$),
+    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset suggest ] ],
     optional: true,
     help: <<~EOT,
       Manage preset prompt templates or prefill the prompt (edit, info, add,
-      delete, list, duplicate, import, export, reset)
+      delete, list, duplicate, import, export, reset, suggest)
       Options: -e to edit the next prompt instead of prefilling
     EOT
   ) do |opts, subcommand, filename|
@@ -432,16 +435,22 @@ module OllamaChat::Commands
     when 'info'
       info_prompt
     when 'reset'
-      if prompt = choose_prompt(default: true)
+      if prompt = choose_prompt(
+          default: true,
+          prompt: 'Which prompt needs to be restored to its origin? '
+        )
+      then
         if reset_prompt_to_default(prompt.name)
           STDOUT.puts "Reset prompt #{bold{prompt.name}} to default."
         else
           STDOUT.puts "No default value found for prompt #{bold{prompt.name}}."
         end
       end
+    when 'suggest'
+      prompt = suggest_prompts and next prompt
     when nil
       opts = go_command('e', opts)
-      if prompt = choose_prompt.full?(&:to_s)
+      if prompt = choose_prompt(prompt: 'Which template shall guide the next response? ').full?(&:to_s)
         if opts[?e]
           prompt = edit_text(prompt)
           next prompt

@@ -91,7 +91,7 @@ module OllamaChat::PersonaeManagement
   # @return [String, nil] The name of the persona that was set as default,
   #   or nil if the selection was cancelled or no persona was chosen.
   def set_default_persona
-    if persona = choose_persona(none: true)
+    if persona = choose_persona(none: true, prompt: 'Who would you like to talk to today? ')
       set_default_persona_name(persona)
     end
   end
@@ -214,7 +214,7 @@ module OllamaChat::PersonaeManagement
   # @return [String] A JSON object with deletion status on success,
   #   or nil if persona was not selected or deletion was cancelled
   def delete_persona
-    if persona = choose_persona
+    if persona = choose_persona(prompt: 'Which persona is no longer needed? ')
       pathname        = persona_name_to_pathname(persona)
       backup_pathname = persona_backup_pathname(persona)
       if pathname.exist?
@@ -245,7 +245,7 @@ module OllamaChat::PersonaeManagement
   #
   # @return [String, nil] persona name or nil if cancelled
   def edit_persona
-    if persona = choose_persona
+    if persona = choose_persona(prompt: 'Which persona needs some polishing? ')
       pathname = persona_name_to_pathname(persona)
       old_content = pathname.read
       if edit_file(pathname)
@@ -265,7 +265,7 @@ module OllamaChat::PersonaeManagement
   # @return [String, nil] the filesystem path of the selected persona,
   #   or nil if the selection was cancelled.
   def select_persona_path
-    persona = choose_persona or return
+    persona = choose_persona(prompt: "Which persona's path do you need? ") or return
     path = persona_name_to_pathname(persona).to_s
     perform_copy_to_clipboard(text: path, edit: false)
     @prefill_prompt = path
@@ -279,7 +279,7 @@ module OllamaChat::PersonaeManagement
   # location using `File.write`. This ensures a safe copy is preserved before
   # any modifications are made to the original file.
   def backup_persona
-    if persona = choose_persona
+    if persona = choose_persona(prompt: 'Which persona should be safely archived? ')
       pathname        = persona_name_to_pathname(persona)
       old_content     = pathname.read
       backup_pathname = persona_backup_pathname(persona)
@@ -317,7 +317,7 @@ module OllamaChat::PersonaeManagement
   #
   # Shows the persona's profile using kramdown formatting with ansi parsing.
   def info_persona
-    if persona = choose_persona
+    if persona = choose_persona(prompt: 'Who would you like to learn more about? ')
       description = persona_description(persona) or return
       use_pager do |output|
         output.puts kramdown_ansi_parse(description)
@@ -374,9 +374,11 @@ module OllamaChat::PersonaeManagement
   #
   # @param chosen [Set, nil] Optional set of already selected personas
   # @param none [Boolean] whether to include a '[NONE]' option in the list
+  # @param prompt [String] the prompt message to display when asking for input
+  #   (default: 'Select a persona: ')
   # @return [String, Symbol, nil] The selected persona name, :none, or nil if
   #   user exits
-  def choose_persona(chosen: nil, none: false)
+  def choose_persona(chosen: nil, none: false, prompt: 'Select a persona: ')
     personae_list = available_personae_names.
       reject { chosen&.member?(_1) }
     if personae_list.empty?
@@ -385,7 +387,7 @@ module OllamaChat::PersonaeManagement
     end
     personae_list.unshift('[NONE]') if none
     personae_list.unshift('[EXIT]')
-    case persona = choose_entry(personae_list)
+    case persona = choose_entry(personae_list, prompt:)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
@@ -403,7 +405,7 @@ module OllamaChat::PersonaeManagement
   def load_personae
     chosen = Set[]
     choose_with_state do
-      while persona = choose_persona(chosen: chosen)
+      while persona = choose_persona(chosen: chosen, prompt: 'Who else should join the conversation? ')
         persona == :none and next
         chosen << persona
       end
@@ -532,7 +534,7 @@ module OllamaChat::PersonaeManagement
   # @return [self, nil] returns self on success, or nil if the operation was
   #   cancelled during persona selection or name entry.
   def duplicate_persona
-    persona          = choose_persona or return
+    persona          = choose_persona(prompt: 'Which persona shall serve as the blueprint? ') or return
     pathname         = persona_name_to_pathname(persona)
     new_persona_name = determine_valid_new_name_for_persona('to ducplicate as') or return
     new_pathname     = persona_name_to_pathname(new_persona_name)
@@ -584,7 +586,7 @@ module OllamaChat::PersonaeManagement
   # @return [self, nil] returns self if the export was successful, or nil if
   #   the process was cancelled during persona selection or filename entry.
   def export_persona
-    persona  = choose_persona or return
+    persona  = choose_persona(prompt: 'Which persona are you taking with you? ') or return
     pathname = persona_name_to_pathname(persona)
     content  = pathname.read
     STDOUT.puts kramdown_ansi_parse(

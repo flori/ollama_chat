@@ -26,13 +26,14 @@ module OllamaChat::PromptManagement
   #
   # @param default [Boolean, nil] filter for default prompts (true: only
   #   defaults, false: only non-defaults)
+  # @param prompt [String] the prompt message to display when asking for input
   #
   # @return [OllamaChat::Database::Models::Prompt, nil] the selected prompt
   #   model, or nil if the user chooses '[EXIT]' or cancels the selection.
-  def choose_prompt(default: nil)
+  def choose_prompt(default: nil, prompt: 'Select a prompt template: ')
     prompts = all_prompts(default: default)
     prompts.unshift('[EXIT]')
-    case chosen = choose_entry(prompts)
+    case chosen = choose_entry(prompts, prompt:)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
@@ -45,7 +46,7 @@ module OllamaChat::PromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def info_prompt
-    if prompt = choose_prompt
+    if prompt = choose_prompt(prompt: 'Which blueprint would you like to inspect? ')
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
           # Prompt #{prompt.name}
@@ -98,7 +99,7 @@ module OllamaChat::PromptManagement
   # Interactively selects an existing non-default prompt and deletes it after
   # confirmation.
   def choose_and_delete_prompt
-    prompt = choose_prompt(default: false) or return
+    prompt = choose_prompt(default: false, prompt: 'Which template has outlived its usefulness? ') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
@@ -114,7 +115,7 @@ module OllamaChat::PromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_prompt
-    prompt = choose_prompt or return
+    prompt = choose_prompt(prompt: 'Which spell needs some fine-tuning? ') or return
     prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
     prompt.save
     self
@@ -132,7 +133,7 @@ module OllamaChat::PromptManagement
   # @return [self, nil] the current context on success, or nil if the user
   #   cancelled the operation or no prompt was selected.
   def duplicate_prompt
-    prompt = choose_prompt or return
+    prompt = choose_prompt(prompt: 'Which prompt shall be the basis for a new one? ') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
@@ -203,7 +204,7 @@ module OllamaChat::PromptManagement
   # @return [self, nil] returns self if the export was successful, or nil if
   #   the process was cancelled during prompt selection or filename entry.
   def export_prompt
-    prompt = choose_prompt or return
+    prompt = choose_prompt(prompt: 'Which template are you exporting to disk? ') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
@@ -211,6 +212,47 @@ module OllamaChat::PromptManagement
     filename.write(prompt.to_s)
     STDOUT.puts "Prompt #{prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
     self
+  end
+
+  # Aggregates the current conversation history into a single string for
+  # context-aware generation.
+  #
+  # Each message is formatted as "Sender Name: Message Content",
+  # skipping messages that contain no content.
+  #
+  # @return [String] The flattened conversation history.
+  def prepare_conversation_history
+    messages.each_message.inject('') do |result, message|
+      message_content = message.content.full? or next result
+      sender_name     = sender_name_displayed(message, template: false)
+      result << "%s: %s" % [ sender_name, message_content ]
+    end
+  end
+
+  # Interactively generates follow-up prompt suggestions based on the current
+  # session.
+  #
+  # This method prompts the user to select a suggestion strategy (e.g., coding
+  # or roleplaying), constructs a prompt containing the conversation history,
+  # and requests a generation from the AI model. The resulting suggestions
+  # are then opened in the editor for final refinement before being returned.
+  #
+  # @return [String, nil] The refined suggestion text, or nil if the process
+  #   was cancelled.
+  def suggest_prompts
+    # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
+    instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? ') or return
+
+    # Build the context by gathering all current conversation messages
+    history     = prepare_conversation_history
+    full_prompt = "Conversation History:\n#{history}\n\n#{instruction}"
+
+    # Execute a silent generation call (doesn't add to history)
+    response = generate(prompt: full_prompt)
+    suggestions = response.response
+
+    # Pass the AI's suggestions through the editor for final refinement
+    edit_text(suggestions)
   end
 
   # Lists all prompt templates in the database, indicating which are defaults
@@ -235,7 +277,7 @@ module OllamaChat::PromptManagement
   # Resets a prompt's content to the default value defined in the configuration.
   #
   # @param name [String, Symbol] the name of the prompt to reset
-  # @return [Boolean] true if the prompt was reset, false if no default was found
+  # @return [Boolean, nil] true if the prompt was reset, false if no default was found
   def reset_prompt_to_default(name)
     if content = config.prompts[name.to_s]
       store_prompt(name, content)

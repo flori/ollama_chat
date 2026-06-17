@@ -506,7 +506,7 @@ module OllamaChat::SessionManagement
                      else
                        offer_new_session and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
                        sessions = sessions.unshift(SearchUI::Wrapper.new('[exit]', display: '[EXIT]'))
-                       value = choose_entry(sessions)&.value
+                       value = choose_entry(sessions, prompt: 'Select a chat session: ')&.value
                        if value == '[new]'
                          return new_session
                        end

@@ -238,6 +238,8 @@ class OllamaChat::Chat
   # @return [ Ollama::Response ] the response from the Ollama model
   def generate(prompt:)
     prepare_model(@model)
+    msg = "Using prompt #{prompt.inspect} for generation to #{@model.inspect}."
+    log(:info, msg)
     ollama.generate(
       model: @model,
       prompt:,
