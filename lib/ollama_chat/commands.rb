@@ -441,7 +441,7 @@ module OllamaChat::Commands
       end
     when nil
       opts = go_command('e', opts)
-      if prompt = choose_prompt.full?
+      if prompt = choose_prompt.full?(&:to_s)
         if opts[?e]
           prompt = edit_text(prompt)
           next prompt
