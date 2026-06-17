@@ -1,5 +1,22 @@
 # Changes
 
+## 2026-06-17 v0.0.90
+
+### Added
+
+- Added an edit option to the `/prompt` command via the `-e` flag, allowing
+  users to modify a selected prompt using `edit_text`.
+
+### Changed
+
+- Updated the minimum `documentrix` dependency to **0.6.0** (previously
+  **0.5.0** and **0.4.0**) to leverage SQLite concurrency improvements and
+  strong consistency for collection discovery, preventing stale cache issues.
+- Modified `OllamaChat::RAGHandling#update_collection` to accumulate results
+  from `embed` and return them as a newline-separated `String`.
+- Updated `lib/ollama_chat/commands.rb` to capture and return the output of the
+  collection update command.
+
 ## 2026-06-15 v0.0.89
 
 ### New Features
