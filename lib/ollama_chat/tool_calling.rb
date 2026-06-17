@@ -128,7 +128,11 @@ module OllamaChat::ToolCalling
       loop do
         select_tools = configured_tools - enabled_tools
         select_tools = [ '[EXIT]' ] + select_tools
-        case chosen = choose_entry(select_tools)
+        chosen = choose_entry(
+          select_tools,
+          prompt: 'Which capabilities should be granted to the model?'
+        )
+        case chosen
         when '[EXIT]', nil
           STDOUT.puts "Exiting chooser."
           return
@@ -155,7 +159,11 @@ module OllamaChat::ToolCalling
       loop do
         select_tools = enabled_tools
         select_tools = [ '[EXIT]' ] + select_tools
-        case chosen = choose_entry(select_tools)
+        chosen = choose_entry(
+          select_tools,
+          prompt: 'Which capabilities should be granted to the model?'
+        )
+        case chosen
         when '[EXIT]', nil
           STDOUT.puts "Exiting chooser."
           return

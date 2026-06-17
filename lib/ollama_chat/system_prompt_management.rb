@@ -85,7 +85,10 @@ module OllamaChat::SystemPromptManagement
   def change_system_prompt(default)
     prompts = all_system_prompts
     prompts.unshift('[MODEL DEFAULT]').unshift('[EXIT]')
-    chosen = choose_entry(prompts)
+    chosen = choose_entry(
+      prompts,
+      prompt: 'Which governing law shall we enact?'
+    )
     system_prompt_name =
       case chosen
       when '[EXIT]'
@@ -166,7 +169,9 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_system_prompt
-    system_prompt = choose_system_prompt(prompt: 'Which system directive needs rewriting? ') or return
+    system_prompt = choose_system_prompt(
+      prompt: 'Which system directive needs rewriting? '
+    ) or return
     system_prompt.metadata['content'] = edit_text(system_prompt.metadata['content'].to_s)
     system_prompt.save
     ask_to_set_current_system_prompt(system_prompt.name)

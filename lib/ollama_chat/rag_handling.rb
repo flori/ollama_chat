@@ -42,7 +42,10 @@ module OllamaChat::RAGHandling
     choose_with_state do
       loop do
         tags = @documents.tags.to_a.unshift('[ALL]').unshift('[EXIT]')
-        tag = choose_entry(tags, prompt: 'Clear? %s')
+        tag = choose_entry(
+          tags,
+          prompt: 'What obsolete records are to be excised from the annals? '
+        )
         case tag
         when nil, '[EXIT]'
           STDOUT.puts "Exiting chooser."
@@ -80,7 +83,10 @@ module OllamaChat::RAGHandling
     collections = [ current_collection ] + @documents.collections.to_a
     collections = collections.filter_map(&:to_s).uniq.sort
     collections.unshift('[EXIT]').unshift('[NEW]')
-    collection = choose_entry(collections) || current_collection
+    collection = choose_entry(
+      collections,
+      prompt: 'Which archive of knowledge shall we delve into?'
+    ) || current_collection
     case collection&.to_s
     when '[NEW]'
       @documents.collection = ask?(

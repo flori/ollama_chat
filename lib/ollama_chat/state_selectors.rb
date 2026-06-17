@@ -90,7 +90,11 @@ module OllamaChat::StateSelectors
         SearchUI::Wrapper.new(state, display:)
       end
 
-      case chosen = choose_entry(states)
+      chosen = choose_entry(
+        states,
+        prompt: 'Which operational paradigm should be engaged?'
+      )
+      case chosen
       when '[EXIT]', nil
         STDOUT.puts "Exiting chooser."
       when

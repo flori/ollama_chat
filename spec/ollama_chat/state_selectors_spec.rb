@@ -123,7 +123,8 @@ describe OllamaChat::StateSelectors::StateSelector do
     it 'allows user to select a state from available options' do
       # Mock the chooser to return a specific choice
       expect(selector).to receive(:choose_entry).with(
-        %w[ [EXIT] enabled disabled low high ]
+        %w[ [EXIT] enabled disabled low high ],
+        prompt: 'Which operational paradigm should be engaged?'
       ).and_return(double(value: 'low'))
 
       selector.choose
