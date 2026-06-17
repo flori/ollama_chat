@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-17 v0.0.91
+
+- Updated `lib/ollama_chat/commands.rb` to ensure the result of
+  `choose_prompt.full?` is converted to a string via `(&:to_s)`.
+
 ## 2026-06-17 v0.0.90
 
 ### Added
