@@ -405,14 +405,15 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset))?(?:\s+(\S+))?$),
+    regexp: %r(^/prompt(\s+-e)?(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset))?(?:\s+(\S+))?$),
     complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset ] ],
     optional: true,
     help: <<~EOT,
       Manage preset prompt templates or prefill the prompt (edit, info, add,
       delete, list, duplicate, import, export, reset)
+      Options: -e to edit the next prompt instead of prefilling
     EOT
-  ) do |subcommand, filename|
+  ) do |opts, subcommand, filename|
     case subcommand
     when 'add'
       add_new_prompt
@@ -439,7 +440,15 @@ module OllamaChat::Commands
         end
       end
     when nil
-      @prefill_prompt = choose_prompt&.to_s
+      opts = go_command('e', opts)
+      if prompt = choose_prompt.full?
+        if opts[?e]
+          prompt = edit_text(prompt)
+          next prompt
+        else
+          @prefill_prompt = prompt
+        end
+      end
     end
     :next
   end
