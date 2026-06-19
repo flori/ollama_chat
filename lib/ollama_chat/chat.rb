@@ -228,8 +228,6 @@ class OllamaChat::Chat
     @messages.system_name
   end
 
-  private
-
   # The generate method sends a prompt to the Ollama model and returns the
   # result.
   #
@@ -248,6 +246,8 @@ class OllamaChat::Chat
       think: false,
     )
   end
+
+  private
 
   # @return [Module] The module containing the database models.
   def models

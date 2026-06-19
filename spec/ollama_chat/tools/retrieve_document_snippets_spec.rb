@@ -25,6 +25,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
           min_similarity: nil,
           text_size: nil,
           text_count: nil,
+          rerank: false,
         )
       )
     )
@@ -68,6 +69,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
           min_similarity: nil,
           text_size: nil,
           text_count: nil,
+          rerank: false,
         )
       )
     )
@@ -79,7 +81,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
       [
         double(
           'Record',
-          text:       'quux',
+          text:       'quintessential ruby',
           source:     'foo',
           tags:       %w[ ruby expert ],
           tags_set:   [],
@@ -107,6 +109,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
           min_similarity: nil,
           text_size: nil,
           text_count: nil,
+          rerank: false,
         )
       )
     )
@@ -139,6 +142,78 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     json = json_object(result)
     expect(json.error).to eq('OllamaChat::OllamaChatError')
     expect(json.message).to eq('Empty query')
+  end
+
+  it 'performs reranking when rerank is true' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'retrieve_document_snippets',
+        arguments: double(
+          query: 'Ruby array',
+          tags: nil,
+          collection: nil,
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
+          rerank: true,
+        )
+      )
+    )
+
+    records = [
+      double('Record', text: 'first', source: 's1', tags: [], tags_set: [], similarity: 0.1),
+      double('Record', text: 'second', source: 's2', tags: [], tags_set: [], similarity: 0.9)
+    ]
+
+    tool = described_class.new
+    expect(tool).to receive(:find_document_records).and_return(records)
+
+    allow(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
+    response_val = double('Response', response: double('FullResponse', full?: '1', response: '1'))
+    allow(chat).to receive(:generate).with(prompt: anything).and_return(response_val)
+
+    result = tool.execute(tool_call, chat:)
+    json = json_object(result)
+
+    expect(json.snippets.size).to eq 1
+    expect(json.snippets.first.text).to eq 'second'
+  end
+
+  it 'performs reranking when rerank is nil (defaults to true)' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'retrieve_document_snippets',
+        arguments: double(
+          query: 'Ruby array',
+          tags: nil,
+          collection: nil,
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
+          rerank: nil,
+        )
+      )
+    )
+
+    records = [
+      double('Record', text: 'first', source: 's1', tags: [], tags_set: [], similarity: 0.1),
+      double('Record', text: 'second', source: 's2', tags: [], tags_set: [], similarity: 0.9)
+    ]
+
+    tool = described_class.new
+    expect(tool).to receive(:find_document_records).and_return(records)
+
+    allow(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
+    response_val = double('Response', response: double('FullResponse', full?: '0', response: '0'))
+    allow(chat).to receive(:generate).with(prompt: anything).and_return(response_val)
+
+    result = tool.execute(tool_call, chat:)
+    json = json_object(result)
+
+    expect(json.snippets.size).to eq 1
+    expect(json.snippets.first.text).to eq 'first'
   end
 
   it 'can be converted to hash' do

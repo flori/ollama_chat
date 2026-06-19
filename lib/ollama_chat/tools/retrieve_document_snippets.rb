@@ -18,6 +18,7 @@
 #   the underlying document store.
 class OllamaChat::Tools::RetrieveDocumentSnippets
   include OllamaChat::Tools::Concern
+  include Kramdown::ANSI::Width
 
   # @return [String] the registered name for this tool
   def self.register_name = 'retrieve_document_snippets'
@@ -74,6 +75,10 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
             text_count: Tool::Function::Parameters::Property.new(
               type: 'integer',
               description: 'The maximum number of snippets to return.'
+            ),
+            rerank: Tool::Function::Parameters::Property.new(
+              type: 'boolean',
+              description: 'Rerank the returned records if true, (default: true)'
             )
           },
           required: ['query']
@@ -102,6 +107,8 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
     text_size      = args.text_size.full? || chat.config.embedding.found_texts_size?
     text_count     = args.text_count.full? || chat.config.embedding.found_texts_count?
     min_similarity = args.min_similarity.full?
+    rerank         = args.rerank
+    rerank         = true if rerank.nil?
 
     old_collection = nil
 
@@ -112,14 +119,19 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
 
     records = find_document_records(chat, query, tags, text_size, text_count, min_similarity)
 
+    if rerank && records.any?
+      records = rerank_records(chat, query, records)
+    end
+
     message = records.map { |record|
       link = if record.source =~ %r(\Ahttps?://)
                record.source
              else
                'file://%s' % File.expand_path(record.source)
              end
+      link && record.tags.any? or next
       [ link, ?# + record.tags.first ]
-    }.uniq.map { |l, t| chat.hyperlink(l, t) }.join(' ')
+    }.flat_map { |l, t| chat.hyperlink(l, t) }.join(' ')
 
     {
       prompt: 'Consider these snippets generated from retrieval when formulating your response!',
@@ -131,6 +143,12 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
         }
       end,
       message:,
+      query:,
+      tags:,
+      min_similarity:,
+      text_size:,
+      text_count:,
+      rerank:,
     }.to_json
   rescue => e
     { error: e.class.name, message: e.message }.to_json
@@ -139,6 +157,39 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
   end
 
   private
+
+  # Uses the active chat model to filter records based on the query.
+  #
+  # @param chat [OllamaChat::Chat] the active  chat instance
+  # @param query [String] the search query string
+  # @param records [Array<Documentrix::Utils::TagResult>] the initial set of
+  #   found records
+  #
+  # @return [Array<Documentrix::Utils::TagResult>] the filtered array of
+  # records
+  #
+  # @raise [RuntimeError] if the 'rerank' prompt is missing from the
+  #   configuration
+  def rerank_records(chat, query, records)
+    candidates = records.each_with_index.map { |r, i|
+      "[#{i}] #{truncate(r.text.strip, length: 300)}"
+    }.join("\n")
+
+    prompt = chat.prompt('rerank') or raise "missing prompt 'rerank'"
+    prompt = prompt.to_s % { query:, candidates: }
+
+    begin
+      # We use the active chat model to perform the surgical precision
+      # filtering
+      if response = chat.generate(prompt:)&.response.full?
+        indices  = response.scan(/\d+/).map(&:to_i).select { |i| (0...records.size).include?(i) }
+        records  = records.values_at(*indices) if indices.any?
+      end
+    rescue => e
+      chat.log(:error, "Attempted reranking, caught #{e.class} #{e}")
+    end
+    records
+  end
 
   # The find_document_records method searches for document records matching the
   # given query string.

@@ -14,8 +14,6 @@ module OllamaChat::PromptHandling
     models::Prompt.where(context: 'system_prompt', name: name.to_s).first
   end
 
-  private
-
   # Retrieves a specific prompt by name from the 'prompt' context.
   #
   # @param name [String, Symbol] the name of the prompt to retrieve
@@ -24,6 +22,8 @@ module OllamaChat::PromptHandling
   def prompt(name)
     models::Prompt.where(context: 'prompt', name: name.to_s).first
   end
+
+  private
 
   # Iterates over all prompts in the 'prompt' context.
   #

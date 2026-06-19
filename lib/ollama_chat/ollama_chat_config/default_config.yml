@@ -24,7 +24,15 @@ infobar:
       :frames: :braille181
       :message: ✓
 prompts:
-  embed: "This source has been added to or updated in collection \"%{collection}\"."
+  embed: This source has been added to or updated in collection "%{collection}".
+  rerank: |
+    Query: %{query}
+    Candidates:
+
+      %{candidates}
+
+    Return only the indices of the most relevant snippets as a comma-separated
+    list (e.g., '0,2').
   summarize: |
     Generate an abstract summary of the content in this document using
     %{words} words:
