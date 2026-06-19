@@ -1,5 +1,43 @@
 # Changes
 
+## 2026-06-19 v0.0.92
+
+### New Features
+
+- **LLM-Based Reranking**: Implemented reranking logic in the retrieval tool
+  via a new `rerank_records` method in
+  `lib/ollama_chat/tools/retrieve_document_snippets.rb`.
+    - Added a new `rerank` prompt template to `default_config.yml`.
+    - Refactored the `execute` method to utilize `flat_map` for better handling
+      of records without tags.
+- **Prompt Suggestions**: Introduced a `/prompt suggest` subcommand in
+  `OllamaChat::Commands`.
+    - Implemented `suggest_prompts` and `prepare_conversation_history` within
+      `OllamaChat::PromptManagement`.
+    - Added `coding_suggest` and `roleplaying_suggest` templates to
+      `default_config.yml`.
+
+### Improvements
+
+- **CLI User Experience**: Enhanced CLI interactions by replacing generic
+  prompts with flavorful, context-aware messages across `ModelHandling`,
+  `RAGHandling`, `StateSelectors`, `SystemPromptManagement`,
+  `PersonaeManagement`, and `PromptManagement`.
+- **Interaction Logic**: Expanded `choose_prompt` and `choose_system_prompt` to
+  support custom prompt messages and updated `choose_entry` signatures.
+- **Observability**: Added info logging for prompt, model, and generation
+  details within `Chat#generate`.
+- **Internal API**: Adjusted visibility in `lib/ollama_chat/chat.rb` and
+  `lib/ollama_chat/prompt_handling.rb` to allow tools access to core methods.
+
+### Tests
+
+- Updated `spec/ollama_chat/tools/retrieve_document_snippets_spec.rb` to cover
+  the new `rerank` parameter.
+- Updated `spec/ollama_chat/input_content_spec.rb` and
+  `spec/ollama_chat/state_selectors_spec.rb` to align with updated
+  `choose_entry` signatures.
+
 ## 2026-06-17 v0.0.91
 
 - Updated `lib/ollama_chat/commands.rb` to ensure the result of
