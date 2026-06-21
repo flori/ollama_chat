@@ -44,7 +44,7 @@ module OllamaChat::RAGHandling
         tags = @documents.tags.to_a.unshift('[ALL]').unshift('[EXIT]')
         tag = choose_entry(
           tags,
-          prompt: 'What obsolete records are to be excised from the annals? '
+          prompt: 'What obsolete records are to be excised from the annals? %s'
         )
         case tag
         when nil, '[EXIT]'
@@ -85,7 +85,7 @@ module OllamaChat::RAGHandling
     collections.unshift('[EXIT]').unshift('[NEW]')
     collection = choose_entry(
       collections,
-      prompt: 'Which archive of knowledge shall we delve into?'
+      prompt: 'Which archive of knowledge shall we delve into? %s'
     ) || current_collection
     case collection&.to_s
     when '[NEW]'

@@ -12,7 +12,7 @@ require 'term/ansicolor'
 #
 # @example Using the chooser in an interactive menu
 #   entries = ['apple', 'banana', 'cherry']
-#   selected = choose_entry(entries, prompt: 'Choose a fruit:')
+#   selected = choose_entry(entries, prompt: 'Choose a fruit: %s')
 #
 # @example Returning immediately if only one entry exists
 #   entries = ['single_option']
@@ -37,7 +37,7 @@ module OllamaChat::Utils::Chooser
   # @return [Object] the selected entry, or nil if no entry was chosen
   #
   # @example
-  #   choose_entry(['entry1', 'entry2'], prompt: 'Choose an option:')
+  #   choose_entry(['entry1', 'entry2'], prompt: 'Choose an option: %s')
   def choose_entry(entries, prompt: 'Search? %s', return_immediately: false)
     if return_immediately && entries.size <= 1
       return entries.first

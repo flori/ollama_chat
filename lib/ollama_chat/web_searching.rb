@@ -108,7 +108,10 @@ module OllamaChat::WebSearching
       choose_with_state do
         loop do
           links_options = links.to_a.unshift('[ALL]').unshift('[EXIT]')
-          link = choose_entry(links_options, prompt: 'Clear? %s')
+          link = choose_entry(
+            links_options,
+            prompt: 'Which links of knowledge shall we sever? %s'
+          )
           case link
           when nil, '[EXIT]'
             STDOUT.puts "Exiting chooser."

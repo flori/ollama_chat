@@ -92,7 +92,7 @@ module OllamaChat::StateSelectors
 
       chosen = choose_entry(
         states,
-        prompt: 'Which operational paradigm should be engaged?'
+        prompt: 'Which operational paradigm should be engaged? %s'
       )
       case chosen
       when '[EXIT]', nil
