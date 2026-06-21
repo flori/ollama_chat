@@ -163,7 +163,7 @@ module OllamaChat::ModelHandling
   def choose_profile_for_model(model_name)
     profiles = models::ModelOptions.where(model_name:).order(:profile).map(&:profile)
     profiles = [ '[EXIT]' ] + profiles
-    case chosen = choose_entry(profiles, prompt: "Choose profile for #{bold{model_name}}: ")
+    case chosen = choose_entry(profiles, prompt: "Choose profile for #{bold{model_name}}: %s")
     when '[EXIT]', nil
       STDOUT.puts "Cancelled."
       return
@@ -366,7 +366,7 @@ module OllamaChat::ModelHandling
       elsif cli_model == ''
         choose_entry(
           models,
-          prompt: "Which digital oracle shall we consult?"
+          prompt: "Which digital oracle shall we consult? %s"
         )&.value || current_model
       else
         cli_model || current_model

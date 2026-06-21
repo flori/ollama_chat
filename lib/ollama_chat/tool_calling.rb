@@ -130,7 +130,7 @@ module OllamaChat::ToolCalling
         select_tools = [ '[EXIT]' ] + select_tools
         chosen = choose_entry(
           select_tools,
-          prompt: 'Which capabilities should be granted to the model?'
+          prompt: 'Which capabilities should be granted to the model? %s'
         )
         case chosen
         when '[EXIT]', nil
@@ -161,7 +161,7 @@ module OllamaChat::ToolCalling
         select_tools = [ '[EXIT]' ] + select_tools
         chosen = choose_entry(
           select_tools,
-          prompt: 'Which capabilities should be granted to the model?'
+          prompt: 'Which capabilities should be granted to the model? %s'
         )
         case chosen
         when '[EXIT]', nil

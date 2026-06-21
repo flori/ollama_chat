@@ -87,7 +87,7 @@ module OllamaChat::SystemPromptManagement
     prompts.unshift('[MODEL DEFAULT]').unshift('[EXIT]')
     chosen = choose_entry(
       prompts,
-      prompt: 'Which governing law shall we enact?'
+      prompt: 'Which governing law shall we enact? %s'
     )
     system_prompt_name =
       case chosen
@@ -112,7 +112,7 @@ module OllamaChat::SystemPromptManagement
   #   (default: 'Select a system prompt: ')
   #
   # @return [Object, nil] the selected system prompt object, or nil if cancelled
-  def choose_system_prompt(prompt: 'Select a system prompt: ')
+  def choose_system_prompt(prompt: 'Select a system prompt: %s')
     prompts = all_system_prompts
     prompts.unshift('[EXIT]')
     case chosen = choose_entry(prompts, prompt:)
@@ -128,7 +128,7 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def info_system_prompt
-    if system_prompt = choose_system_prompt(prompt: 'Which system law would you like to review? ')
+    if system_prompt = choose_system_prompt(prompt: 'Which system law would you like to review? %s')
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
           # System Prompt #{system_prompt.name}
@@ -170,7 +170,7 @@ module OllamaChat::SystemPromptManagement
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_system_prompt
     system_prompt = choose_system_prompt(
-      prompt: 'Which system directive needs rewriting? '
+      prompt: 'Which system directive needs rewriting? %s'
     ) or return
     system_prompt.metadata['content'] = edit_text(system_prompt.metadata['content'].to_s)
     system_prompt.save
@@ -183,7 +183,7 @@ module OllamaChat::SystemPromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_delete_system_prompt
-    system_prompt = choose_system_prompt(prompt: 'Which old rule is now obsolete? ') or return
+    system_prompt = choose_system_prompt(prompt: 'Which old rule is now obsolete? %s') or return
     STDOUT.puts kramdown_ansi_parse(
       system_prompt.to_s + "\n---"
     )
@@ -226,7 +226,7 @@ module OllamaChat::SystemPromptManagement
   # @return [self, nil] the current context on success, or nil if the user
   #   cancelled the operation or no system prompt was selected.
   def duplicate_system_prompt
-    system_prompt = choose_system_prompt(prompt: 'Which core logic shall be cloned? ') or return
+    system_prompt = choose_system_prompt(prompt: 'Which core logic shall be cloned? %s') or return
     STDOUT.puts kramdown_ansi_parse(
       system_prompt.to_s + "\n---"
     )
@@ -281,7 +281,7 @@ module OllamaChat::SystemPromptManagement
   # @return [self, nil] returns self if the export was successful, or nil if
   #   the process was cancelled during system prompt selection or filename entry.
   def export_system_prompt
-    prompt = choose_system_prompt(prompt: 'Which system prompt are you archiving to disk? ') or return
+    prompt = choose_system_prompt(prompt: 'Which system prompt are you archiving to disk? %s') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )

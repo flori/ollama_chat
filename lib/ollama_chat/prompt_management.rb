@@ -30,7 +30,7 @@ module OllamaChat::PromptManagement
   #
   # @return [OllamaChat::Database::Models::Prompt, nil] the selected prompt
   #   model, or nil if the user chooses '[EXIT]' or cancels the selection.
-  def choose_prompt(default: nil, prompt: 'Select a prompt template: ')
+  def choose_prompt(default: nil, prompt: 'Select a prompt template: %s')
     prompts = all_prompts(default: default)
     prompts.unshift('[EXIT]')
     case chosen = choose_entry(prompts, prompt:)
@@ -46,7 +46,7 @@ module OllamaChat::PromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def info_prompt
-    if prompt = choose_prompt(prompt: 'Which blueprint would you like to inspect? ')
+    if prompt = choose_prompt(prompt: 'Which blueprint would you like to inspect? %s')
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
           # Prompt #{prompt.name}
@@ -99,7 +99,7 @@ module OllamaChat::PromptManagement
   # Interactively selects an existing non-default prompt and deletes it after
   # confirmation.
   def choose_and_delete_prompt
-    prompt = choose_prompt(default: false, prompt: 'Which template has outlived its usefulness? ') or return
+    prompt = choose_prompt(default: false, prompt: 'Which template has outlived its usefulness? %s') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
@@ -115,7 +115,7 @@ module OllamaChat::PromptManagement
   #
   # @return [self, nil] the current context on success, or nil if cancelled
   def choose_and_edit_prompt
-    prompt = choose_prompt(prompt: 'Which spell needs some fine-tuning? ') or return
+    prompt = choose_prompt(prompt: 'Which spell needs some fine-tuning? %s') or return
     prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
     prompt.save
     self
@@ -133,7 +133,7 @@ module OllamaChat::PromptManagement
   # @return [self, nil] the current context on success, or nil if the user
   #   cancelled the operation or no prompt was selected.
   def duplicate_prompt
-    prompt = choose_prompt(prompt: 'Which prompt shall be the basis for a new one? ') or return
+    prompt = choose_prompt(prompt: 'Which prompt shall be the basis for a new one? %s') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
@@ -204,7 +204,7 @@ module OllamaChat::PromptManagement
   # @return [self, nil] returns self if the export was successful, or nil if
   #   the process was cancelled during prompt selection or filename entry.
   def export_prompt
-    prompt = choose_prompt(prompt: 'Which template are you exporting to disk? ') or return
+    prompt = choose_prompt(prompt: 'Which template are you exporting to disk? %s') or return
     STDOUT.puts kramdown_ansi_parse(
       prompt.to_s + "\n---"
     )
@@ -241,7 +241,7 @@ module OllamaChat::PromptManagement
   #   was cancelled.
   def suggest_prompts
     # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
-    instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? ') or return
+    instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? %s') or return
 
     # Build the context by gathering all current conversation messages
     history     = prepare_conversation_history

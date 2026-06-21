@@ -164,7 +164,7 @@ module OllamaChat::Commands
       info_system_prompt
     when 'reset'
       if prompt = choose_system_prompt(
-          prompt: 'Which system law needs to be restored to its origin? '
+          prompt: 'Which system law needs to be restored to its origin? %s'
         )
       then
         if reset_system_prompt_to_default(prompt.name)
@@ -437,7 +437,7 @@ module OllamaChat::Commands
     when 'reset'
       if prompt = choose_prompt(
           default: true,
-          prompt: 'Which prompt needs to be restored to its origin? '
+          prompt: 'Which prompt needs to be restored to its origin? %s'
         )
       then
         if reset_prompt_to_default(prompt.name)
@@ -450,7 +450,7 @@ module OllamaChat::Commands
       prompt = suggest_prompts and next prompt
     when nil
       opts = go_command('e', opts)
-      if prompt = choose_prompt(prompt: 'Which template shall guide the next response? ').full?(&:to_s)
+      if prompt = choose_prompt(prompt: 'Which template shall guide the next response? %s').full?(&:to_s)
         if opts[?e]
           prompt = edit_text(prompt)
           next prompt
