@@ -273,4 +273,4 @@ The homepage of this app is located at
 
 ## License
 
-This software is licensed under the <i>MIT</i> license.
+This software is licensed under the [MIT License](./LICENSE).
