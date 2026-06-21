@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-06-21 v0.0.93
+
+### Added
+
+- Integrated search feedback into interactive chooser prompts across several modules:
+    - `lib/ollama_chat/commands.rb` (added `%s` format specifier)
+    - `lib/ollama_chat/favourites_management.rb`
+    - `lib/ollama_chat/input_content.rb` (file import selector)
+    - `lib/ollama_chat/model_handling.rb` (model and profile selection)
+    - `lib/ollama_chat/personae_management.rb`
+    - `lib/ollama_chat/prompt_management.rb` (template selectors)
+    - `lib/ollama_chat/system_prompt_management.rb`
+    - `lib/ollama_chat/tool_calling.rb` (tool capability selection)
+    - `lib/ollama_chat/session_management.rb` (chat session selector)
+
+### Changed
+
+- Updated `ollama-ruby` dependency to **1.22.0** in the `Rakefile` and
+  `ollama_chat.gemspec`.
+- Synchronized expectations in `spec/ollama_chat/input_content_spec.rb` to
+  match updated prompt formats.
+
 ## 2026-06-19 v0.0.92
 
 ### New Features
