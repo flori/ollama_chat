@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-06-22 v0.0.94
+
+### Added
+
+- Created a `LICENSE` file and updated the `README.md` to include a link to the
+  MIT license.
+- Added comprehensive test coverage for tool calling in
+  `spec/ollama_chat/tool_calling_spec.rb`.
+
+### Changed
+
+- Improved tool calling logic by utilizing the `tools_support` reader and
+  ensuring allowed paths are indexed by string keys via `.to_s`.
+- Synchronized search feedback prompts across
+  `lib/ollama_chat/web_searching.rb`, `lib/ollama_chat/rag_handling.rb`, and
+  `lib/ollama_chat/state_selectors.rb` using the `%s` format specifier.
+- Updated usage examples in `lib/ollama_chat/utils/chooser.rb` to include the
+  `%s` specifier.
+- Updated prompt expectations in `spec/ollama_chat/state_selectors_spec.rb`.
+- Added `LICENSE` and `spec/ollama_chat/tool_calling_spec.rb` to the gem
+  specification files.
+
 ## 2026-06-21 v0.0.93
 
 ### Added
