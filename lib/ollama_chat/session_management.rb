@@ -153,7 +153,7 @@ module OllamaChat::SessionManagement
         prompt: "❓ Enter new session name #{action}, C-c ⇒ cancel: ",
         prefill: default_name
       )
-      if session_name.nil?
+      if session_name.blank?
         STDOUT.puts "Cancelled."
         return nil
       end
@@ -200,8 +200,6 @@ module OllamaChat::SessionManagement
   # This method creates a copy of the current session's attributes and
   # prompts the user for a new name and whether to clear the duplicated
   # session's message history.
-  #
-  # @return [nil]
   def duplicate_session
     name = determine_valid_new_name_for_session(
       'to create', default_name: session.name

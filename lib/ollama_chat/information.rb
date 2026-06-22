@@ -180,8 +180,6 @@ module OllamaChat::Information
   # ollama_chat instance.
   #
   # @param output [IO] the output stream to write the information to, defaults to STDOUT
-  # @return [ nil ] This method does not return a value; it outputs information
-  #   directly to standard output.
   def info(output: STDOUT)
     output.puts "💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
     output.puts "🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
@@ -205,8 +203,6 @@ module OllamaChat::Information
   #
   # @param pattern [String, Regexp, nil] An optional pattern to filter
   #   the commands displayed in the help message.
-  # @return [ nil ] This method always returns nil after printing the help
-  #   message.
   def display_chat_help(pattern = nil)
     use_pager do |output|
       output.puts help_message(pattern)
