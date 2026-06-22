@@ -54,7 +54,7 @@ module OllamaChat::ToolCalling
   #
   # @return [ Hash ] a hash containing the registered tools
   def tools
-    @tools_support.off? and return []
+    tools_support.off? and return []
     enabled_tools.filter_map { OllamaChat::Tools.registered[it]&.to_hash }
   end
 
@@ -186,7 +186,7 @@ module OllamaChat::ToolCalling
       select { |name, value| tool_enabled?(name) && value[:allowed].present? }.
       sort_by(&:first).
       each_with_object({}) do |(name, value), hash|
-        hash[name] = value[:allowed].filter_map do
+        hash[name.to_s] = value[:allowed].filter_map do
           pathname = Pathname.new(_1).expand_path
           pathname.exist?.full? { pathname.to_path }
         end
