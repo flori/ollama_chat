@@ -258,8 +258,13 @@ context, manipulate files, and retrieve external information.
 | **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife`, `get_ghr`, `get_jira_issue` | Access the internet, fetch specific URLs, and look up technical standards. |
 | **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi`, `roll_dice` | General utility functions for time, location, and simple calculations. |
 | **Editor/Clip** | `copy_to_clipboard`, `paste_from_clipboard`, `paste_into_editor`, `open_file_in_editor` | Bridge the gap between the chat and the system clipboard or editor. |
-| **Knowledge** | `retrieve_document_snippets`, `file_context` | Perform vector search over documentation collections or retrieve structured project context. |
+| **Knowledge** | `retrieve_document_snippets`, `file_context` | Semantic search for specific snippets vs. broad retrieval of structured project context. |
 | **Multimodal** | `generate_image` | Generate images via a local ComfyUI server. |
+
+***Note on Knowledge Tools**: Use `retrieve_document_snippets` for precise,
+low-token semantic discovery and `file_context` for a comprehensive view of
+modules or patterns. Be cautious with broad patterns in `file_context`, as
+importing too many files can exceed the LLM's context window.*
 
 ## Download
 
