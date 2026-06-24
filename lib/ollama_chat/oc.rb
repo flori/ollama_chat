@@ -190,13 +190,6 @@ module OC
           decode       { Pathname.new(_1).expand_path }
         end
 
-        PATCH_TOOL = set do
-          description 'Patch tool to use'
-
-          default { `which patch`.full?(:chomp) }
-          check   { value.blank? || File.exist?(value) }
-        end
-
         GHR_URL = set do
           description 'Base URL for GHR api server, e. g. https://ghr.example.com'
           sensitive   true

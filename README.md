@@ -42,7 +42,6 @@ The following environment variables can be used to configure behavior:
 - `OLLAMA_CHAT_TOOLS_TEST_RUNNER` - Configured test runner for `run_tests` (default: `rspec`)
 - `OLLAMA_CHAT_TOOLS_CTAGS_TOOL` - Path to the ctags tool
 - `OLLAMA_CHAT_TOOLS_TAGS_FILE` - Location of the tags file
-- `OLLAMA_CHAT_TOOLS_PATCH_TOOL` - Patch tool to use
 - `OLLAMA_CHAT_TOOLS_JIRA_URL` - Base URL for Jira instance
 - `OLLAMA_CHAT_TOOLS_JIRA_USER` - Username for Jira authentication
 - `OLLAMA_CHAT_TOOLS_JIRA_API_TOKEN` - API token for Jira authentication
