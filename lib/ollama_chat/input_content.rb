@@ -127,7 +127,7 @@ module OllamaChat::InputContent
       end
       files.merge(Pathname.glob(pattern))
     end
-    files.map(&:expand_path)
+    files.map(&:expand_path).select(&:file?).to_set
   end
 
   # The provide_file_set_content method collects content from a set of files
