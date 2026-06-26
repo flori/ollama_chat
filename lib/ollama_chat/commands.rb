@@ -95,8 +95,8 @@ module OllamaChat::Commands
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system_prompt|persona))$),
     complete: [ 'favourite', %w[ add delete ], %w[ model prompt system_prompt persona ] ],
     help: <<~EOT
-      Manage favorites for models, prompts, and personas
-      (add, delete)
+      Manage favorites for models, prompts,
+      and personae (add, delete)
     EOT
   ) do |subcommand, type|
     case subcommand
@@ -113,8 +113,18 @@ module OllamaChat::Commands
     regexp: %r(^/model(?:\s+(change|options|options from session|options to session))(?:\s+(-p\s*\w+))?$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
     help: <<~EOT
-      Change the model or manage model options
-      (change, options, options from session, options to session)
+      Manage AI models and configurations:
+        - change: Switch the active model
+                  (-p [profile] for specific
+                   settings)
+        - options: Edit the configuration
+                   of a saved profile
+        - options from session: Save current
+                  live settings into a profile
+                  (Live → Saved)
+        - options to session: Apply a saved
+                  profile's settings to this
+                  session (Saved → Live)
     EOT
   ) do |subcommand, opts|
     case subcommand
@@ -145,9 +155,18 @@ module OllamaChat::Commands
     complete: [ 'system', %w[ change info edit add delete list duplicate export import reset ] ],
     optional: true,
     help: <<~EOT
-      Manage the system prompt
-      (change, info, edit, add, delete, list,
-      duplicate, export, import, reset)
+      Manage the system prompt and its
+       configurations.
+       Subcommands: add, change, delete,
+         duplicate, edit, export, import,
+         info, list, reset.
+       Note: 'duplicate' allows you to clone
+         an existing system prompt as a
+         template for further modification,
+         while 'export' and 'import' handle
+         portability via external files. Use
+         'reset' to restore the default
+         system prompt settings.
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -202,8 +221,12 @@ module OllamaChat::Commands
     complete: [ 'tools', %w[ on off enable disable ] ],
     optional: true,
     help: <<~EOT
-      Manage tool support and enabled tools
-      (on, off, enable, disable)
+      Manage tool support:
+        - (no subcommand): List all available tools
+        - on: Activate tool support globally
+        - off: Deactivate tool support globally
+        - enable: Interactively enable a specific tool
+        - disable: Interactively disable a specific tool
     EOT
   ) do |subcommand|
     case subcommand
@@ -237,14 +260,26 @@ module OllamaChat::Commands
     regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options change|model options))?((?:\s+-(?:[sf]|p\s*\w+))*)(?:\s+(.+))?$),
     complete: [ 'session', %w[ change previous list new duplicate rename summarize delete model\ options\ change model\ options ] ],
     optional: true,
-    options: '[-s|-f|-p profile] [name]',
+    options: "[-s|-f|-p profile]\n[name]",
     help: <<~EOT
-      Manage chat sessions
-      (change, previous, list, new, duplicate,
-      rename, summarize, delete, model options).
-      For summarize:
-        -s (single sentence),
-        -f (output to markdown file)
+      Manage chat sessions:
+        - list: List all available sessions
+        - new: Create a new session
+        - delete: Delete a session
+        - rename: Rename a session
+        - duplicate: Duplicate a session
+        - change [name]: Switch to a specific
+          session
+        - previous: Return to the previous
+          session
+        - summarize: Create a conversation
+          summary with
+          - -s: Output as single sentence
+          - -f: Save output to markdown file
+        - model options: Edit AI settings
+          for the current session
+        - model options change: Update session
+          settings from a profile
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -323,7 +358,9 @@ module OllamaChat::Commands
     options: '[-t|-s|n=1]',
     help: <<~EOT
       List the last n or all conversation exchanges.
-      Options: -t (force show thinking), -s (suppress thinking).
+      Options:
+        -t (force show thinking),
+        -s (suppress thinking).
     EOT
   ) do |opts,number|
     opts = go_command('ts', opts.to_s)
@@ -344,7 +381,8 @@ module OllamaChat::Commands
     regexp:  %r(^/last((?:\s+(?:-[pts]))*)(?:\s+(\d*))?$),
     options: '[-p|-t|-s|n=1]',
     help:    <<~EOT
-      Show the last n or the most recent system/assistant message.
+      Show the last n or the most recent
+        system/assistant message.
       Options: -p (plain output, no pager),
         -t (force show thinking),
         -s (suppress thinking).
@@ -405,7 +443,8 @@ module OllamaChat::Commands
     regexp: %r(^/regenerate(\s+-e)?\s*$),
     help: <<~EOT
       Regenerate the last response.
-      Options: -e to edit the user message before regenerating.
+      Options: -e to edit the user message
+        before regenerating.
     EOT
   ) do |opts|
     opts = go_command('e', opts)
@@ -427,10 +466,15 @@ module OllamaChat::Commands
     complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset suggest ] ],
     optional: true,
     help: <<~EOT,
-      Manage preset prompt templates or prefill the prompt
-      (edit, info, add, delete, list, duplicate,
-      import, export, reset, suggest)
-      Options: -e to edit the next prompt instead of prefilling
+      Manage preset prompt templates or prefill the prompt.
+      Subcommands: edit, info, add, delete, list, duplicate,
+        import, export, reset.
+      Special: 'suggest' uses session history and a strategy
+        to AI-generate tailored prompts for you to refine, see
+        prompts `suggest_coding` or `suggest_roleplaying` for
+        predefined examples.
+      Options: -e to edit the next prompt
+        instead of prefilling
     EOT
   ) do |opts, subcommand, filename|
     case subcommand
@@ -493,7 +537,10 @@ module OllamaChat::Commands
     regexp: %r(^/conversation\s+(save|load)((?:\s+-(?:[c]))*)\s+(.+)$),
     complete: [ 'conversation', %w[ save load ] ],
     options: '[-c]',
-    help: 'Load conversations or save conversations (-c to clean first)'
+    help: <<~EOT
+      Load conversations or
+      save conversations (-c to clean first)
+    EOT
   ) do |subcommand,opts,path|
     opts = go_command('c', opts.to_s)
     case subcommand
@@ -514,7 +561,9 @@ module OllamaChat::Commands
     optional: true,
     help: <<~EOT
       Manage the current RAG document collection:
-      change, clear, list, rename, update and show
+      - change, clear, list, rename: Basic management
+      - update: Re-index only modified documents
+      - (no subcommand): Show current collection stats
     EOT
   ) do |subcommand|
     case subcommand
@@ -542,9 +591,23 @@ module OllamaChat::Commands
     complete: [ 'persona', %w[ play load edit info list add delete backup import export duplicate ] ],
     optional: true,
     help: <<~EOT,
-      Manage and activate personas for roleplay
-      (play, load, edit, info, list, add, delete,
-      backup, import, export, duplicate)
+      Manage and activate personae for roleplay:
+        - Activation:
+          - play: Set the default persona
+                  and start roleplaying
+          - load: Load a specific persona
+                  into session
+        - Management:
+          - add: Create a new persona
+          - edit: Modify an existing persona
+          - delete: Remove a persona
+          - duplicate: Create a copy of a persona
+          - list: Browse all available personae
+          - info: View details of a specific persona
+        - Portability:
+          - backup: Save current personae to disk
+          - export: Export a specific persona to file
+          - import: Load a persona from a markdown file
     EOT
   ) do |subcommand|
     disable_content_parsing
@@ -861,7 +924,13 @@ module OllamaChat::Commands
     regexp: %r(^/info(?:\s+(session|model|runtime|rag))?$),
     complete: [ 'info', %w[ session model runtime rag ] ],
     optional: true,
-    help: 'Show info about the session, model, runtime, or RAG',
+    help: <<~EOT,
+      Show info:
+        - session: Details of the current chat session
+        - model: Information about the active AI model
+        - runtime: System and environmental data
+        - rag: Status of the RAG document system
+    EOT
   ) do |subcommand|
     use_pager do |output|
       case subcommand

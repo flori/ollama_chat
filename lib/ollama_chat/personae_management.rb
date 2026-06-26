@@ -1,4 +1,4 @@
-# Module for managing personas in Ollama chat application
+# Module for managing personae in Ollama chat application
 #
 # This module provides functionality to manage persona files, including
 # creating, reading, updating, and deleting persona definitions stored as
@@ -156,7 +156,7 @@ module OllamaChat::PersonaeManagement
     SearchUI::Wrapper.new(name, display:)
   end
 
-  # Retrieves a list of available personas, decorated with their favourite
+  # Retrieves a list of available personae, decorated with their favourite
   # status.
   #
   # @return [Array<SearchUI::Wrapper>] a list of wrappers containing the
@@ -172,7 +172,7 @@ module OllamaChat::PersonaeManagement
   # Creates a new persona file interactively.
   #
   # The method prompts the user to enter a name for the persona, creates an
-  # empty Markdown file with that name in the personas directory (if it does
+  # empty Markdown file with that name in the personae directory (if it does
   # not already exist), opens the file in the configured editor, and finally
   # returns the result of calling `#personae_result` on the created file.
   def add_persona
@@ -372,7 +372,7 @@ module OllamaChat::PersonaeManagement
   # Allows the user to choose a persona from available options or exit.
   # Selected persona is returned if successful, nil if user exits.
   #
-  # @param chosen [Set, nil] Optional set of already selected personas
+  # @param chosen [Set, nil] Optional set of already selected personae
   # @param none [Boolean] whether to include a '[NONE]' option in the list
   # @param prompt [String] the prompt message to display when asking for input
   #   (default: 'Select a persona: ')
