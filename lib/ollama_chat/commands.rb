@@ -1,5 +1,24 @@
 require 'ollama_chat/command_concern'
 
+# Namespace for all available slash commands within the Ollama Chat
+# application.
+#
+# This module acts as a central repository where various functional commands
+# are declared using the DSL provided by {OllamaChat::CommandConcern}. Each
+# command definition includes a unique name, a triggering regular expression,
+# and a help string for documentation.
+#
+# The commands are categorized into several areas:
+# - Clipboard management (/copy, /paste)
+# - Application settings (/config, /document policy, /toggle)
+# - Model & System Prompt configuration (/model, /system, /think)
+# - Tooling support (/tools)
+# - Session management (/session)
+# - Conversation history and manipulation (/list, /last, /drop, /clear, /regenerate)
+# - RAG collection management (/collection)
+# - Persona & Character roleplay (/persona, /character)
+# - Input/Output operations (/compose, /web, /input, /pipe, /vim, /output)
+# - System actions and info (/reconnect, /quit, /info, /help)
 module OllamaChat::Commands
   include OllamaChat::CommandConcern
 
