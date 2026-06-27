@@ -74,20 +74,31 @@ module OllamaChat::Parsing
   def parse_png(source_io)
     metadata = OllamaChat::Utils::PNGMetadataExtractor.extract_all(source_io) or return
     results = []
+
     if data = metadata.delete('chara') and
         char = OllamaChat::Utils::PNGMetadataExtractor.decode_character(data)
       then
       results << "Character Profile:\n\n#{personalize_character_profile(char)}"
     end
+
+    if data = metadata.delete('parameters') and
+      params = OllamaChat::Utils::PNGMetadataExtractor.parse_a1111_parameters(data)
+    then
+      results << "Generation Settings:\n\n#{params.to_json}"
+    end
+
     if data = convert_to_utf8(metadata.delete('prompt'))
       results << "Prompt:\n\n#{data}"
     end
+
     if data = convert_to_utf8(metadata.delete('workflow'))
       results << "Workflow:\n\n#{data}"
     end
+
     if data = metadata.full? { _1.transform_values { |v| convert_to_utf8(v) } }
       results << "Metadata:\n\n#{data}"
     end
+
     results.full?
   end
 

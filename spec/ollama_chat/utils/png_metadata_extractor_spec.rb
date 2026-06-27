@@ -60,21 +60,21 @@ describe OllamaChat::Utils::PNGMetadataExtractor do
     end
   end
 
-  describe '.extract_prompt' do
+  it 'returns nil if no metadata is found' do
+    io = StringIO.new("\x89PNG\r\n\x1a\n" + "no metadata here")
+    io.binmode
+    expect(extractor.extract_all(io)).to be_nil
+  end
+
+  describe 'extract prompt' do
     context 'with the miyu.png asset' do
       it 'successfully extracts the ComfyUI prompt JSON' do
         asset_io('miyu.png') do |io|
-          prompt = extractor.extract_prompt(io)
+          prompt = extractor.extract_all(io)['prompt']
           expect(prompt).not_to be_nil
           expect(prompt).to include('Full-body anime character illustration of Miyu')
         end
       end
-    end
-
-    it 'returns nil if no prompt is found' do
-      io = StringIO.new("\x89PNG\r\n\x1a\n" + "no prompt here")
-      io.binmode
-      expect(extractor.extract_prompt(io)).to be_nil
     end
 
     it 'successfully extracts a prompt from tEXt chunk' do
@@ -89,25 +89,19 @@ describe OllamaChat::Utils::PNGMetadataExtractor do
 
       io = StringIO.new(binary_blob)
       io.binmode
-      expect(extractor.extract_prompt(io)).to eq prompt_text
+      expect(extractor.extract_all(io)['prompt']).to eq prompt_text
     end
   end
 
-  describe '.extract_workflow' do
+  describe 'extract workflow' do
     context 'with the miyu.png asset' do
       it 'successfully extracts the ComfyUI workflow JSON' do
         asset_io('miyu.png') do |io|
-          workflow = extractor.extract_workflow(io)
+          workflow = extractor.extract_all(io)['workflow']
           expect(workflow).not_to be_nil
           expect(workflow).to include('"id": "9ae6082b-c7f4-433c-9971-7a8f65a3ea65"')
         end
       end
-    end
-
-    it 'returns nil if no workflow is found' do
-      io = StringIO.new("\x89PNG\r\n\x1a\n" + "no workflow here")
-      io.binmode
-      expect(extractor.extract_workflow(io)).to be_nil
     end
 
     it 'successfully extracts a workflow from tEXt chunk' do
@@ -122,7 +116,7 @@ describe OllamaChat::Utils::PNGMetadataExtractor do
 
       io = StringIO.new(binary_blob)
       io.binmode
-      expect(extractor.extract_workflow(io)).to eq workflow_json
+      expect(extractor.extract_all(io)['workflow']).to eq workflow_json
     end
   end
 end

@@ -74,6 +74,31 @@ module OllamaChat::Utils::PNGMetadataExtractor
     end
   end
 
+  # Parses Automatic1111 / Stable Diffusion WebUI parameters metadata.
+  #
+  # @param text [String] The raw 'parameters' metadata value.
+  # @return [Hash, nil] A hash containing :prompt, :negative_prompt, and :settings.
+  def parse_a1111_parameters(text)
+    text or return
+
+    lines = text.split("\n")
+    result = { prompt: lines[0], negative_prompt: nil, settings: {} }
+
+    lines[1..].each do |line|
+      if line.start_with?('Negative prompt: ')
+        result[:negative_prompt] = line.sub('Negative prompt: ', '')
+      else
+        # Parse comma-separated key-value pairs (e.g., "Steps: 20, Sampler: Euler")
+        line.split(', ').each do |pair|
+          key, value = pair.split(': ', 2)
+          result[:settings][key.downcase.to_sym] = value if key && value
+        end
+      end
+    end
+
+    result
+  end
+
   # Convenience method to extract a character profile from a PNG.
   # Maintained for backward compatibility with existing call sites.
   #
@@ -82,23 +107,5 @@ module OllamaChat::Utils::PNGMetadataExtractor
   def extract_character(io)
     metadata = extract_all(io) or return
     decode_character(metadata['chara'])
-  end
-
-  # Extracts the prompt metadata from a PNG image.
-  #
-  # @param io [IO] An IO-like object providing access to the PNG binary data.
-  # @return [String, nil] The raw prompt text if found, otherwise nil.
-  def extract_prompt(io)
-    metadata = extract_all(io) or return
-    convert_to_utf8(metadata['prompt'])
-  end
-
-  # Extracts the workflow metadata from a PNG image (e.g., ComfyUI).
-  #
-  # @param io [IO] An IO-like object providing access to the PNG binary data.
-  # @return [String, nil] The raw workflow JSON string if found, otherwise nil.
-  def extract_workflow(io)
-    metadata = extract_all(io) or return
-    convert_to_utf8(metadata['workflow'])
   end
 end
