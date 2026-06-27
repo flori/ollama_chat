@@ -1,5 +1,3 @@
-require 'json'
-
 # A tool for calculating Body Mass Index (BMI) with support for different unit
 # systems.
 #
