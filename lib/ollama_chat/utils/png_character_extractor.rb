@@ -61,5 +61,7 @@ module OllamaChat::Utils::PNGCharacterExtractor
         end
       end
     end
+  ensure
+    io.rewind
   end
 end
