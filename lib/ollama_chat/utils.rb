@@ -9,6 +9,7 @@
 module OllamaChat::Utils
 end
 
+require 'ollama_chat/utils/utf8_converter'
 require 'ollama_chat/utils/analyze_directory'
 require 'ollama_chat/utils/backup'
 require 'ollama_chat/utils/cache_fetcher'
@@ -17,7 +18,7 @@ require 'ollama_chat/utils/fetcher'
 require 'ollama_chat/utils/json_jsonl_io'
 require 'ollama_chat/utils/path_completer'
 require 'ollama_chat/utils/path_validator'
-require 'ollama_chat/utils/png_character_extractor'
+require 'ollama_chat/utils/png_metadata_extractor'
 require 'ollama_chat/utils/tag_resolver'
 require 'ollama_chat/utils/token_estimator'
 require 'ollama_chat/utils/value_formatter'

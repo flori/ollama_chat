@@ -282,7 +282,7 @@ describe OllamaChat::Parsing do
           "example.atom", "example.csv", "example.html", "example.pdf",
           "example.ps", "example.rb", "example.rss", "example.xml",
           "example_with_quote.html", "kitten.jpg", "prompt.txt",
-          "searxng.json", "pirateweather.json", "fluffy.png",
+          "searxng.json", "pirateweather.json", "fluffy.png", "miyu.png",
         ].sort
       )
     end

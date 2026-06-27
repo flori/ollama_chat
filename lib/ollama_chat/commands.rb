@@ -703,7 +703,7 @@ module OllamaChat::Commands
              path.read
            when '.png'
              path.open do |io|
-               OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(io)
+               OllamaChat::Utils::PNGMetadataExtractor.extract_character(io)
              end
            else
              STDERR.puts "Only json and png characters are supported!"

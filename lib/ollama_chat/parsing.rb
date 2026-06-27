@@ -52,17 +52,43 @@ module OllamaChat::Parsing
     when 'application/pdf'
       pdf_read(source_io)
     when 'image/png'
-      if character = parse_character_json(source_io)
-        "Parsed character profile\n\n%s" % character
-      else
-        STDERR.puts "Could not parse character profile from #{source_io&.content_type} document."
-      end
+      results = parse_png(source_io) and return results.join("\n\n---\n\n")
+      STDERR.puts "Could not parse metadata from #{source_io&.content_type} document."
+      nil
     when %r(\Aapplication/(json|ld\+json|x-ruby|x-perl|x-gawk|x-python|x-javascript|x-c?sh|x-dosexec|x-shellscript|x-tex|x-latex|x-lyx|x-bibtex)), %r(\Atext/), nil
       source_io.read
     else
       STDERR.puts "Cannot parse #{source_io&.content_type} document."
       return
     end
+  end
+
+  # Extracts embedded metadata from a PNG image, including character profiles,
+  # prompts, and workflows. Character profiles are automatically personalized
+  # to replace placeholders with the current user's name.
+  #
+  # @param source_io [IO] The input stream containing the PNG binary data.
+  #
+  # @return [Array<String>, nil] An array of formatted metadata sections (as
+  #   strings) if any were found, or nil if no supported metadata was extracted.
+  def parse_png(source_io)
+    metadata = OllamaChat::Utils::PNGMetadataExtractor.extract_all(source_io) or return
+    results = []
+    if data = metadata.delete('chara') and
+        char = OllamaChat::Utils::PNGMetadataExtractor.decode_character(data)
+      then
+      results << "Character Profile:\n\n#{personalize_character_profile(char)}"
+    end
+    if data = convert_to_utf8(metadata.delete('prompt'))
+      results << "Prompt:\n\n#{data}"
+    end
+    if data = convert_to_utf8(metadata.delete('workflow'))
+      results << "Workflow:\n\n#{data}"
+    end
+    if data = metadata.full? { _1.transform_values { |v| convert_to_utf8(v) } }
+      results << "Metadata:\n\n#{data}"
+    end
+    results.full?
   end
 
   # The parse_rss method processes an RSS feed source and converts it into a
@@ -185,21 +211,13 @@ module OllamaChat::Parsing
     )
   end
 
-  # Extracts and parses a character profile from a PNG image.
+  # Personalizes a character profile by replacing the {{user}} placeholder.
   #
-  # Replaces the `{{user}}` placeholder with the current user's name or a
-  # default string if the name is unavailable.
-  #
-  # @param io [IO] the input stream containing the PNG data
-  # @return [String, nil] the parsed and personalized character profile, or nil
-  # if extraction fails
-  def parse_character_json(io)
-    char = OllamaChat::Utils::PNGCharacterExtractor.extract_character_json(io) or return
-    if user_name
-      char.gsub('{{user}}', user_name)
-    else
-      char.gsub('{{user}}', 'the user')
-    end
+  # @param char [String] The raw character JSON string.
+  # @return [String] The personalized character profile.
+  def personalize_character_profile(char)
+    name = user_name || 'the user'
+    char.gsub('{{user}}', name)
   end
 
   # Regular expression to scan content for url/file references
@@ -257,8 +275,8 @@ module OllamaChat::Parsing
           add_image(images, source_io, source)
           if source_io&.content_type&.sub_type == 'png'
             source_io.rewind
-            if character = parse_character_json(source_io)
-              contents << "Extracted character profile from %s\n\n%s" % [ source, character ]
+            if results = parse_png(source_io)
+              contents.concat results
             end
           end
         when 'text', 'application', nil
