@@ -402,7 +402,7 @@ tools:
       timeout_duration: 66
     roll_dice:
       default: true
-      result_display_timeout: 3
+      result_display_timeout: 10
     get_ghr:
       default: true
       result_display_timeout: 3

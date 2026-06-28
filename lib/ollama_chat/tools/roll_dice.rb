@@ -66,11 +66,20 @@ class OllamaChat::Tools::RollDice
     rolls = count.times.map { rand(1..sides) }
     total = rolls.sum + modifier
 
+    message = "Dice roll was: %s = (%s)" % [ dice, rolls * ' + ' ]
+    if modifier > 0
+      message << " + %u" % modifier
+    elsif modifier < 0
+      message << " - %u" % -modifier
+    end
+    message << " = %u" % total
+
     {
       dice:,
       rolls:,
       modifier:,
-      total: total
+      total: total,
+      message:
     }.to_json
   rescue => e
     { error: e.class, message: e.message }.to_json
