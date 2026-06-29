@@ -1,5 +1,58 @@
 # Changes
 
+## 2026-06-29 v0.0.95
+
+### New Features & Enhancements
+
+- **PNG Metadata Extraction**:
+    - Implemented `OllamaChat::Utils::PNGMetadataExtractor` to support
+      extraction of characters, prompts, and workflows from `tEXt` chunks.
+    - Added support for Automatic1111 Stable Diffusion WebUI parameters via
+      `parse_a1111_parameters`.
+    - Consolidated metadata extraction logic into a new `parse_png` method
+      within `OllamaChat::Parsing`.
+    - Introduced `OllamaChat::Utils::UTF8Converter` to ensure safe UTF-8
+      encoding across the system.
+- **Tool Improvements**:
+    - Enhanced the `roll_dice` tool by adding a human-readable `message` field
+      to its JSON output and increasing the `result_display_timeout` in
+      `default_config.yml`.
+- **Command Interface**:
+    - Overhauled help texts for numerous commands (including `/model`,
+      `/system`, `/tools`, `/session`, `/prompt`, and `/persona`) using
+      squiggly heredocs for better formatting and clarity.
+    - Added comprehensive YARD documentation to the `OllamaChat::Commands`
+      module.
+
+### Bug Fixes & Refactoring
+
+- **Stability & Logic**:
+    - Updated `OllamaChat::InputContent#all_file_set` to filter out directories
+      using `.select(&:file?)` and return a `Set`.
+    - Improved session name validation in
+      `lib/ollama_chat/session_management.rb` by replacing `.nil?` with
+      `.blank?`.
+    - Added `io.rewind` within an `ensure` block in the PNG extraction logic to
+      prevent read errors.
+- **Cleanup**:
+    - Removed the unused `json` dependency from `compute_bmi`.
+    - Removed the `PATCH_TOOL` definition and its corresponding documentation
+      in `README.md`.
+    - Pruned redundant convenience methods `extract_prompt` and
+      `extract_workflow` from `OllamaChat::Utils::PNGMetadataExtractor`.
+
+### Documentation & CI
+
+- **README Updates**:
+    - Expanded the available tools table to include `delete_file`, `move_file`,
+      `eval_ruby`, `get_ghr`, and `get_jira_issue`.
+    - Refined descriptions for the **Knowledge** category, specifically
+      distinguishing between `retrieve_document_snippets` and `file_context`.
+- **CI/CD**:
+    - Optimized dependency installation in `.all_images.yml` by replacing
+      `getconf _NPROCESSORS_ONLN` with `nproc` for better parallel job
+      compatibility.
+
 ## 2026-06-22 v0.0.94
 
 ### Added
@@ -110,7 +163,7 @@
 
 - **Model Option Profiles**: Added support for model option profiles, including
   a new `profile` column in the database with a composite unique index on
-  `[:model_name, :profile]`. 
+  `[:model_name, :profile]`.
     - Enhanced `OllamaChat::ModelHandling` methods (`get_stored_model_options`,
       `store_model_options`) to support a `profile` parameter.
     - Implemented `choose_profile_for_model` for interactive profile selection.
@@ -126,20 +179,20 @@
 
 ### Enhancements & Refactoring
 
-- **Command Standardization**: 
+- **Command Standardization**:
     - Standardized the use of the `-e` flag for editing across multiple
       commands: `/input`, `/regenerate`, `/pipe`, `/output`, `/copy`, and
       `/paste`.
     - Replaced "Flags:" with "Options:" in help text for several chat commands.
     - Added a specific editor hook using `edit_text` for the `/input` command
       to allow editing imported content.
-- **Code Architecture**: 
+- **Code Architecture**:
     - Extracted all chat command definitions into a new separate module
       `OllamaChat::Commands` located in `lib/ollama_chat/commands.rb`.
     - Updated `OllamaChat::Chat` and the main library entry point to utilize
       this new module instead of inline definitions or
       `OllamaChat::CommandConcern`.
-- **Message Output**: 
+- **Message Output**:
     - Enhanced `OllamaChat::MessageOutput#pipe` and `#output` to accept an
       `edit` parameter.
     - Refactored `OllamaChat::MessageOutput#attempt_to_write_file` to receive
@@ -282,42 +335,42 @@
 ## 2026-04-02 v0.0.86
 
 - Updated `play_persona_prompt` in `lib/ollama_chat/personae_management.rb` to
-  include “(no need to read the file)” in the roleplay prompt template string.  
-- Added `optional: true` to the `/links` command in `lib/ollama_chat/chat.rb`.  
+  include “(no need to read the file)” in the roleplay prompt template string.
+- Added `optional: true` to the `/links` command in `lib/ollama_chat/chat.rb`.
 - Made the `edit` subcommand of `/revise` optional by adding `optional: true`
-  to its command definition in `lib/ollama_chat/chat.rb`.  
-- Added a `backup` subcommand for persona management:  
+  to its command definition in `lib/ollama_chat/chat.rb`.
+- Added a `backup` subcommand for persona management:
   - Updated the `:persona` command regex and completion options in
-    `lib/ollama_chat/chat.rb`.  
-  - Added a case handler to invoke the new `backup_persona` method.  
+    `lib/ollama_chat/chat.rb`.
+  - Added a case handler to invoke the new `backup_persona` method.
   - Implemented `backup_persona` in `lib/ollama_chat/personae_management.rb`
-    with YARD documentation.  
-  - Removed the redundant assignment `persona = persona` in `edit_persona`.  
+    with YARD documentation.
+  - Removed the redundant assignment `persona = persona` in `edit_persona`.
 - Fixed the rescue exception class name in the `use_model` block of
   `lib/ollama_chat/chat.rb`, changing from `OllamaChatError::UnknownModelError`
-  to `OllamaChat::UnknownModelError`.  
+  to `OllamaChat::UnknownModelError`.
 - Ensured float division for duration calculations in `FollowChat` by
   converting operands to float in the `eval_stats` method of
-  `lib/ollama_chat/follow_chat.rb`.  
+  `lib/ollama_chat/follow_chat.rb`.
 - Used `Pathname.new(file).expand_path.directory?` for tilde expansion in
-  directory checks in `lib/ollama_chat/parsing.rb`.  
-- Refactored command registration formatting in `lib/ollama_chat/chat.rb`.  
+  directory checks in `lib/ollama_chat/parsing.rb`.
+- Refactored command registration formatting in `lib/ollama_chat/chat.rb`.
 - Added YARD documentation to the `OllamaChat::CommandConcern::Command` class
-  in `lib/ollama_chat/command_concern.rb`.  
+  in `lib/ollama_chat/command_concern.rb`.
 - Removed the deprecated `-d` flag from the `/input` command in
-  `lib/ollama_chat/chat.rb`.  
-- Removed tag support from `parse_content`:  
+  `lib/ollama_chat/chat.rb`.
+- Removed tag support from `parse_content`:
   - Updated `OllamaChat::Chat` to call `parse_content` without expecting a
-    `tags` array.  
-  - Simplified handling of `@parse_content`.  
-  - Removed tag recognition logic from `OllamaChat::Parsing`.  
-  - Changed `parse_content` to return a single `String`.  
-  - Deleted tag‑specific example from the spec.  
-- Updated the `file_context` tool description for accuracy.  
-- Added an interactive loop to enable/disable tools:  
+    `tags` array.
+  - Simplified handling of `@parse_content`.
+  - Removed tag recognition logic from `OllamaChat::Parsing`.
+  - Changed `parse_content` to return a single `String`.
+  - Deleted tag‑specific example from the spec.
+- Updated the `file_context` tool description for accuracy.
+- Added an interactive loop to enable/disable tools:
   - Wrapped `enable_tool` and `disable_tool` in a `loop do` in
-    `lib/ollama_chat/tool_calling.rb`.  
-  - Modified `select_tools` to place `[EXIT]` at the start.  
+    `lib/ollama_chat/tool_calling.rb`.
+  - Modified `select_tools` to place `[EXIT]` at the start.
   - Handled user choice with `choose(select_tools)`
     and exited on `[EXIT]` or `nil`.
 
@@ -348,24 +401,24 @@
 ## 2026-03-26 v0.0.84
 
 - Added `OllamaChat::Utils::ValueFormatter` with helper `format_bytes` in
-  `lib/ollama_chat/utils/value_formatter.rb`.  
-    - Added `require 'ollama_chat/utils/value_formatter'` where needed.  
+  `lib/ollama_chat/utils/value_formatter.rb`.
+    - Added `require 'ollama_chat/utils/value_formatter'` where needed.
     - Updated `write_file`, `patch_file`, `paste_from_clipboard` to use
-      `format_bytes` for byte‑size messages.  
+      `format_bytes` for byte‑size messages.
 - Implemented new tool `RetrieveDocumentSnippets` in
   `lib/ollama_chat/tools/retrieve_document_snippets.rb` and its spec
-  `spec/ollama_chat/tools/retrieve_document_snippets_spec.rb`.  
+  `spec/ollama_chat/tools/retrieve_document_snippets_spec.rb`.
     - Updated `default_config.yml` to enable `retrieve_document_snippets` by
-      default.  
+      default.
 - Rewrote tool payloads to include a `message` key for `browse`, `search_web`,
-  `paste_from_clipboard`, `resolve_tag`, and others.  
-- `browse` now returns `"Opened \"<url>\" in browser."` or a failure message.  
+  `paste_from_clipboard`, `resolve_tag`, and others.
+- `browse` now returns `"Opened \"<url>\" in browser."` or a failure message.
 - Refactored `confirm?` in `lib/ollama_chat/dialog.rb` to accept keyword `yes:`
   for a confirmation regex and display a coloured emoji matching the response
-  or timeout/default.  
-    - Updated all calls to `confirm?` to use `yes: /\Ay/i` syntax.  
+  or timeout/default.
+    - Updated all calls to `confirm?` to use `yes: /\Ay/i` syntax.
     - Updated `lib/ollama_chat/message_output.rb` to add `yes:` keyword to
-      `confirm?` calls and refine the emoji shown when a file already exists.  
+      `confirm?` calls and refine the emoji shown when a file already exists.
 
 ## 2026-03-24 v0.0.83
 
@@ -387,13 +440,13 @@
 ## 2026-03-21 v0.0.82
 
 - Add a `before` block setting `OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL` to `ctags`
-  in the `resolve_tag` spec.  
+  in the `resolve_tag` spec.
 - Updated `OllamaChat::Tools::PasteIntoEditor` description to use `text`
   instead of `string` and clarified that no file or line is required when
-  pasting into the editor.  
+  pasting into the editor.
 - Added bell and question mark emojis to various `confirm?` and `ask?` prompts
-  across multiple modules for clearer UX.  
-- Updated prompt string to `⏎  Press …` for better display.  
+  across multiple modules for clearer UX.
+- Updated prompt string to `⏎  Press …` for better display.
 - Enhanced `OllamaChat::Tools::ResolveTag` and `OllamaChat::Utils::TagResolver`
   with a new `kinds` method, updated `kind` parameter description, refactored
   `kind_of`, and fixed tag‑parsing regex to capture all columns.
