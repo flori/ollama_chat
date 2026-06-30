@@ -88,7 +88,17 @@ class OllamaChat::Tools::ExecuteGrep
     context     = normalize_number(args.context)
     cmd         = eval_template(config, pattern, path, max_results, ignore_case, before, after, context)
     result      = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
-    { cmd:, result: }.to_json
+    message =
+      if result.blank?
+        "No matches found for #{args.pattern.inspect} in #{path.inspect}."
+      else
+        "Found some matches for #{args.pattern.inspect} in #{path.inspect}."
+      end
+    {
+      cmd:,
+      result:,
+      message:,
+    }.to_json
   rescue => e
     { error: e.class, message: e.message }.to_json
   end

@@ -47,6 +47,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include('Hello\\ World')
     expect(json.cmd).to include('spec/assets')
     expect(json.result).to include('Hello World!')
+    expect(json.message).to match(/Found some matches for "Hello World" in ".*spec\/assets"\./)
   end
 
   it 'can be executed successfully with max_results parameter' do
@@ -78,6 +79,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include('grep')
     expect(json.cmd).to include(' -m 5 ')
     expect(json.result).to match(/blub class blob/)
+    expect(json.message).to match(/Found some matches for "class" in ".*spec\/assets"\./)
   end
 
   it 'can be executed successfully with max_results and ignore_case parameter' do
@@ -110,6 +112,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include(' -m 5 ')
     expect(json.cmd).to include(' -i ')
     expect(json.result).to match(/blub class blob/)
+    expect(json.message).to match(/Found some matches for "class" in ".*spec\/assets"\./)
   end
 
   it 'can handle execution errors gracefully' do
@@ -141,6 +144,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     json = json_object(result)
     expect(json.cmd).to include('grep')
     expect(json.result).to eq ''
+    expect(json.message).to match(/No matches found for "nonexistent_pattern" in ".*spec\/assets"\./)
   end
 
   it 'can handle non-existent paths gracefully' do
@@ -171,6 +175,9 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(result).to be_a String
     json = json_object(result)
     expect(json.result).to match(%r(grep: /nonexistent/path/that/does/not/exist))
+    expect(json.message).to match(
+      %r(Found some matches for "test" in "/nonexistent/path/that/does/not/exist"\.)
+    )
   end
 
   it 'can handle thrown exceptions' do
@@ -224,6 +231,9 @@ describe OllamaChat::Tools::ExecuteGrep do
       json = json_object(result)
       expect(json.result).to include('Hello World!')
       expect(json.result).to include('example.rb')
+      expect(json.message).to match(
+        /Found some matches for "Hello World!" in ".*spec\/assets"\./
+      )
     end
   end
 end
