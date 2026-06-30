@@ -78,7 +78,7 @@ class OllamaChat::Tools::RollDice
       dice:,
       rolls:,
       modifier:,
-      total: total,
+      total:,
       message:
     }.to_json
   rescue => e
