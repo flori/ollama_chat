@@ -33,6 +33,9 @@ describe OllamaChat::Tools::ComputeBMI do
 
         expect(json.bmi).to be_within(0.01).of(22.86)
         expect(json.category).to eq 'Normal weight'
+        expect(json.message).to match(
+          /This BMI is 22\.8\d+, which falls into the Normal weight category\./
+        )
       end
 
       it 'calculates BMI correctly for Underweight' do
@@ -49,6 +52,9 @@ describe OllamaChat::Tools::ComputeBMI do
 
         expect(json.bmi).to be_within(0.01).of(17.58)
         expect(json.category).to eq 'Underweight'
+        expect(json.message).to match(
+          /This BMI is 17\.5\d+, which falls into the Underweight category\./
+        )
       end
     end
 
@@ -67,6 +73,9 @@ describe OllamaChat::Tools::ComputeBMI do
 
         expect(json.bmi).to be_within(0.01).of(21.52)
         expect(json.category).to eq 'Normal weight'
+        expect(json.message).to match(
+          /This BMI is 21\.5\d+, which falls into the Normal weight category\./
+        )
       end
     end
 

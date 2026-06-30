@@ -85,13 +85,15 @@ class OllamaChat::Tools::ComputeBMI
     raise OllamaChat::ToolFunctionArgumentError, 'Height must be greater than zero and in kg/lbs' if height <= 0
     raise OllamaChat::ToolFunctionArgumentError, 'Weight must be less than 3m and in meter/feet' if height > 3
 
-    bmi      = ( weight / (height**2) ).round(2)
+    bmi      = ( weight / height**2 ).round(2)
     category = calculate_category(bmi)
+    message  = "This BMI is #{bmi}, which falls into the #{category} category."
 
     {
-      bmi:        bmi,
-      category:   category,
-      units:      ,
+      bmi:,
+      category:,
+      units:,
+      message:,
     }.to_json
   rescue => e
     { error: e.class, message: e.message }.to_json
