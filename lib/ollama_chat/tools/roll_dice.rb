@@ -61,6 +61,8 @@ class OllamaChat::Tools::RollDice
     count    = match[1].to_i.nonzero? || 1
     sides    = match[2].to_i
     modifier = match[3].to_i
+    min      = count + modifier
+    max      = count * sides + modifier
 
     # Generate rolls
     rolls = count.times.map { rand(1..sides) }
@@ -79,6 +81,8 @@ class OllamaChat::Tools::RollDice
       rolls:,
       modifier:,
       total:,
+      min:,
+      max:,
       message:
     }.to_json
   rescue => e
