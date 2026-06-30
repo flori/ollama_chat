@@ -55,6 +55,8 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
       "Consider these snippets generated from retrieval when formulating your response!"
     )
     expect(json.snippets.size).to eq 1
+    expect(json.message).to include('Retrieved')
+    expect(json.message).to include('"Ruby array"')
   end
 
   it 'works with a valid query and tags' do
@@ -95,6 +97,8 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.snippets.size).to eq 1
+    expect(json.message).to include('Retrieved')
+    expect(json.message).to include('"Ruby array"')
   end
 
   it 'switches to the specified collection and restores the original' do
@@ -117,7 +121,8 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     mock_docs = double('Documents')
     allow(chat).to receive(:documents).and_return(mock_docs)
 
-    expect(mock_docs).to receive(:collection).and_return('default_collection')
+    expect(mock_docs).to receive(:collection).and_return('default_collection').
+      at_least(:once)
     expect(mock_docs).to receive(:collection=).with('tolkien').ordered
     expect(mock_docs).to receive(:collection=).with('default_collection').ordered
 
@@ -142,6 +147,32 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     json = json_object(result)
     expect(json.error).to eq('OllamaChat::OllamaChatError')
     expect(json.message).to eq('Empty query')
+  end
+
+  it 'returns a no-match message when no records are found' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'retrieve_document_snippets',
+        arguments: double(
+          query: 'nonexistent',
+          tags: nil,
+          collection: nil,
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
+          rerank: false,
+        )
+      )
+    )
+
+    tool = described_class.new
+    expect(tool).to receive(:find_document_records).and_return([])
+
+    result = tool.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.message).to include('No relevant snippets found')
+    expect(json.message).to include('"nonexistent"')
   end
 
   it 'performs reranking when rerank is true' do
@@ -178,6 +209,8 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
 
     expect(json.snippets.size).to eq 1
     expect(json.snippets.first.text).to eq 'second'
+    expect(json.message).to include('Retrieved')
+    expect(json.message).to include('"Ruby array"')
   end
 
   it 'performs reranking when rerank is nil (defaults to true)' do
@@ -214,6 +247,8 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
 
     expect(json.snippets.size).to eq 1
     expect(json.snippets.first.text).to eq 'first'
+    expect(json.message).to include('Retrieved')
+    expect(json.message).to include('"Ruby array"')
   end
 
   it 'can be converted to hash' do

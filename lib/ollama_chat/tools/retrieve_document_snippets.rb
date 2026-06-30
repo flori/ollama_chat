@@ -123,15 +123,22 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       records = rerank_records(chat, query, records)
     end
 
-    message = records.map { |record|
-      link = if record.source =~ %r(\Ahttps?://)
-               record.source
-             else
-               'file://%s' % File.expand_path(record.source)
-             end
-      link && record.tags.any? or next
-      [ link, ?# + record.tags.first ]
-    }.flat_map { |l, t| chat.hyperlink(l, t) }.join(' ')
+    collection_name = chat.documents.collection
+    message =
+      if records.any?
+        "Retrieved #{records.size} relevant snippets from collection #{collection_name.inspect} for query #{query.inspect}. See snippets below:\n\n" +
+          records.map { |record|
+            link = if record.source =~ %r(\Ahttps?://)
+                     record.source
+                   else
+                     'file://%s' % File.expand_path(record.source)
+                   end
+            link && record.tags.any? or next
+            [ link, ?# + record.tags.first ]
+          }.flat_map { |l, t| chat.hyperlink(l, t) }.join(' ')
+      else
+        "No relevant snippets found for query #{query.inspect} in collection #{collection_name.inspect}."
+      end
 
     {
       prompt: 'Consider these snippets generated from retrieval when formulating your response!',
