@@ -43,7 +43,7 @@ describe OllamaChat::Tools::RollDice do
     expect(json.rolls).to eq [2, 5]
     expect(json.modifier).to eq 0
     expect(json.total).to eq 7
-    expect(json.message).to eq 'Dice roll was: 2d6 = (2 + 5) = 7'
+    expect(json.message).to eq 'Dice roll was: 2d6 = 2…12 = (2 + 5) = 7'
   end
 
   it 'can be executed successfully with d20 notation' do
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::RollDice do
     json = json_object(result)
     expect(json.rolls).to eq [10]
     expect(json.total).to eq 10
-    expect(json.message).to eq 'Dice roll was: d20 = (10) = 10'
+    expect(json.message).to eq 'Dice roll was: d20 = 1…20 = (10) = 10'
   end
 
   it 'can be executed successfully with positive modifier' do
@@ -86,7 +86,7 @@ describe OllamaChat::Tools::RollDice do
     expect(json.rolls).to eq [15]
     expect(json.modifier).to eq 3
     expect(json.total).to eq 18
-    expect(json.message).to eq 'Dice roll was: d20+3 = (15) + 3 = 18'
+    expect(json.message).to eq 'Dice roll was: d20+3 = 4…23 = (15) + 3 = 18'
   end
 
   it 'can be executed successfully with negative modifier' do
@@ -108,7 +108,7 @@ describe OllamaChat::Tools::RollDice do
     expect(json.rolls).to eq [5]
     expect(json.modifier).to eq(-3)
     expect(json.total).to eq 2
-    expect(json.message).to eq 'Dice roll was: d20-3 = (5) - 3 = 2'
+    expect(json.message).to eq 'Dice roll was: d20-3 = -2…17 = (5) - 3 = 2'
   end
 
   it 'can handle invalid dice notation' do

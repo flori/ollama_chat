@@ -68,7 +68,13 @@ class OllamaChat::Tools::RollDice
     rolls = count.times.map { rand(1..sides) }
     total = rolls.sum + modifier
 
-    message = "Dice roll was: %s = (%s)" % [ dice, rolls * ' + ' ]
+    # Compose message
+    message = "Dice roll was: %s = %u…%u = (%s)" % [
+      dice,
+      min,
+      max,
+      rolls * ' + '
+    ]
     if modifier > 0
       message << " + %u" % modifier
     elsif modifier < 0
