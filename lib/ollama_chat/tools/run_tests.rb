@@ -14,7 +14,7 @@ class OllamaChat::Tools::RunTests
   def self.register_name = 'run_tests'
 
   # Build the OpenAI function schema for the tool.
-  # @return [Tool]
+  # @return [Tool] a tool definition for running tests
   def tool
     Tool.new(
       type: 'function',
@@ -56,11 +56,20 @@ class OllamaChat::Tools::RunTests
     coverage = tool_call.function.arguments.coverage || false
     path     = check_path(path, config)
     output, success = run_tests(path, coverage)
+
+    message =
+      if success
+        "✨ All tests passed successfully in #{path.to_s.inspect}!"
+      else
+        "❌ Some tests failed in #{path.to_s.inspect}. Please check the error messages above."
+      end
+
     {
-      success:,
-      path:,
-      output:,
-      status: success ? 'passed' : 'failed'
+      success: ,
+      path:    path.to_s,
+      output:  ,
+      status:  success ? 'passed' : 'failed',
+      message: ,
     }.to_json
   rescue => e
     { error: e.class, message: e.message }.to_json
@@ -97,8 +106,8 @@ class OllamaChat::Tools::RunTests
   def run_tests(path, coverage)
     env = ENV.to_h | { 'START_SIMPLECOV' => coverage ? '1' : '0' }
     cmd = [ test_runner, Shellwords.escape(path) ].join(' ')
-    output = execute_test_command(env, cmd)
-    return output, $?.success?
+    output, success = execute_test_command(env, cmd)
+    return output, success
   end
 
   # Resolve the test runner executable from configuration.
@@ -113,16 +122,19 @@ class OllamaChat::Tools::RunTests
   #
   # @param env [Hash] environment variables for the process
   # @param cmd [String] the command to execute
-  # @return [String] the combined output from stdout and stderr
+  # @return [String, Boolean] the combined output from stdout and stderr and
+  #   a success flag
   def execute_test_command(env, cmd)
-    output = +''
-    Open3.popen2e(env, cmd) do |_,io|
+    output  = +''
+    success = false
+    Open3.popen2e(env, cmd) do |_,io,waiter|
       while line = io.gets
         STDOUT.puts line
         output << line
       end
+      success = waiter.value.success?
     end
-    output
+    return output, success
   end
 
   self.register
