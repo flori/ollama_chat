@@ -137,6 +137,8 @@ class OllamaChat::Tools::GeneratePassword
               Tins::Token.new(length:, alphabet:)
             end
 
+    message = "Successfully generated a #{token.length}-character secure password using the #{alphabet_type} alphabet."
+
     result = {
       password:      token,
       length:        token.length,
@@ -144,6 +146,7 @@ class OllamaChat::Tools::GeneratePassword
       alphabet_type: alphabet_type,
       uppercase:     ,
       extended:      ,
+      message:        ,
       generated_at:  Time.now.iso8601
     }
     if alphabet_type == 'default'
