@@ -53,8 +53,19 @@ class OllamaChat::Tools::GetCurrentWeather
     chat   = opts[:chat]
     config = chat.config
     units  = config.location.units =~ /SI/ ? 'si' : 'us'
+
     data   = { current_time: Time.now, units: } |
       JSON(get_weather_data(chat, config, units)).deep_symbolize_keys
+
+    temp      = data.dig(:currently, :temperature)
+    curr_sum  = data.dig(:currently, :summary)
+    daily_sum = data.dig(:daily, :summary)
+    unit_sym  = units == 'si' ? '°C' : '°F'
+
+    message = "Currently #{temp}#{unit_sym} and #{curr_sum}. Today's forecast: #{daily_sum}"
+
+    data[:message] = message
+
     data.to_json
   rescue => e
     {

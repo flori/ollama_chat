@@ -39,6 +39,10 @@ describe OllamaChat::Tools::GetCurrentWeather do
     expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
     expect(json.currently.temperature).to be_within(0.01).of(7.74)
     expect(json.units).to eq "si"
+    expect(json.message).to eq(
+      "Currently 7.74°C and Clear. Today's forecast: No precipitation "\
+      "throughout the week, with highs falling to 13°C next Friday."
+    )
   end
 
   it 'can handle execution errors with structured JSON error response' do
