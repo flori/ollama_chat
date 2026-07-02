@@ -222,7 +222,7 @@ module OllamaChat::SessionManagement
   # @return [OllamaChat::Database::Models::Session] the initialized session
   def setup_session
     @session = if session_name = @opts[?l]
-                 choose_session(session_name)
+                 choose_session(session_name,  offer_new_session: true)
                elsif @opts[?n]
                  new_session
                else
@@ -253,7 +253,8 @@ module OllamaChat::SessionManagement
       will be deleted, pick a new session to switch to.
     EOT
     confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
-    if chosen_session = choose_session(??, except_id: current_session_id)
+    if chosen_session = choose_session(??, except_id: current_session_id, offer_new_session: true)
+      chosen_session.save
       confirm?(
         prompt: "🔔 Delete session #{current_session_name.inspect} (#{current_session_id})? (y/n) ",
         yes: /\Ay/i
