@@ -54,8 +54,19 @@ class OllamaChat::Tools::GetTime
   #   execute(tool_call, config:)
   #   # => {"time":"2026-02-09T14:32:00+01:00","weekday":"Monday"}
   def execute(_tool_call, **_opts)
-    now = Time.now
-    { time: now.iso8601, weekday: now.strftime('%A') }.to_json
+    now  = Time.now
+    hour = now.hour
+
+    greeting = case hour
+               when 5..11  then 'Good morning'
+               when 12..17 then 'Good afternoon'
+               when 18..23 then 'Good evening'
+               else             'Good night'
+               end
+
+    message = "#{greeting}! It is currently #{now.strftime('%H:%M')} on #{now.strftime('%A')}."
+
+    { time: now.iso8601, weekday: now.strftime('%A'), message: }.to_json
   end
 
   self

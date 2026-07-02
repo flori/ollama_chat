@@ -18,6 +18,7 @@ describe OllamaChat::Tools::GetTime do
   end
 
   it 'can be executed successfully' do
+    Time.dummy = '2011-11-11T11:11:11+0200'
     tool_call = double(
       'ToolCall',
       function: double(
@@ -34,5 +35,8 @@ describe OllamaChat::Tools::GetTime do
       /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\z/
     )
     expect(json.weekday).to be_present
+    expect(json.message).to eq 'Good morning! It is currently 11:11 on Friday.'
+  ensure
+    Time.dummy = nil
   end
 end
