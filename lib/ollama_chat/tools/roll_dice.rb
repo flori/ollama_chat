@@ -50,7 +50,9 @@ class OllamaChat::Tools::RollDice
   # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the roll results as a JSON string
   def execute(tool_call, **opts)
-    dice = tool_call.function.arguments.dice.to_s.strip
+    chat   = opts[:chat]
+    reroll = chat.config.tools.functions.roll_dice.reroll?
+    dice   = tool_call.function.arguments.dice.to_s.strip
 
     # Parse the dice notation
     match = dice.match(/^(\d*)d(\d+)([+-]\d+)?$/i)
@@ -64,6 +66,45 @@ class OllamaChat::Tools::RollDice
     min      = count + modifier
     max      = count * sides + modifier
 
+    rolls, total, message = nil, nil, nil
+
+    loop do
+      rolls, total, message = perform_roll(dice, count, sides, modifier, min, max)
+
+      if reroll
+        puts message
+        chat.confirm?(prompt: '🛎️ Accept the roll? (y/n) ', yes: /\Ay/i) and break
+      else
+        break
+      end
+    end
+
+    {
+      dice:,
+      rolls:,
+      modifier:,
+      total:,
+      min:,
+      max:,
+      message:
+    }.to_json
+  rescue => e
+    { error: e.class, message: e.message }.to_json
+  end
+
+  private
+
+  # Performs the actual dice roll calculation and generates a result message.
+  #
+  # @param dice [String] the original dice notation string
+  # @param count [Integer] number of dice to roll
+  # @param sides [Integer] number of sides per die
+  # @param modifier [Integer] value to add/subtract from the total
+  # @param min [Integer] minimum possible result for the range display
+  # @param max [Integer] maximum possible result for the range display
+  # @return [Array(Array<Integer>, Integer, String)] a tuple containing the
+  #   individual rolls, the total sum, and the formatted message.
+  def perform_roll(dice, count, sides, modifier, min, max)
     # Generate rolls
     rolls = count.times.map { rand(1..sides) }
     total = rolls.sum + modifier
@@ -82,17 +123,7 @@ class OllamaChat::Tools::RollDice
     end
     message << " = %u" % total
 
-    {
-      dice:,
-      rolls:,
-      modifier:,
-      total:,
-      min:,
-      max:,
-      message:
-    }.to_json
-  rescue => e
-    { error: e.class, message: e.message }.to_json
+    return rolls, total, message
   end
 
   self
