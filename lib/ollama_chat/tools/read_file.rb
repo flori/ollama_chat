@@ -73,12 +73,15 @@ class OllamaChat::Tools::ReadFile
 
     path    = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
     content = extract_range(path.read, start_line, end_line)
+    es      = OllamaChat::TokenEstimator.estimate(content)
+    message = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
 
     {
       path:,
       content:,
       start_line:,
       end_line:,
+      message:,
     }.to_json
   rescue => e
     {

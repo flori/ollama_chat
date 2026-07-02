@@ -37,6 +37,7 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.success).to eq true
     expect(json.path).to include('test_write_file.txt')
+    expect(json.message).to include('Wrote 13.0 B (4.0 T) to file')
 
     # Verify file was actually written
     expect(File.exist?('./tmp/test_write_file.txt')).to be true
@@ -70,6 +71,7 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.success).to be true
     expect(json.path).to include('test_append_file.txt')
+    expect(json.message).to include('Wrote 18.0 B (6.0 T) to file')
 
     # Verify file was actually appended
     expect(File.exist?('./tmp/test_append_file.txt')).to be true

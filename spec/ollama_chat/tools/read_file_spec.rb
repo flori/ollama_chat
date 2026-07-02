@@ -38,6 +38,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.content).to eq <<~EOT
       puts "Hello World!"
     EOT
+    expect(json.message).to include('Read 20.0 B (6.0 T) from')
   end
 
   it 'can extract range when start_line is provided and end_line is nil' do
@@ -55,6 +56,7 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).to eq "puts \"Hello World!\"\n"
+    expect(json.message).to include('Read 20.0 B (6.0 T) from')
   end
 
   it 'can extract range when start_line is nil and end_line is provided' do
@@ -72,6 +74,7 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).to eq "puts \"Hello World!\"\n"
+    expect(json.message).to include('Read 20.0 B (6.0 T) from')
   end
 
   it 'returns empty content when end_line is less than start_line' do

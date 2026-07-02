@@ -74,7 +74,7 @@ class OllamaChat::Tools::WriteFile
     # Ensure the parent directory exists
     path.dirname.mkpath
 
-    bytes_written = args.content&.size.to_i
+    es = OllamaChat::TokenEstimator.estimate(args.content)
 
     backup_path = nil
 
@@ -94,11 +94,7 @@ class OllamaChat::Tools::WriteFile
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
 
-    bytes_written = format_bytes(bytes_written)
-
-    message = <<~EOT % { bytes_written:, path: path.to_s.inspect }
-      Wrote %{bytes_written} to file %{path}.
-    EOT
+    message = "Wrote #{es.bytes_formatted} (#{es.tokens_formatted}) to file #{path.to_s.inspect}."
 
     {
       success: true,
