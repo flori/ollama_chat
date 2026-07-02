@@ -60,15 +60,16 @@ module OllamaChat::Utils::PNGMetadataExtractor
   # Decodes a Base64 encoded character profile and validates it as JSON.
   #
   # @param text [String] The raw 'chara' metadata value.
-  # @return [String, nil] The decoded JSON string if valid, otherwise nil.
+  # @return [Array(String, Hash), nil] A tuple of [decoded_string, parsed_json]
+  #   if valid, otherwise nil.
   def decode_character(text)
     return nil unless text
 
     begin
       decoded = Base64.decode64(text)
       decoded = convert_to_utf8(decoded)
-      JSON.parse(decoded) # Validation check
-      decoded
+      data = JSON.parse(decoded)
+      return decoded, data
     rescue JSON::ParserError, ArgumentError
       nil
     end
@@ -106,6 +107,6 @@ module OllamaChat::Utils::PNGMetadataExtractor
   # @return [String, nil] The decoded JSON string if found and valid, otherwise nil.
   def extract_character(io)
     metadata = extract_all(io) or return
-    decode_character(metadata['chara'])
+    decode_character(metadata['chara'])&.first
   end
 end

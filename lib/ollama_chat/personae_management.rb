@@ -551,24 +551,41 @@ module OllamaChat::PersonaeManagement
     persona_name
   end
 
+  # Imports a character persona from JSON data, prompts for a name,
+  # and saves the resulting Markdown profile to disk.
+  #
+  # @param json_data [String] The raw character data in JSON format.
+  # @return [String, nil] The name of the created persona if successful,
+  #   or nil if the process was cancelled or failed.
+  def import_persona_from_json(json_data)
+    persona_name = determine_valid_new_name_for_persona('to import from JSON/PNG') or return
+    markdown = convert_json_character_to_markdown(json_data, persona_name)
+    persona_pathname = persona_name_to_pathname(persona_name)
+    persona_pathname.write(markdown)
+    persona_name
+  end
+
   # Transforms raw character data (JSON or YAML) into a high-fidelity,
   # structured Markdown persona profile using the persona architect prompt and
   # the current persona template.
   #
   # This method leverages the LLM to interpret raw attributes and expand them
   # into evocative prose, ensuring the final output conforms to the system's
-  # standard persona structure. It also normalizes placeholder syntax to ensure
-  # compatibility with the internal persona system.
+  # standard persona structure. It also normalizes placeholders: {{user}} is
+  # converted to %{user} for runtime personalization, and {{char}} is replaced
+  # with the actual character name provided.
   #
   # @param character [String] the raw character data in JSON format
+  # @param persona_name [String] the name of the character to replace {{char}} with
   # @return [String] the resulting structured Markdown persona profile
-  def convert_json_character_to_markdown(character)
-    generate(
+  def convert_json_character_to_markdown(character, persona_name)
+    response = generate(
       prompt:  prompt(:persona_architect).to_s % {
         character:,
         persona_template: prompt(:persona).to_s
       }
-    ).response.gsub('{{user}}', '%{user}')
+    ).response
+    response.gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
   end
 
   # Interactively exports a persona profile to a specified file.

@@ -76,9 +76,10 @@ module OllamaChat::Parsing
     results = []
 
     if data = metadata.delete('chara') and
-        char = OllamaChat::Utils::PNGMetadataExtractor.decode_character(data)
+        (char, char_data = OllamaChat::Utils::PNGMetadataExtractor.decode_character(data))
       then
-      results << "Character Profile:\n\n#{personalize_character_profile(char)}"
+      name = char_data.dig('data', 'name').full? || Pathname.new(source_io.path).basename.sub_ext('')
+      results << "Character Profile:\n\n#{personalize_character_profile(char, name:)}"
     end
 
     if data = metadata.delete('parameters') and
@@ -222,13 +223,16 @@ module OllamaChat::Parsing
     )
   end
 
-  # Personalizes a character profile by replacing the {{user}} placeholder.
+  # Personalizes a character profile by replacing placeholders with actual names.
   #
   # @param char [String] The raw character JSON string.
+  # @param name [String] The name of the character to replace {{char}} with.
   # @return [String] The personalized character profile.
-  def personalize_character_profile(char)
-    name = user_name || 'the user'
-    char.gsub('{{user}}', name)
+  def personalize_character_profile(char, name:)
+    my_user_name = user_name || 'the user'
+    char = char.gsub(/{{user}}/i, my_user_name)
+    name.present? and char = char.gsub(/{{char}}/i, name)
+    char
   end
 
   # Regular expression to scan content for url/file references

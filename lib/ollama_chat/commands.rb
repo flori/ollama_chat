@@ -724,12 +724,7 @@ module OllamaChat::Commands
       disable_content_parsing
       data
     when 'import'
-      markdown = convert_json_character_to_markdown(data)
-      Tempfile.create('character.md') do |tmp|
-        tmp.puts markdown
-        tmp.flush
-        import_persona(Pathname.new(tmp.path))
-      end
+      import_persona_from_json(data)
       :next
     end
   end
