@@ -25,7 +25,7 @@ describe OllamaChat::Tools::GetEndoflife do
       function: double(
         name: 'get_endoflife',
         arguments: double(
-          product: product
+          product:
         )
       )
     )
@@ -54,14 +54,14 @@ describe OllamaChat::Tools::GetEndoflife do
       function: double(
         name: 'get_endoflife',
         arguments: double(
-          product: product
+          product:
         )
       )
     )
 
     url = chat.config.tools.functions.get_endoflife.url
 
-    stub_request(:get, url % { product: product })
+    stub_request(:get, url % { product: })
       .to_return(status: 404, body: 'Not Found')
 
     result = described_class.new.execute(tool_call, chat:)

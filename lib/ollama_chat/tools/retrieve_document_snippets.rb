@@ -215,7 +215,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       prompt:         chat.config.embedding.model.prompt?,
       text_size:      ,
       text_count:     ,
-      min_similarity: min_similarity
+      min_similarity:
     )
   end
 

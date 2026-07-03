@@ -107,7 +107,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url: url, document_policy: 'ignoring')
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.content).to eq('raw content')
     end
@@ -117,7 +117,7 @@ describe OllamaChat::Tools::GetURL do
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:import_source).with(source_io, URI.parse(url)).and_return('imported content')
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.content).to eq('imported content')
     end
@@ -127,7 +127,7 @@ describe OllamaChat::Tools::GetURL do
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:embed_source).with(source_io, URI.parse(url)).and_return('embedded content')
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.content).to eq('embedded content')
     end
@@ -137,7 +137,7 @@ describe OllamaChat::Tools::GetURL do
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url)).and_return('summarized content')
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.content).to eq('summarized content')
     end
@@ -146,7 +146,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url: url, document_policy: 'chaos_mode')
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.message).to match(/Invalid document policy "chaos_mode"/)
     end
@@ -163,7 +163,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url: url, document_policy: 'ignoring')
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.message).to eq('Received requested URL successfully.')
     end
@@ -175,7 +175,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url: url, document_policy: 'ignoring')
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.message).to match(/Cannot fetch.*with content type/)
     end

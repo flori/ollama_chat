@@ -28,7 +28,7 @@ describe OllamaChat::Tools::ComputeBMI do
           )
         )
 
-        result = described_class.new.execute(tool_call, chat: chat)
+        result = described_class.new.execute(tool_call, chat:)
         json = json_object(result)
 
         expect(json.bmi).to be_within(0.01).of(22.86)
@@ -47,7 +47,7 @@ describe OllamaChat::Tools::ComputeBMI do
           )
         )
 
-        result = described_class.new.execute(tool_call, chat: chat)
+        result = described_class.new.execute(tool_call, chat:)
         json = json_object(result)
 
         expect(json.bmi).to be_within(0.01).of(17.58)
@@ -68,7 +68,7 @@ describe OllamaChat::Tools::ComputeBMI do
           )
         )
 
-        result = described_class.new.execute(tool_call, chat: chat)
+        result = described_class.new.execute(tool_call, chat:)
         json = json_object(result)
 
         expect(json.bmi).to be_within(0.01).of(21.52)
@@ -89,7 +89,7 @@ describe OllamaChat::Tools::ComputeBMI do
           )
         )
 
-        result = described_class.new.execute(tool_call, chat: chat)
+        result = described_class.new.execute(tool_call, chat:)
         json = json_object(result)
 
         expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -105,7 +105,7 @@ describe OllamaChat::Tools::ComputeBMI do
           )
         )
 
-        result = described_class.new.execute(tool_call, chat: chat)
+        result = described_class.new.execute(tool_call, chat:)
         json = json_object(result)
 
         expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'

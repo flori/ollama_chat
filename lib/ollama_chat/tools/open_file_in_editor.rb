@@ -82,10 +82,10 @@ class OllamaChat::Tools::OpenFileInEditor
 
     {
       success:    true,
-      message:   ,
+      message:    ,
       path:       file_path,
-      start_line: start_line,
-      end_line:   end_line,
+      start_line: ,
+      end_line:   ,
     }.to_json
   rescue => e
     {

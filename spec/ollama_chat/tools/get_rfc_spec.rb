@@ -25,7 +25,7 @@ describe OllamaChat::Tools::GetRFC do
       function: double(
         name: 'get_rfc',
         arguments: double(
-          rfc_id: rfc_id
+          rfc_id:
         )
       )
     )
@@ -53,7 +53,7 @@ describe OllamaChat::Tools::GetRFC do
       function: double(
         name: 'get_rfc',
         arguments: double(
-          rfc_id: rfc_id
+          rfc_id:
         )
       )
     )

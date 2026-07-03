@@ -5,12 +5,7 @@ describe OllamaChat::StateSelectors::StateSelector do
   let(:off) { %w[ disabled ] }
 
   let(:selector) do
-    described_class.new(
-      name: name,
-      states: states,
-      default: default,
-      off: off
-    )
+    described_class.new(name:, states:, default:, off:)
   end
 
   describe '#initialize' do
@@ -82,9 +77,9 @@ describe OllamaChat::StateSelectors::StateSelector do
     context 'when allow_empty is true' do
       let(:selector) do
         described_class.new(
-          name: name,
-          states: states,
-          default: nil,
+          name:        ,
+          states:      ,
+          default:     nil,
           allow_empty: true
         )
       end

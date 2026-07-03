@@ -11,7 +11,7 @@ describe OllamaChat::ServerSocket do
 
       before do
         expect(OllamaChat::ServerSocket).to receive(:create_socket_server).
-          with(config: config, runtime_dir: nil, working_dir: nil).and_return(server)
+          with(config:, runtime_dir: nil, working_dir: nil).and_return(server)
       end
 
       context 'with default parameters' do
@@ -20,7 +20,7 @@ describe OllamaChat::ServerSocket do
 
           expect(server).to receive(:transmit).with(message).and_return(nil)
 
-          result = OllamaChat::ServerSocket.send_to_server_socket('test', config: config)
+          result = OllamaChat::ServerSocket.send_to_server_socket('test', config:)
 
           expect(result).to be_nil
         end
@@ -33,10 +33,7 @@ describe OllamaChat::ServerSocket do
           expect(server).to receive(:transmit).with(message).and_return(nil)
 
           result = OllamaChat::ServerSocket.send_to_server_socket(
-            'test',
-            config: config,
-            type: :socket_input,
-            parse: true
+            'test', config:, type: :socket_input, parse: true
           )
 
           expect(result).to be_nil
@@ -52,10 +49,7 @@ describe OllamaChat::ServerSocket do
             and_return(response)
 
           result = OllamaChat::ServerSocket.send_to_server_socket(
-            'test',
-            config: config,
-            type: :socket_input_with_response,
-            parse: false
+            'test', config:, type: :socket_input_with_response, parse: false
           )
 
           expect(result).to eq(response)
@@ -71,10 +65,7 @@ describe OllamaChat::ServerSocket do
             and_return(response)
 
           result = OllamaChat::ServerSocket.send_to_server_socket(
-            'test',
-            config: config,
-            type: :socket_input_with_response,
-            parse: true
+            'test', config:, type: :socket_input_with_response, parse: true
           )
 
           expect(result).to eq(response)
@@ -85,7 +76,7 @@ describe OllamaChat::ServerSocket do
     context 'with working_dir' do
       before do
         expect(OllamaChat::ServerSocket).to receive(:create_socket_server).
-          with(config: config, runtime_dir: nil, working_dir: 'foo/path').
+          with(config:, runtime_dir: nil, working_dir: 'foo/path').
           and_return(server)
       end
 
@@ -95,7 +86,7 @@ describe OllamaChat::ServerSocket do
           expect(server).to receive(:transmit).with(message).and_return(nil)
 
           result = OllamaChat::ServerSocket.send_to_server_socket(
-            'test', config: config, working_dir: 'foo/path'
+            'test', config:, working_dir: 'foo/path'
           )
 
           expect(result).to be_nil
@@ -106,7 +97,7 @@ describe OllamaChat::ServerSocket do
     context 'with runtime_dir parameter' do
       before do
         expect(OllamaChat::ServerSocket).to receive(:create_socket_server).
-          with(config: config, runtime_dir: '/foo/bar', working_dir: nil).
+          with(config:, runtime_dir: '/foo/bar', working_dir: nil).
           and_return(server)
       end
 
@@ -117,7 +108,7 @@ describe OllamaChat::ServerSocket do
 
 
         result = OllamaChat::ServerSocket.send_to_server_socket(
-          'test', config: config, runtime_dir: '/foo/bar'
+          'test', config:, runtime_dir: '/foo/bar'
         )
 
         expect(result).to be_nil
@@ -133,7 +124,7 @@ describe OllamaChat::ServerSocket do
           socket_name: /\Aollama_chat-\h{32}.sock\z/,
         ).and_return :unix_socks_server
 
-        result = OllamaChat::ServerSocket.create_socket_server(config: config)
+        result = OllamaChat::ServerSocket.create_socket_server(config:)
         expect(result).to eq :unix_socks_server
       end
     end
@@ -145,7 +136,7 @@ describe OllamaChat::ServerSocket do
           socket_name: 'ollama_chat.sock'
         ).and_return :unix_socks_server
 
-        result = OllamaChat::ServerSocket.create_socket_server(config: config)
+        result = OllamaChat::ServerSocket.create_socket_server(config:)
         expect(result).to eq :unix_socks_server
       end
     end

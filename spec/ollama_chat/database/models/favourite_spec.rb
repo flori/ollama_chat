@@ -5,16 +5,13 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
   describe 'database constraints' do
     it 'enforces uniqueness of context and name' do
       OllamaChat::Database::Models::Favourite.create(
-        context: context,
-        name: name,
-        metadata: { key: 'value' }
+        context:, name:, metadata: { key: 'value' }
       )
 
       # Attempting to create a duplicate should raise a Sequel error
       expect {
         OllamaChat::Database::Models::Favourite.create(
-          context: context,
-          name: name
+          context:, name:
         )
       }.to raise_error(Sequel::ValidationFailed)
     end
@@ -26,9 +23,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
 
       # The create call triggers before_save
       fav = OllamaChat::Database::Models::Favourite.create(
-        context: context,
-        name: name,
-        metadata: metadata_payload
+        context:, name:, metadata: metadata_payload
       )
 
       # We reload to trigger after_load
@@ -53,9 +48,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
     it 'does nothing in after_load if metadata is already a Hash' do
       # This tests the 'if metadata.is_a?(String)' condition
       fav = OllamaChat::Database::Models::Favourite.create(
-        context: context,
-        name: name,
-        metadata: { 'already' => 'hash' }
+        context:, name:, metadata: { 'already' => 'hash' }
       )
 
       # Accessing metadata directly without a fresh reload from DB
@@ -67,9 +60,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
   describe 'update metadata' do
     let!(:fav) do
       OllamaChat::Database::Models::Favourite.create(
-        context: context,
-        name: name,
-        metadata: { 'existing' => 'data' }
+        context:, name:, metadata: { 'existing' => 'data' }
       )
     end
 
@@ -87,9 +78,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
   context "nil and non‑hash metadata handling" do
     it "keeps nil metadata after reload" do
       f = OllamaChat::Database::Models::Favourite.create(
-        context: context,
-        name:    "nil_test",
-        metadata: nil
+        context:, name: "nil_test", metadata: nil
       )
       reload = OllamaChat::Database::Models::Favourite.first(id: f.id)
       expect(reload.metadata).to be_nil
@@ -98,9 +87,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
     it "serialises and deserialises an array" do
       arr = %w[foo bar baz]
       f = OllamaChat::Database::Models::Favourite.create(
-        context: context,
-        name:    "array_test",
-        metadata: arr
+        context:, name: "array_test", metadata: arr
       )
       reload = OllamaChat::Database::Models::Favourite.first(id: f.id)
       expect(reload.metadata).to eq(arr)

@@ -143,7 +143,7 @@ class OllamaChat::Tools::GeneratePassword
       password:      token,
       length:        token.length,
       bits:          token.bits,
-      alphabet_type: alphabet_type,
+      alphabet_type: ,
       uppercase:     ,
       extended:      ,
       message:        ,

@@ -43,7 +43,7 @@ describe OllamaChat::Tools::RunTests do
       function: double(
         name: 'run_tests',
         arguments: double(
-          path: ,
+          path:     ,
           coverage: nil
         )
       )
@@ -68,7 +68,7 @@ describe OllamaChat::Tools::RunTests do
       function: double(
         name: 'run_tests',
         arguments: double(
-          path: ,
+          path:     ,
           coverage: true
         )
       )
@@ -93,7 +93,7 @@ describe OllamaChat::Tools::RunTests do
       function: double(
         name: 'run_tests',
         arguments: double(
-          path: path,
+          path:     ,
           coverage: nil
         )
       )
@@ -150,7 +150,7 @@ describe OllamaChat::Tools::RunTests do
       expect_any_instance_of(described_class).to receive(:run_tests).
         with(path_expanded, false).and_return(['ok', true])
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       expect(json_object(result).path).to eq path_expanded.to_path
     end
 
@@ -159,7 +159,7 @@ describe OllamaChat::Tools::RunTests do
       allow(File).to receive(:exist?).with('./test').and_return(false)
       allow(File).to receive(:exist?).with('./tests').and_return(false)
 
-      result = described_class.new.execute(tool_call, chat: chat)
+      result = described_class.new.execute(tool_call, chat:)
       expect(json_object(result).error).to eq 'ArgumentError'
     end
   end

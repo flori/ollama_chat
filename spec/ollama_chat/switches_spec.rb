@@ -122,7 +122,7 @@ describe OllamaChat::Switches do
       let(:callback_off) { double('callback_off') }
       let :switch do
         described_class.new(
-          chat: chat,
+          chat:,
           attribute: :test,
           msg: { true => "On", false => "Off" },
           callbacks: {

@@ -135,7 +135,7 @@ class OllamaChat::Utils::Fetcher
   # @example Fetch a URL with caching
   #   cache = RedisCache.new
   #   fetcher = OllamaChat::Utils::Fetcher
-  #   fetcher.get('https://example.com/data.json', cache: cache) do |tmp|
+  #   fetcher.get('https://example.com/data.json', cache:) do |tmp|
   #     JSON.parse(tmp.read)
   #   end
   def self.get(url, headers: {}, **options, &block)
@@ -283,7 +283,7 @@ class OllamaChat::Utils::Fetcher
   # @example Fetch a URL with caching
   #   cache = RedisCache.new
   #   fetcher = OllamaChat::Utils::Fetcher
-  #   fetcher.get('https://example.com/data.json', cache: cache) do |tmp|
+  #   fetcher.get('https://example.com/data.json', cache:) do |tmp|
   #     JSON.parse(tmp.read)
   #   end
   def get(url, **opts, &block)

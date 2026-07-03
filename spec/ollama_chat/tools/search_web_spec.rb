@@ -35,7 +35,7 @@ describe OllamaChat::Tools::SearchWeb do
       'https://ruby-doc.org'
     ])
 
-    result = described_class.new.execute(tool_call, chat: chat)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::SearchWeb do
       'https://www.ruby-lang.org'
     ])
 
-    result = described_class.new.execute(tool_call, chat: chat)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -91,7 +91,7 @@ describe OllamaChat::Tools::SearchWeb do
     # Mock the search_web method to raise an exception
     expect(chat).to receive(:search_web).and_raise('Network error')
 
-    result = described_class.new.execute(tool_call, chat: chat)
+    result = described_class.new.execute(tool_call, chat:)
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
