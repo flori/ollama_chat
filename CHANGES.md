@@ -1,5 +1,56 @@
 # Changes
 
+## 2026-07-03 v0.0.96
+
+### New Features
+
+- Added reroll capability to the `roll_dice` tool, including a new `reroll`
+  configuration option in `default_config.yml` and implementation of a reroll
+  loop using `chat.confirm?`.
+- Enhanced the `roll_dice` tool output to include `min` and `max` bounds in the
+  JSON response and result range in the summary message.
+- Improved character importing by implementing `import_persona_from_json` in
+  `PersonaeManagement`, removing temporary file dependencies.
+- Added the ability to offer new sessions during session selection via
+  `offer_new_session: true` in `SessionManagement`.
+
+### Improvements
+
+- **Tool Messaging**: Added or enhanced human-readable summary `message` fields
+  for several tools to improve user experience:
+    - `GetTime`: Now includes time-of-day greetings and formatted weekdays.
+    - `GetCurrentWeather`: Now incorporates temperature, conditions, and daily
+      forecasts.
+    - `ReadFile` & `WriteFile`: Integrated `OllamaChat::TokenEstimator` for
+      formatted byte and token counts.
+    - `GeneratePassword`: Added summaries covering various alphabet types and
+      errors.
+    - `RetrieveDocumentSnippets`: Added counts and collection details.
+    - `ExecuteGrep`: Added logic to distinguish between found matches and blank
+      results.
+    - `RunTests`: Added emoji-based result summaries and removed reliance on
+      the global `$?` variable.
+    - `ComputeBMI`: Enhanced summary messages and simplified calculation logic.
+- **Character Personalization**: 
+    - Updated `convert_json_character_to_markdown` to replace `{{char}}`
+      placeholders with actual names.
+    - Enhanced `personalize_character_profile` using case-insensitive regexes
+      for `{{user}} and {{char}}`.
+    - Refactored `PNGMetadataExtractor.decode_character` to return a tuple of
+      the decoded string and parsed JSON data.
+- **Token Estimation**: 
+    - Relocated `TokenEstimator` to a primary domain module and introduced an
+      `Estimate` struct for formatted bytes and tokens.
+    - Implemented `OllamaChat::TokenEstimator::Crude` as the estimation engine.
+
+### Refactoring & Maintenance
+
+- Updated Ruby syntax across the project to use shorthand hash syntax (e.g., in
+  `.where`, object initialization, and method calls).
+- Improved compatibility by replacing the `it` parameter with `_1` in the
+  `tools` method within `ToolCalling`.
+- Bumped `context_spook` dependency from **1.5** to **1.6**.
+
 ## 2026-06-29 v0.0.95
 
 ### New Features & Enhancements
