@@ -188,7 +188,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
     begin
       # We use the active chat model to perform the surgical precision
       # filtering
-      if response = chat.generate(prompt:)&.response.full?
+      if response = chat.generate(prompt:).full?
         indices  = response.scan(/\d+/).map(&:to_i).select { |i| (0...records.size).include?(i) }
         records  = records.values_at(*indices) if indices.any?
       end

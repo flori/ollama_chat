@@ -41,6 +41,27 @@ module OllamaChat::SystemPromptManagement
     messages.system_name
   end
 
+  # Resolves the currently active system prompt name to its raw text content.
+  #
+  # If the current system prompt is set to 'model_default', this method
+  # retrieves the default prompt associated with the loaded model. Otherwise,
+  # it fetches the content of the specifically named system prompt from the
+  # database.
+  #
+  # The returned string represents the base template; any dynamic placeholders
+  # (e.g., %{persona} and %{runtime_info}) are nullified to ensure only the raw
+  # structure is returned.
+  #
+  # @return [String] The raw text content of the active system prompt.
+  def raw_system_prompt
+    system_name =  current_system_prompt_name
+    if system_name == 'model_default'
+      model_default_system_prompt.to_s
+    else
+      system_prompt(system_name).to_s
+    end % { persona: nil, runtime_info: nil }
+  end
+
   # Retrieves the content of the system prompt currently active in the chat
   # session.
   #

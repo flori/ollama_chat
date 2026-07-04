@@ -481,7 +481,7 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(\s+-e)?(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|suggest))?(?:\s+(\S+))?$),
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|suggest|-e))?(\s+-e)?(?:\s+(\S+))?$),
     complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset suggest ] ],
     optional: true,
     help: <<~EOT,
@@ -495,7 +495,7 @@ module OllamaChat::Commands
       Options: -e to edit the next prompt
         instead of prefilling
     EOT
-  ) do |opts, subcommand, filename|
+  ) do |subcommand, opts, filename|
     case subcommand
     when 'add'
       add_new_prompt
@@ -526,11 +526,11 @@ module OllamaChat::Commands
         end
       end
     when 'suggest'
-      prompt = suggest_prompts and next prompt
-    when nil
-      opts = go_command('e', opts)
+      opts   = go_command('e', opts)
+      prompt = suggest_prompts(edit: opts[?e]) and next prompt
+    when nil, '-e'
       if prompt = choose_prompt(prompt: 'Which template shall guide the next response? %s').full?(&:to_s)
-        if opts[?e]
+        if subcommand
           prompt = edit_text(prompt)
           next prompt
         else

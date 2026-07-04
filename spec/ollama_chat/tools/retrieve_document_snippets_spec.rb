@@ -201,8 +201,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     expect(tool).to receive(:find_document_records).and_return(records)
 
     allow(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
-    response_val = double('Response', response: double('FullResponse', full?: '1', response: '1'))
-    allow(chat).to receive(:generate).with(prompt: anything).and_return(response_val)
+    allow(chat).to receive(:generate).with(prompt: anything).and_return('1')
 
     result = tool.execute(tool_call, chat:)
     json = json_object(result)
@@ -239,8 +238,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     expect(tool).to receive(:find_document_records).and_return(records)
 
     allow(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
-    response_val = double('Response', response: double('FullResponse', full?: '0', response: '0'))
-    allow(chat).to receive(:generate).with(prompt: anything).and_return(response_val)
+    allow(chat).to receive(:generate).with(prompt: anything).and_return('0')
 
     result = tool.execute(tool_call, chat:)
     json = json_object(result)

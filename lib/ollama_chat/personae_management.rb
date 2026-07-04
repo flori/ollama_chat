@@ -579,13 +579,12 @@ module OllamaChat::PersonaeManagement
   # @param persona_name [String] the name of the character to replace {{char}} with
   # @return [String] the resulting structured Markdown persona profile
   def convert_json_character_to_markdown(character, persona_name)
-    response = generate(
+    generate(
       prompt:  prompt(:persona_architect).to_s % {
         character:,
         persona_template: prompt(:persona).to_s
       }
-    ).response
-    response.gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
+    ).gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
   end
 
   # Interactively exports a persona profile to a specified file.

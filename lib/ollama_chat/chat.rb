@@ -230,23 +230,39 @@ class OllamaChat::Chat
     @messages.system_name
   end
 
-  # The generate method sends a prompt to the Ollama model and returns the
-  # result.
+  # Sends a structured chat request to the Ollama model and returns the
+  # response content.
   #
-  # @param prompt [ String ] the prompt to send to the model
+  # This method creates a minimal conversation consisting of a system message
+  # and a user message, executing it as a one-shot chat interaction.
   #
-  # @return [ Ollama::Response ] the response from the Ollama model
-  def generate(prompt:)
-    prepare_model(@model)
-    msg = "Using prompt #{prompt.inspect} for generation to #{@model.inspect}."
-    log(:info, msg)
-    ollama.generate(
-      model: @model,
-      prompt:,
-      options: model_options,
-      stream: false,
-      think: false,
-    )
+  # @param system [String] the system prompt to guide the model's behavior
+  # (defaults to current raw_system_prompt)
+  #
+  # @param prompt [String] the user prompt to send to the model
+  #
+  # @return [String] the content of the resulting response message
+  def generate(system: raw_system_prompt, prompt:)
+    messages = [
+      OllamaChat::Message.new(
+        role:        'system',
+        content:     system,
+      ),
+
+      OllamaChat::Message.new(
+        role: 'user',
+        content: prompt
+      ),
+    ]
+
+    ollama.chat(
+      model:    @model,
+      messages: ,
+      options:  model_options,
+      stream:   false,
+      think:    false,
+      tools:
+    )&.message&.content.to_s
   end
 
   private

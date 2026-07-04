@@ -232,24 +232,38 @@ module OllamaChat::PromptManagement
   # Interactively generates follow-up prompt suggestions based on the current
   # session.
   #
-  # This method prompts the user to select a suggestion strategy (e.g., coding
-  # or roleplaying), constructs a prompt containing the conversation history,
-  # and requests a generation from the AI model. The resulting suggestions
-  # are then opened in the editor for final refinement before being returned.
+  # This method constructs a prompt containing the conversation history and an
+  # instruction (either selected from a template or provided manually) and
+  # requests a generation from the AI model. The resulting suggestions are then
+  # opened in the editor for final refinement before being returned.
+  #
+  # @param edit [Boolean] If true, allows the user to write a custom suggestion
+  #   instruction on the fly; otherwise, prompts the user to pick a template.
   #
   # @return [String, nil] The refined suggestion text, or nil if the process
   #   was cancelled.
-  def suggest_prompts
-    # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
-    instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? %s') or return
+  def suggest_prompts(edit: false)
+    instruction = nil
+    if edit
+      # Let the user write a suggestion instruction on the fly
+      instruction = edit_text('')
+    else
+      # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
+      instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? %s') or return
+    end
 
     # Build the context by gathering all current conversation messages
     history     = prepare_conversation_history
-    full_prompt = "Conversation History:\n#{history}\n\n#{instruction}"
+    full_prompt = <<~EOT
+      Conversation History:
+      #{history}
 
-    # Execute a silent generation call (doesn't add to history)
-    response = generate(prompt: full_prompt)
-    suggestions = response.response
+      Instruction:
+      #{instruction}
+    EOT
+
+    # Execute a silent chat oneshot call (doesn't add to history)
+    suggestions  = generate(prompt: full_prompt)
 
     # Pass the AI's suggestions through the editor for final refinement
     edit_text(suggestions)

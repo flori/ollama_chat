@@ -349,7 +349,7 @@ module OllamaChat::SessionManagement
         prompt:  prompt(:session_summarize).to_s % {
           sender_name:, unit:, message_content:, message_thinking:, context:
         }
-      ).response
+      )
       content = if pretty
                   '**%s**: %s' % [ sender_name_output, summary ]
                 else
@@ -380,7 +380,7 @@ module OllamaChat::SessionManagement
       c << "%s: %s\n\n" % [ sender_name, message.content ]
     end
     prompt = prompt(:session_title).to_s % { length:, content: }
-    generate(prompt:).response.full? do |name|
+    generate(prompt:).full? do |name|
       name = name.
         gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
         gsub(/\s+/, ' ')
