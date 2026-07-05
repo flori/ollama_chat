@@ -24,7 +24,7 @@ infobar:
       :frames: :braille181
       :message: ✓
 prompts:
-  embed: This source has been added to or updated in collection "%{collection}".
+  embed: The source %{source} has been added to or updated in collection "%{collection}".
   rerank: |
     Query: %{query}
     Candidates:

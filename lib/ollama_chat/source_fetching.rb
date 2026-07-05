@@ -246,7 +246,7 @@ module OllamaChat::SourceFetching
       source_io.rewind
       embed_source(source_io, source, tags:) or return
     end
-    prompt(:embed).to_s % { collection: }
+    prompt(:embed).to_s % { source:, collection: }
   end
 
   private

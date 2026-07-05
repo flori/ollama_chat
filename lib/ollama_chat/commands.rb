@@ -595,7 +595,10 @@ module OllamaChat::Commands
     when 'rename'
       rename_collection(collection)
     when 'update'
-      results = update_collection and next results
+      if results = update_collection
+        disable_content_parsing
+        next results
+      end
     when nil
       collection_stats
     end
@@ -805,6 +808,7 @@ module OllamaChat::Commands
         next context_spook(nil) || :next
       end
     when 'embedding'
+      disable_content_parsing
       opts = go_command('pac:t:', opts)
       switch_collection(opts[?c]) do |other_collection|
         if collection == other_collection and !confirm?(
