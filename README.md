@@ -103,7 +103,120 @@ connect can be configured in the environment variable `OLLAMA_CHAT_MODEL`.
 The YAML config file is stored in `$XDG_CONFIG_HOME/ollama_chat/config.yml` and
 you can use it for more complex settings.
 
-### Example: Using a Persona
+### The `/input` Command: Advanced Context Injection
+
+The `/input` command is a versatile tool designed to bring external data into
+your conversation context. Instead of manually copying and pasting, `/input`
+allows you to target files, URLs, or even live system output using powerful
+filters.
+
+#### 1. Understanding "Sources"
+
+One of the most powerful aspects of `/input` is its definition of a **source**.
+A source isn't just a filename; it can be any of the following:
+
+*   **Local Files**: Standard paths (e.g., `lib/ollama_chat.rb`) or quoted paths
+    for those with spaces.
+*   **Remote URLs**: Any `http://` or `https://` link. The command will fetch the
+    web content and parse it before importing.
+*   **Shell Commands (`!`)**: Any source starting with an exclamation mark is
+    executed as a shell command, and its **STDOUT** is imported as the content. 
+    *   *Example*: `/input !ls -la` imports the current directory listing.
+    *   *Example*: `/input !git branch` tells the AI which branch you are on.
+
+#### 2. Subcommands
+
+Depending on how you want the AI to "see" the data, you can use different
+subcommands:
+
+*   **`import` (Default)**: The standard way to bring content in. It reads the
+    source and formats it for the chat.
+*   **`path`**: Specifically targets local files to read their raw content.
+*   **`summary`**: Instead of importing the whole file, this uses the LLM to
+    generate a concise summary first. Use `-w <words>` to control the length
+    (default: 100).
+*   **`embedding`**: Sends the content directly into your RAG vector database
+    rather than the immediate chat window. Use `-c <collection>` for specific
+    collections and `-t <tags>` to categorize the data.
+*   **`context`**: Uses `ContextSpook` to generate a comprehensive structural dump
+    of your project, providing both the architectural skeleton and full file
+    contents in a high-density format.
+
+#### 3. The Power of Patterns (`-p`)
+
+By adding the `-p` flag, you can use Unix-style globs to select multiple files
+at once.
+
+*   **Interactive Selection**: By default, when using patterns, `ollama_chat` will
+    present an interactive menu allowing you to pick exactly which matching
+    files you want to import.
+*   **Bulk Import (`-a`)**: Use the `-a` (all) flag alongside `-p` to bypass the
+    menu and import every file that matches the pattern automatically.
+
+#### 4. Refining the Input
+
+*   **Editing on the Fly (`-e`)**: For the `import` and `path` subcommands, you
+    can use the `-e` flag. This opens the content in your default editor,
+    allowing you to trim or modify the text before it is sent to the LLM.
+*   **Custom Tags**: When embedding, tags allow you to create "slices" of
+    knowledge that can be retrieved later based on specific categories.
+
+#### Examples
+
+| Goal | Command |
+| :--- | :--- |
+| **Import a single file** | `/input path lib/ollama_chat.rb` |
+| **Input the output of a command** | `/input !env` |
+| **Summarize multiple files (Interactive)** | `/input summary -p "spec/**/*_spec.rb"` |
+| **Bulk import all Ruby files in `lib/`** | `/input -p "lib/**/*.rb" -a` |
+| **Embed a doc into a specific collection** | `/input embedding -c documentation-v1 "docs/api.md"` |
+| **Import and edit a URL's content** | `/input -e https://example.com/guide` |
+| **Generate project context for the AI** | `/input context` |
+
+### 🚀 Power User Features
+
+Beyond basic chat, **ollama_chat** includes several advanced systems designed
+for high-end AI orchestration and personalization.
+
+#### 1. The Character & Persona Engine
+The bot supports a sophisticated roleplay system that goes beyond simple text prompts.
+
+*   **SillyTavern Compatibility (`/character`)**: You can import character
+    cards directly from PNG or JSON files. This supports the SillyTavern
+    standard, allowing you to load entire personalities—including metadata and
+    example dialogues—embedded within an image file.
+    *   *Example*: `/character import fluffy.png`
+*   **Persona Management (`/persona`)**: Create, duplicate, and export complex
+    persona profiles. You can use `/persona play` to activate a personality as
+    your default for the session.
+
+#### 2. Intelligent Prompt Engineering (`/prompt suggest`)
+
+Instead of guessing the right prompt, you can let the AI help you write one.
+The `suggest` subcommand analyzes your current session history and utilizes
+specialized strategies (like `suggest_coding` or `suggest_roleplaying`) to
+generate a tailored prompt template for you to refine.
+
+#### 3. Model Profile Orchestration (`/model`)
+
+Avoid the tedious task of re-configuring model parameters every time you
+switch. The profile system allows you to manage "Live" vs "Saved" settings:
+*   **Saved -> Live**: Apply a pre-configured profile's settings (temperature,
+    top\_p, etc.) to your current session using `options to session`.
+*   **Live -> Saved**: After fine-tuning your model's behavior during a chat,
+    "bake" those live settings into a permanent profile using `options from
+    session`.
+
+#### 4. Conversation Archiving (`/session summarize`)
+
+Turn your long-form brainstorming sessions into structured documents. The
+`/session summarize` command can distill an entire conversation into a concise
+summary.
+*   **Quick View**: Use `-s` for a one-sentence executive summary.
+*   **Archiving**: Use `-f <filename>` to dump the full summary directly into a
+    Markdown file, creating an automatic journal of your project's evolution.
+
+### Using a Persona
 
 You can import a persona profile from a Markdown file and load it into the
 current session. The persona's content is then interpolated into the system
@@ -140,7 +253,7 @@ seems to be the problem that has brought you to our humble abode at 221B Baker
 Street?
 ```
 
-### Example: Using a multimodal model
+### Using a multimodal model
 
 This example shows how an image like this can be sent to the LLM for multimodal
 analysis:

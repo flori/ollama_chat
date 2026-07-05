@@ -78,7 +78,7 @@ module OllamaChat::Parsing
     if data = metadata.delete('chara') and
         (char, char_data = OllamaChat::Utils::PNGMetadataExtractor.decode_character(data))
       then
-      name = char_data.dig('data', 'name').full? || Pathname.new(source_io.path).basename.sub_ext('')
+      name = char_data.dig('data', 'name').full? || Pathname.new(source_io.path).basename.sub_ext('').to_s
       results << "Character Profile:\n\n#{personalize_character_profile(char, name:)}"
     end
 

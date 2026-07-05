@@ -232,7 +232,7 @@ module OllamaChat::Information
         -V             display the current version number and quit
         -h             this help
 
-        Use `?selector` with `-m` or `-s` to filter options. Multiple matches
+        Use `?selector` with `-m` or `-l` to filter options. Multiple matches
         will open a chooser dialog.
     EOT
     0
