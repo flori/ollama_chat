@@ -142,6 +142,7 @@ module OllamaChat::Information
       output.print '  '; voices.show(output:)
     end
     output.print '  '; location.show(output:)
+    output.print '  '; context_format.show(output:)
   end
 
   # Displays the current runtime environment details, split into static

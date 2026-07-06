@@ -25,6 +25,20 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
     validates_unique :name
     validates_presence :updated_at
     validates_presence :created_at
+
+    validates_presence :context_format
+    validates_presence :current_voice
+    validates_presence :document_policy
+    validates_presence :embedding_enabled
+    validates_presence :location_enabled
+    validates_presence :markdown_enabled
+    validates_presence :runtime_info_enabled
+    validates_presence :stream_enabled
+    validates_presence :think_loud_enabled
+    validates_presence :think_mode
+    validates_presence :think_strip_enabled
+    validates_presence :tools_enabled
+    validates_presence :voice_enabled
   end
 
   # Calculates the age of the session based on the last update timestamp.
@@ -93,6 +107,9 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] current_voice
   #   @return [String] The name of the voice currently in use.
   #
+  # @!attribute [v] context_format
+  #   @return [String] The format used for project context generation (e.g., 'JSON', 'TOON').
+  #
   # @!attribute [v] working_directory
   #   @return [String] The directory used as the working context for this session.
   #
@@ -144,6 +161,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       voice_enabled:         chat.config.voice.enabled,
       model_options:         ,
       current_voice:         chat.config.voice.default,
+      context_format:        chat.config.context.format,
       working_directory:     Dir.pwd,
       messages:              '',
     }

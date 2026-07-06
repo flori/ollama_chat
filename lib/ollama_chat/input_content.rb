@@ -92,7 +92,7 @@ module OllamaChat::InputContent
   # @example Load default context
   #   context_spook(nil)
   def context_spook(patterns, all: false)
-    format = config.context.format
+    format = @context_format.selected
     myself = self
     if patterns
       ContextSpook::generate_context(verbose: true, format:) do |context|

@@ -241,6 +241,14 @@ module OllamaChat::StateSelectors
   #   that manages the currently selected voice for the chat session
   attr_reader :voices
 
+  # The context_format reader returns the context format selector for the
+  # chat session.
+  #
+  # @return [ OllamaChat::StateSelector ] the context format selector object
+  #   that manages the format used for project context generation
+  #   (e.g., 'JSON', 'TOON')
+  attr_reader :context_format
+
   # Sets up state selectors for document policy and think mode based on the
   # provided configuration.
   #
@@ -267,6 +275,12 @@ module OllamaChat::StateSelectors
       name:        'Voice',
       states:      config.voice.list,
       allow_empty: true
+    )
+    @context_format = DatabaseStateSelector.new(
+      chat:      self,
+      attribute: :context_format,
+      name:      'Context format',
+      states:    %w[ JSON TOON ],
     )
   end
 end

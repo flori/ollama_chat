@@ -12,6 +12,7 @@ class OllamaChat::Database::Models::ModelOptions < Sequel::Model(OllamaChat::DB)
     super
     validates_presence :model_name
     validates_unique [ :model_name, :profile ]
+    validates_presence :profile
   end
 
   # @!attribute [v] id

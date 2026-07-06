@@ -65,9 +65,10 @@ class OllamaChat::Tools::FileContext
   # @return [String] the generated context data in the configured format (JSON by default)
   # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
-    config      = opts[:chat].config
+    chat        = opts[:chat]
+    config      = chat.config
     pattern     = tool_call.function.arguments.pattern
-    format      = config.context.format
+    format      = chat.context_format.selected
 
     directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
     search_path = directory + pattern

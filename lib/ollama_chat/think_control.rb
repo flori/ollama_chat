@@ -5,7 +5,6 @@
 # thinking modes, checking the current state, and displaying the current
 # think mode status.
 module OllamaChat::ThinkControl
-
   # An array of strings representing the valid configuration states for the
   # thinking mode.
   #

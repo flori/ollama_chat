@@ -235,6 +235,15 @@ module OllamaChat::Commands
   end
 
   command(
+    name: :context_format,
+    regexp: %r(^/context_format$),
+    help: 'Configure the context_format for context_spook JSON|TOON',
+  ) do
+    context_format.choose
+    :next
+  end
+
+  command(
     name: :tools,
     regexp: %r(^/tools(?:\s+(on|off|enable|disable))?),
     complete: [ 'tools', %w[ on off enable disable ] ],
