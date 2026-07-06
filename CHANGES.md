@@ -1,5 +1,60 @@
 # Changes
 
+## 2026-07-06 v0.0.97
+
+### New Features
+
+- **Session-Specific Context Formatting**: 
+    - Introduced the `/context_format` command to manage context formats per
+      session.
+    - Added a database migration `005_add_context_format_to_sessions.rb` to
+      include the `context_format` column in the `sessions` table.
+    - Updated `OllamaChat::Database::Models::Session` with presence validations
+      and initialization for `context_format`.
+    - Implemented a `context_format` state selector using
+      `DatabaseStateSelector` in `lib/ollama_chat/state_selectors.rb`.
+    - Integrated session-based format selection into
+      `OllamaChat::InputContent#context_spook` and
+      `OllamaChat::Tools::FileContext#execute`.
+- **Persona Management**: 
+    - Added a `copy` subcommand to the `/persona` command.
+    - Updated `select_persona_path` in `lib/ollama_chat/personae_management.rb`
+      to support a `no_prefill` keyword argument, affecting `@prefill_prompt`
+      assignment logic.
+
+### Improvements & Refactorings
+
+- **Generation API**: 
+    - Refactored `OllamaChat::Chat#generate` to utilize `ollama.chat`,
+      returning a string directly and supporting an optional `system` prompt.
+    - Implemented `OllamaChat::SystemPromptManagement#raw_system_prompt` for
+      resolving active system prompts.
+    - Enhanced `OllamaChat::PromptManagement#suggest_prompts` with an `edit:`
+      parameter and improved formatting.
+- **Embedding & Import Logic**: 
+    - Updated the `embed` prompt template in `default_config.yml` to include
+      `%{source}`.
+    - Modified `#embed` in `lib/ollama_chat/source_fetching.rb` to pass the
+      `source` variable during interpolation.
+    - Added `disable_content_parsing` to `'update'` and `'embedding'` command
+      paths in `lib/ollama_chat/commands.rb` to prevent recursive imports of
+      system status messages.
+- **Documentation & UX**: 
+    - Expanded `README.md` with detailed guides for `/input` and a new "Power
+      User Features" section (covering `/character`, `/prompt suggest`,
+      `/model` profiles, and `/session summarize`).
+    - Corrected the help text flag in `lib/ollama_chat/information.rb` from
+      `-s` to `-l`.
+
+### Bug Fixes & Maintenance
+
+- Added `validates_presence :profile` to the `validate` method in
+  `lib/ollama_chat/database/models/model_options.rb`.
+- Ensured character names are cast to strings in `lib/ollama_chat/parsing.rb`
+  for type consistency.
+- Updated `/prompt` command regex and argument logic in
+  `lib/ollama_chat/commands.rb`.
+
 ## 2026-07-03 v0.0.96
 
 ### New Features
