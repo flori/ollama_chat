@@ -609,8 +609,8 @@ module OllamaChat::Commands
 
   command(
     name: :persona,
-    regexp: %r(^/persona(?:\s+(play|load|edit|info|list|add|delete|backup|import|export|duplicate))?$),
-    complete: [ 'persona', %w[ play load edit info list add delete backup import export duplicate ] ],
+    regexp: %r(^/persona(?:\s+(play|load|edit|info|list|add|delete|backup|import|export|duplicate|copy))?$),
+    complete: [ 'persona', %w[ play load edit info list add delete backup import export duplicate copy ] ],
     optional: true,
     help: <<~EOT,
       Manage and activate personae for roleplay:
@@ -619,6 +619,7 @@ module OllamaChat::Commands
                   and start roleplaying
           - load: Load a specific persona
                   into session
+          - copy: persona pathname to clipboard
         - Management:
           - add: Create a new persona
           - edit: Modify an existing persona
@@ -672,6 +673,9 @@ module OllamaChat::Commands
       end
     when 'play'
       set_default_persona
+      :next
+    when 'copy'
+      select_persona_path(no_prefill: true)
       :next
     else
       select_persona_path
