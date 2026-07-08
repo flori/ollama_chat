@@ -269,7 +269,7 @@ module OllamaChat::PersonaeManagement
     persona = choose_persona(prompt: "Which persona's path do you need? %s") or return
     path = persona_name_to_pathname(persona).to_s
     perform_copy_to_clipboard(text: path, edit: false)
-    no_prefill or @prefill_prompt = path
+    no_prefill or self.prefill_prompt = path
     path
   end
 

@@ -302,6 +302,18 @@ class OllamaChat::Chat
     !!@parse_content
   end
 
+  # Returns whether there is a prompt waiting to be prefilled into the input buffer.
+  #
+  # @return [Boolean] true if a prefill prompt exists and is not empty, false otherwise
+  def prefill_prompt
+    @prefill_prompt.full?
+  end
+
+  # Sets the content to be prefilled into the next user input prompt.
+  #
+  # @param prefill_prompt [String, nil] The text to prefill, or nil to clear it
+  attr_writer :prefill_prompt
+
   # Handles user input commands and processes chat interactions.
   #
   # @param content [String] The input content to process
@@ -388,10 +400,10 @@ class OllamaChat::Chat
         tools_were_called and type = :tool_input
         unless tools_were_called
           content = enable_command_completion do
-            if prefill_prompt = @prefill_prompt.full?
+            if prefill_prompt
               Reline.pre_input_hook = -> {
                 Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
-                @prefill_prompt = nil
+                self.prefill_prompt = nil
               }
             else
               Reline.pre_input_hook = nil

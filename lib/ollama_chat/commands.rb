@@ -543,7 +543,7 @@ module OllamaChat::Commands
           prompt = edit_text(prompt)
           next prompt
         else
-          @prefill_prompt = prompt
+          self.prefill_prompt = prompt
         end
       end
     end
