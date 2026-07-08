@@ -734,13 +734,16 @@ module OllamaChat::Commands
     }
     case subcommand
     when 'info'
-      puts json_to_yaml.(data)
+      use_pager do |output|
+        output.puts json_to_yaml.(data)
+      end
       :next
     when 'load'
       disable_content_parsing
       data
     when 'import'
-      import_persona_from_json(data)
+      persona_name = import_persona_from_json(data)
+      STDOUT.puts "Imported character as persona %s." % persona_name.to_s.inspect
       :next
     end
   end
