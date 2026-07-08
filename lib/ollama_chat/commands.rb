@@ -536,7 +536,9 @@ module OllamaChat::Commands
       end
     when 'suggest'
       opts   = go_command('e', opts)
-      prompt = suggest_prompts(edit: opts[?e]) and next prompt
+      if prompt = suggest_prompts(edit: opts[?e])
+        self.prefill_prompt = prompt
+      end
     when nil, '-e'
       if prompt = choose_prompt(prompt: 'Which template shall guide the next response? %s').full?(&:to_s)
         if subcommand
