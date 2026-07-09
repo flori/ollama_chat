@@ -1,5 +1,30 @@
 # Changes
 
+## 2026-07-09 v0.0.98
+
+### Added
+
+- Implemented `prefill_prompt` getter and setter in `lib/ollama_chat/chat.rb`
+  with accompanying YARD documentation.
+
+### Changed
+
+- Updated `lib/ollama_chat/commands.rb` to persist the result of
+  `suggest_prompts` as `self.prefill_prompt`, allowing prefilled prompts to be
+  stored in history for reuse and modification.
+- Refactored call sites in `lib/ollama_chat/chat.rb`,
+  `lib/ollama_chat/commands.rb`, and `lib/ollama_chat/personae_management.rb`
+  to use the `self.prefill_prompt` interface instead of the `@prefill_prompt`
+  instance variable.
+- Wrapped the output of the `info` subcommand in `use_pager` within
+  `lib/ollama_chat/commands.rb`.
+- Added a confirmation message to the `import` subcommand in
+  `lib/ollama_chat/commands.rb`.
+- Refined the description of the `directory_structure` tool in
+  `lib/ollama_chat/tools/directory_structure.rb` to include warnings regarding
+  token usage and the exponential growth of nodes relative to the `max_depth`
+  parameter.
+
 ## 2026-07-06 v0.0.97
 
 ### New Features
