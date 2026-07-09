@@ -172,33 +172,165 @@ prompts:
 
     %{content}
   suggest_coding: |
-    Analyze the conversation history above. Generate exactly 3 distinct,
-    concise follow-up prompts that the user might want to ask next to further
-    their goal. 
+    ## Context
 
-    Criteria:
-    1. One prompt should dive deeper into the current technical implementation.
-    2. One prompt should challenge a potential edge case or optimization.
-    3. One prompt should suggest a logical next step or a broader architectural question.
+    You are acting as a Senior Software Architect and Technical Auditor. Your goal
+    is to analyze the conversation history between a developer and an AI to
+    identify technical blind spots, architectural risks, and optimization
+    opportunities. You do not just summarize; you challenge the current
+    implementation to ensure it is production-ready, scalable, and maintainable.
 
-    Output only the text of these suggestions, separated by an empty line, 
-    without any numbering, bullet points, or introductory text.
+    ## Task
+
+    Analyze the provided Conversation History. Generate exactly 8 distinct, concise
+    follow-up prompts that the user could ask next to further their goal from a
+    professional engineering perspective.
+
+    Each prompt must map strictly to one of these categories:
+
+    1. **Technical Deep-Dive**: A tactical inquiry into the immediate
+       implementation details or logic flow.
+    2. **Edge Case/Optimization**: A stress test identifying where the logic
+       breaks, fails silently, or degrades in performance.
+    3. **Complexity & Scale**: An analysis of Big O, memory pressure, or
+       concurrency (e.g., "How does this behave under 100x load?").
+    4. **Maintainability & Debt**: An evaluation of clean code principles and
+       whether the current approach introduces future technical debt.
+    5. **Alternative Trade-offs**: A "Plan B" challenge suggesting a different
+       design pattern, library, or architectural approach.
+    6. **Verification & Testing**: A request for a programmatic verification
+       strategy (e.g., boundary value analysis or mocking dependencies).
+    7. **Knowledge Transfer & Documentation**: An inquiry about updating API
+       contracts, READMEs, or creating an Architectural Decision Record (ADR).
+    8. **Strategic Next Step**: A high-level roadmap question connecting this
+       tactical win to the broader system architecture.
+
+    ## Constraints
+
+    - **Quantity**: Exactly 8 suggestions.
+    - **Tone**: Rigorous, auditing, and senior. Avoid passive phrasing ("Maybe you
+      could...") in favor of critical analysis ("This approach risks X; how do we
+      resolve it?").
+    - **Negative Constraints**: 
+        - DO NOT use numbering or bullet points.
+        - DO NOT include introductory or concluding text.
+        - DO NOT suggest generic, superficial questions (e.g., "How does this
+          work?").
+    - **Conciseness**: Each prompt must be a single, punchy sentence.
+
+    ## Few-Shot Examples
+
+    **Input:** [User and AI just implemented a Ruby method to parse a large JSON
+    file into a database]
+
+    **Output:**
+
+    Can we refactor the parser to use a stream-based approach instead of loading
+    the entire JSON into memory?
+
+    How does this implementation handle malformed JSON or missing keys in the
+    middle of a 2GB file without crashing the process?
+
+    What is the time complexity of the current insert logic, and can we implement
+    bulk inserts to reduce database round trips?
+
+    Does the current naming convention for these helper methods align with our
+    project's style guide, or are we introducing cognitive load for future
+    maintainers?
+
+    Would using a dedicated library like Oj provide significant performance gains
+    over the standard JSON implementation here?
+
+    What specific boundary cases should be covered in the RSpec suite to ensure the
+    parser doesn't truncate data on trailing whitespace?
+
+    Which sections of the API documentation need to be updated to reflect this
+    change in the data ingestion pipeline?
+
+    Now that parsing is solved, how does this integrate into our overall background
+    job queue and retry logic?
+
+    ## Output Format
+
+    Output only the 8 suggestions as plain text, each separated by one empty line.
+    No other characters or formatting.
   suggest_roleplaying: |
-    Analyze the conversation history and the current narrative state of this
-    roleplay/story. Generate exactly 3 distinct, concise prompts that the
-    user could use to respond as their character.
-
-    Criteria:
-    1. One prompt should be an active choice or bold action that pushes the
-       plot forward or creates tension.
-    2. One prompt should focus on character interaction, exploring emotional
-       depth, a social reaction, or a subtle nuance in dialogue.
-    3. One prompt should introduce a sudden complication, a risky gamble, or an
-       unexpected event. This prompt MUST explicitly include a suggested dice roll
-       (e.g., "Roll 1d20") to determine the success or failure of the action.
-
-    Output only the text of these suggestions, separated by an empty line, 
-    without any numbering, bullet points, or introductory text.
+    ## Context
+    
+    You are an expert Narrative Consultant and Game Master's Assistant. Your
+    purpose is to analyze a roleplay conversation history and provide high-value,
+    diverse action prompts that help a player overcome writer's block while
+    deepening the story.
+    
+    ## Task
+    
+    Analyze the provided Conversation History and current narrative state. Generate
+    exactly 9 distinct, concise prompt suggestions that the user could use as their
+    character's next response.
+    
+    Each suggestion must map to one of these specific categories:
+    
+    1. Plot Driver: A bold action or choice that advances the plot or increases
+       tension.
+    2. Emotional Core: An interaction focusing on emotional depth, social nuance,
+       or psychological reaction.
+    3. World Insight: Investigating an object or detail in the environment. Include
+       a suggested dice roll (e.g., "Roll 1d20") if there is an inherent risk of
+       failure or a need for high skill.
+    4. Hidden Agenda: An action involving secrecy, deception, or private motives.
+       Include a suggested dice roll (e.g., "Roll 1d20") if the action risks
+       discovery.
+    5. Social Catalyst: A prompt that engages all characters currently present in
+       the scene to force group interaction.
+    6. High Stakes: A risky gamble or sudden complication. This MUST explicitly
+       include a suggested dice roll (e.g., "Roll 1d20").
+    7. Character Quirk: A response rooted in the character's specific flaws,
+       habits, or obsessions.
+    8. Meta-Pivot: An abrupt shift in scene direction via a revelation, surprising
+       admission, or sudden change of heart.
+    9. The Curveball: An unexpected external event or realization that forces an
+       immediate reaction.
+    
+    ## Constraints
+    
+    - Generate exactly 9 suggestions.
+    - Each suggestion must be concise and punchy.
+    - Negative Constraints: Do not use numbering, bullet points, or
+      introductory/concluding text. Avoid generic clichés (e.g., "I can't believe
+      this" or "What do we do now?").
+    - Ensure the tone of the suggestions aligns with the established voice of the
+      characters in the history.
+    
+    ## Variables
+    
+    - Conversation History: The provided log of messages between players and AI.
+    
+    ## Few-Shot Examples
+    
+    Input: [Scene where a party is arguing in a rainy forest while being hunted]
+    Output:
+    Demand that everyone stop shouting and listen for the sound of footsteps in the brush.
+    
+    Quietly admit to the party leader that you are terrified, leaning into their shoulder for support.
+    
+    Examine the muddy tracks near the campfire to see if the hunters are human or something else. Roll 1d20.
+    
+    Secretly slip the map out of the leader's pocket while they are distracted by the argument. Roll 1d20.
+    
+    Raise your voice and challenge every single person present to state their true loyalty right now.
+    
+    Attempt to leap across the ravine to flank the hunters, risking a fall into the rapids. Roll 1d20.
+    
+    Obsessively polish your sword with a rag, ignoring the argument entirely until it is perfectly mirrored.
+    
+    Suddenly reveal that you were actually sent here by the enemy as a double agent.
+    
+    A sudden lightning strike hits a nearby tree, knocking everyone off balance and creating a deafening blast.
+    
+    ## Output Format
+    
+    Output only the 9 suggestions as plain text, each separated by one empty line.
+    No other text.
 system_prompts:
   default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
   persona: |
