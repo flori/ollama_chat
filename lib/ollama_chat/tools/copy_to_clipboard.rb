@@ -1,11 +1,8 @@
-# A tool for copying the last assistant response to the clipboard.
+# A tool for copying a text to the clipboard.
 #
 # The executable used for the copy operation is read from the configuration
 # under `copy.executable`.  The default configuration ships with
 # `ctc` – a small CLI that copies stdin to the system clipboard.
-#
-# The tool has no parameters; it simply grabs the most recent response
-# from the chat instance and streams it to the executable.
 class OllamaChat::Tools::CopyToClipboard
   include OllamaChat::Tools::Concern
 
@@ -20,9 +17,8 @@ class OllamaChat::Tools::CopyToClipboard
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Clipboard helper – Copies supplied string (or last assistant reply if
-          omitted) into the OS clipboard, enabling quick pasting elsewhere. No
-          output.
+          Clipboard helper – Copies supplied string into the OS clipboard,
+          enabling quick pasting elsewhere. No output.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -36,7 +32,7 @@ class OllamaChat::Tools::CopyToClipboard
               description: 'True if the copied text should be edited by the user, (default: false)'
             )
           },
-          required: []
+          required: %w[ text ]
         )
       )
     )
@@ -51,17 +47,12 @@ class OllamaChat::Tools::CopyToClipboard
   def execute(tool_call, **opts)
     args = tool_call.function.arguments
     edit = !!args.edit
-    text = args.text.full?
+    text = args.text.full? or raise OllamaChat::ToolFunctionArgumentError, 'no text given'
 
     chat = opts[:chat]
     chat.perform_copy_to_clipboard(text:, content: true, edit:)
 
-    message =
-      if text.nil?
-        "The last response has been successfully copied to the system clipboard."
-      else
-        "The provided text has been successfully copied to the system clipboard."
-      end
+    message = "The provided text has been successfully copied to the system clipboard."
 
     {
       success:  true,
