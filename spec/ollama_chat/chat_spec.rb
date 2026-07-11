@@ -15,7 +15,7 @@ describe OllamaChat::Chat, protect_env: true do
   end
 
   let :chat do
-    OllamaChat::Chat.new(argv: argv).expose
+    OllamaChat::Chat.new(argv:).expose
   end
 
   describe 'instantiation' do

@@ -31,7 +31,7 @@ module OllamaChat::PromptManagement
   # @return [OllamaChat::Database::Models::Prompt, nil] the selected prompt
   #   model, or nil if the user chooses '[EXIT]' or cancels the selection.
   def choose_prompt(default: nil, prompt: 'Select a prompt template: %s')
-    prompts = all_prompts(default: default)
+    prompts = all_prompts(default:)
     prompts.unshift('[EXIT]')
     case chosen = choose_entry(prompts, prompt:)
     when '[EXIT]', nil

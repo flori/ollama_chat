@@ -31,7 +31,7 @@ describe OllamaChat::Tools::ExecuteRI do
         'ToolCall',
         function: double(
           name: 'execute_ri',
-          arguments: double(topic: topic)
+          arguments: double(topic:)
         )
       )
 

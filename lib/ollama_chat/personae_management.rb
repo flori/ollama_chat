@@ -73,7 +73,7 @@ module OllamaChat::PersonaeManagement
   def set_default_persona_name(persona_name)
     if persona_name.present? && persona_name != :none
       @default_persona_name = Pathname.new(persona_name).basename.sub_ext('').to_path
-      @session.update(default_persona_name: default_persona_name)
+      @session.update(default_persona_name:)
     else
       @session.update(default_persona_name: nil)
       @default_persona_name = nil
@@ -403,7 +403,7 @@ module OllamaChat::PersonaeManagement
   def load_personae
     chosen = Set[]
     choose_with_state do
-      while persona = choose_persona(chosen: chosen, prompt: 'Who else should join the conversation? %s')
+      while persona = choose_persona(chosen:, prompt: 'Who else should join the conversation? %s')
         persona == :none and next
         chosen << persona
       end

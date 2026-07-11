@@ -4,7 +4,7 @@ describe OllamaChat::History do
   end
 
   let :chat do
-    OllamaChat::Chat.new(argv: argv).expose
+    OllamaChat::Chat.new(argv:).expose
   end
 
   connect_to_ollama_server(instantiate: false)
