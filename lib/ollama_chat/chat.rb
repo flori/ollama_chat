@@ -255,7 +255,7 @@ class OllamaChat::Chat
       ),
     ]
 
-    ollama.chat(
+    content = ollama.chat(
       model:    @model,
       messages: ,
       options:  model_options,
@@ -263,6 +263,20 @@ class OllamaChat::Chat
       think:    false,
       tools:
     )&.message&.content.to_s
+
+    if content.empty?
+      log(
+        :warn,
+        "Sent #{prompt.inspect} to LLM for generation, received no content!"
+      )
+    else
+      log(
+        :info,
+        "Sent #{prompt.inspect} to LLM for generation, received #{content.inspect}"
+      )
+    end
+
+    content
   end
 
   private

@@ -246,7 +246,7 @@ module OllamaChat::PromptManagement
     instruction = nil
     if edit
       # Let the user write a suggestion instruction on the fly
-      instruction = edit_text('')
+      instruction = edit_text('').full? or return
     else
       # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
       instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? %s') or return
@@ -263,7 +263,7 @@ module OllamaChat::PromptManagement
     EOT
 
     # Execute a silent chat oneshot call (doesn't add to history)
-    suggestions  = generate(prompt: full_prompt)
+    suggestions  = generate(prompt: full_prompt).full? or return
 
     # Pass the AI's suggestions through the editor for final refinement
     edit_text(suggestions)
