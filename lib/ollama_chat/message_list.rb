@@ -277,11 +277,11 @@ class OllamaChat::MessageList
         )
         msg = <<~EOT
 
-          ⚠️ Last message is actually #{bold{'user message'}}, see:
+          ⚠️ Last message is actually a #{bold{'user message'}}, see:
 
           #{message_content}
 
-          You might want to drop it.
+          You might want to /drop it or /regenerate it.
         EOT
         output.puts msg
       end

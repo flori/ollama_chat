@@ -170,7 +170,7 @@ module OllamaChat::Commands
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(change|info|edit|add|delete|list|duplicate|export|import|reset))?(?:\s+(\S+))?$),
+    regexp: %r(^/system(?:\s+(change|info|edit|add|delete|list|duplicate|export|import|reset))?(?:\s+([^-].*))?$),
     complete: [ 'system', %w[ change info edit add delete list duplicate export import reset ] ],
     optional: true,
     help: <<~EOT
@@ -285,7 +285,7 @@ module OllamaChat::Commands
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options change|model options))?((?:\s+-(?:[sf]|p\s*\w+))*)(?:\s+(.+))?$),
+    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options change|model options))?((?:\s+-(?:[sf]|p\s*\w+))*)(?:\s+([^-].*))?$),
     complete: [ 'session', %w[ change previous list new duplicate rename summarize delete model\ options\ change model\ options ] ],
     optional: true,
     options: "[-s|-f|-p profile]\n[name]",
@@ -490,7 +490,7 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|suggest|-e))?(\s+-e)?(?:\s+(\S+))?$),
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|suggest|-e))?(\s+-e)?(?:\s+([^-].*))?$),
     complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset suggest ] ],
     optional: true,
     help: <<~EOT,
@@ -564,7 +564,7 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(save|load)((?:\s+-(?:[c]))*)\s+(.+)$),
+    regexp: %r(^/conversation\s+(save|load)((?:\s+-(?:[c]))*)\s+([^-].*)$),
     complete: [ 'conversation', %w[ save load ] ],
     options: '[-c]',
     help: <<~EOT
@@ -696,7 +696,7 @@ module OllamaChat::Commands
 
   command(
     name: :character,
-    regexp: %r(^/character(?:\s+(info|load|import))(?:\s+(\S+))?$),
+    regexp: %r(^/character(?:\s+(info|load|import))(?:\s+([^-].+))?$),
     complete: [ 'character', %w[ info load import ] ],
     help: <<~EOT
       Display character info, load or import a character
@@ -772,7 +772,7 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+(.+))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: "[\n  -w|-a|-p|-e|\n  -c <collection>|\n  -t <tags>\n]\n[arg…]",
@@ -891,7 +891,7 @@ module OllamaChat::Commands
 
   command(
     name: :pipe,
-    regexp: %r(^/pipe(\s+-e)?\s+(.+)$),
+    regexp: %r(^/pipe(\s+-e)?\s+([^-].*)$),
     options: 'path',
     help: <<~EOT
      Pipe the last response into another command's stdin.
@@ -918,7 +918,7 @@ module OllamaChat::Commands
 
   command(
     name: :output,
-    regexp: %r(^/output(\s+-e)?\s+(.+)$),
+    regexp: %r(^/output(\s+-e)?\s+([^-].*)$),
     options: '[-e] path',
     help: <<~EOT
       Save the last response to a file.
