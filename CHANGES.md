@@ -1,5 +1,46 @@
 # Changes
 
+## 2026-07-13 v0.0.99
+
+### Changed
+
+- **Command Handling & UX**
+    - Updated regexes for `/system`, `/session`, `/prompt`, `/conversation`,
+      `/character`, `/input`, `/pipe`, and `/output` in
+      `lib/ollama_chat/commands.rb` to prevent positional arguments from
+      starting with a hyphen.
+    - Enhanced warning messages in `lib/ollama_chat/message_list.rb` to include
+      explicit suggestions for `/drop` and `/regenerate`.
+
+- **LLM & Prompt Management**
+    - Updated the `generate` method in `lib/ollama_chat/chat.rb` to capture
+      output in `content` and implemented conditional logging ( `:warn` for
+      empty results, `:info` otherwise).
+    - Added `.full? or return` guard clauses to `edit_text('')` and
+      `generate(prompt: full_prompt)` within
+      `lib/ollama_chat/prompt_management.rb`.
+    - Overhauled the `suggest_coding` prompt in `default_config.yml` to adopt a
+      Senior Software Architect and Technical Auditor persona.
+    - Overhauled the `suggest_roleplaying` prompt in `default_config.yml` to
+      adopt a Narrative Consultant and Game Master's Assistant persona.
+
+- **Tools**
+    - Modified `OllamaChat::Tools::CopyToClipboard` to make the `text`
+      parameter required.
+    - Updated `lib/ollama_chat/tools/copy_to_clipboard.rb` to raise
+      `OllamaChat::ToolFunctionArgumentError` if `text` is missing and
+      simplified the success message.
+
+- **Refactoring & Internal Improvements**
+    - Adopted Ruby shorthand for keyword arguments in:
+        - `set_default_persona_name` and `load_personae`
+          (`lib/ollama_chat/personae_management.rb`).
+        - `choose_prompt` via the `default` parameter
+          (`lib/ollama_chat/prompt_management.rb`).
+        - `OllamaChat::Chat` instantiation using `argv` in specs.
+        - The `topic` parameter in `spec/ollama_chat/tools/execute_ri_spec.rb`.
+        - The `url` parameter in `spec/ollama_chat/tools/get_url_spec.rb`.
+
 ## 2026-07-09 v0.0.98
 
 ### Added
