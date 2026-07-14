@@ -64,6 +64,7 @@ prompts:
     - Current time is %{weekday}, %{time}
     - **Git**:
       - Current branch is %{git_current_branch}
+      - Current SHA is %{git_sha} (short %{git_sha_short})
       - Current remote origin is %{git_remote_origin}
     - **Terminal**:
       - The height is %{terminal_rows} rows.

@@ -223,7 +223,7 @@ module OllamaChat::Information
         -l SESSION     load session with name/id SESSION
         -n             create a new session
         -u URL         the ollama base url, OLLAMA_URL
-        -m MODEL       the ollama model to chat with, OLLAMA_CHAT_MODEL, ?selector
+        -m MODEL       the ollama chat model, OLLAMA_CHAT_MODEL, ?selector
         -c CHAT        a saved chat conversation to load
         -C COLLECTION  name of the collection used in this conversation
         -D DOCUMENT    load document and add to embeddings collection (multiple)
@@ -327,6 +327,8 @@ module OllamaChat::Information
     {
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
       git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
+      git_sha:              `git rev-parse HEAD 2>/dev/null`.chomp.full? || 'n/a',
+      git_sha_short:        `git rev-parse --short HEAD 2>/dev/null`.chomp.full? || 'n/a',
       markdown:             markdown.on? ? 'enabled' : 'disabled',
       session_name:         session.name,
       terminal_cols:        Tins::Terminal.cols,
