@@ -124,7 +124,6 @@ class OllamaChat::Chat
     @tool_call_results    = Hash.new { |h, name| h[name] = [] }
     setup_personae_directory
     @opts[?S] and init_server_socket
-    info_session
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     fix_config(e)
   end
