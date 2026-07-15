@@ -182,6 +182,7 @@ class OllamaChat::Chat
     setup_persona_from_session
     setup_system_prompt
 
+    print_welcome
     info_session
 
     STDOUT.puts "\nType /help to display the chat help."

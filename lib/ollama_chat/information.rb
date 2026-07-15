@@ -177,13 +177,24 @@ module OllamaChat::Information
     output.puts "📜 Document policy for parsing in user text: #{bold{document_policy}}"
   end
 
+  # The print_welcome method prints a welcome message containing the
+  # application version, the connected ollama server version, and the server
+  # URL.
+  #
+  # @param output [ IO ] the output stream where the welcome messages are
+  #   printed (default: STDOUT)
+  def print_welcome(output: STDOUT)
+    output.puts "💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
+    output.puts "🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
+  end
+
   # Displays a high-level summary dashboard of the current state of the
   # ollama_chat instance.
   #
-  # @param output [IO] the output stream to write the information to, defaults to STDOUT
+  # @param output [IO] the output stream to write the information to, defaults
+  #   to STDOUT
   def info(output: STDOUT)
-    output.puts "💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
-    output.puts "🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
+    print_welcome(output:)
     output.puts "📜 Documents database cache is #{@documents.nil? ? 'n/a' : bold{@documents.cache.class}}"
     output.puts "🔎 Currently selected search engine is #{bold{search_engine}}."
     output.puts "🧠 Current chat model is #{bold{@model}}."
