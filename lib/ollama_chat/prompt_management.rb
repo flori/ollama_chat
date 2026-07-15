@@ -68,28 +68,25 @@ module OllamaChat::PromptManagement
   #   cancelled
   def add_new_prompt
     switch_history(:add_prompt) do
-      name = nil
-      loop do
-        name = ask?(
-          prompt: "❓ Enter new system prompt name to add, C-c ⇒ cancel: "
-        )
-        if name.nil?
-          STDOUT.puts "Cancelled."
-          return nil
-        end
-        if prompt(name)
-          STDOUT.puts "Prompt named #{bold{name}} already exists."
-        else
-          break
-        end
-      end
-      patterns = ask?(
-        prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
-        prefill: '**/*.{txt,md}'
-      )
-      patterns.nil? and return
-      content = nil
-      patterns.present? and content = load_prompt_from_file(patterns)
+      name = determine_valid_new_name_for_prompt('to add') or return
+
+      sources       = %w[ [CLIPBOARD] [FILES] [EMPTY/MANUAL] ]
+      chosen_source = choose_entry(sources, prompt: 'Where shall we source the prompt from? %s')
+      chosen_source or return
+
+      content = case chosen_source
+                when '[CLIPBOARD]'
+                  perform_paste_from_clipboard(edit: false)
+                when '[FILES]'
+                  patterns = ask?(
+                    prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
+                    prefill: '**/*.{txt,md}'
+                  )
+                  patterns.nil? ? (return) : (patterns.present? ? load_prompt_from_file(patterns) : nil)
+                else
+                  nil
+                end
+
       prompt = edit_text(content)
       store_prompt(name, prompt).to_s
       true

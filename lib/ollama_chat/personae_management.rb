@@ -176,15 +176,28 @@ module OllamaChat::PersonaeManagement
   # not already exist), opens the file in the configured editor, and finally
   # returns the result of calling `#personae_result` on the created file.
   def add_persona
-    persona_name = ask?(
-      prompt: "❓ Enter the name of the new persona (or press return to cancel): "
-    ).full? or return
+    name = determine_valid_new_name_for_persona('to add') or return
 
-    pathname = personae_directory + "#{persona_name}.md"
+    sources       = %w[ [CLIPBOARD] [FILES] [EMPTY/MANUAL] ]
+    chosen_source = choose_entry(sources, prompt: 'Where shall we source the persona from? %s')
+    chosen_source or return
 
-    unless pathname.exist?
-      File.write pathname, prompt(:persona).to_s
-    end
+    content = case chosen_source
+              when '[CLIPBOARD]'
+                perform_paste_from_clipboard(edit: false)
+              when '[FILES]'
+                patterns = ask?(
+                  prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
+                  prefill: '**/*.{txt,md}'
+                )
+                patterns.nil? ? (return) : (patterns.present? ? load_prompt_from_file(patterns) : nil)
+              else
+                nil
+              end
+
+    pathname = personae_directory + "#{name}.md"
+    final_content = content.full? || prompt(:persona).to_s
+    pathname.write final_content
 
     edit_file(pathname)
     nil
