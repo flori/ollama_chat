@@ -27,7 +27,10 @@ class OllamaChat::Tools::ReadFile
         description: <<~EOT,
           File reader – Returns raw text from path if it’s within allowed
           directories. No side effects; useful for inspecting config or source
-          files. You can optionally specify a line range to read.
+          files. You can optionally specify a line range to read. You can also
+          enable prefixing with linenumbers; this is highly recommended (and
+          practically mandatory) before calling `open_file_in_editor` to ensure
+          the line range is precise.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -43,6 +46,13 @@ class OllamaChat::Tools::ReadFile
             end_line: Tool::Function::Parameters::Property.new(
               type: 'integer',
               description: 'The line number to stop reading at (1-indexed)'
+            ),
+            line_numbers: Tool::Function::Parameters::Property.new(
+              type: 'boolean',
+              description: <<~EOT
+                Whether to prefix each line with its line number,
+                e.g. "666: The line content…
+              EOT
             )
           },
           required: %w[path]
@@ -69,11 +79,12 @@ class OllamaChat::Tools::ReadFile
     config = chat.config
     args   = tool_call.function.arguments
 
-    start_line = args.start_line.full?
-    end_line   = args.end_line.full?
+    start_line   = args.start_line.full?
+    end_line     = args.end_line.full?
+    line_numbers = args.line_numbers
 
     path    = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
-    content = extract_range(path.read, start_line, end_line)
+    content = extract_range(path.read, start_line, end_line, line_numbers:)
     es      = OllamaChat::TokenEstimator.estimate(content)
     message = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
 
@@ -82,6 +93,7 @@ class OllamaChat::Tools::ReadFile
       content:,
       start_line:,
       end_line:,
+      line_numbers:,
       message:,
     }.to_json
   rescue => e
@@ -101,30 +113,24 @@ class OllamaChat::Tools::ReadFile
   #
   # @param content [String] the source text to extract lines from.
   # @param start_line [Integer, nil] the 1-indexed starting line number.
-  #   If nil, defaults to the first line.
   # @param end_line [Integer, nil] the 1-indexed ending line number.
-  #   If nil, extracts until the end of the content.
+  # @param line_numbers [Boolean] whether to prefix lines with their index.
   # @return [String] the extracted substring containing the requested line range.
-  #   Returns an empty string if `end_line` is less than `start_line`.
-  def extract_range(content, start_line, end_line)
-    case
-    when start_line.nil? && end_line.nil?
-      content
-    when start_line.nil?
-      extract_range(content, 1, end_line)
-    when end_line.nil?
-      extract_range(content, start_line, Float::INFINITY)
-    else
-      new_content = +''
-      end_line < start_line and return new_content
-      content.each_line.each_with_index do |line, index|
-        line_number = index + 1
-        line_number < start_line and next
-        new_content << line
-        line_number >= end_line and break
-      end
-      new_content
+  def extract_range(content, start_line, end_line, line_numbers: false)
+    s = start_line || 1
+    e = end_line || Float::INFINITY
+
+    return +'' if e < s
+
+    new_content = +''
+    content.each_line.each_with_index do |line, index|
+      ln = index + 1
+      next if ln < s
+
+      new_content << (line_numbers ? "#{ln}: #{line}" : line)
+      break if ln >= e
     end
+    new_content
   end
 
   self

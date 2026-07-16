@@ -25,6 +25,9 @@ class OllamaChat::Tools::OpenFileInEditor
           Open a file in the user's editor, jumping to start_line (and
           optionally ending at end_line). No return value; Do not call this
           tool function unless explicitly requested by the user.
+          Warning: To avoid incorrect range selection, always verify the
+          start and end lines using `read_file(line_numbers: true)` before
+          calling this tool.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',

@@ -26,6 +26,7 @@ describe OllamaChat::Tools::ReadFile do
           path: asset('example.rb'),
           start_line: nil,
           end_line: nil,
+          line_numbers: nil,
         )
       )
     )
@@ -50,6 +51,7 @@ describe OllamaChat::Tools::ReadFile do
           path: asset('example.rb'),
           start_line: 1,
           end_line: nil,
+          line_numbers: nil,
         )
       )
     )
@@ -68,6 +70,7 @@ describe OllamaChat::Tools::ReadFile do
           path: asset('example.rb'),
           start_line: nil,
           end_line: 1,
+          line_numbers: nil,
         )
       )
     )
@@ -86,12 +89,49 @@ describe OllamaChat::Tools::ReadFile do
           path: asset('example.rb'),
           start_line: 2,
           end_line: 1,
+          line_numbers: nil,
         )
       )
     )
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).to eq ''
+  end
+
+  it 'can prefix each line with its line number' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.rb'),
+          start_line: nil,
+          end_line: nil,
+          line_numbers: true,
+        )
+      )
+    )
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.content).to include("1: puts \"Hello World!\"\n")
+  end
+
+  it 'does not prefix lines when line_numbers is false' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.rb'),
+          start_line: nil,
+          end_line: nil,
+          line_numbers: false,
+        )
+      )
+    )
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.content).not_to include("1: ")
   end
 
   it 'can handle execution errors gracefully when path is not allowed' do
@@ -103,6 +143,7 @@ describe OllamaChat::Tools::ReadFile do
           path: '/etc/passwd',
           start_line: nil,
           end_line: nil,
+          line_numbers: nil,
         )
       )
     )
@@ -126,6 +167,7 @@ describe OllamaChat::Tools::ReadFile do
           path: asset('not-there.txt'),
           start_line: nil,
           end_line: nil,
+          line_numbers: nil,
         )
       )
     )
