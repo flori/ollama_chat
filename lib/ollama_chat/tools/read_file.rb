@@ -65,7 +65,8 @@ class OllamaChat::Tools::ReadFile
   # @return [String] an error message as a JSON string if the operation fails
   # @raise [JSON::ParserError] if the result cannot be serialized to JSON
   def execute(tool_call, **opts)
-    config = opts[:chat].config
+    chat   = opts[:chat]
+    config = chat.config
     args   = tool_call.function.arguments
 
     start_line = args.start_line.full?
@@ -84,6 +85,7 @@ class OllamaChat::Tools::ReadFile
       message:,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       path:    e.ask_and_send(:path),

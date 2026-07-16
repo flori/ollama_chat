@@ -56,8 +56,9 @@ class OllamaChat::Tools::Browse
   # @return [String] the execution result as JSON string
   # @raise [StandardError] if there's an issue with opening the URL/file
   def execute(tool_call, **opts)
-    url    = tool_call.function.arguments.url
-    result = browse_url(url)
+    chat   = opts[:chat]
+    url     = tool_call.function.arguments.url
+    result  = browse_url(url)
 
     message = if result.success?
                  "Opened #{url.to_s.inspect} in browser."
@@ -72,6 +73,7 @@ class OllamaChat::Tools::Browse
       url:        ,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     { error: e.class, message: e.message }.to_json
   end
 

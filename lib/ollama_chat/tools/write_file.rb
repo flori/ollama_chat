@@ -66,7 +66,8 @@ class OllamaChat::Tools::WriteFile
   # @return [String] a JSON string containing error information if the
   #   operation fails
   def execute(tool_call, **opts)
-    config = opts[:chat].config
+    chat   = opts[:chat]
+    config = chat.config
     args   = tool_call.function.arguments
 
     path = assert_valid_path(args.path, config.tools.functions.write_file.allowed?)
@@ -103,6 +104,7 @@ class OllamaChat::Tools::WriteFile
       message: ,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       path:    e.ask_and_send(:path),

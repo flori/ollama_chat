@@ -77,6 +77,7 @@ class OllamaChat::Tools::SearchWeb
       results:,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       message: e.message,

@@ -1,4 +1,10 @@
 describe OllamaChat::Tools::GemPathLookup do
+  let :chat do
+    OllamaChat::Chat.new(argv: chat_default_config)
+  end
+
+  connect_to_ollama_server
+
   it 'can have name' do
     expect(described_class.new.name).to eq 'gem_path_lookup'
   end
@@ -26,7 +32,7 @@ describe OllamaChat::Tools::GemPathLookup do
       expect_any_instance_of(described_class).to\
         receive(:lookup_gem_path).with('json').and_return :json_gem
 
-      expect(described_class.new.execute(tool_call)).to eq :json_gem
+      expect(described_class.new.execute(tool_call, chat:)).to eq :json_gem
     end
   end
 
@@ -43,7 +49,7 @@ describe OllamaChat::Tools::GemPathLookup do
       )
 
       expect(Bundler).to receive(:locked_gems).and_raise 'an error has happened'
-      result = described_class.new.execute(tool_call)
+      result = described_class.new.execute(tool_call, chat:)
 
       # Should return a JSON string
       expect(result).to be_a(String)

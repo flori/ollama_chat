@@ -53,7 +53,7 @@ describe OllamaChat::Tools::ResolveTag do
       expect(OllamaChat::Utils::TagResolver).to receive(:new).
         and_return(double(resolve: double(size: 2, resolve: result_array)))
 
-      result = described_class.new.execute(tool_call)
+      result = described_class.new.execute(tool_call, chat:)
 
       expect(result).to be_a String
       json = json_object(result)
@@ -80,7 +80,7 @@ describe OllamaChat::Tools::ResolveTag do
 
       expect(OllamaChat::Utils::TagResolver).to receive(:new).and_raise('some error')
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
 
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')

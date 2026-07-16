@@ -68,6 +68,7 @@ class OllamaChat::Tools::GetCurrentWeather
 
     data.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       message: "Failed to fetch weather data: #{e.message}"

@@ -96,6 +96,7 @@ class OllamaChat::Tools::ComputeBMI
       message:,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     { error: e.class, message: e.message }.to_json
   end
 

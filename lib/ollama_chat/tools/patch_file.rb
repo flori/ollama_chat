@@ -87,6 +87,7 @@ class OllamaChat::Tools::PatchFile
       message: ,
     }).to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       success: false,

@@ -50,8 +50,15 @@ class OllamaChat::Tools::GemPathLookup
   # @param opts [Hash] additional options
   # @return [String] the result of the gem path lookup
   def execute(tool_call, **opts)
+    chat     = opts[:chat]
     gem_name = tool_call.function.arguments.gem_name
-    lookup_gem_path gem_name
+    lookup_gem_path(gem_name)
+  rescue => e
+    chat.log(:error, e)
+    {
+      error:   e.class,
+      message: e.message,
+    }.to_json
   end
 
   private
@@ -89,11 +96,6 @@ class OllamaChat::Tools::GemPathLookup
         message: "Gem '#{gem_name}' not found in bundle",
       }.to_json
     end
-  rescue => e
-    {
-      error:   e.class,
-      message: e.message,
-    }.to_json
   end
 
   self

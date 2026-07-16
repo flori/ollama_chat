@@ -48,8 +48,9 @@ class OllamaChat::Tools::EvalRuby
   # @param opts [Hash] additional options
   #
   # @return [String] a JSON string containing the `result` (stdout) or an `error`
-  def execute(tool_call, **_opts)
-    args = tool_call.function.arguments
+  def execute(tool_call, **opts)
+    chat   = opts[:chat]
+    args   = tool_call.function.arguments
     source = args.source.full? or
       raise OllamaChat::ToolFunctionArgumentError, 'require source to evaluate'
     version = args.version.full? || RUBY_VERSION
@@ -90,6 +91,7 @@ class OllamaChat::Tools::EvalRuby
       }.to_json
     end
   rescue => e
+    chat.log(:error, e)
     {
       error: e.class,
       message: "Failed to evaluate Ruby code: #{e.message}"

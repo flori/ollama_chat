@@ -45,11 +45,11 @@ class OllamaChat::Tools::CopyToClipboard
   # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
   def execute(tool_call, **opts)
+    chat = opts[:chat]
     args = tool_call.function.arguments
     edit = !!args.edit
     text = args.text.full? or raise OllamaChat::ToolFunctionArgumentError, 'no text given'
 
-    chat = opts[:chat]
     chat.perform_copy_to_clipboard(text:, content: true, edit:)
 
     message = "The provided text has been successfully copied to the system clipboard."
@@ -59,6 +59,7 @@ class OllamaChat::Tools::CopyToClipboard
       message: ,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       message: e.message,

@@ -109,6 +109,7 @@ class OllamaChat::Tools::GeneratePassword
   # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the generated password as a JSON string
   def execute(tool_call, **opts)
+    chat   = opts[:chat]
     args   = tool_call.function.arguments
 
     # Parse and validate parameters
@@ -158,6 +159,7 @@ class OllamaChat::Tools::GeneratePassword
     end
     result.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       message: e.message,

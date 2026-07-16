@@ -59,6 +59,7 @@ class OllamaChat::Tools::PasteIntoEditor
       message: ,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class.to_s,
       message: e.message,

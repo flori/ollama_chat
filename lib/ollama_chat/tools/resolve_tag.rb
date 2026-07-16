@@ -57,7 +57,8 @@ class OllamaChat::Tools::ResolveTag
   # @param tool_call [ToolCall] the tool call object containing function arguments
   # @param _opts [Hash] additional options for execution (currently unused)
   # @return [String] JSON string containing the resolved tag information or error details
-  def execute(tool_call, **_opts)
+  def execute(tool_call, **opts)
+    chat      = opts[:chat]
     args      = tool_call.function.arguments
     symbol    = args.symbol.full? or raise OllamaChat::ToolFunctionArgumentError, 'require a symbol'
     kind      = args.kind.full?
@@ -79,6 +80,7 @@ class OllamaChat::Tools::ResolveTag
       results:  ,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     { error: e.class.to_s, message: e.message }.to_json
   end
 

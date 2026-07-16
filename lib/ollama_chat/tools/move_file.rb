@@ -53,7 +53,8 @@ class OllamaChat::Tools::MoveFile
   # @return [String] a JSON string containing error information if the
   #   operation fails
   def execute(tool_call, **opts)
-    config = opts[:chat].config
+    chat   = opts[:chat]
+    config = chat.config
     args   = tool_call.function.arguments
 
     # Validate paths
@@ -75,6 +76,7 @@ class OllamaChat::Tools::MoveFile
       message:     "File moved successfully from #{source} to #{destination}.",
     }.to_json
   rescue => e
+    chat.log(:error, e)
     {
       error:   e.class,
       source:  e.ask_and_send(:source),

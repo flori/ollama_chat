@@ -45,7 +45,7 @@ describe OllamaChat::Tools::GetJiraIssue do
           headers: {}
         )
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
 
       json = json_object(result)
       expect(json.issue_key).to eq 'FOO-1234'
@@ -67,7 +67,7 @@ describe OllamaChat::Tools::GetJiraIssue do
       stub_request(:get, "https://foobar.atlassian.net/rest/api/3/issue/FOO-1234")
         .to_return(status: 404, body: 'Not Found')
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::HTTPError'
       expect(json.message).to eq 'request failed with status 404'
@@ -90,7 +90,7 @@ describe OllamaChat::Tools::GetJiraIssue do
       stub_request(:get, "https://foobar.atlassian.net/rest/api/3/issue/FOO-1234")
         .to_return(status: 404, body: 'Not Found')
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ConfigMissingError'
     end

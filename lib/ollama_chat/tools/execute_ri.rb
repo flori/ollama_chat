@@ -38,12 +38,14 @@ class OllamaChat::Tools::ExecuteRI
 
   # Execute the ri command based on parsed tool call.
   def execute(tool_call, **opts)
+    chat   = opts[:chat]
     args   = tool_call.function.arguments
     topic  = args.topic.full? or raise OllamaChat::ToolFunctionArgumentError, 'require a topic of ri'
     cmd    = [ 'ri', topic ]
     result = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
     { cmd:, result: }.to_json
   rescue => e
+    chat.log(:error, e)
     { error: e.class, message: e.message }.to_json
   end
 

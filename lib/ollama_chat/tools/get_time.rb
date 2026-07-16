@@ -53,7 +53,8 @@ class OllamaChat::Tools::GetTime
   # @example
   #   execute(tool_call, config:)
   #   # => {"time":"2026-02-09T14:32:00+01:00","weekday":"Monday"}
-  def execute(_tool_call, **_opts)
+  def execute(tool_call, **opts)
+    chat = opts[:chat]
     now  = Time.now
     hour = now.hour
 
@@ -67,6 +68,9 @@ class OllamaChat::Tools::GetTime
     message = "#{greeting}! It is currently #{now.strftime('%H:%M')} on #{now.strftime('%A')}."
 
     { time: now.iso8601, weekday: now.strftime('%A'), message: }.to_json
+  rescue => e
+    chat.log(:error, e)
+    { error: e.class, message: e.message }.to_json
   end
 
   self

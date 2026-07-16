@@ -85,6 +85,7 @@ class OllamaChat::Tools::FileContext
       end
     end.send("to_#{format.downcase}")
   rescue => e
+    chat.log(:error, e)
     { error: e.class, message: e.message }.to_json
   end
 

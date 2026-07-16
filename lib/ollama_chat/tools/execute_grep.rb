@@ -77,7 +77,8 @@ class OllamaChat::Tools::ExecuteGrep
   # @option opts [Hash] :chat chat instance
   # @return [String] The execution result with command and output as JSON string
   def execute(tool_call, **opts)
-    config      = opts[:chat].config
+    chat       = opts[:chat]
+    config       = chat.config
     args        = tool_call.function.arguments
     pattern     = Shellwords.escape(args.pattern)
     path        = Shellwords.escape(Pathname.new(args.path || '.').expand_path)
@@ -100,6 +101,7 @@ class OllamaChat::Tools::ExecuteGrep
       message:,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     { error: e.class, message: e.message }.to_json
   end
 

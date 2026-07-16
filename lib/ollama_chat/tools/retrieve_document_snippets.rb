@@ -158,6 +158,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       rerank:,
     }.to_json
   rescue => e
+    chat.log(:error, e)
     { error: e.class.name, message: e.message }.to_json
   ensure
     old_collection and chat.documents.collection = old_collection

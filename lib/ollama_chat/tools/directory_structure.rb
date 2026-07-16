@@ -71,7 +71,8 @@ class OllamaChat::Tools::DirectoryStructure
   # @raise [StandardError] if there's an issue with directory traversal or JSON
   #   serialization
   def execute(tool_call, **opts)
-    config    = opts[:chat].config
+    chat      = opts[:chat]
+    config    = chat.config
     path      = Pathname.new(tool_call.function.arguments.path || '.')
     suffix    = tool_call.function.arguments.suffix.full?
     max_depth = tool_call.function.arguments.max_depth.full?
@@ -83,6 +84,9 @@ class OllamaChat::Tools::DirectoryStructure
       exclude: config.tools.functions.directory_structure.exclude?,
     )
     structure.to_json
+  rescue => e
+    chat.log(:error, e)
+    { error: e.class, message: e.message }.to_json
   end
 
   self

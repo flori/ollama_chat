@@ -35,7 +35,7 @@ describe OllamaChat::Tools::ExecuteRI do
         )
       )
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
 
       expect(result).to be_a String
       json = json_object(result)
@@ -55,7 +55,7 @@ describe OllamaChat::Tools::ExecuteRI do
         )
       )
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
 
       json = json_object(result)
       expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
@@ -77,7 +77,7 @@ describe OllamaChat::Tools::ExecuteRI do
         )
       )
 
-      result = described_class.new.execute(tool_call, config: chat.config)
+      result = described_class.new.execute(tool_call, chat:)
 
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')
