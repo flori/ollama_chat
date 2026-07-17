@@ -134,6 +134,27 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.content).not_to include("1: ")
   end
 
+  it 'can extract range with start_line and end_line with line numbers' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.csv'),
+          start_line: 2,
+          end_line: 3,
+          line_numbers: true,
+        )
+      )
+    )
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.content).to eq(<<~EOT)
+      2: John Doe,32,Software Engineer
+      3: Jane Smith,28,Marketing Manager
+    EOT
+  end
+
   it 'can handle execution errors gracefully when path is not allowed' do
     tool_call = double(
       'ToolCall',
