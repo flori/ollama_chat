@@ -127,7 +127,7 @@ module OllamaChat::ModelHandling
     model_options        = get_session_model_options
     model_options        = fill_up_model_options(model_options)
     model_options_json   = edit_text(JSON.pretty_generate(model_options))
-    model_options        = JSON.load(model_options_json).compact
+    model_options        = (JSON.load(model_options_json).full? || {}).compact
     session.update(model_options:)
     self
   rescue JSON::ParserError => e
