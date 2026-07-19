@@ -256,7 +256,7 @@ class OllamaChat::Chat
       ),
     ]
 
-    content = ollama.chat(
+    content = call_ollama_chat(
       model:    @model,
       messages: ,
       options:  model_options,
@@ -281,6 +281,15 @@ class OllamaChat::Chat
   end
 
   private
+
+  # Wrapper for ollama.chat to provide consistent logging of all arguments.
+  #
+  # @param opts [Hash] keyword arguments for the chat call
+  # @param block [Proc] optional handler block
+  def call_ollama_chat(**opts, &block)
+    log(:info, "Ollama chat request: #{opts.inspect}")
+    ollama.chat(**opts, &block)
+  end
 
   # @return [Module] The module containing the database models.
   def models
@@ -499,7 +508,7 @@ class OllamaChat::Chat
           }
         end
         prepare_model(@model)
-        ollama.chat(
+        call_ollama_chat(
           model:    @model,
           messages: sent_messages,
           options:  model_options,
