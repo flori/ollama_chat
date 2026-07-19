@@ -15,10 +15,8 @@ class OllamaChat::Tools::PasteIntoEditor
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Editor helper – Pastes a text (or last reply if omitted) into
-          the editor, no file or line is required.
-          If no `text` is supplied, the tool will automatically use the last
-          assistant response. This tool will only be called,
+          Editor helper – Pastes a text into the editor, no file or line is required.
+          This tool will only be called,
           1. if the user requests it and
           2. only once per user request.
         EOT
@@ -27,10 +25,10 @@ class OllamaChat::Tools::PasteIntoEditor
           properties: {
             text: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Text to paste into the editor (nil = last response)'
+              description: 'Text to paste into the editor'
             )
           },
-          required: []
+          required: %w[ text ]
         )
       )
     )
@@ -42,17 +40,12 @@ class OllamaChat::Tools::PasteIntoEditor
   # @option opts [OllamaChat::Chat] :chat Reference to the current chat instance.
   # @return [String] JSON‑encoded response indicating success or failure.
   def execute(tool_call, **opts)
-    text = tool_call.function.arguments.text.full?
+    text = tool_call.function.arguments.text
 
     chat = opts[:chat]
     chat.perform_insert(text:, content: true)
 
-    message =
-      if text.nil?
-        "The last response has been successfully pasted into the editor."
-      else
-        "The provided text has been successfully pasted into the editor."
-      end
+    message = "The provided text has been successfully pasted into the editor."
 
     {
       success:  true,

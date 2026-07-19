@@ -17,40 +17,6 @@ describe OllamaChat::Tools::PasteIntoEditor do
     expect(described_class.new.to_hash).to be_a(Hash)
   end
 
-  context 'execution without explicit text (uses last response)' do
-    let(:tool_call) do
-      double(
-        'ToolCall',
-        function: double(
-          name:   'paste_into_editor',
-          arguments: double(text: nil)
-        )
-      )
-    end
-
-    it 'calls perform_insert with nil and returns a success JSON' do
-      expect(chat).to receive(:perform_insert)
-        .with(text: nil, content: true).and_return true
-
-      result = described_class.new.execute(tool_call, chat:)
-      json   = json_object(result)
-
-      expect(json.error).to be_nil
-      expect(json.success).to eq(true)
-      expect(json.message).to eq(
-        'The last response has been successfully pasted into the editor.'
-      )
-    end
-
-    it 'returns a success JSON even if no message is available' do
-      allow(chat).to receive(:perform_insert).and_return(true)
-
-      result = described_class.new.execute(tool_call, chat:)
-      json   = json_object(result)
-      expect(json.success).to be true
-    end
-  end
-
   context 'execution with explicit custom text' do
     let(:custom_text) { "Hello World!" }
     let(:tool_call) do
@@ -84,7 +50,7 @@ describe OllamaChat::Tools::PasteIntoEditor do
         'ToolCall',
         function: double(
           name: :paste_into_editor,
-          arguments: double(text: nil)
+          arguments: double(text: 'some text')
         )
       )
     end

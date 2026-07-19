@@ -25,7 +25,7 @@ class OllamaChat::Tools::CopyToClipboard
           properties: {
             text: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Text to copy to the clipboard (nil = last assistant reply)'
+              description: 'Text to copy to the clipboard'
             ),
             edit: Tool::Function::Parameters::Property.new(
               type: 'boolean',
