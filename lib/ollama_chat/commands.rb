@@ -578,6 +578,7 @@ module OllamaChat::Commands
       save_conversation(path, clean: opts[?c])
     when 'load'
       load_conversation(path)
+      repair_group_uuids
     end
     :next
   end

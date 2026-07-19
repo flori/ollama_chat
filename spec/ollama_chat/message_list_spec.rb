@@ -71,6 +71,51 @@ describe OllamaChat::MessageList do
     end
   end
 
+  describe '#each_group' do
+    it 'groups messages by group_uuid' do
+      list = described_class.new(chat)
+      uuid1 = 'group-1'
+      uuid2 = 'group-2'
+
+      list << OllamaChat::Message.new(role: 'user', content: 'msg 1', group_uuid: uuid1)
+      list << OllamaChat::Message.new(role: 'assistant', content: 'ans 1', group_uuid: uuid1)
+      list << OllamaChat::Message.new(role: 'user', content: 'msg 2', group_uuid: uuid2)
+      list << OllamaChat::Message.new(role: 'assistant', content: 'ans 2', group_uuid: uuid2)
+      expect(list.size).to eq 4
+
+      groups = list.each_group.to_a
+      expect(groups.size).to eq 2
+      expect(groups[0].map(&:content)).to eq ['msg 1', 'ans 1']
+      expect(groups[1].map(&:content)).to eq ['msg 2', 'ans 2']
+    end
+
+    it 'returns an empty collection when there are no messages' do
+      list = described_class.new(chat)
+      list.messages.clear
+      expect(list.each_group.to_a).to be_empty
+    end
+
+    it 'handles a single message in a group' do
+      list = described_class.new(chat)
+      list << OllamaChat::Message.new(role: 'user', content: 'alone', group_uuid: 'single')
+
+      groups = list.each_group.to_a
+      expect(groups.size).to eq 1
+      expect(groups.first.first.content).to eq 'alone'
+    end
+
+    it 'preserves relative order within groups' do
+      list = described_class.new(chat)
+      uuid = 'order-test'
+      list << OllamaChat::Message.new(role: 'user', content: 'first', group_uuid: uuid)
+      list << OllamaChat::Message.new(role: 'assistant', content: 'second', group_uuid: uuid)
+      list << OllamaChat::Message.new(role: 'user', content: 'third', group_uuid: uuid)
+
+      group = list.each_group.to_a.first
+      expect(group.map(&:content)).to eq ['first', 'second', 'third']
+    end
+  end
+
   describe '.load_conversation' do
     it 'can load conversations in JSON if existing' do
       expect(list.messages.first.role).to eq  'system'
@@ -259,6 +304,7 @@ describe OllamaChat::MessageList do
       expect(list.set_system_prompt('test_prompt')).to eq list
     }.to change { list.system }.from(nil).to('test prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 1
+    expect(list.messages.find { _1.role == 'system' }.group_uuid).to be_present
   end
 
   it 'can set_system_prompt if already set' do
@@ -280,32 +326,42 @@ describe OllamaChat::MessageList do
     expect(list.messages.first.content).to eq('new prompt')
   end
 
-  it 'can drop n conversations exhanges' do
-    expect(list.size).to eq 1
-    expect(list.drop(1)).to eq 0
-    expect(list.size).to eq 1
-    list << OllamaChat::Message.new(role: 'user', content: 'world')
-    expect(list.size).to eq 2
-    list << OllamaChat::Message.new(role: 'assistant', content: 'hi')
-    expect(list.size).to eq 3
-    expect(list.drop(1)).to eq 1
-    expect(list.size).to eq 1
-    expect(list.drop(1)).to eq 0
-    expect(list.size).to eq 1
-    expect(list.drop(1)).to eq 0
-    expect(list.size).to eq 1
-  end
+  context 'with uuid groups' do
+    let :group_1 do
+      SecureRandom.uuid_v7
+    end
 
-  it 'drops the last user message when there is no assistant response' do
-    expect(list.size).to eq 1
-    list << OllamaChat::Message.new(role: 'user', content: 'hello')
-    list << OllamaChat::Message.new(role: 'assistant', content: 'hi')
-    list << OllamaChat::Message.new(role: 'user', content: 'world')
-    expect(list.size).to eq 4
-    expect(list.drop(1)).to eq 1
-    expect(list.size).to eq 3
-    expect(list.drop(1)).to eq 1
-    expect(list.size).to eq 1
+    let :group_2 do
+      SecureRandom.uuid_v7
+    end
+
+    it 'can drop n conversations exhanges' do
+      expect(list.size).to eq 1
+      expect(list.drop(1)).to eq 0
+      expect(list.size).to eq 1
+      list << OllamaChat::Message.new(role: 'user', content: 'world', group_uuid: group_1)
+      expect(list.size).to eq 2
+      list << OllamaChat::Message.new(role: 'assistant', content: 'hi', group_uuid: group_1)
+      expect(list.size).to eq 3
+      expect(list.drop(1)).to eq 1
+      expect(list.size).to eq 1
+      expect(list.drop(1)).to eq 0
+      expect(list.size).to eq 1
+      expect(list.drop(1)).to eq 0
+      expect(list.size).to eq 1
+    end
+
+    it 'drops the last user message when there is no assistant response' do
+      expect(list.size).to eq 1
+      list << OllamaChat::Message.new(role: 'user', content: 'hello', group_uuid: group_1)
+      list << OllamaChat::Message.new(role: 'assistant', content: 'hi', group_uuid: group_1)
+      list << OllamaChat::Message.new(role: 'user', content: 'world', group_uuid: group_2)
+      expect(list.size).to eq 4
+      expect(list.drop(1)).to eq 1
+      expect(list.size).to eq 3
+      expect(list.drop(1)).to eq 1
+      expect(list.size).to eq 1
+    end
   end
 
   it 'can be converted int an OllamaChat::Message array' do

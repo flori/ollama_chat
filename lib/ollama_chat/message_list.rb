@@ -294,6 +294,16 @@ class OllamaChat::MessageList
     self
   end
 
+  # Groups user/assistant messages by their group_uuid, allowing for easy
+  # manipulation of whole exchanges (User -> Runtime Info -> Assistant -> Tools).
+  #
+  # @yield [Array<OllamaChat::Message>] an array of messages belonging to the same group.
+  # @return [Enumerator] if no block is given, returns an enumerator.
+  def each_group(&block)
+    block or return enum_for(__method__)
+    each_message.group_by(&:group_uuid).values.each(&block)
+  end
+
   # Removes the last `n` conversation exchanges from the message list.
   #
   # An exchange is typically defined as a pair of user and assistant messages.
@@ -311,18 +321,29 @@ class OllamaChat::MessageList
     n = n.to_i.clamp(1, Float::INFINITY)
     i = 0
     m = 0
-    @messages.reverse_each.each_cons(2) do |message, before|
-      message.role == 'system' and break
-      if message.role == 'assistant'
+    current_group = nil
+    @messages.reverse_each do |message|
+      message.role == 'system' and next
+      if current_group.nil?
+        current_group = message.group_uuid
         i += 1
-      elsif message.role == 'user'
+      elsif message.group_uuid == current_group
         i += 1
-        next if before.role == 'user'
+      else
+        current_group = message.group_uuid
         m += 1
+        if m < n
+          i += 1
+        else
+          break
+        end
       end
-      m >= n and break
     end
-    i.times { @messages.pop }
+    i > 0 && m == 0 and m = 1
+    i.times do
+      @messages.last.role == 'system' and next
+      @messages.pop
+    end
     STDOUT.puts "Dropped the last #{m} exchanges."
     m
   ensure
@@ -357,8 +378,9 @@ class OllamaChat::MessageList
     }
     if new_system_prompt = system.full? { _1.to_s % templates_values }
       @system = new_system_prompt
+      group_uuid = SecureRandom.uuid_v7
       @messages.unshift(
-        OllamaChat::Message.new(role: 'system', content: self.system)
+        OllamaChat::Message.new(role: 'system', content: self.system, group_uuid:)
       )
     else
       @system = nil

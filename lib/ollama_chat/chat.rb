@@ -116,6 +116,7 @@ class OllamaChat::Chat
     else
       messages.read_conversation_jsonl(session.messages.to_s)
     end
+    repair_group_uuids
     embedding_enabled.set(config.embedding.enabled && !@opts[?E])
     @documents            = setup_documents
     @cache                = setup_cache
@@ -397,10 +398,11 @@ class OllamaChat::Chat
   def interact_with_user
     loop do
       content           = nil
+      group_uuid        = SecureRandom.uuid_v7
       tools_were_called = false
       enable_content_parsing
-      type              = :terminal_input
-      input_prompt      = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
+      type         = :terminal_input
+      input_prompt = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
       begin
         tools_were_called = handle_tool_call_results? { |index, tool_name, content|
           messages << OllamaChat::Message.new(
@@ -408,7 +410,8 @@ class OllamaChat::Chat
             sender_name: tool_name,
             tool_name:   ,
             content:     ,
-            images:      @images.dup
+            images:      @images.dup,
+            group_uuid:
           )
         }
         tools_were_called and type = :tool_input
@@ -458,6 +461,14 @@ class OllamaChat::Chat
 
         parse_content? and content = parse_content(content, @images)
 
+        messages << OllamaChat::Message.new(
+          role:        'user',
+          sender_name: user_name,
+          content:     ,
+          images:      @images.dup,
+          group_uuid:
+        )
+
         if runtime_info.on?
           tool_name = 'runtime_information'
           messages << OllamaChat::Message.new(
@@ -465,22 +476,17 @@ class OllamaChat::Chat
             tool_name:   ,
             sender_name: tool_name,
             content:     dynamic_runtime_information,
-            images:      @images.dup
+            images:      @images.dup,
+            group_uuid:
           )
         end
-
-        messages << OllamaChat::Message.new(
-          role:        'user',
-          sender_name: user_name,
-          content:     ,
-          images:      @images.dup
-        )
       end
       @images.clear
       handler = OllamaChat::FollowChat.new(
         chat:     self,
         messages:,
-        voice:    (voices.selected if voice.on?)
+        voice:    (voices.selected if voice.on?),
+        group_uuid:
       )
       begin
         retried = false

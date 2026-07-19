@@ -13,6 +13,9 @@ module OllamaChat::MessageMixin
     if sender_name = attributes[:sender_name]
       self.sender_name = sender_name
     end
+    if group_uuid = attributes[:group_uuid]
+      self.group_uuid = group_uuid
+    end
   end
 
   # @!attribute content
@@ -32,6 +35,19 @@ module OllamaChat::MessageMixin
   #   @option setter [String, nil] The name of the message sender.
   attr_accessor :sender_name
 
+  # @!attribute group_uuid
+  #   @option getter [String] A UUIDv7 identifying the logical exchange (turn) this message belongs to.
+  #   @option setter [String] The UUIDv7 for the logical exchange.
+  attr_accessor :group_uuid
+
+  # Extracts the timestamp embedded within the UUIDv7 group identifier.
+  #
+  # @return [Time] The time the group was created, derived from the UUIDv7's
+  #   time-ordered bits.
+  def group_time
+    Time.at((group_uuid.delete(?-)[0, 16].to_i(16) >> 16) / 1000.0)
+  end
+
   # Returns true if the message is a tool message.
   #
   # @return [Boolean] true if the message has a present tool name, false
@@ -40,16 +56,12 @@ module OllamaChat::MessageMixin
     tool_name.present?
   end
 
-  # Converts the message to a JSON-compatible hash, including the sender name if present.
+  # Converts the message to a JSON-compatible hash, including the sender name and group UUID.
   #
   # @param a [Array] optional arguments for JSON conversion.
   # @return [Hash] a hash representation of the message.
   def as_json(*a)
-    if sender_name
-      { sender_name: } | super
-    else
-      super
-    end
+    { sender_name:, group_uuid: }.compact | super
   end
 end
 

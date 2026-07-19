@@ -1,7 +1,11 @@
 describe OllamaChat::FollowChat do
+  let :group_uuid do
+    SecureRandom.uuid_v7
+  end
+
   let :messages do
     [
-      OllamaChat::Message.new(role: 'user', content: 'hello', images: []),
+      OllamaChat::Message.new(role: 'user', content: 'hello', group_uuid:, images: []),
     ]
   end
 
@@ -11,7 +15,7 @@ describe OllamaChat::FollowChat do
   end
 
   let :follow_chat do
-    described_class.new(chat:, messages:, output:).expose
+    described_class.new(chat:, messages:, output:, group_uuid:).expose
   end
 
   let :output do

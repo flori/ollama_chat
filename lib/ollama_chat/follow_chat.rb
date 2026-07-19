@@ -24,12 +24,13 @@ class OllamaChat::FollowChat
   #   should be printed. Defaults to STDOUT.
   #
   # @return [OllamaChat::FollowChat] A new instance of OllamaChat::FollowChat.
-  def initialize(chat:, messages:, voice: nil, output: STDOUT)
+  def initialize(chat:, messages:, group_uuid: nil, voice: nil, output: STDOUT)
     super(output:)
     @chat        = chat
     @output.sync = true
     @say         = voice ? Handlers::Say.new(voice:) : NOP
     @messages    = messages
+    @group_uuid  = group_uuid
     @sender      = nil
   end
 
@@ -251,7 +252,8 @@ class OllamaChat::FollowChat
         role:        'assistant',
         sender_name: chat.assistant,
         content:     '',
-        thinking:    ('' if chat.think?)
+        thinking:    ('' if chat.think?),
+        group_uuid:  @group_uuid
       )
       @messages << message
       @sender = display_sender(message)
