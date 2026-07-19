@@ -261,6 +261,43 @@ module OllamaChat::ModelHandling
     end
   end
 
+  # Reconfigures model options for the current model and profile.
+  #
+  # Ensures that the session has the appropriate model options by:
+  # - Storing default options if none exist for the model/profile combination
+  # - Populating blank session options with stored or default values
+  # - Prompting to overwrite session options if they diverge from stored defaults
+  #   (only when +keep_options+ is false)
+  #
+  # @param profile [String, nil] The profile context for model options storage
+  def reconfigure_model_options(profile:, keep_options:)
+    default_model_options = get_default_model_options
+    session_model_options = get_session_model_options
+    unless stored_model_options_exist?(@model, profile:)
+      store_model_options(@model, default_model_options, profile:)
+    end
+    stored_model_options = get_stored_model_options(@model, profile:)
+    if session_model_options.blank?
+      if stored_model_options.present?
+        session.update(model_options: stored_model_options)
+      else
+        store_model_options(@model, default_model_options)
+        session.update(model_options: default_model_options)
+      end
+    elsif !keep_options && session_model_options != stored_model_options
+      STDOUT.puts <<~EOT
+          ⚠️ Session model options differ from defaults for model #@model!
+          Session model options:
+          #{JSON.pretty_generate(session_model_options)}
+          Default model options:
+          #{JSON.pretty_generate(stored_model_options)}
+      EOT
+      confirm?(
+          prompt: "❓ Overwrite session model options with defaults? (y/n) ", yes: /\Ay/i
+      ) and session.update(model_options: stored_model_options)
+    end
+  end
+
   # The use_model method selects and sets the model to be used for the chat
   # session.
   #
@@ -293,36 +330,7 @@ module OllamaChat::ModelHandling
       session.update(current_model: nil)
     end
 
-    if old_model != @model
-      default_model_options = get_default_model_options
-      session_model_options = get_session_model_options
-      unless stored_model_options_exist?(@model, profile:)
-        store_model_options(@model, default_model_options, profile:)
-      end
-      stored_model_options = get_stored_model_options(@model, profile:)
-      if session_model_options.blank?
-        if stored_model_options.present?
-          session.update(model_options: stored_model_options)
-        else
-          store_model_options(@model, default_model_options)
-          session.update(model_options: default_model_options)
-        end
-      elsif !keep_options && session_model_options != stored_model_options
-        STDOUT.puts <<~EOT
-          ⚠️ Session model options differ from defaults for model #@model!
-          Session model options:
-          #{JSON.pretty_generate(session_model_options)}
-          Default model options:
-          #{JSON.pretty_generate(stored_model_options)}
-        EOT
-        if confirm?(
-            prompt: "❓ Overwrite session model options with defaults? (y/n) ", yes: /\Ay/i
-          )
-        then
-          session.update(model_options: stored_model_options)
-        end
-      end
-    end
+    old_model != @model and reconfigure_model_options(profile:, keep_options:)
 
     @model_metadata
   end
