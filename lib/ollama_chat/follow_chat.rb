@@ -104,8 +104,7 @@ class OllamaChat::FollowChat
 
     response.message.tool_calls.each do |tool_call|
       name = tool_call.function.name
-      if name =~ %r(/)
-        new_name = File.basename(name.to_s)
+      if %r(.*[/:](?<new_name>.+)) =~ name
         msg = "Received namespaced tool call for #{name}, correcting to #{new_name}"
         chat.log(:warn, msg)
         name = new_name
