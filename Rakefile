@@ -39,7 +39,7 @@ GemHadar do
   )
 
   dependency             'excon',                 '~> 1.0'
-  dependency             'ollama-ruby',           '~> 1.22'
+  dependency             'ollama-ruby',           '~> 1.23'
   dependency             'documentrix',           '>= 0.6.0'
   dependency             'unix_socks',            '>= 0.4'
   dependency             'rss',                   '~> 0.3'
@@ -49,7 +49,7 @@ GemHadar do
   dependency             'reverse_markdown',      '~> 3.0'
   dependency             'kramdown-ansi',         '~> 0.5'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
-  dependency             'tins',                  '~> 1.53'
+  dependency             'tins',                  '~> 1.55'
   dependency             'search_ui',             '>= 0.2'
   dependency             'amatch',                '~> 0.4'
   dependency             'pdf-reader',            '~> 2.0'
