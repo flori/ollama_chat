@@ -40,6 +40,7 @@ describe OllamaChat::Tools::ReadFile do
       puts "Hello World!"
     EOT
     expect(json.message).to include('Read 20.0 B (6.0 T) from')
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   end
 
   it 'can extract range when start_line is provided and end_line is nil' do
@@ -59,6 +60,7 @@ describe OllamaChat::Tools::ReadFile do
     json = json_object(result)
     expect(json.content).to eq "puts \"Hello World!\"\n"
     expect(json.message).to include('Read 20.0 B (6.0 T) from')
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   end
 
   it 'can extract range when start_line is nil and end_line is provided' do
@@ -78,6 +80,7 @@ describe OllamaChat::Tools::ReadFile do
     json = json_object(result)
     expect(json.content).to eq "puts \"Hello World!\"\n"
     expect(json.message).to include('Read 20.0 B (6.0 T) from')
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   end
 
   it 'returns empty content when end_line is less than start_line' do
@@ -96,6 +99,7 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).to eq ''
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   end
 
   it 'can prefix each line with its line number' do
@@ -132,6 +136,7 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).not_to include("1: ")
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   end
 
   it 'can extract range with start_line and end_line with line numbers' do
@@ -153,6 +158,7 @@ describe OllamaChat::Tools::ReadFile do
       2: John Doe,32,Software Engineer
       3: Jane Smith,28,Marketing Manager
     EOT
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
   end
 
   it 'can handle execution errors gracefully when path is not allowed' do

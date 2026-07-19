@@ -89,21 +89,22 @@ class OllamaChat::Tools::ReadFile
     message = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
 
     {
-      path:,
-      content:,
-      start_line:,
-      end_line:,
-      line_numbers:,
-      message:,
+      path:         ,
+      content:      ,
+      mtime:        path.mtime.iso8601,
+      start_line:   ,
+      end_line:     ,
+      line_numbers: ,
+      message:      ,
     }.to_json
   rescue => e
     chat.log(:error, e)
     {
-      error:   e.class,
-      path:    e.ask_and_send(:path),
-      message: "Failed to read file: #{e.message}",
-      start_line:,
-      end_line:,
+      error:      e.class,
+      path:       e.ask_and_send(:path),
+      message:    "Failed to read file: #{e.message}",
+      start_line: ,
+      end_line:   ,
     }.to_json
   end
 
