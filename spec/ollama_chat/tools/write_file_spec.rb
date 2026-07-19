@@ -17,13 +17,15 @@ describe OllamaChat::Tools::WriteFile do
     expect(described_class.new.to_hash).to be_a Hash
   end
 
+  let(:test_write_file) { "./tmp/test_write_file_#{Tins::Token.new(bits: 64)}.txt" }
+
   it 'can be executed successfully with overwrite mode' do
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'write_file',
         arguments: double(
-          path: './tmp/test_write_file.txt',
+          path: test_write_file,
           content: 'Hello, World!',
           mode: 'overwrite'
         )
@@ -36,28 +38,28 @@ describe OllamaChat::Tools::WriteFile do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.success).to eq true
-    expect(json.path).to include('test_write_file.txt')
+    expect(json.path).to include(File.basename(test_write_file))
     expect(json.message).to include('Wrote 13.0 B (4.0 T) to file')
 
     # Verify file was actually written
-    expect(File.exist?('./tmp/test_write_file.txt')).to be true
-    expect(File.read('./tmp/test_write_file.txt')).to eq 'Hello, World!'
+    expect(File.exist?(test_write_file)).to be true
+    expect(File.read(test_write_file)).to eq 'Hello, World!'
   ensure
     # Clean up
-    File.delete('./tmp/test_write_file.txt') if File.exist?('./tmp/test_write_file.txt')
+    File.delete(test_write_file) if File.exist?(test_write_file)
   end
 
   it 'can be executed successfully with append mode' do
     # First write some initial content
     initial_content = 'Initial content\n'
-    File.secure_write('./tmp/test_append_file.txt', initial_content)
+    File.secure_write(test_write_file, initial_content)
 
     tool_call = double(
       'ToolCall',
       function: double(
         name: 'write_file',
         arguments: double(
-          path: './tmp/test_append_file.txt',
+          path: test_write_file,
           content: 'Appended content\n',
           mode: 'append'
         )
@@ -70,17 +72,17 @@ describe OllamaChat::Tools::WriteFile do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.success).to be true
-    expect(json.path).to include('test_append_file.txt')
+    expect(json.path).to include(File.basename(test_write_file))
     expect(json.message).to include('Wrote 18.0 B (6.0 T) to file')
 
     # Verify file was actually appended
-    expect(File.exist?('./tmp/test_append_file.txt')).to be true
-    content = File.read('./tmp/test_append_file.txt')
+    expect(File.exist?(test_write_file)).to be true
+    content = File.read(test_write_file)
     expect(content).to include('Initial content')
     expect(content).to include('Appended content')
   ensure
     # Clean up
-    File.delete('./tmp/test_append_file.txt') if File.exist?('./tmp/test_append_file.txt')
+    File.delete(test_write_file) if File.exist?(test_write_file)
   end
 
   it 'can handle execution errors gracefully when path is not allowed' do
