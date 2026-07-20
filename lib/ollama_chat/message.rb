@@ -40,12 +40,21 @@ module OllamaChat::MessageMixin
   #   @option setter [String] The UUIDv7 for the logical exchange.
   attr_accessor :group_uuid
 
+  # Ensures that the message has a `group_uuid` by generating a UUIDv7 if
+  # missing. Returns self to allow for method chaining.
+  #
+  # @return [OllamaChat::Message] the message instance.
+  def initialize_group_uuid
+    self.group_uuid ||= SecureRandom.uuid_v7
+    self
+  end
+
   # Extracts the timestamp embedded within the UUIDv7 group identifier.
   #
   # @return [Time] The time the group was created, derived from the UUIDv7's
   #   time-ordered bits.
   def group_time
-    Time.at((group_uuid.delete(?-)[0, 16].to_i(16) >> 16) / 1000.0)
+    Time.at((group_uuid.delete(?-)[0, 16].to_i(16) >> 16) / 1000.0) if group_uuid
   end
 
   # Returns true if the message is a tool message.

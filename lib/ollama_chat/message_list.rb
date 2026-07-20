@@ -378,9 +378,8 @@ class OllamaChat::MessageList
     }
     if new_system_prompt = system.full? { _1.to_s % templates_values }
       @system = new_system_prompt
-      group_uuid = SecureRandom.uuid_v7
       @messages.unshift(
-        OllamaChat::Message.new(role: 'system', content: self.system, group_uuid:)
+        OllamaChat::Message.new(role: 'system', content: self.system).initialize_group_uuid
       )
     else
       @system = nil

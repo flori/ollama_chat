@@ -521,8 +521,7 @@ module OllamaChat::SessionManagement
       # Find the first 'user' message from the back that lacks a group_uuid
       if msgs[i].role == 'user' && !msgs[i].tool? && msgs[i].group_uuid.nil?
         anchor_index = i
-        group_uuid = SecureRandom.uuid_v7
-        msgs[anchor_index].group_uuid = group_uuid
+        group_uuid = msgs[anchor_index].initialize_group_uuid.group_uuid
 
         # 1. Structural Swap: [RuntimeInfo, User] -> [User, RuntimeInfo]
         if anchor_index > 0 && msgs[anchor_index - 1].tool_name == 'runtime_information'
@@ -545,7 +544,7 @@ module OllamaChat::SessionManagement
 
     # Handle any orphaned messages that aren't part of a user-led exchange,
     # e.g. system messages
-    msgs.each { |m| m.group_uuid ||= SecureRandom.uuid_v7 }
+    msgs.each(&:initialize_group_uuid)
 
     store_messages_in_session
   end
