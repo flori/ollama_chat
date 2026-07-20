@@ -121,8 +121,6 @@ describe OllamaChat::Tools::PatchFile do
       expect(tool.apply_edits(empty_file, edits)).to eq text
       File.delete(empty_file) if File.exist?(empty_file)
     end
-
-
   end
 
   it 'can be executed successfully with valid edits' do

@@ -114,9 +114,16 @@ class OllamaChat::Tools::PatchFile
     message =
       if result[:success]
         "Successfully applied patch to #{path.to_s.inspect}."
-      elsif result[:content_unchanged]
-        "User rejected to apply patch to file #{path.to_s.inspect}. "\
-          "Ask the user about what you did wrong."
+      elsif result.key?(:patch_feedback)
+        if msg = result.delete(:patch_feedback)
+          <<~EOT
+            User rejected the patch to file #{path.to_s.inspect} for reason:
+
+            #{msg.inspect}
+          EOT
+        else
+          "User accepted the patch to file #{path.to_s.inspect}."
+        end
       else
         "Failed to apply patch to file #{path.to_s.inspect}."
       end
@@ -148,7 +155,7 @@ class OllamaChat::Tools::PatchFile
     lines = File.readlines(path, chomp: true)
 
     # 1. Validation & Overlap Check
-    validate_and_check_overlaps!(edits, lines.size) # TODO make sure edits contain start_line and end_line
+    validate_and_check_overlaps!(edits, lines.size) # TODO make sure edits contain start_line and end_line.nil?
 
     # 2. Application (Reverse order to preserve indices)
     sorted_edits = edits.sort_by { -_1[:start_line] }
@@ -207,13 +214,18 @@ class OllamaChat::Tools::PatchFile
       backup_path = perform_backup path
       if system(*cmd)
         if result[:success] = $?.success?
-          result[:content_unchanged] = digest(path) == old_digest
-          if result[:content_unchanged]
+          if digest(path) == old_digest
+            msg = chat.ask?(
+              prompt: 'Give a reason for why the patch was rejected: (C-c ⇒ Accept.) '
+            )
+            result[:patch_feedback] = msg
+          end
+          if result[:patch_feedback]
             backup_path.delete
           else
             result[:backup_path] = backup_path
           end
-          result[:success] &&= !result[:content_unchanged]
+          result[:success] &&= !result[:patch_feedback]
         end
       end
     end
