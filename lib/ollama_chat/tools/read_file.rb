@@ -91,7 +91,7 @@ class OllamaChat::Tools::ReadFile
     {
       path:         ,
       content:      ,
-      mtime:        path.mtime.iso8601,
+      mtime:        path.mtime.iso8601(0),
       start_line:   ,
       end_line:     ,
       line_numbers: ,

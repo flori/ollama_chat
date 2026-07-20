@@ -17,7 +17,9 @@ describe OllamaChat::Tools::WriteFile do
     expect(described_class.new.to_hash).to be_a Hash
   end
 
-  let(:test_write_file) { "./tmp/test_write_file_#{Tins::Token.new(bits: 64)}.txt" }
+  let :test_write_file do
+    "./tmp/test_write_file_#{Tins::Token.new(bits: 128)}.txt"
+  end
 
   it 'can be executed successfully with overwrite mode' do
     tool_call = double(

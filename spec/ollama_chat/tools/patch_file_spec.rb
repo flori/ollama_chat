@@ -9,6 +9,10 @@ describe OllamaChat::Tools::PatchFile do
     described_class.new.expose
   end
 
+  let :test_file do
+    "./tmp/patch_test_#{Tins::Token.new(bits: 128)}.txt"
+  end
+
   it 'can have name' do
     expect(tool.name).to eq 'patch_file'
   end
@@ -22,8 +26,6 @@ describe OllamaChat::Tools::PatchFile do
   end
 
   describe 'coordinate-based patching logic' do
-    let(:test_file) { "./tmp/patch_test_#{Tins::Token.new(bits: 64)}.txt" }
-
     before do
       File.write(test_file, <<~EOT)
         class User
@@ -114,7 +116,7 @@ describe OllamaChat::Tools::PatchFile do
 
 
     it 'raises error when patching line 1 of an empty file' do
-      empty_file = "./tmp/empty_patch-#{rand(1e12)}.txt"
+      empty_file = test_file
       File.write(empty_file, '')
       text  = 'Initial content'
       edits = [{ start_line: 1, end_line: 1, text: }]
@@ -125,11 +127,11 @@ describe OllamaChat::Tools::PatchFile do
 
   it 'can be executed successfully with valid edits' do
     const_conf_as('OC::DIFF_TOOL' => Pathname.new(`which true`.chomp))
-    test_file = './tmp/test_patch_exec.txt'
     File.write(test_file, "Line 1\nLine 2\n")
 
     edits = [{ start_line: 2, end_line: 2, text: 'Modified Line 2' }]
-    args_double = double('Arguments', path: test_file, edits: edits)
+    mtime = File.mtime(test_file).iso8601(0)
+    args_double = double('Arguments', path: test_file, edits: edits, mtime: mtime, line_count: 2)
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
     tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
@@ -144,7 +146,7 @@ describe OllamaChat::Tools::PatchFile do
   end
 
   it 'can handle execution errors gracefully when edits are missing' do
-    args_double = double('Arguments', path: './tmp/test.txt', edits: nil)
+    args_double = double('Arguments', path: test_file, edits: nil)
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
     result = tool.execute(tool_call, chat: chat)

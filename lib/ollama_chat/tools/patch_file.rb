@@ -36,6 +36,10 @@ class OllamaChat::Tools::PatchFile
           expected content. To save tokens, you can read just the range around
           your target area using `read_file` with specific start/end lines.
 
+          FRESHNESS CHECK: You MUST provide the current `mtime` and `line_count`
+          of the file as returned by `read_file`. This ensures you are patching
+          the most recent version of the file and prevents stale context errors.
+
           Returns JSON with success or failure result. In the success case
           a backup is created from the unchanged file.
 
@@ -74,9 +78,17 @@ class OllamaChat::Tools::PatchFile
                   ),
                 },
               )
-            )
+            ),
+            mtime: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: 'The current modification time (ISO 8601) of the file from the latest `read_file` call.'
+            ),
+            line_count: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: 'The exact number of lines in the file from the latest `read_file` call.'
+            ),
           },
-          required: %w[path edits]
+          required: %w[path edits mtime line_count]
         )
       )
     )
@@ -107,6 +119,25 @@ class OllamaChat::Tools::PatchFile
       config.tools.functions.patch_file.allowed?,
       check: :file
     )
+
+    # Freshness check to prevent stale context patching
+    current_mtime = File.mtime(path).iso8601(0)
+    current_lines = File.open(path) { _1.each_line.count }
+
+    submitted_mtime = args.mtime
+    submitted_lines = args.line_count
+
+    if submitted_mtime != current_mtime
+      raise OllamaChat::ToolFunctionArgumentError,
+        "Stale context: File `#{path}` has been modified since your last read. "\
+        "Expected mtime `#{current_mtime}`, got `#{submitted_mtime}`."
+    end
+
+    if submitted_lines != current_lines
+      raise OllamaChat::ToolFunctionArgumentError,
+        "Stale context: File `#{path}` line count mismatch. "\
+        "Expected `#{current_lines}`, got `#{submitted_lines}`."
+    end
 
     content = apply_edits(path, edits)
     result  = apply_patch(chat, path, content)
