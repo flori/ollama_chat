@@ -4,34 +4,22 @@
 # This module is designed to be mixed into the Chat class, allowing it to
 # access prompt overrides stored in the database using the `models` helper.
 module OllamaChat::PromptHandling
-  # Retrieves a specific system prompt by name from the 'system_prompt'
-  # context.
-  #
-  # @param name [String, Symbol] the name of the system prompt to retrieve
-  # @return [OllamaChat::Database::Models::Prompt, nil] the prompt model
-  #   instance or nil if not found
-  def system_prompt(name)
-    models::Prompt.where(context: 'system_prompt', name: name.to_s).first
-  end
-
   # Retrieves a specific prompt by name from the 'prompt' context.
   #
   # @param name [String, Symbol] the name of the prompt to retrieve
   # @return [OllamaChat::Database::Models::Prompt, nil] the prompt model
   #   instance or nil if not found
-  def prompt(name)
-    models::Prompt.where(context: 'prompt', name: name.to_s).first
+  def prompt(name, context: 'prompt')
+    models::Prompt.where(context:, name: name.to_s).first
   end
-
-  private
 
   # Iterates over all prompts in the 'prompt' context.
   #
   # @yield [prompt] yields each prompt model instance
   # @return [Enumerator] an enumerator if no block is given
-  def each_prompt(default: nil, &block)
-    block or return enum_for(__method__, default:)
-    prompts = models::Prompt.where(context: 'prompt')
+  def each_prompt(context: 'prompt', default: nil, &block)
+    block or return enum_for(__method__, context:, default:)
+    prompts = models::Prompt.where(context:)
     case default
     when true
       prompts = prompts.where(Sequel.lit("metadata ->> '$.default' = 1"))
@@ -48,8 +36,8 @@ module OllamaChat::PromptHandling
   #
   # @param name [String, Symbol] the name of the prompt to delete
   # @return [Boolean] true if deleted, false otherwise
-  def delete_prompt(name)
-    if found = prompt(name) and !found.metadata['default']
+  def delete_prompt(name, context: 'prompt')
+    if found = prompt(name, context:) and !found.metadata['default']
       found.destroy
       return true
     end
@@ -62,41 +50,8 @@ module OllamaChat::PromptHandling
   # @param content [String] the content of the prompt
   # @return [OllamaChat::Database::Models::Prompt] the saved prompt model
   #   instance
-  def store_prompt(name, content)
-    write_prompt('prompt', name, content)
-  end
-
-  # Deletes a system prompt by name from the 'system_prompt' context if it is
-  # not a default prompt.
-  #
-  # @param name [String, Symbol] the name of the system prompt to delete
-  # @return [Boolean] true if deleted, false otherwise
-  def delete_system_prompt(name)
-    if found = system_prompt(name) and !found.metadata['default']
-      found.destroy
-      return true
-    end
-    false
-  end
-
-  # Stores a system prompt in the 'system_prompt' context.
-  #
-  # @param name [String, Symbol] the name of the system prompt
-  # @param content [String] the content of the system prompt
-  # @return [OllamaChat::Database::Models::Prompt] the saved system prompt
-  #   model instance
-  def store_system_prompt(name, content)
-    write_prompt('system_prompt', name, content)
-  end
-
-  # Iterates over all prompts in the 'system_prompt' context.
-  #
-  # @yield [prompt] yields each system prompt model instance
-  # @return [Enumerator] an enumerator if no block is given
-  def each_system_prompt(&block)
-    block or return enum_for(__method__)
-
-    models::Prompt.where(context: 'system_prompt').all.each(&block)
+  def store_prompt(name, content, context: 'prompt')
+    write_prompt(name, content, context:)
   end
 
   # Creates or updates a prompt in the specified context.
@@ -106,7 +61,7 @@ module OllamaChat::PromptHandling
   # @param content [String] the content of the prompt
   # @return [OllamaChat::Database::Models::Prompt] the created or updated
   #   prompt model instance
-  def write_prompt(context, name, content)
+  def write_prompt(name, content, context:)
     obj = nil
     if found = models::Prompt.where(context:, name:).first
       found.metadata['content'] = content
@@ -130,4 +85,6 @@ module OllamaChat::PromptHandling
 
     filename.read if filename&.exist?
   end
+
+
 end

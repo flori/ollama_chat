@@ -12,7 +12,7 @@ module OllamaChat::SystemPromptManagement
   #   in a chooser
   def all_system_prompts
     favs = all_favourited('system_prompt')
-    each_system_prompt.sort_by(&:name).map do |p|
+    each_prompt(context: 'system_prompt').sort_by(&:name).map do |p|
       system_prompt_with_favourite(p.name, favs[p.name])
     end
   end
@@ -58,7 +58,7 @@ module OllamaChat::SystemPromptManagement
     if system_name == 'model_default'
       model_default_system_prompt.to_s
     else
-      system_prompt(system_name).to_s
+      prompt(system_name, context: 'system_prompt').to_s
     end % { persona: nil, runtime_info: nil }
   end
 
@@ -81,7 +81,7 @@ module OllamaChat::SystemPromptManagement
   # sets it in the message history.
   def setup_system_prompt
     system_prompt_name = session.current_system_prompt.full? ||
-      ('default' if system_prompt(:default)) ||
+      ('default' if prompt(:default, context: 'system_prompt')) ||
       'model_default'
     if system_prompt_name.full?
       set_current_system_prompt(system_prompt_name)
@@ -141,7 +141,7 @@ module OllamaChat::SystemPromptManagement
       STDOUT.puts "Exiting chooser."
       return
     when SearchUI::Wrapper
-      system_prompt(chosen.value)
+      prompt(chosen.value, context: 'system_prompt')
     end
   end
 
@@ -191,7 +191,7 @@ module OllamaChat::SystemPromptManagement
                 end
 
       system_prompt = edit_text(content)
-      store_system_prompt(system_prompt_name, system_prompt).to_s
+      store_prompt(system_prompt_name, system_prompt, context: 'system_prompt').to_s
       ask_to_set_current_system_prompt(system_prompt_name)
     end
   end
@@ -233,7 +233,7 @@ module OllamaChat::SystemPromptManagement
   # @return [Array] an array of the results of the printing operations
   def list_system_prompts
     favs = all_favourited('system_prompt')
-    each_system_prompt.sort_by(&:name).map do |prompt|
+    each_prompt(context: 'system_prompt').sort_by(&:name).map do |prompt|
       default = prompt.metadata['default'] ? '⛭' : '✎'
       start   = '%s %s' % [ default, bold { prompt.name } ]
       start   = prefix_favourite(start, favs[prompt.name])
@@ -295,7 +295,7 @@ module OllamaChat::SystemPromptManagement
     end
     system_prompt_name = determine_valid_new_name_for_system_prompt('to import') or return
     system_prompt = filename.read
-    store_system_prompt(system_prompt_name, system_prompt)
+    store_prompt(system_prompt_name, system_prompt, context: 'system_prompt')
     ask_to_set_current_system_prompt(system_prompt_name)
     STDOUT.puts "Imported system prompt as #{system_prompt_name.inspect}."
     self
@@ -330,7 +330,7 @@ module OllamaChat::SystemPromptManagement
   #   default was found
   def reset_system_prompt_to_default(name)
     if content = config.system_prompts[name.to_s]
-      store_system_prompt(name, content)
+      store_prompt(name, content, context: 'system_prompt')
       true
     end
   end
@@ -366,7 +366,7 @@ module OllamaChat::SystemPromptManagement
         STDOUT.puts "Cancelled."
         return nil
       end
-      if system_prompt(system_prompt_name)
+      if prompt(system_prompt_name, context: 'system_prompt')
         STDOUT.puts "System prompt named #{bold{system_prompt_name}} already exists."
       else
         break
