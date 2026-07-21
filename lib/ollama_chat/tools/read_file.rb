@@ -83,10 +83,10 @@ class OllamaChat::Tools::ReadFile
     end_line     = args.end_line.full?
     line_numbers = args.line_numbers
 
-    path    = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
-    content = extract_range(path.read, start_line, end_line, line_numbers:)
-    es      = OllamaChat::TokenEstimator.estimate(content)
-    message = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
+    path                = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
+    content, line_count = extract_range(path.read, start_line, end_line, line_numbers:)
+    es                  = OllamaChat::TokenEstimator.estimate(content)
+    message             = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
 
     {
       path:         ,
@@ -95,6 +95,7 @@ class OllamaChat::Tools::ReadFile
       start_line:   ,
       end_line:     ,
       line_numbers: ,
+      line_count:   ,
       message:      ,
     }.to_json
   rescue => e
@@ -123,6 +124,8 @@ class OllamaChat::Tools::ReadFile
 
     return +'' if e < s
 
+    total_line_count = content.each_line.count if line_numbers
+
     new_content = +''
     content.each_line.each_with_index do |line, index|
       ln = index + 1
@@ -131,7 +134,7 @@ class OllamaChat::Tools::ReadFile
       new_content << (line_numbers ? "#{ln}: #{line}" : line)
       break if ln >= e
     end
-    new_content
+    return new_content, total_line_count
   end
 
   self
