@@ -186,7 +186,7 @@ class OllamaChat::Tools::PatchFile
     lines = File.readlines(path, chomp: true)
 
     # 1. Validation & Overlap Check
-    validate_and_check_overlaps!(edits, lines.size) # TODO make sure edits contain start_line and end_line.nil?
+    validate_and_check_overlaps!(edits, lines.size)
 
     # 2. Application (Reverse order to preserve indices)
     sorted_edits = edits.sort_by { -_1[:start_line] }

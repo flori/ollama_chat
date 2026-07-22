@@ -249,7 +249,7 @@ describe OllamaChat::MessageList do
     end
 
     it 'can list conversations with thinking' do
-      expect(chat).to receive(:prompt).with(nil, context: 'system_prompt')
+      expect(chat).to receive(:prompt).with(nil, context: 'system')
       expect(chat).to receive(:runtime_info).and_return(double(on?: true))
       expect(chat).to receive(:static_runtime_information)
       expect(chat).to receive(:default_persona_profile)
@@ -297,7 +297,7 @@ describe OllamaChat::MessageList do
     list.messages.clear
     expect(list.messages.count { _1.role == 'system' }).to eq 0
     expect(chat).to receive(:default_persona_profile).and_return(nil)
-    expect(chat).to receive(:prompt).with('test_prompt', context: 'system_prompt').and_return('test prompt')
+    expect(chat).to receive(:prompt).with('test_prompt', context: 'system').and_return('test prompt')
     expect(chat).to receive(:runtime_info).and_return(double(on?: true))
     expect(chat).to receive(:static_runtime_information)
     expect {
@@ -310,7 +310,7 @@ describe OllamaChat::MessageList do
   it 'can set_system_prompt if already set' do
     expect(chat).to receive(:default_persona_profile).and_return(nil).at_least(:once)
     list.messages.clear
-    expect(chat).to receive(:prompt).with('first_prompt', context: 'system_prompt').and_return('first prompt')
+    expect(chat).to receive(:prompt).with('first_prompt', context: 'system').and_return('first prompt')
     expect(chat).to receive(:runtime_info).and_return(double(on?: true)).at_least(:once)
     expect(chat).to receive(:static_runtime_information).at_least(:once)
     expect(list.messages.count { _1.role == 'system' }).to eq 0
@@ -318,7 +318,7 @@ describe OllamaChat::MessageList do
     expect(list.system).to eq('first prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 1
     #
-    expect(chat).to receive(:prompt).with('new_prompt', context: 'system_prompt').and_return('new prompt')
+    expect(chat).to receive(:prompt).with('new_prompt', context: 'system').and_return('new prompt')
     list.set_system_prompt('new_prompt')
     expect(list.system).to eq('new prompt')
     expect(list.messages.count { _1.role == 'system' }).to eq 1

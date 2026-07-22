@@ -369,7 +369,7 @@ class OllamaChat::MessageList
     if system_name == 'model_default'
       system = @chat.model_default_system_prompt.to_s
     else
-      system = @chat.prompt(system_name, context: 'system_prompt').to_s
+      system = @chat.prompt(system_name, context: 'system').to_s
     end
     @messages.reject! { |msg| msg.role == 'system' }
     templates_values = {

@@ -13,9 +13,10 @@ module OllamaChat::PromptManagement
   #
   # @return [Array<SearchUI::Wrapper>] the list of prompts for display in a
   #   chooser
-  def all_prompts(default: nil)
-    favs = all_favourited('prompt')
-    each_prompt(default:).sort_by(&:name).map do |p|
+  def all_prompts(default: nil, context: nil)
+    context ||= 'prompt'
+    favs = all_favourited(context)
+    each_prompt(context:, default:).sort_by(&:name).map do |p|
       prompt_with_favourite(p.name, favs[p.name])
     end
   end
@@ -30,29 +31,31 @@ module OllamaChat::PromptManagement
   #
   # @return [OllamaChat::Database::Models::Prompt, nil] the selected prompt
   #   model, or nil if the user chooses '[EXIT]' or cancels the selection.
-  def choose_prompt(default: nil, prompt: 'Select a prompt template: %s')
-    prompts = all_prompts(default:)
+  def choose_prompt(default: nil, context: nil, prompt: "Select a #{context || 'prompt'} template: %s")
+    context ||= 'prompt'
+    prompts = all_prompts(default:, context:)
     prompts.unshift('[EXIT]')
     case chosen = choose_entry(prompts, prompt:)
     when '[EXIT]', nil
       STDOUT.puts "Exiting chooser."
       return
     when SearchUI::Wrapper
-      prompt(chosen.value)
+      prompt(chosen.value, context:)
     end
   end
 
   # Displays detailed information about a selected prompt template.
   #
   # @return [self, nil] the current context on success, or nil if cancelled
-  def info_prompt
-    if prompt = choose_prompt(prompt: 'Which blueprint would you like to inspect? %s')
+  def info_prompt(context: nil)
+    context ||= 'prompt'
+    if selected_prompt = choose_prompt(context:, prompt: 'Which blueprint would you like to inspect? %s')
       use_pager do |output|
         output.puts kramdown_ansi_parse(<<~EOT)
-          # Prompt #{prompt.name}
+          # Prompt #{selected_prompt.name}
           ---
 
-          #{prompt.to_s}
+          #{selected_prompt.to_s}
 
           ---
         EOT
@@ -66,9 +69,10 @@ module OllamaChat::PromptManagement
   #
   # @return [Boolean, nil] true if the prompt was added, nil if the process was
   #   cancelled
-  def add_new_prompt
+  def add_new_prompt(context: nil)
+    context ||= 'prompt'
     switch_history(:add_prompt) do
-      name = determine_valid_new_name_for_prompt('to add') or return
+      name = determine_valid_new_name_for_prompt('to add', context:) or return
 
       sources       = %w[ [CLIPBOARD] [FILES] [EMPTY/MANUAL] ]
       chosen_source = choose_entry(sources, prompt: 'Where shall we source the prompt from? %s')
@@ -87,34 +91,40 @@ module OllamaChat::PromptManagement
                   nil
                 end
 
-      prompt = edit_text(content)
-      store_prompt(name, prompt).to_s
+      prompt_content = edit_text(content)
+      store_prompt(name, prompt_content, context:).to_s
       true
     end
   end
 
   # Interactively selects an existing non-default prompt and deletes it after
   # confirmation.
-  def choose_and_delete_prompt
-    prompt = choose_prompt(default: false, prompt: 'Which template has outlived its usefulness? %s') or return
+  def choose_and_delete_prompt(context: nil, force: false)
+    context ||= 'prompt'
+    selected_prompt = choose_prompt(
+      default:  force ? nil : false,
+      context:,
+      prompt:  'Which template has outlived its usefulness? %s'
+    ) or return
     STDOUT.puts kramdown_ansi_parse(
-      prompt.to_s + "\n---"
+      selected_prompt.to_s + "\n---"
     )
     confirm?(
-      prompt: "🔔 Really delete the prompt #{bold{prompt.name}}? (y/n) ",
+      prompt: "🔔 Really delete the prompt #{bold{selected_prompt.name}}? (y/n) ",
       yes: /\Ay/i
     ) or return
-    prompt.destroy
+    selected_prompt.destroy
   end
 
   # Interactively selects an existing prompt and allows the user to edit its
   # content via the integrated editor.
   #
   # @return [self, nil] the current context on success, or nil if cancelled
-  def choose_and_edit_prompt
-    prompt = choose_prompt(prompt: 'Which spell needs some fine-tuning? %s') or return
-    prompt.metadata['content'] = edit_text(prompt.metadata['content'].to_s)
-    prompt.save
+  def choose_and_edit_prompt(context: nil)
+    context ||= 'prompt'
+    selected_prompt = choose_prompt(context:, prompt: 'Which spell needs some fine-tuning? %s') or return
+    selected_prompt.metadata['content'] = edit_text(selected_prompt.metadata['content'].to_s)
+    selected_prompt.save
     self
   end
 
@@ -129,10 +139,11 @@ module OllamaChat::PromptManagement
   #
   # @return [self, nil] the current context on success, or nil if the user
   #   cancelled the operation or no prompt was selected.
-  def duplicate_prompt
-    prompt = choose_prompt(prompt: 'Which prompt shall be the basis for a new one? %s') or return
+  def duplicate_prompt(context: nil)
+    context ||= 'prompt'
+    selected_prompt = choose_prompt(context:, prompt: 'Which prompt shall be the basis for a new one? %s') or return
     STDOUT.puts kramdown_ansi_parse(
-      prompt.to_s + "\n---"
+      selected_prompt.to_s + "\n---"
     )
     name = nil
     loop do
@@ -143,13 +154,13 @@ module OllamaChat::PromptManagement
         STDOUT.puts "Cancelled."
         return nil
       end
-      if prompt(name)
+      if prompt(name, context:)
         STDOUT.puts "Prompt named #{bold{name}} already exists."
       else
         break
       end
     end
-    duplicated_prompt = prompt.duplicate
+    duplicated_prompt = selected_prompt.duplicate
     duplicated_prompt.name = name
     duplicated_prompt.metadata['default'] = false
     duplicated_prompt.save
@@ -168,7 +179,8 @@ module OllamaChat::PromptManagement
   #   or nil to trigger interactive file selection.
   # @return [self, nil] the current context on success, or nil if the
   #   import was cancelled.
-  def import_prompt(filename)
+  def import_prompt(filename, context: nil)
+    context ||= 'prompt'
     if filename
       if File.exist?(filename)
         filename = Pathname.new(filename)
@@ -182,9 +194,9 @@ module OllamaChat::PromptManagement
       STDOUT.puts "Cancelled."
       return
     end
-    prompt_name = determine_valid_new_name_for_prompt('to import') or return
-    prompt = filename.read
-    store_prompt(prompt_name, prompt)
+    prompt_name = determine_valid_new_name_for_prompt('to import', context:) or return
+    prompt_content = filename.read
+    store_prompt(prompt_name, prompt_content, context:)
     STDOUT.puts "Imported prompt as #{prompt_name.inspect}."
     self
   end
@@ -200,14 +212,15 @@ module OllamaChat::PromptManagement
   #
   # @return [self, nil] returns self if the export was successful, or nil if
   #   the process was cancelled during prompt selection or filename entry.
-  def export_prompt
-    prompt = choose_prompt(prompt: 'Which template are you exporting to disk? %s') or return
+  def export_prompt(context: nil)
+    context ||= 'prompt'
+    selected_prompt = choose_prompt(context:, prompt: 'Which template are you exporting to disk? %s') or return
     STDOUT.puts kramdown_ansi_parse(
-      prompt.to_s + "\n---"
+      selected_prompt.to_s + "\n---"
     )
     filename = determine_valid_output_filename('to write to') or return
-    filename.write(prompt.to_s)
-    STDOUT.puts "Prompt #{prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
+    filename.write(selected_prompt.to_s)
+    STDOUT.puts "Prompt #{selected_prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
     self
   end
 
@@ -246,7 +259,10 @@ module OllamaChat::PromptManagement
       instruction = edit_text('').full? or return
     else
       # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
-      instruction = choose_prompt(prompt: 'Which suggestion strategy shall we employ? %s') or return
+      instruction = choose_prompt(
+        prompt: 'Which suggestion strategy shall we employ? %s',
+        context: 'suggest'
+      ) or return
     end
 
     # Build the context by gathering all current conversation messages
@@ -270,13 +286,14 @@ module OllamaChat::PromptManagement
   # and showing a truncated preview of their content.
   #
   # @return [Array] the result of the prompt mapping
-  def list_prompts
-    favs = all_favourited('prompt')
-    each_prompt.sort_by(&:name).map do |prompt|
-      default = prompt.metadata['default'] ? '⛭' : '✎'
-      start   = '%s %s' % [ default, bold { prompt.name } ]
-      start   = prefix_favourite(start, favs[prompt.name])
-      content = prompt.to_s.inspect[1..-2]
+  def list_prompts(context: nil)
+    context ||= 'prompt'
+    favs = all_favourited(context)
+    each_prompt(context:).sort_by(&:name).map do |p|
+      default = p.metadata['default'] ? '⛭' : '✎'
+      start   = '%s %s' % [ default, bold { p.name } ]
+      start   = prefix_favourite(start, favs[p.name])
+      content = p.to_s.inspect[1..-2]
       content = Kramdown::ANSI::Width.truncate(
         content, length: 0.9 * (Tins::Terminal.columns - start.size)
       )
@@ -289,9 +306,10 @@ module OllamaChat::PromptManagement
   #
   # @param name [String, Symbol] the name of the prompt to reset
   # @return [Boolean, nil] true if the prompt was reset, false if no default was found
-  def reset_prompt_to_default(name)
-    if content = config.prompts[name.to_s]
-      store_prompt(name, content)
+  def reset_prompt_to_default(name, context: nil)
+    context ||= 'prompt'
+    if content = config.prompts.prompt[name.to_s]
+      store_prompt(name, content, context:)
       true
     end
   end
@@ -319,7 +337,8 @@ module OllamaChat::PromptManagement
   #   or 'to duplicate as'), used to provide context in the user prompt.
   # @return [String, nil] The validated unique prompt name, or nil if
   #   the operation was cancelled.
-  def determine_valid_new_name_for_prompt(action)
+  def determine_valid_new_name_for_prompt(action, context: nil)
+    context ||= 'prompt'
     prompt_name = nil
     loop do
       prompt_name = ask?(
@@ -329,7 +348,7 @@ module OllamaChat::PromptManagement
         STDOUT.puts "Cancelled."
         return nil
       end
-      if prompt(prompt_name)
+      if prompt(prompt_name, context:)
         STDOUT.puts "Prompt named #{bold{prompt_name}} already exists."
       else
         break

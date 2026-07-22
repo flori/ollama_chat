@@ -111,8 +111,8 @@ module OllamaChat::Commands
 
   command(
     name: :favourite,
-    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system_prompt|persona))$),
-    complete: [ 'favourite', %w[ add delete ], %w[ model prompt system_prompt persona ] ],
+    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
+    complete: [ 'favourite', %w[ add delete ], %w[ model prompt system persona suggest ] ],
     help: <<~EOT
       Manage favorites for models, prompts,
       and personae (add, delete)
@@ -170,55 +170,22 @@ module OllamaChat::Commands
 
   command(
     name: :system,
-    regexp: %r(^/system(?:\s+(change|info|edit|add|delete|list|duplicate|export|import|reset))?(?:\s+([^-].*))?$),
-    complete: [ 'system', %w[ change info edit add delete list duplicate export import reset ] ],
+    regexp: %r(^/system(?:\s+(change))?$),
+    complete: [ 'system', %w[ change ] ],
     optional: true,
-    help: <<~EOT
-      Manage the system prompt and its
-       configurations.
-       Subcommands: add, change, delete,
-         duplicate, edit, export, import,
-         info, list, reset.
-       Note: 'duplicate' allows you to clone
-         an existing system prompt as a
-         template for further modification,
-         while 'export' and 'import' handle
-         portability via external files. Use
-         'reset' to restore the default
-         system prompt settings.
+    help: <<~EOT,
+      Manage the active system prompt for the
+      current session.
+      Subcommands: change.
+      Note: Use '/prompt -c system' for
+      managing (add, delete, edit, list, etc.)
+      system prompt templates.
     EOT
   ) do |subcommand, filename|
     case subcommand
-    when 'add'
-      add_new_system_prompt and @messages.show_system_prompt
-    when 'delete'
-      choose_and_delete_system_prompt
-    when 'edit'
-      choose_and_edit_system_prompt
-    when 'list'
-      list_system_prompts
     when 'change'
       change_system_prompt(@messages.system_name)
       @messages.show_system_prompt
-    when 'duplicate'
-      duplicate_system_prompt
-    when 'import'
-      import_system_prompt(filename)
-    when 'export'
-      export_system_prompt
-    when 'info'
-      info_system_prompt
-    when 'reset'
-      if prompt = choose_system_prompt(
-          prompt: 'Which system law needs to be restored to its origin? %s'
-        )
-      then
-        if reset_system_prompt_to_default(prompt.name)
-          STDOUT.puts "Reset system prompt #{bold{prompt.name}} to default."
-        else
-          STDOUT.puts "No default value found for system prompt #{bold{prompt.name}}."
-        end
-      end
     when nil
       @messages.show_system_prompt
     end
@@ -308,6 +275,7 @@ module OllamaChat::Commands
           for the current session
         - model options change: Update session
           settings from a profile
+          - -p [profile]: Specify profile name
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -490,54 +458,49 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|suggest|-e))?(\s+-e)?(?:\s+([^-].*))?$),
-    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset suggest ] ],
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|-e))?(\s+(?:-[ef]|-c\s+\w+))?(?:\s+([^-].*))?$),
+    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset ] ],
     optional: true,
+    options: '[-c CONTEXT|-e|-f]',
     help: <<~EOT,
       Manage preset prompt templates or prefill the prompt.
       Subcommands: edit, info, add, delete, list, duplicate,
         import, export, reset.
-      Special: 'suggest' uses session history and a strategy
-        to AI-generate tailored prompts for you to refine, see
-        prompts `suggest_coding` or `suggest_roleplaying` for
-        predefined examples.
-      Options: -e to edit the next prompt
+      Options: -c CONTEXT to specify the prompt context
+        (defaults to 'prompt'), -e to edit the next prompt
         instead of prefilling
     EOT
   ) do |subcommand, opts, filename|
+    opts = go_command('fc:', opts)
     case subcommand
     when 'add'
-      add_new_prompt
+      add_new_prompt(context: opts[?c])
     when 'delete'
-      choose_and_delete_prompt
+      choose_and_delete_prompt(context: opts[?c], force: opts[?f])
     when 'edit'
-      choose_and_edit_prompt
+      choose_and_edit_prompt(context: opts[?c])
     when 'list'
-      list_prompts
+      list_prompts(context: opts[?c])
     when 'duplicate'
-      duplicate_prompt
+      duplicate_prompt(context: opts[?c])
     when 'import'
-      import_prompt(filename)
+      import_prompt(filename, context: opts[?c])
     when 'export'
-      export_prompt
+      export_prompt(context: opts[?c])
     when 'info'
-      info_prompt
+      info_prompt(context: opts[?c])
     when 'reset'
       if prompt = choose_prompt(
           default: true,
+          context: opts[?c],
           prompt: 'Which prompt needs to be restored to its origin? %s'
         )
       then
-        if reset_prompt_to_default(prompt.name)
+        if reset_prompt_to_default(prompt.name, context: opts[?c])
           STDOUT.puts "Reset prompt #{bold{prompt.name}} to default."
         else
           STDOUT.puts "No default value found for prompt #{bold{prompt.name}}."
         end
-      end
-    when 'suggest'
-      opts   = go_command('e', opts)
-      if prompt = suggest_prompts(edit: opts[?e])
-        self.prefill_prompt = prompt
       end
     when nil, '-e'
       if prompt = choose_prompt(prompt: 'Which template shall guide the next response? %s').full?(&:to_s)
@@ -548,6 +511,25 @@ module OllamaChat::Commands
           self.prefill_prompt = prompt
         end
       end
+    end
+    :next
+  end
+
+  command(
+    name: :suggest,
+    regexp: %r(^/suggest(\s+(?:-e))?$),
+    options: '[-e]',
+    help: <<~EOT,
+      Generate tailored follow-up prompts based on session history.
+      Uses predefined strategies (e.g., 'coding', 'roleplaying')
+      from the 'suggest' context to AI-generate suggestions.
+      Options: -e to edit the suggestion in the editor
+        instead of prefilling
+    EOT
+  ) do |opts|
+    opts = go_command('e', opts)
+    if prompt = suggest_prompts(edit: opts[?e])
+      self.prefill_prompt = prompt
     end
     :next
   end
@@ -699,9 +681,11 @@ module OllamaChat::Commands
     name: :character,
     regexp: %r(^/character(?:\s+(info|load|import))(?:\s+([^-].+))?$),
     complete: [ 'character', %w[ info load import ] ],
+    options: '[path]',
     help: <<~EOT
       Display character info, load or import a character
-      from JSON/PNG as persona
+      from JSON/PNG as persona.
+      Options: [path] to specify the file directly
     EOT
   ) do |subcommand, path|
     path = if path
@@ -907,7 +891,11 @@ module OllamaChat::Commands
   command(
     name: :vim,
     regexp: %r(^/vim(?:\s+(.+))?$),
-    help: 'Insert the last message into a Vim server buffer'
+    options: '[servername]',
+    help: <<~EOT
+      Insert the last message into a Vim server buffer.
+      Options: [servername] to specify the Vim server
+    EOT
   ) do |servername|
     if message = messages.last
       vim(servername).insert message.content

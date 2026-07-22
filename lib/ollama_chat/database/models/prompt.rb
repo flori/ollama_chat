@@ -1,7 +1,7 @@
 # Represents a prompt template stored in the database, allowing for
 # dynamic overrides of default configuration prompts.
 #
-# This model stores prompts with a context (e.g., 'prompt' or 'system_prompt')
+# This model stores prompts with a context (e.g., 'prompt' or 'system')
 # and a name, with the actual content residing in a serialized JSON metadata column.
 class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   include OllamaChat::Database::Duplicatable
@@ -24,7 +24,7 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   #   @return [Integer] The primary key for the prompt entry.
   #
   # @!attribute [v] context
-  #   @return [String] The context of the prompt (e.g., 'prompt' or 'system_prompt').
+  #   @return [String] The context of the prompt (e.g., 'prompt' or 'system').
   #
   # @!attribute [v] name
   #   @return [String] The name of the prompt.
@@ -63,27 +63,18 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   #
   # @param chat [OllamaChat::Chat] the chat instance providing the configuration
   def self.seed(chat)
-    chat.config.prompts.each do |name, content|
-      where(
-        context: 'prompt',
-        name:    name.to_s,
-      ).first and next
-      create(
-        context:  'prompt',
-        name:     name.to_s,
-        metadata: { default: true, content: }.stringify_keys_recursive
-      )
-    end
-    chat.config.system_prompts.each do |name, content|
-      where(
-        context: 'system_prompt',
-        name:    name.to_s,
-      ).first and next
-      create(
-        context:  'system_prompt',
-        name:     name.to_s,
-        metadata: { default: true, content: }.stringify_keys_recursive
-      )
+    chat.config.prompts.each do |context, prompts|
+      prompts.each do |name, content|
+        where(
+          context: context.to_s,
+          name:    name.to_s,
+        ).first and next
+        create(
+          context:  context.to_s,
+          name:     name.to_s,
+          metadata: { default: true, content: }.stringify_keys_recursive
+        )
+      end
     end
   end
 end

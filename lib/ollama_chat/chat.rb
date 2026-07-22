@@ -280,6 +280,14 @@ class OllamaChat::Chat
     content
   end
 
+  # Returns a human-readable string representation of the Chat object,
+  # including the class name and the base URL.
+  #
+  # @return [String] the inspected string
+  def inspect
+    "#<#{self.class}: #{base_url.to_s}>"
+  end
+
   private
 
   # Wrapper for ollama.chat to provide consistent logging of all arguments.

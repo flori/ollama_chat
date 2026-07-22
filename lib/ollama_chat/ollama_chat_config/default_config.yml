@@ -24,321 +24,324 @@ infobar:
       :frames: :braille181
       :message: ✓
 prompts:
-  embed: The source %{source} has been added to or updated in collection "%{collection}".
-  rerank: |
-    Query: %{query}
-    Candidates:
+  prompt:
+    embed: The source %{source} has been added to or updated in collection "%{collection}".
+    rerank: |
+      Query: %{query}
+      Candidates:
 
-      %{candidates}
+        %{candidates}
 
-    Return only the indices of the most relevant snippets as a comma-separated
-    list (e.g., '0,2').
-  summarize: |
-    Generate an abstract summary of the content in this document using
-    %{words} words:
+      Return only the indices of the most relevant snippets as a comma-separated
+      list (e.g., '0,2').
+    summarize: |
+      Generate an abstract summary of the content in this document using
+      %{words} words:
 
-    %{source_content}
-  web_embed: |
-    Answer the the query %{query} using the provided chunks.
-  web_import: |
-    Answer the the query %{query} using these imported sources:
+      %{source_content}
+    web_embed: |
+      Answer the the query %{query} using the provided chunks.
+    web_import: |
+      Answer the the query %{query} using these imported sources:
 
-    %{results}
-  web_summarize: |
-    Answer the the query %{query} using these summarized sources:
+      %{results}
+    web_summarize: |
+      Answer the the query %{query} using these summarized sources:
 
-    %{results}
-  location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
-  static_runtime_info: |
-    - Name of the chat user: %{user}
-    - Languages the user prefers: %{languages}
-    - Location: %{location}
-    - Current directory is "%{current_directory}"
-    - Client is %{client}.
-    - These tools have access to these allowed paths: %{tool_paths_allowed}
-    - Search in these collections with `retrieve_document_snippets`: %{collections}
-  dynamic_runtime_info: |
-    There is usually no reason to mention this information to the user unless
-    asked about it.
+      %{results}
+    location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
+    static_runtime_info: |
+      - Name of the chat user: %{user}
+      - Languages the user prefers: %{languages}
+      - Location: %{location}
+      - Current directory is "%{current_directory}"
+      - Client is %{client}.
+      - These tools have access to these allowed paths: %{tool_paths_allowed}
+      - Search in these collections with `retrieve_document_snippets`: %{collections}
+    dynamic_runtime_info: |
+      There is usually no reason to mention this information to the user unless
+      asked about it.
 
-    - Current time is %{weekday}, %{time}
-    - **Git**:
-      - Current branch is %{git_current_branch}
-      - Current SHA is %{git_sha} (short %{git_sha_short})
-      - Current remote origin is %{git_remote_origin}
-    - **Terminal**:
-      - The height is %{terminal_rows} rows.
-      - The width is %{terminal_cols} columns. **Always** aim to stay within
-        80%% of this width in your output of responses, especially when using
-        markdown tables.
-    - **Session**: %{session_name}
-      - Markdown output is %{markdown}. **Never** output markdown as your
-        responses if it is disabled.
-      - Voice output is %{voice}. Speak naturally and short if voice
-        output is enabled.
-      - Tools Support is %{tools_support}. Inform the user about this, if he
-        wants you to call a tool function.
-  help: |
-    Wait for the user to ask questions about the usage of chat commands. Just
-    list the command names separated by spaces (no descriptions yet) and
-    offer to answer any questions about any of them. Interactively help the
-    user by answering questions about the following
-    chat commands:
+      - Current time is %{weekday}, %{time}
+      - **Git**:
+        - Current branch is %{git_current_branch}
+        - Current SHA is %{git_sha} (short %{git_sha_short})
+        - Current remote origin is %{git_remote_origin}
+      - **Terminal**:
+        - The height is %{terminal_rows} rows.
+        - The width is %{terminal_cols} columns. **Always** aim to stay within
+          80%% of this width in your output of responses, especially when using
+          markdown tables.
+      - **Session**: %{session_name}
+        - Markdown output is %{markdown}. **Never** output markdown as your
+          responses if it is disabled.
+        - Voice output is %{voice}. Speak naturally and short if voice
+          output is enabled.
+        - Tools Support is %{tools_support}. Inform the user about this, if he
+          wants you to call a tool function.
+    help: |
+      Wait for the user to ask questions about the usage of chat commands. Just
+      list the command names separated by spaces (no descriptions yet) and
+      offer to answer any questions about any of them. Interactively help the
+      user by answering questions about the following
+      chat commands:
 
-    %{commands}
-  persona_architect: |
-    You are an expert Narrative Designer and Character Architect. Your sole
-    task is to transform raw character data (JSON) into a high-fidelity
-    Markdown persona profile.
-    
-    ### THE MANDATORY STRUCTURE:
-    
-    You MUST output the profile following this exact template, filling in the
-    bracketed values with the provided data and expanding brief notes into
-    evocative, descriptive prose:
-   
-    ```
-    %{persona_template}
-    ```
-    
-    ### Critical Constraints:
-    
-    - **NO PREAMBLE**: Do not say 'Sure, here is the profile' or 'Based on the
-      data provided'.
-    - **NO POSTAMBLE**: Do not add notes, suggestions, or closing remarks.
-    - **OUTPUT ONLY MARKDOWN**: Your response must contain nothing but the
-      final Markdown content.
-    - **FIDELITY**: Do not invent new biographical facts, but feel free to
-       polish the phrasing to make it more descriptive and atmospheric.
+      %{commands}
+    persona_architect: |
+      You are an expert Narrative Designer and Character Architect. Your sole
+      task is to transform raw character data (JSON) into a high-fidelity
+      Markdown persona profile.
+      
+      ### THE MANDATORY STRUCTURE:
+      
+      You MUST output the profile following this exact template, filling in the
+      bracketed values with the provided data and expanding brief notes into
+      evocative, descriptive prose:
+     
+      ```
+      %{persona_template}
+      ```
+      
+      ### Critical Constraints:
+      
+      - **NO PREAMBLE**: Do not say 'Sure, here is the profile' or 'Based on the
+        data provided'.
+      - **NO POSTAMBLE**: Do not add notes, suggestions, or closing remarks.
+      - **OUTPUT ONLY MARKDOWN**: Your response must contain nothing but the
+        final Markdown content.
+      - **FIDELITY**: Do not invent new biographical facts, but feel free to
+         polish the phrasing to make it more descriptive and atmospheric.
 
-    ### Character data
+      ### Character data
 
-    ```
-    %{character}
-    ```
-  persona: |
-    # Persona
+      ```
+      %{character}
+      ```
+    persona: |
+      # Persona
 
-    ## Character Profile
+      ## Character Profile
 
-    - **Name**: [Their name]
-    - **Occupation**: [Their job/career]
-    - **Gender**: [Their gender]
+      - **Name**: [Their name]
+      - **Occupation**: [Their job/career]
+      - **Gender**: [Their gender]
 
-    ## Personality and Behavior
+      ## Personality and Behavior
 
-    - **Core Values**: [Their values]
-    - **Personality Traits**: [Key personality characteristics]
-    - **Emotional Style**: [How they express emotions]
-    - **Behavioral Patterns**: [Typical behaviors and habits]
+      - **Core Values**: [Their values]
+      - **Personality Traits**: [Key personality characteristics]
+      - **Emotional Style**: [How they express emotions]
+      - **Behavioral Patterns**: [Typical behaviors and habits]
 
-    ## Core Guidelines
+      ## Core Guidelines
 
-    - **Role definition**: [What is your primary role/identity?]
-    - **Tone**: [Describe your speaking style - formal, casual, technical, etc.]
-    - **Perspective**: [3rd person narrative, 1st person dialogue]
-    - **Language**: [Natural language and any constraints]
-    - **Guideline 1**: [e.g., "Maintain consistency with character"]
-    - **Guideline 2**: [e.g., "Use appropriate communication style"]
-    - **Guideline 3**: [e.g., "Stay in character"]
-    - **Guideline 4**: [e.g., "Never mention being an AI"]
+      - **Role definition**: [What is your primary role/identity?]
+      - **Tone**: [Describe your speaking style - formal, casual, technical, etc.]
+      - **Perspective**: [3rd person narrative, 1st person dialogue]
+      - **Language**: [Natural language and any constraints]
+      - **Guideline 1**: [e.g., "Maintain consistency with character"]
+      - **Guideline 2**: [e.g., "Use appropriate communication style"]
+      - **Guideline 3**: [e.g., "Stay in character"]
+      - **Guideline 4**: [e.g., "Never mention being an AI"]
 
-    ## Communication Style
+      ## Communication Style
 
-    - **Format**: [Markdown, plain text, code blocks, etc.]
-    - **Vocabulary**: [Technical terms, slang, formal language]
-    - **Structure**: [How you organize your responses]
-  session_summarize: |
-    Context is
+      - **Format**: [Markdown, plain text, code blocks, etc.]
+      - **Vocabulary**: [Technical terms, slang, formal language]
+      - **Structure**: [How you organize your responses]
+    session_summarize: |
+      Context is
 
-    %{context}
+      %{context}
 
-    Summarize the %{sender_name} message below in one %{unit}.
+      Summarize the %{sender_name} message below in one %{unit}.
 
-    NEVER add any information to this message summary that already was included
-    in the context above.
+      NEVER add any information to this message summary that already was included
+      in the context above.
 
-    Message
+      Message
 
-    Thinking content was
+      Thinking content was
 
-    %{message_thinking}
+      %{message_thinking}
 
-    Response content was
+      Response content was
 
-    %{message_content}
-  session_title: |
-    Create a title with a length of **less than %{length}** characters for this
-    conversation. Output only the title and nothing else:
+      %{message_content}
+    session_title: |
+      Create a title with a length of **less than %{length}** characters for this
+      conversation. Output only the title and nothing else:
 
-    %{content}
-  suggest_coding: |
-    ## Context
+      %{content}
+  suggest:
+    coding: |
+      ## Context
 
-    You are acting as a Senior Software Architect and Technical Auditor. Your goal
-    is to analyze the conversation history between a developer and an AI to
-    identify technical blind spots, architectural risks, and optimization
-    opportunities. You do not just summarize; you challenge the current
-    implementation to ensure it is production-ready, scalable, and maintainable.
+      You are acting as a Senior Software Architect and Technical Auditor. Your goal
+      is to analyze the conversation history between a developer and an AI to
+      identify technical blind spots, architectural risks, and optimization
+      opportunities. You do not just summarize; you challenge the current
+      implementation to ensure it is production-ready, scalable, and maintainable.
 
-    ## Task
+      ## Task
 
-    Analyze the provided Conversation History. Generate exactly 8 distinct, concise
-    follow-up prompts that the user could ask next to further their goal from a
-    professional engineering perspective.
+      Analyze the provided Conversation History. Generate exactly 8 distinct, concise
+      follow-up prompts that the user could ask next to further their goal from a
+      professional engineering perspective.
 
-    Each prompt must map strictly to one of these categories:
+      Each prompt must map strictly to one of these categories:
 
-    1. **Technical Deep-Dive**: A tactical inquiry into the immediate
-       implementation details or logic flow.
-    2. **Edge Case/Optimization**: A stress test identifying where the logic
-       breaks, fails silently, or degrades in performance.
-    3. **Complexity & Scale**: An analysis of Big O, memory pressure, or
-       concurrency (e.g., "How does this behave under 100x load?").
-    4. **Maintainability & Debt**: An evaluation of clean code principles and
-       whether the current approach introduces future technical debt.
-    5. **Alternative Trade-offs**: A "Plan B" challenge suggesting a different
-       design pattern, library, or architectural approach.
-    6. **Verification & Testing**: A request for a programmatic verification
-       strategy (e.g., boundary value analysis or mocking dependencies).
-    7. **Knowledge Transfer & Documentation**: An inquiry about updating API
-       contracts, READMEs, or creating an Architectural Decision Record (ADR).
-    8. **Strategic Next Step**: A high-level roadmap question connecting this
-       tactical win to the broader system architecture.
+      1. **Technical Deep-Dive**: A tactical inquiry into the immediate
+         implementation details or logic flow.
+      2. **Edge Case/Optimization**: A stress test identifying where the logic
+         breaks, fails silently, or degrades in performance.
+      3. **Complexity & Scale**: An analysis of Big O, memory pressure, or
+         concurrency (e.g., "How does this behave under 100x load?").
+      4. **Maintainability & Debt**: An evaluation of clean code principles and
+         whether the current approach introduces future technical debt.
+      5. **Alternative Trade-offs**: A "Plan B" challenge suggesting a different
+         design pattern, library, or architectural approach.
+      6. **Verification & Testing**: A request for a programmatic verification
+         strategy (e.g., boundary value analysis or mocking dependencies).
+      7. **Knowledge Transfer & Documentation**: An inquiry about updating API
+         contracts, READMEs, or creating an Architectural Decision Record (ADR).
+      8. **Strategic Next Step**: A high-level roadmap question connecting this
+         tactical win to the broader system architecture.
 
-    ## Constraints
+      ## Constraints
 
-    - **Quantity**: Exactly 8 suggestions.
-    - **Tone**: Rigorous, auditing, and senior. Avoid passive phrasing ("Maybe you
-      could...") in favor of critical analysis ("This approach risks X; how do we
-      resolve it?").
-    - **Negative Constraints**: 
-        - DO NOT use numbering or bullet points.
-        - DO NOT include introductory or concluding text.
-        - DO NOT suggest generic, superficial questions (e.g., "How does this
-          work?").
-    - **Conciseness**: Each prompt must be a single, punchy sentence.
+      - **Quantity**: Exactly 8 suggestions.
+      - **Tone**: Rigorous, auditing, and senior. Avoid passive phrasing ("Maybe you
+        could...") in favor of critical analysis ("This approach risks X; how do we
+        resolve it?").
+      - **Negative Constraints**: 
+          - DO NOT use numbering or bullet points.
+          - DO NOT include introductory or concluding text.
+          - DO NOT suggest generic, superficial questions (e.g., "How does this
+            work?").
+      - **Conciseness**: Each prompt must be a single, punchy sentence.
 
-    ## Few-Shot Examples
+      ## Few-Shot Examples
 
-    **Input:** [User and AI just implemented a Ruby method to parse a large JSON
-    file into a database]
+      **Input:** [User and AI just implemented a Ruby method to parse a large JSON
+      file into a database]
 
-    **Output:**
+      **Output:**
 
-    Can we refactor the parser to use a stream-based approach instead of loading
-    the entire JSON into memory?
+      Can we refactor the parser to use a stream-based approach instead of loading
+      the entire JSON into memory?
 
-    How does this implementation handle malformed JSON or missing keys in the
-    middle of a 2GB file without crashing the process?
+      How does this implementation handle malformed JSON or missing keys in the
+      middle of a 2GB file without crashing the process?
 
-    What is the time complexity of the current insert logic, and can we implement
-    bulk inserts to reduce database round trips?
 
-    Does the current naming convention for these helper methods align with our
-    project's style guide, or are we introducing cognitive load for future
-    maintainers?
+      What is the time complexity of the current insert logic, and can we implement
+      bulk inserts to reduce database round trips?
 
-    Would using a dedicated library like Oj provide significant performance gains
-    over the standard JSON implementation here?
+      Does the current naming convention for these helper methods align with our
+      project's style guide, or are we introducing cognitive load for future
+      maintainers?
 
-    What specific boundary cases should be covered in the RSpec suite to ensure the
-    parser doesn't truncate data on trailing whitespace?
+      Would using a dedicated library like Oj provide significant performance gains
+      over the standard JSON implementation here?
 
-    Which sections of the API documentation need to be updated to reflect this
-    change in the data ingestion pipeline?
+      What specific boundary cases should be covered in the RSpec suite to ensure the
+      parser doesn't truncate data on trailing whitespace?
 
-    Now that parsing is solved, how does this integrate into our overall background
-    job queue and retry logic?
+      Which sections of the API documentation need to be updated to reflect this
+      change in the data ingestion pipeline?
 
-    ## Output Format
+      Now that parsing is solved, how does this integrate into our overall background
+      job queue and retry logic?
 
-    Output only the 8 suggestions as plain text, each separated by one empty line.
-    No other characters or formatting.
-  suggest_roleplaying: |
-    ## Context
-    
-    You are an expert Narrative Consultant and Game Master's Assistant. Your
-    purpose is to analyze a roleplay conversation history and provide high-value,
-    diverse action prompts that help a player overcome writer's block while
-    deepening the story.
-    
-    ## Task
-    
-    Analyze the provided Conversation History and current narrative state. Generate
-    exactly 9 distinct, concise prompt suggestions that the user could use as their
-    character's next response.
-    
-    Each suggestion must map to one of these specific categories:
-    
-    1. Plot Driver: A bold action or choice that advances the plot or increases
-       tension.
-    2. Emotional Core: An interaction focusing on emotional depth, social nuance,
-       or psychological reaction.
-    3. World Insight: Investigating an object or detail in the environment. Include
-       a suggested dice roll (e.g., "Roll 1d20") if there is an inherent risk of
-       failure or a need for high skill.
-    4. Hidden Agenda: An action involving secrecy, deception, or private motives.
-       Include a suggested dice roll (e.g., "Roll 1d20") if the action risks
-       discovery.
-    5. Social Catalyst: A prompt that engages all characters currently present in
-       the scene to force group interaction.
-    6. High Stakes: A risky gamble or sudden complication. This MUST explicitly
-       include a suggested dice roll (e.g., "Roll 1d20").
-    7. Character Quirk: A response rooted in the character's specific flaws,
-       habits, or obsessions.
-    8. Meta-Pivot: An abrupt shift in scene direction via a revelation, surprising
-       admission, or sudden change of heart.
-    9. The Curveball: An unexpected external event or realization that forces an
-       immediate reaction.
-    
-    ## Constraints
-    
-    - Generate exactly 9 suggestions.
-    - Each suggestion must be concise and punchy.
-    - Negative Constraints: Do not use numbering, bullet points, or
-      introductory/concluding text. Avoid generic clichés (e.g., "I can't believe
-      this" or "What do we do now?").
-    - Ensure the tone of the suggestions aligns with the established voice of the
-      characters in the history.
-    
-    ## Variables
-    
-    - Conversation History: The provided log of messages between players and AI.
-    
-    ## Few-Shot Examples
-    
-    Input: [Scene where a party is arguing in a rainy forest while being hunted]
-    Output:
-    Demand that everyone stop shouting and listen for the sound of footsteps in the brush.
-    
-    Quietly admit to the party leader that you are terrified, leaning into their shoulder for support.
-    
-    Examine the muddy tracks near the campfire to see if the hunters are human or something else. Roll 1d20.
-    
-    Secretly slip the map out of the leader's pocket while they are distracted by the argument. Roll 1d20.
-    
-    Raise your voice and challenge every single person present to state their true loyalty right now.
-    
-    Attempt to leap across the ravine to flank the hunters, risking a fall into the rapids. Roll 1d20.
-    
-    Obsessively polish your sword with a rag, ignoring the argument entirely until it is perfectly mirrored.
-    
-    Suddenly reveal that you were actually sent here by the enemy as a double agent.
-    
-    A sudden lightning strike hits a nearby tree, knocking everyone off balance and creating a deafening blast.
-    
-    ## Output Format
-    
-    Output only the 9 suggestions as plain text, each separated by one empty line.
-    No other text.
-system_prompts:
-  default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
-  persona: |
-    %{persona}
+      ## Output Format
 
-    %{runtime_info}
-  assistant: You are a helpful assistant.
+      Output only the 8 suggestions as plain text, each separated by one empty line.
+      No other characters or formatting.
+    roleplaying: |
+      ## Context
+      
+      You are an expert Narrative Consultant and Game Master's Assistant. Your
+      purpose is to analyze a roleplay conversation history and provide high-value,
+      diverse action prompts that help a player overcome writer's block while
+      deepening the story.
+      
+      ## Task
+      
+      Analyze the provided Conversation History and current narrative state. Generate
+      exactly 9 distinct, concise prompt suggestions that the user could use as their
+      character's next response.
+      
+      Each suggestion must map to one of these specific categories:
+      
+      1. Plot Driver: A bold action or choice that advances the plot or increases
+         tension.
+      2. Emotional Core: An interaction focusing on emotional depth, social nuance,
+         or psychological reaction.
+      3. World Insight: Investigating an object or detail in the environment. Include
+         a suggested dice roll (e.g., "Roll 1d20") if there is an inherent risk of
+         failure or a need for high skill.
+      4. Hidden Agenda: An action involving secrecy, deception, or private motives.
+         Include a suggested dice roll (e.g., "Roll 1d20") if the action risks
+         discovery.
+      5. Social Catalyst: A prompt that engages all characters currently present in
+         the scene to force group interaction.
+      6. High Stakes: A risky gamble or sudden complication. This MUST explicitly
+         include a suggested dice roll (e.g., "Roll 1d20").
+      7. Character Quirk: A response rooted in the character's specific flaws,
+         habits, or obsessions.
+      8. Meta-Pivot: An abrupt shift in scene direction via a revelation, surprising
+         admission, or sudden change of heart.
+      9. The Curveball: An unexpected external event or realization that forces an
+         immediate reaction.
+      
+      ## Constraints
+      
+      - Generate exactly 9 suggestions.
+      - Each suggestion must be concise and punchy.
+      - Negative Constraints: Do not use numbering, bullet points, or
+        introductory/concluding text. Avoid generic clichés (e.g., "I can't believe
+        this" or "What do we do now?").
+      - Ensure the tone of the suggestions aligns with the established voice of the
+        characters in the history.
+      
+      ## Variables
+      
+      - Conversation History: The provided log of messages between players and AI.
+      
+      ## Few-Shot Examples
+      
+      Input: [Scene where a party is arguing in a rainy forest while being hunted]
+      Output:
+      Demand that everyone stop shouting and listen for the sound of footsteps in the brush.
+      
+      Quietly admit to the party leader that you are terrified, leaning into their shoulder for support.
+      
+      Examine the muddy tracks near the campfire to see if the hunters are human or something else. Roll 1d20.
+      
+      Secretly slip the map out of the leader's pocket while they are distracted by the argument. Roll 1d20.
+      
+      Raise your voice and challenge every single person present to state their true loyalty right now.
+      
+      Attempt to leap across the ravine to flank the hunters, risking a fall into the rapids. Roll 1d20.
+      
+      Obsessively polish your sword with a rag, ignoring the argument entirely until it is perfectly mirrored.
+      
+      Suddenly reveal that you were actually sent here by the enemy as a double agent.
+      
+      A sudden lightning strike hits a nearby tree, knocking everyone off balance and creating a deafening blast.
+      
+      ## Output Format
+      
+      Output only the 9 suggestions as plain text, each separated by one empty line.
+      No other text.
+  system:
+    default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
+    persona: |
+      %{persona}
+
+      %{runtime_info}
+    assistant: You are a helpful assistant.
 voice:
   enabled: false
   default: Samantha

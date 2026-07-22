@@ -18,17 +18,14 @@ module OllamaChat::FavouritesManagement
   # Retrieves a UI-ready list of all available entities of a given type,
   # decorated with a heart icon if they are marked as favourites.
   #
-  # @param type [String] the context type (e.g., 'model', 'prompt', 'system_prompt', 'persona')
+  # @param type [String] the context type (e.g., 'model', 'prompt', 'system', 'persona')
   # @return [Array<SearchUI::Wrapper>] a list of wrappers containing the original
   #   value and the decorated display string.
   def favourite_all_things(type)
     case type
     when 'model'         then all_models
-    when 'prompt'        then all_prompts
-    when 'system_prompt' then all_system_prompts
     when 'persona'       then available_personae_names
-    else
-      raise ArgumentError, "not all things defined for type #{type.inspect}"
+    else                      all_prompts(context: type)
     end.to_a
   end
 
