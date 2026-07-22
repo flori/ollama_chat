@@ -89,7 +89,7 @@ class OllamaChat::Tools::RollDice
       message:
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'roll_dice' })
     { error: e.class, message: e.message }.to_json
   end
 

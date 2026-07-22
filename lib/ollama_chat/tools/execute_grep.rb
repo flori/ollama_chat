@@ -101,7 +101,7 @@ class OllamaChat::Tools::ExecuteGrep
       message:,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'execute_grep', pattern: args.pattern })
     { error: e.class, message: e.message }.to_json
   end
 

@@ -117,7 +117,12 @@ module OllamaChat::ModelHandling
     model_options        = JSON.load(model_options_json)
     store_model_options(model_name, model_options, profile:)
   rescue JSON::ParserError => e
-    log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
+    log(
+      :error,
+      "Model handling error",
+      data: { method: __method__, error_class: e.class, error_message: e.message },
+      warn: true
+    )
   end
 
   # Presents the current session's model options to the user for editing.
@@ -131,7 +136,12 @@ module OllamaChat::ModelHandling
     session.update(model_options:)
     self
   rescue JSON::ParserError => e
-    log(:error, "Caught in #{__method__} #{e.class}: #{e}", warn: true)
+    log(
+      :error,
+      "Model handling error",
+      data: { method: __method__, error_class: e.class, error_message: e.message },
+      warn: true
+    )
   end
 
   # This method retrieves the options stored for the current session and

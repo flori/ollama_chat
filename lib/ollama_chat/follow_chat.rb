@@ -106,31 +106,31 @@ class OllamaChat::FollowChat
       name = tool_call.function.name
       if %r(.*[/:](?<new_name>.+)) =~ name
         msg = "Received namespaced tool call for #{name}, correcting to #{new_name}"
-        chat.log(:warn, msg)
+        chat.log(:warn, msg, data: { tool: name, new_name: })
         name = new_name
       end
       unless chat.tool_configured?(name)
         msg = "Error: Unconfigured tool named %s ignored => Skip.\n" % name
         chat.tool_call_results[name] << msg
-        chat.log(:error, msg)
+        chat.log(:error, msg, data: { tool: name, reason: :unconfigured })
         next
       end
       unless chat.tool_registered?(name)
         msg = "Error: Unregistered tool named %s ignored => Skip.\n" % name
         chat.tool_call_results[name] << msg
-        chat.log(:error, msg)
+        chat.log(:error, msg, data: { tool: name, reason: :unregistered })
         next
       end
       unless chat.tool_enabled?(name)
         msg = "Error: Disabled tool named %s ignored => Skip.\n" % name
         chat.tool_call_results[name] << msg
-        chat.log(:error, msg)
+        chat.log(:error, msg, data: { tool: name, reason: :disabled })
         next
       end
       STDOUT.puts
       confirmed = :implicit
       function = JSON.pretty_generate(tool_call.function)
-      chat.log(:info, function)
+      chat.log(:info, "Tool call received", data: { tool: name, function: })
       if chat.tool_function(name).require_confirmation?
         prompt = "🔔 I want to execute tool %s\n%s\nConfirm? (y/n) " % [
           bold { name },
@@ -159,7 +159,7 @@ class OllamaChat::FollowChat
         STDOUT.printf(
           "\n%s Execution of tool %s denied by user.\n\n", ?🚫, bold { name }
         )
-        chat.log(:warn,"Execution of tool %s was denied by user!" % name)
+        chat.log(:warn, "Tool execution denied", data: { tool: name, reason: :denied })
       else
         symbol = confirmed == :implicit ? '☑️ ' : '✅'
         STDOUT.printf(
@@ -167,9 +167,9 @@ class OllamaChat::FollowChat
         )
         result = OllamaChat::Tools.registered[name].execute(tool_call, chat:)
         if confirmed == :explicit
-          chat.log(:info, "Execution of tool %s was explicitly confirmed." % name)
+          chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmation: :explicit })
         else
-          chat.log(:info, "Execution of tool %s was implicitly confirmed." % name)
+          chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmation: :implicit })
         end
       end
 
@@ -178,10 +178,10 @@ class OllamaChat::FollowChat
       data    = nil
       message = begin
                    data = JSON.parse(result)
-                   chat.log(:info, JSON.pretty_generate(data))
+                   chat.log(:info, "Tool result", data:)
                    data['message']
                  rescue
-                   chat.log(:info, result)
+                   chat.log(:info, "Tool result", data: { raw_result: result })
                    nil
                  end
       warn =

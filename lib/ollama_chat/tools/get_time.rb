@@ -69,7 +69,7 @@ class OllamaChat::Tools::GetTime
 
     { time: now.iso8601, weekday: now.strftime('%A'), message: }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'get_time' })
     { error: e.class, message: e.message }.to_json
   end
 

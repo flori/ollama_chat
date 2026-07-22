@@ -68,7 +68,7 @@ class OllamaChat::Tools::GetEndoflife
       &valid_json?
     )
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'get_endoflife', product: })
     {
       product:,
       error:   e.class,

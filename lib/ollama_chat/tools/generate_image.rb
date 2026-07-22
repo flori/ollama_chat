@@ -107,7 +107,7 @@ class OllamaChat::Tools::GenerateImage
       duration: Tins::Duration.new(Time.now - started).to_s,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'generate_image', prompt: })
     {
       error:    e.class,
       message: "Failed to generate image: #{e.message}",

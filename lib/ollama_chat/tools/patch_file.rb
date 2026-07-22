@@ -164,7 +164,7 @@ class OllamaChat::Tools::PatchFile
       message: ,
     }).to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'patch_file', path: path.to_s })
     {
       error:   e.class,
       success: false,

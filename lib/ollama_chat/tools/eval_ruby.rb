@@ -94,7 +94,7 @@ class OllamaChat::Tools::EvalRuby
       }.to_json
     end
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'eval_ruby', version: })
     {
       error: e.class,
       message: "Failed to evaluate Ruby code: #{e.message}"

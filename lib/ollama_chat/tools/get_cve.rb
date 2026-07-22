@@ -59,7 +59,7 @@ class OllamaChat::Tools::GetCVE
     }
     chat.get_url(url, headers:, &valid_json?)
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'get_cve', cve_id: })
     { error: e.class, message: e.message }.to_json
   end
 

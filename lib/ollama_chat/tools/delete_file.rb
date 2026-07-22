@@ -67,7 +67,7 @@ class OllamaChat::Tools::DeleteFile
       message: "File #{path} deleted successfully. Backup created at #{backup_path}.",
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'delete_file', path: args.path })
     {
       error:   e.class,
       path:    e.ask_and_send(:path),

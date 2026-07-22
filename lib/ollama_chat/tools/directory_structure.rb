@@ -85,7 +85,7 @@ class OllamaChat::Tools::DirectoryStructure
     )
     structure.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'directory_structure', path: path.to_s })
     { error: e.class, message: e.message }.to_json
   end
 

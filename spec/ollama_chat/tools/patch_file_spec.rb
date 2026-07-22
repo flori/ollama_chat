@@ -131,7 +131,7 @@ describe OllamaChat::Tools::PatchFile do
 
     edits = [{ start_line: 2, end_line: 2, text: 'Modified Line 2' }]
     mtime = File.mtime(test_file).iso8601(0)
-    args_double = double('Arguments', path: test_file, edits: edits, mtime: mtime, line_count: 2)
+    args_double = double('Arguments', path: test_file, edits:, mtime:, line_count: 2)
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
     tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
@@ -139,7 +139,7 @@ describe OllamaChat::Tools::PatchFile do
     allow(tool).to receive(:system).and_return(true)
     allow(tool).to receive(:digest).and_return 'old', 'new'
 
-    result = tool.execute(tool_call, chat: chat)
+    result = tool.execute(tool_call, chat:)
     expect(json_object(result).success).to eq true
   ensure
     File.delete(test_file) if File.exist?(test_file)
@@ -149,7 +149,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: test_file, edits: nil)
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat: chat)
+    result = tool.execute(tool_call, chat:)
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
   end
 
@@ -157,7 +157,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: '/etc/passwd', edits: [])
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat: chat)
+    result = tool.execute(tool_call, chat:)
     expect(json_object(result).error).to eq 'OllamaChat::InvalidPathError'
   end
 end

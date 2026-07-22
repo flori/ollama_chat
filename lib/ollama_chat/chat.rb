@@ -266,15 +266,9 @@ class OllamaChat::Chat
     )&.message&.content.to_s
 
     if content.empty?
-      log(
-        :warn,
-        "Sent #{prompt.inspect} to LLM for generation, received no content!"
-      )
+      log(:warn, "LLM generation returned empty content", data: { prompt: })
     else
-      log(
-        :info,
-        "Sent #{prompt.inspect} to LLM for generation, received #{content.inspect}"
-      )
+      log(:info, "LLM generation successful", data: { prompt:, content: })
     end
 
     content
@@ -295,7 +289,7 @@ class OllamaChat::Chat
   # @param opts [Hash] keyword arguments for the chat call
   # @param block [Proc] optional handler block
   def call_ollama_chat(**opts, &block)
-    log(:info, "Ollama chat request: #{opts.inspect}")
+    log(:info, "Ollama chat request", data: { opts: })
     ollama.chat(**opts, &block)
   end
 
@@ -603,7 +597,7 @@ class OllamaChat::Chat
     if server_version.version < '0.9.0'.version
       raise 'require ollama API version 0.9.0 or higher'
     end
-    log(:info, "Connection to #{base_url} established.")
+    log(:info, "Connection established", data: { base_url: })
     @ollama
   end
 

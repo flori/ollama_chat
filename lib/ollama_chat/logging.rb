@@ -7,9 +7,18 @@ module OllamaChat::Logging
   #
   # @return [Logger] the active Logger instance
   def logger
-    @logger and return @logger
-    OC::OLLAMA::CHAT::LOGFILE.dirname.mkpath
-    @logger = Logger.new(OC::OLLAMA::CHAT::LOGFILE)
+    @logger ||= begin
+      OC::OLLAMA::CHAT::LOGFILE.dirname.mkpath
+      l = Logger.new(OC::OLLAMA::CHAT::LOGFILE)
+      l.formatter = -> (severity, time, _progname, msg) do
+        msg = msg.stringify_keys_recursive
+        msg['level']    = severity
+        msg['time']     = time.iso8601(0)
+        msg['progname'] = progname
+        msg.to_json + "\n"
+      end
+      l
+    end
   end
 
   # The log method records a message or exception at the specified severity
@@ -18,11 +27,20 @@ module OllamaChat::Logging
   # @param severity [ Symbol ] the logging level to use
   # @param msg [ String, Exception ] the message or exception to be logged
   # @param warn [ TrueClass, FalseClass ] whether to also trigger a warning output
-  def log(severity, msg, warn: false)
+  def log(severity, msg, data: nil, warn: false)
+    payload = {
+      msg:   ,
+      data:  data || {}
+    }
+
     if msg.is_a?(Exception)
-      msg = "Caught #{msg.class}: #{msg}\n#{Array(msg&.backtrace).join(?\n)}"
+      payload[:msg] = msg = "#{msg.class}: #{msg.message}"
+      payload[:data][:backtrace] = msg.ask_and_send(:backtrace)
+    else
+      payload[:msg] = msg.to_s
     end
-    logger.send(severity, msg)
+
+    logger.send(severity, payload)
     warn and self.warn(msg)
     nil
   end

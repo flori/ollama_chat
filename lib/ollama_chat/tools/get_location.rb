@@ -47,7 +47,7 @@ class OllamaChat::Tools::GetLocation
     chat = opts[:chat]
     chat.location_data.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'get_location' })
     { error: e.class, message: e.message }.to_json
   end
 

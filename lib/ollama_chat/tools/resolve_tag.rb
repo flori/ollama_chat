@@ -80,7 +80,7 @@ class OllamaChat::Tools::ResolveTag
       results:  ,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'resolve_tag', symbol: args.symbol })
     { error: e.class.to_s, message: e.message }.to_json
   end
 

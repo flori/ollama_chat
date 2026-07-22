@@ -104,7 +104,7 @@ class OllamaChat::Tools::WriteFile
       message: ,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'write_file', path: args.path })
     {
       error:   e.class,
       path:    e.ask_and_send(:path),

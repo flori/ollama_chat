@@ -73,7 +73,7 @@ class OllamaChat::Tools::RunTests
       message: ,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'run_tests', path: path.to_s })
     { error: e.class, message: e.message }.to_json
   end
 

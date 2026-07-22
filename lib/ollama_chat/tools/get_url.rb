@@ -116,7 +116,7 @@ class OllamaChat::Tools::GetURL
       message:,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'get_url', url: })
     { error: e.class, message: e.message, url: }.to_json
   end
 

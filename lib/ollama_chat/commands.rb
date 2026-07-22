@@ -142,7 +142,7 @@ module OllamaChat::Commands
         use_model(profile: opts[?p])
       rescue OllamaChat::UnknownModelError => e
         msg = "Caught #{e.class}: #{e}"
-        log(:error, msg, warn: true)
+        log(:error, msg, data: { command: 'model', profile: opts[?p] }, warn: true)
       end
     when 'options'
       opts = go_command('p:', opts, defaults: { ?p => 'default' })

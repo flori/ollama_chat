@@ -51,7 +51,7 @@ class OllamaChat::Tools::GetJiraIssue
     issue_key = tool_call.function.arguments.issue_key
     fetch_issue(issue_key)
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'get_jira_issue', issue_key: })
     { error: e.class, message: e.message }.to_json
   end
 

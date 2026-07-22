@@ -166,7 +166,7 @@ class OllamaChat::Tools::GeneratePassword
     end
     result.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'generate_password', alphabet_type: })
     {
       error:   e.class,
       message: e.message,

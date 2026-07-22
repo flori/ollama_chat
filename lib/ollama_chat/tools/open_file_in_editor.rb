@@ -91,7 +91,7 @@ class OllamaChat::Tools::OpenFileInEditor
       end_line:   ,
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'open_file_in_editor', path: args.path })
     {
       error:   e.class,
       message: e.message,

@@ -111,7 +111,7 @@ module OllamaChat::Dialog
   # @param base_url [String] the base URL of the connection
   def connect_message(model, base_url)
     msg = "Connecting to #{model}@#{base_url} now…"
-    log(:info, msg)
+    log(:info, msg, data: { model:, base_url: })
     STDOUT.puts green { msg }
   end
 

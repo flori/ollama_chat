@@ -76,7 +76,7 @@ class OllamaChat::Tools::MoveFile
       message:     "File moved successfully from #{source} to #{destination}.",
     }.to_json
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'move_file', source: source.to_s, destination: destination.to_s })
     {
       error:   e.class,
       source:  e.ask_and_send(:source),

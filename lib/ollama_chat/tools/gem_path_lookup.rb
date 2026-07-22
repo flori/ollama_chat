@@ -54,7 +54,7 @@ class OllamaChat::Tools::GemPathLookup
     gem_name = tool_call.function.arguments.gem_name
     lookup_gem_path(gem_name)
   rescue => e
-    chat.log(:error, e)
+    chat.log(:error, e, data: { tool: 'gem_path_lookup', gem_name: })
     {
       error:   e.class,
       message: e.message,
