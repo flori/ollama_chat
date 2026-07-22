@@ -28,7 +28,7 @@ module OllamaChat::Commands
     name: :copy,
     regexp: %r(^/copy(\s+-e)?\s*$),
     help: <<~EOT
-        Copy the last response to the clipboard.
+      📋 Copy the last response to the clipboard.
          Options: -e to edit before copying.
     EOT
   ) do |opts|
@@ -41,7 +41,7 @@ module OllamaChat::Commands
     name: :paste,
     regexp: %r(^/paste(\s+-e)?\s*$),
     help: <<~EOT
-        Paste content from the clipboard.
+      📋 Paste content from the clipboard.
          Options: -e to edit after pasting.
     EOT
   ) do |opts|
@@ -57,7 +57,9 @@ module OllamaChat::Commands
     regexp: %r(^/config(?:\s+(edit|reload))?$),
     complete: [ 'config', %w[ edit reload ] ],
     optional: true,
-    help: 'View, edit, or reload configuration'
+    help: <<~EOT
+      ⚙️ View, edit, or reload configuration
+    EOT
   ) do |subcommand|
     case subcommand
     when 'edit'
@@ -74,7 +76,9 @@ module OllamaChat::Commands
     name: :document_policy,
     regexp: %r(^/document policy$),
     complete: %w[ document policy ],
-    help: 'Select a scanning policy for documents'
+    help: <<~EOT
+      📜 Select a scanning policy for documents
+    EOT
   ) do
     document_policy.choose
     :next
@@ -82,30 +86,22 @@ module OllamaChat::Commands
 
   command(
     name: :toggle,
-    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip))?$),
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding))?$),
     complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
     help: <<~EOT
-      Toggle feature switches
+      🎛️ Toggle feature switches
       (markdown, stream, location, runtime_info,
       voice, think_loud, think_strip, embedding)
     EOT
   ) do |toggle_name|
-    if toggle_name
+    if toggle_name == 'embedding'
+      embedding_paused.toggle(show: false)
+      embedding.show
+    elsif toggle_name
       send(toggle_name).toggle
     else
-      STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|embedding"
+      STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
     end
-    :next
-  end
-
-  command(
-    name: :toggle_embedding,
-    regexp: %r(^/toggle\s+embedding$),
-    complete: [],
-    help: nil
-  ) do
-    embedding_paused.toggle(show: false)
-    embedding.show
     :next
   end
 
@@ -114,8 +110,8 @@ module OllamaChat::Commands
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
     complete: [ 'favourite', %w[ add delete ], %w[ model prompt system persona suggest ] ],
     help: <<~EOT
-      Manage favorites for models, prompts,
-      and personae (add, delete)
+      ⭐ Manage favorites (add/delete models,
+         prompts, personae)
     EOT
   ) do |subcommand, type|
     case subcommand
@@ -132,18 +128,11 @@ module OllamaChat::Commands
     regexp: %r(^/model(?:\s+(change|options|options from session|options to session))(?:\s+(-p\s*\w+))?$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
     help: <<~EOT
-      Manage AI models and configurations:
-        - change: Switch the active model
-                  (-p [profile] for specific
-                   settings)
-        - options: Edit the configuration
-                   of a saved profile
-        - options from session: Save current
-                  live settings into a profile
-                  (Live → Saved)
-        - options to session: Apply a saved
-                  profile's settings to this
-                  session (Saved → Live)
+      🤖 Manage AI models & profiles:
+         - change: Switch active model (-p [profile])
+         - options: Edit saved profile config
+         - options from session: Save live → Saved
+         - options to session: Apply Saved → Live
     EOT
   ) do |subcommand, opts|
     case subcommand
@@ -174,12 +163,9 @@ module OllamaChat::Commands
     complete: [ 'system', %w[ change ] ],
     optional: true,
     help: <<~EOT,
-      Manage the active system prompt for the
-      current session.
-      Subcommands: change.
-      Note: Use '/prompt -c system' for
-      managing (add, delete, edit, list, etc.)
-      system prompt templates.
+      🧬 Manage active system prompt (change)
+         Note: Use '/prompt -c system' for managing
+         (add, delete, edit, list, etc.) system templates.
     EOT
   ) do |subcommand, filename|
     case subcommand
@@ -195,7 +181,9 @@ module OllamaChat::Commands
   command(
     name: :think,
     regexp: %r(^/think$),
-    help: 'Configure the think mode for models'
+    help: <<~EOT
+      🧠 Configure model thinking mode
+    EOT
   ) do
     think_mode.choose
     :next
@@ -204,7 +192,9 @@ module OllamaChat::Commands
   command(
     name: :context_format,
     regexp: %r(^/context_format$),
-    help: 'Configure the context_format for context_spook JSON|TOON',
+    help: <<~EOT,
+      📐 Set context format (JSON|TOON)
+    EOT
   ) do
     context_format.choose
     :next
@@ -216,12 +206,10 @@ module OllamaChat::Commands
     complete: [ 'tools', %w[ on off enable disable ] ],
     optional: true,
     help: <<~EOT
-      Manage tool support:
-        - (no subcommand): List all available tools
-        - on: Activate tool support globally
-        - off: Deactivate tool support globally
-        - enable: Interactively enable a specific tool
-        - disable: Interactively disable a specific tool
+      🛠 Manage tools:
+         - (no subcommand): List available tools
+         - on/off: Activate/Deactivate globally
+         - enable/disable: Interactively toggle specific
     EOT
   ) do |subcommand|
     case subcommand
@@ -242,7 +230,9 @@ module OllamaChat::Commands
   command(
     name: :voice,
     regexp: %r(^/voice$),
-    help: 'Change the voice output settings'
+    help: <<~EOT
+      🔊 Change voice output settings
+    EOT
   ) do
     change_voice
     :next
@@ -257,25 +247,11 @@ module OllamaChat::Commands
     optional: true,
     options: "[-s|-f|-p profile]\n[name]",
     help: <<~EOT
-      Manage chat sessions:
-        - list: List all available sessions
-        - new: Create a new session
-        - delete: Delete a session
-        - rename: Rename a session
-        - duplicate: Duplicate a session
-        - change [name]: Switch to a specific
-          session
-        - previous: Return to the previous
-          session
-        - summarize: Create a conversation
-          summary with
-          - -s: Output as single sentence
-          - -f: Save output to markdown file
-        - model options: Edit AI settings
-          for the current session
-        - model options change: Update session
-          settings from a profile
-          - -p [profile]: Specify profile name
+      💬 Manage sessions:
+         - list/new/delete/rename/duplicate
+         - change [name]/previous
+         - summarize (-s sentence, -f save to file)
+         - model options/change
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -353,10 +329,8 @@ module OllamaChat::Commands
     regexp: %r(^/list((?:\s+(?:-[ts]))*)(?:\s+(\d*))?$),
     options: '[-t|-s|n=1]',
     help: <<~EOT
-      List the last n or all conversation exchanges.
-      Options:
-        -t (force show thinking),
-        -s (suppress thinking).
+      📜 List conversation history
+         Options: -t (show thinking), -s (hide)
     EOT
   ) do |opts,number|
     opts = go_command('ts', opts.to_s)
@@ -376,12 +350,10 @@ module OllamaChat::Commands
     name: :last,
     regexp:  %r(^/last((?:\s+(?:-[pts]))*)(?:\s+(\d*))?$),
     options: '[-p|-t|-s|n=1]',
-    help:    <<~EOT
-      Show the last n or the most recent
-        system/assistant message.
-      Options: -p (plain output, no pager),
-        -t (force show thinking),
-        -s (suppress thinking).
+    help: <<~EOT
+      🔍 Show last message(s)
+         Options: -p (plain), -t (show thinking),
+                  -s (hide thinking)
     EOT
   ) do |opts,number|
     opts = go_command('pts', opts.to_s)
@@ -401,7 +373,9 @@ module OllamaChat::Commands
     name: :drop,
     regexp: %r(^/drop(?:\s+(\d*))?$),
     options: '[n=1]',
-    help: 'Remove the last n conversation exchanges'
+    help: <<~EOT
+      🗑 Remove last exchanges (undo)
+    EOT
   ) do
     messages.drop(_1)
     messages.show_last
@@ -413,7 +387,10 @@ module OllamaChat::Commands
     regexp: %r(^/clear(?:\s+(messages|images|links|history|tags|all))?$),
     complete: [ 'clear', %w[ messages images links history tags all ] ],
     optional: true,
-    help: 'Clear messages, images, links, history, tags or all'
+    help: <<~EOT
+      🧹 Clear chat state (messages, images, links,
+         history, tags, all)
+    EOT
   ) do |subcommand|
     if result = clean(subcommand)
       disable_content_parsing
@@ -428,7 +405,10 @@ module OllamaChat::Commands
     regexp: %r(^/links(?:\s+(clear))?$),
     complete: [ 'links', %w[ clear ] ],
     optional: true,
-    help: 'Clear links used in the chat',
+    help: <<~EOT,
+      🔗 Display or clear tracked links
+        (alias for /clear links)
+    EOT
   ) do |subcommand|
     manage_links(subcommand)
     :next
@@ -438,9 +418,8 @@ module OllamaChat::Commands
     name: :regenerate,
     regexp: %r(^/regenerate(\s+-e)?\s*$),
     help: <<~EOT
-      Regenerate the last response.
-      Options: -e to edit the user message
-        before regenerating.
+      🔄 Regenerate last AI response
+         (-e to edit prompt before regenerating)
     EOT
   ) do |opts|
     opts = go_command('e', opts)
@@ -463,12 +442,10 @@ module OllamaChat::Commands
     optional: true,
     options: '[-c CONTEXT|-e|-f]',
     help: <<~EOT,
-      Manage preset prompt templates or prefill the prompt.
-      Subcommands: edit, info, add, delete, list, duplicate,
-        import, export, reset.
-      Options: -c CONTEXT to specify the prompt context
-        (defaults to 'prompt'), -e to edit the next prompt
-        instead of prefilling
+      📝 Manage prompt templates:
+         Subcommands: edit, info, add, delete, list,
+         duplicate, import, export, reset.
+         Options: -c [context], -e (edit next)
     EOT
   ) do |subcommand, opts, filename|
     opts = go_command('fc:', opts)
@@ -520,11 +497,9 @@ module OllamaChat::Commands
     regexp: %r(^/suggest(\s+(?:-e))?$),
     options: '[-e]',
     help: <<~EOT,
-      Generate tailored follow-up prompts based on session history.
-      Uses predefined strategies (e.g., 'coding', 'roleplaying')
-      from the 'suggest' context to AI-generate suggestions.
-      Options: -e to edit the suggestion in the editor
-        instead of prefilling
+      💡 Generate follow-up prompts from history
+         Uses strategies ('coding', 'roleplaying', etc.)
+         Options: -e (edit suggestion in editor)
     EOT
   ) do |opts|
     opts = go_command('e', opts)
@@ -538,7 +513,9 @@ module OllamaChat::Commands
     name: :change_response,
     regexp: %r(^/change response$),
     complete: %w[ change response ],
-    help: 'Edit the last assistant response in the editor',
+    help: <<~EOT,
+      ✏️ Edit last AI response in editor
+    EOT
   ) do
     change_response
     :next
@@ -550,8 +527,8 @@ module OllamaChat::Commands
     complete: [ 'conversation', %w[ save load ] ],
     options: '[-c]',
     help: <<~EOT
-      Load conversations or
-      save conversations (-c to clean first)
+      💾 Save/Load conversation state
+         (-c to clean first)
     EOT
   ) do |subcommand,opts,path|
     opts = go_command('c', opts.to_s)
@@ -573,10 +550,10 @@ module OllamaChat::Commands
     complete: [ 'collection', %w[ change clear list rename update ] ],
     optional: true,
     help: <<~EOT
-      Manage the current RAG document collection:
-      - change, clear, list, rename: Basic management
-      - update: Re-index only modified documents
-      - (no subcommand): Show current collection stats
+      📚 Manage RAG collections:
+         - change/clear/list/rename
+         - update: Re-index modified docs
+         - (no subcommand): Show stats
     EOT
   ) do |subcommand|
     case subcommand
@@ -607,24 +584,11 @@ module OllamaChat::Commands
     complete: [ 'persona', %w[ play load edit info list add delete backup import export duplicate copy ] ],
     optional: true,
     help: <<~EOT,
-      Manage and activate personae for roleplay:
-        - Activation:
-          - play: Set the default persona
-                  and start roleplaying
-          - load: Load a specific persona
-                  into session
-          - copy: persona pathname to clipboard
-        - Management:
-          - add: Create a new persona
-          - edit: Modify an existing persona
-          - delete: Remove a persona
-          - duplicate: Create a copy of a persona
-          - list: Browse all available personae
-          - info: View details of a specific persona
-        - Portability:
-          - backup: Save current personae to disk
-          - export: Export a specific persona to file
-          - import: Load a persona from a markdown file
+      🎭 Manage/activate personae:
+         Activation: play, load, copy
+         Management: add, edit, delete, duplicate,
+                    list, info
+         Portability: backup, export, import
     EOT
   ) do |subcommand|
     disable_content_parsing
@@ -683,9 +647,8 @@ module OllamaChat::Commands
     complete: [ 'character', %w[ info load import ] ],
     options: '[path]',
     help: <<~EOT
-      Display character info, load or import a character
-      from JSON/PNG as persona.
-      Options: [path] to specify the file directly
+      👤 Import/load character from JSON/PNG
+         Options: [path] to specify file directly
     EOT
   ) do |subcommand, path|
     path = if path
@@ -740,7 +703,9 @@ module OllamaChat::Commands
   command(
     name: :compose,
     regexp: %r(^/compose$),
-    help: 'Compose a message using the text editor'
+    help: <<~EOT
+      ✍️  Compose message in external editor
+    EOT
   ) do
     edit_text.full? or :next
   end
@@ -749,7 +714,10 @@ module OllamaChat::Commands
     name: :web,
     regexp: %r(^/web\s+(?:(\d+)\s+)?(.+)),
     options: '[number=1] query',
-    help: 'Query the web for a specified number of results'
+    help: <<~EOT
+      🌐 Search web for
+      (a specified number of results)
+    EOT
   ) do |count, query|
     disable_content_parsing
     web(count, query)
@@ -760,26 +728,19 @@ module OllamaChat::Commands
     regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
-    options: "[\n  -w|-a|-p|-e|\n  -c <collection>|\n  -t <tags>\n]\n[arg…]",
+    options: <<~EOT,
+      [
+        -w|-a|-p|-e|
+        -c <collection>|
+        -t <tags>
+      ]
+      [arg…]
+    EOT
     help: <<~EOT
-      Import content from files, URLs,
-        or globs into the context
-      Use subcommands: path, context, embedding,
-        summary, import (the default).
-      Options:
-        -p enable pattern mode to allow
-           using globs/wildcards
-        -w <words> summary subcommand only
-           (default 100)
-        -a pattern mode only,
-           include all files for patterns
-        -c <collection> use this collection
-           (embedding subcommand only)
-        -t <tag1,tag2,…> the custom tags
-           to apply (embedding subcommand only)
-        -e edit content before importing,
-           only standard command and path
-           with single source are supported.
+      📥 Import content (read, summarize, embed, context)
+         Subcommands: path, context, embedding, summary
+         Options: -p (pattern), -w [words], -a (all),
+                  -c [collection], -t [tags], -e (edit)
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -879,8 +840,8 @@ module OllamaChat::Commands
     regexp: %r(^/pipe(\s+-e)?\s+([^-].*)$),
     options: 'path',
     help: <<~EOT
-     Pipe the last response into another command's stdin.
-      Options: -e to edit before piping.
+      🔌 Pipe last response to command stdin
+         (-e to edit before piping)
     EOT
   ) do |opts, command|
     opts = go_command('e', opts)
@@ -893,8 +854,8 @@ module OllamaChat::Commands
     regexp: %r(^/vim(?:\s+(.+))?$),
     options: '[servername]',
     help: <<~EOT
-      Insert the last message into a Vim server buffer.
-      Options: [servername] to specify the Vim server
+      🪟 Insert last message into Vim buffer
+         Options: [servername]
     EOT
   ) do |servername|
     if message = messages.last
@@ -910,8 +871,8 @@ module OllamaChat::Commands
     regexp: %r(^/output(\s+-e)?\s+([^-].*)$),
     options: '[-e] path',
     help: <<~EOT
-      Save the last response to a file.
-      Options: -e to edit before saving.
+      💾 Save last response to file
+         (-e to edit before saving)
     EOT
   ) do |opts, path|
     opts = go_command('e', opts)
@@ -924,7 +885,9 @@ module OllamaChat::Commands
   command(
     name: :reconnect,
     regexp: %r(^/reconnect$),
-    help: 'Reconnect to the Ollama server'
+    help: <<~EOT
+      🔌 Reconnect to Ollama server
+    EOT
   ) do
     STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
     connect_ollama
@@ -936,7 +899,9 @@ module OllamaChat::Commands
     name: :quit,
     regexp: %r(^/(?:quit|exit)$),
     complete: [ %w[ quit exit ] ],
-    help: 'Quit the application',
+    help: <<~EOT,
+      🚪 Quit application
+    EOT
   ) do
     quit_app
   end
@@ -949,11 +914,11 @@ module OllamaChat::Commands
     complete: [ 'info', %w[ session model runtime rag ] ],
     optional: true,
     help: <<~EOT,
-      Show info:
-        - session: Details of the current chat session
-        - model: Information about the active AI model
-        - runtime: System and environmental data
-        - rag: Status of the RAG document system
+      ℹ️ Show info:
+         - session: Current chat details
+         - model: Active AI model info
+         - runtime: System/environmental data
+         - rag: RAG document system status
     EOT
   ) do |subcommand|
     use_pager do |output|
@@ -979,8 +944,8 @@ module OllamaChat::Commands
     optional: true,
     complete: [ 'help', %w[ me ] ],
     help: <<~EOT
-      View the help menu
-      (use 'me' for AI help or a pattern to filter)
+      ❓ View help menu
+         (use 'me' for AI help or pattern to filter)
     EOT
   ) do |subcommand|
     case subcommand
