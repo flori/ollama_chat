@@ -938,8 +938,7 @@ module OllamaChat::Commands
     complete: [ %w[ quit exit ] ],
     help: 'Quit the application',
   ) do
-    STDOUT.puts "Goodbye."
-    :return
+    quit_app
   end
 
   ## Information

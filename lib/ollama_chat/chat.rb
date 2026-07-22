@@ -346,6 +346,14 @@ class OllamaChat::Chat
   # @param prefill_prompt [String, nil] The text to prefill, or nil to clear it
   attr_writer :prefill_prompt
 
+  # Signals a graceful shutdown of the application.
+  #
+  # Raises {OllamaChat::OllamaChatQuitError} which is caught by the main
+  # interaction loop to terminate the session cleanly.
+  def quit_app
+    raise OllamaChat::OllamaChatQuitError
+  end
+
   # Handles user input commands and processes chat interactions.
   #
   # @param content [String] The input content to process
@@ -464,8 +472,6 @@ class OllamaChat::Chat
           next
         when :redo
           redo
-        when :return
-          return
         when String
           content = next_action
         end
@@ -557,6 +563,8 @@ class OllamaChat::Chat
       self.server_socket_message = nil
     end
     0
+  rescue OllamaChat::OllamaChatQuitError
+    STDOUT.puts "Goodbye."
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     log(:error, e)
     fix_config(e)

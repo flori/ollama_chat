@@ -57,6 +57,14 @@ module OllamaChat
   # not exist on the Ollama server.
   class UnknownModelError < OllamaChatError
   end
+
+  # OllamaChatQuitError is raised to signal a graceful shutdown of the
+  # application.
+  #
+  # This is typically raised by {OllamaChat::Chat#quit_app} or other commands
+  # that need to terminate the main interaction loop cleanly.
+  class OllamaChatQuitError < OllamaChatError
+  end
 end
 
 require 'ollama'

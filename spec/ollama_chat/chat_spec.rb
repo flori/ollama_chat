@@ -415,8 +415,8 @@ describe OllamaChat::Chat, protect_env: true do
     end
 
     it 'returns :return when input is "/quit"' do
-      expect(STDOUT).to receive(:puts).with(/Goodbye/)
-      expect(chat.handle_input("/quit")).to eq :return
+      expect { chat.handle_input("/quit") }.to\
+        raise_error(OllamaChat::OllamaChatQuitError)
     end
 
     it 'returns :next when input is "/nixda"' do

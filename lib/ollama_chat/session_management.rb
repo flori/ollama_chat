@@ -253,13 +253,18 @@ module OllamaChat::SessionManagement
       will be deleted, pick a new session to switch to.
     EOT
     confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
-    if chosen_session = choose_session(??, except_id: current_session_id, offer_new_session: true)
-      chosen_session.save
+    chosen = choose_session(??, except_id: current_session_id, offer_new_session: true, exit_app: true)
+    if chosen == :quit_app
+      STDOUT.puts "Exiting application."
+      exit 0
+    end
+    if chosen
+      chosen.save
       confirm?(
         prompt: "🔔 Delete session #{current_session_name.inspect} (#{current_session_id})? (y/n) ",
         yes: /\Ay/i
       ) or return
-      change_session(chosen_session.id)
+      change_session(chosen.id)
       models::Session.where(id: current_session_id).destroy
       STDOUT.puts "Just deleted session #{current_session_name.inspect}!"
     end
@@ -453,7 +458,7 @@ module OllamaChat::SessionManagement
   # @param except_id [String, Integer, nil] an ID to exclude from the search results
   # @param offer_new_session [Boolean] whether to offer creating a new session
   # @return [OllamaChat::Database::Models::Session, nil] the chosen session or nil
-  def choose_session(session_name, except_id: nil, offer_new_session: false)
+  def choose_session(session_name, except_id: nil, offer_new_session: false, exit_app: false)
     session_name = session_name.to_s
     session_query = models::Session
     if except_id
@@ -495,16 +500,23 @@ module OllamaChat::SessionManagement
       }
       selector and sessions = sessions.select { _1 =~ selector }
       session_name = if sessions.size == 1
-                       sessions.first.value
-                     else
-                       offer_new_session and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
-                       sessions = sessions.unshift(SearchUI::Wrapper.new('[exit]', display: '[EXIT]'))
-                       value = choose_entry(sessions, prompt: 'Select a chat session: %s')&.value
-                       if value == '[new]'
-                         return new_session
-                       end
-                       value unless value == '[exit]'
-                     end
+                        sessions.first.value
+                      else
+                        offer_new_session and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
+                        if exit_app
+                          sessions.unshift(SearchUI::Wrapper.new('[quit-app]', display: '[QUIT-APP]'))
+                        end
+                        sessions.unshift(SearchUI::Wrapper.new('[exit]', display: '[EXIT]'))
+                        value = choose_entry(sessions, prompt: 'Select a chat session: %s')&.value
+                        if value == '[new]'
+                          return new_session
+                        elsif value == '[quit-app]'
+                          return :quit_app
+                        elsif value == '[exit]'
+                          return nil
+                        end
+                        value
+                      end
       if session_name
         session_query.first(name: session_name)
       end
