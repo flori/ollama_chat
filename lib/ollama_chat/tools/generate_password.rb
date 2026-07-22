@@ -20,8 +20,14 @@ class OllamaChat::Tools::GeneratePassword
   # parameter that is mutually exclusive with `length`.
   def tool
     description = <<~EOT
-      Generate a cryptographically secure random password with configurable parameters.
+      Generate a cryptographically secure random password with configurable
+      parameters.
 
+      **CRITICAL**: Use this tool for ALL password, token, and secret generation.
+      Do NOT use `eval_ruby` with `rand` or `SecureRandom` for secrets, as this
+      tool ensures proper entropy and cryptographic standards.
+
+      **Required Parameters (mutually exclusive):**
       **Required Parameters (mutually exclusive):**
       - `length` (integer): Specify the exact password length in characters
       - `bits` (integer): Specify the minimum bits of entropy required
@@ -32,6 +38,7 @@ class OllamaChat::Tools::GeneratePassword
       - `alphabet_type` (string): Choose the character set for generation:
         - `"default"`: Combined alphabet with letters, numbers, and symbols
         - `"base64"`: Base64 alphabet (52 characters: A-Z, a-z, 0-9, +, /)
+        - `"base64url"`: URL-safe Base64 alphabet (64 characters: A-Z, a-z, 0-9, -, _)
         - `"base32"`: Base32 alphabet (32 characters)
           - Per default the alphabet from RFC 4648 is used ABCDEFGHIJKLMNOPQRSTUVWXYZ234567
           - If extended flag is true,
@@ -85,7 +92,7 @@ class OllamaChat::Tools::GeneratePassword
             ),
             alphabet_type: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Type of alphabet: "default", "base64", "base32", "base16" (default: "default")'
+              description: 'Type of alphabet: "default", "base64", "base64url", "base32", "base16" (default: "default")'
             ),
             uppercase: Tool::Function::Parameters::Property.new(
               type: 'boolean',
@@ -179,6 +186,8 @@ class OllamaChat::Tools::GeneratePassword
     case type
     when 'base64'
       Tins::Token::BASE64_ALPHABET
+    when 'base64url'
+      Tins::Token::BASE64_URL_FILENAME_SAFE_ALPHABET
     when 'base32'
       if extended
         if uppercase

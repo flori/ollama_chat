@@ -23,6 +23,9 @@ class OllamaChat::Tools::EvalRuby
           Evaluates Ruby code in a sandboxed Docker container (ruby:#{RUBY_VERSION}-alpine).
           Pipes the source text to IRB with a minimal prompt.
           Useful for verifying syntax, testing logic, or exploring Ruby behavior.
+
+          Do not use for generating secure passwords or secrets; use
+          `generate_password` instead.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
