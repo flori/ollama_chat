@@ -1,5 +1,76 @@
 # Changes
 
+## 2026-07-23 v0.0.100
+
+### New Features
+
+- **UUID v7 Integration**: Implemented a compatibility shim via
+  `OllamaChat::UUIDV7.generate` that utilizes native `SecureRandom.uuid_v7` for
+  Ruby **3.3**+ and a custom RFC 9562 compliant implementation for older
+  versions.
+- **Document Parsing & Embeddings**:
+    - Added EPUB support using `pandoc` via the `epub_read` method and updated
+      `parse_source` to handle `application/epub+zip`.
+    - Enhanced retrieval precision by prepending source identifiers to document
+      chunks in `embed_source`.
+- **Structured Logging**: Implemented a JSON formatter in `OllamaChat::Logging`
+  with a `data:` keyword argument for structured context, including separate
+  capture of backtraces and tool execution details.
+- **Prompt Management Refactor**: 
+    - Unified prompt API using a `context:` keyword argument across `prompt`,
+      `each_prompt`, `delete_prompt`, `store_prompt`, and `write_prompt`.
+    - Introduced dynamic context parameters (defaulting to `'prompt'`) and
+      restructured `default_config.yml` to nest prompts under `prompt:`,
+      `suggest:`, and `system:`.
+    - Promoted `/suggest` to a top-level command and simplified the `/system`
+      command.
+- **Conversation Grouping**: Introduced `group_uuid` in `OllamaChat::Message`
+  to enable conversation grouping, including a `repair_group_uuids` method in
+  `OllamaChat::SessionManagement` for legacy data migration.
+- **Tool Enhancements**:
+    - **`read_file`**: Added support for line numbering via the `line_numbers`
+      parameter and range extraction using `start_line` and `end_line`. Now
+      returns total `line_count` and file `mtime` in ISO8601 format.
+    - **`patch_file`**: Refactored to support coordinate-based patching via an
+      `edits` parameter for targeted line-range replacements, including overlap
+      detection and freshness checks using `mtime`.
+    - **`generate_password`**: Added `base64url` alphabet support and critical
+      security warnings to discourage the use of `eval_ruby` for secret
+      generation.
+
+### Improvements & Refactoring
+
+- **CLI & UX**:
+    - Refactored command help strings with emoji prefixes and a more concise,
+      scannable multi-line format using heredocs.
+    - Added a welcome message upon startup displaying the version, connected
+      server version, and URL via `print_welcome`.
+    - Standardized the creation workflow for prompts and personae with a source
+      selection menu (`[CLIPBOARD]`, `[FILES]`, `[EMPTY/MANUAL]`).
+- **Application Flow**: 
+    - Implemented `OllamaChatQuitError` to handle graceful application
+      shutdowns via exception-based control flow.
+    - Added a `[QUIT-APP]` option to the session chooser after deletion.
+- **Internal Logic**:
+    - Optimized `ps_read` by replacing manual read loops with `IO.copy_stream`.
+    - Centralized Ollama chat request logging through a new `call_ollama_chat`
+      wrapper.
+    - Refactored model option reconfiguration into a dedicated
+      `reconfigure_model_options` method in
+      `lib/ollama_chat/model_handling.rb`.
+    - Updated dependencies: `ollama-ruby` to **1.23** and `tins` to **1.54**.
+
+### Bug Fixes & Stability
+
+- Added error logging (`chat.log(:error, e)`) to the `rescue` blocks of all 33
+  tool execution methods.
+- Fixed a typo in the Ghostscript error message within `ps_read`.
+- Added defensive handling for `JSON.load` results in `model_handling.rb` using
+  `.full? || {}` to prevent `nil` propagation.
+- Removed implicit fallbacks to the last assistant response in
+  `copy_to_clipboard` and `paste_into_editor`, making `text` a required
+  parameter.
+
 ## 2026-07-13 v0.0.99
 
 ### Changed
