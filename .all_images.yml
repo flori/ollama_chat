@@ -1,6 +1,6 @@
 dockerfile: |-
   RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libyaml-dev libssl-dev git ghostscript
+    build-essential libyaml-dev libssl-dev git ghostscript pandoc
 
 script: &script |-
   echo -e "\e[1m"

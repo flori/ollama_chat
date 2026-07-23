@@ -117,6 +117,15 @@ describe OllamaChat::Parsing do
       end
     end
 
+    it 'can parse EPUB' do
+      asset_io('example.epub') do |io|
+        def io.content_type
+          'application/epub+zip'
+        end
+        expect(chat.parse_source(io)).to include("Hello World!")
+      end
+    end
+
     it 'can parse other texts' do
       asset_io('example.rb') do |io|
         def io.content_type
@@ -280,8 +289,8 @@ describe OllamaChat::Parsing do
           "api_show.json", "api_tags.json", "api_version.json",
           "conversation.json", "conversation.jsonl", "deep", "duckduckgo.html",
           "example.atom", "example.csv", "example.html", "example.pdf",
-          "example.ps", "example.rb", "example.rss", "example.xml",
-          "example_with_quote.html", "kitten.jpg", "prompt.txt",
+          "example.epub", "example.ps", "example.rb", "example.rss",
+          "example.xml", "example_with_quote.html", "kitten.jpg", "prompt.txt",
           "searxng.json", "pirateweather.json", "fluffy.png", "miyu.png",
         ].sort
       )

@@ -51,6 +51,8 @@ module OllamaChat::Parsing
       ps_read(source_io)
     when 'application/pdf'
       pdf_read(source_io)
+    when 'application/epub+zip'
+      epub_read(source_io)
     when 'image/png'
       results = parse_png(source_io) and return results.join("\n\n---\n\n")
       STDERR.puts "Could not parse metadata from #{source_io&.content_type} document."
@@ -174,6 +176,24 @@ module OllamaChat::Parsing
     reader.pages.inject(+'') { |result, page| result << page.text }
   end
 
+  # Converts an EPUB source to Plaintext via Pandoc and returns the text
+  # content.
+  #
+  # @param io [IO] the input stream containing the EPUB data
+  # @return [String, nil] the extracted text as a plaintext string, or nil if
+  #   conversion fails
+  def epub_read(io)
+    pandoc = `which pandoc`.chomp
+    if pandoc.present?
+      Tempfile.create(['epub_in', '.epub']) do |tmp|
+        IO.copy_stream(io, tmp)
+        `#{pandoc} -f epub -t plain "#{tmp.path}"`
+      end
+    else
+      STDERR.puts "Cannot convert EPUB, pandoc not in path."
+      nil
+    end
+  end
 
   # Reads and processes PDF content using Ghostscript for conversion
   #
@@ -189,11 +209,7 @@ module OllamaChat::Parsing
     if gs.present?
       Tempfile.create do |tmp|
         IO.popen("#{gs} -q -sDEVICE=pdfwrite -sOutputFile=#{tmp.path} -", 'wb') do |gs_io|
-          until io.eof?
-            buffer = io.read(1 << 17)
-            IO.select(nil, [ gs_io ], nil)
-            gs_io.write buffer
-          end
+          IO.copy_stream(io, gs_io)
           gs_io.close
           File.open(tmp.path, 'rb') do |pdf|
             pdf_read(pdf)
@@ -201,7 +217,7 @@ module OllamaChat::Parsing
         end
       end
     else
-      STDERR.puts "Cannot convert #{io&.content_type} whith ghostscript, gs not in path."
+      STDERR.puts "Cannot convert #{io&.content_type} with ghostscript, gs not in path."
     end
   end
 
