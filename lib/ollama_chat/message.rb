@@ -45,7 +45,7 @@ module OllamaChat::MessageMixin
   #
   # @return [OllamaChat::Message] the message instance.
   def initialize_group_uuid
-    self.group_uuid ||= SecureRandom.uuid_v7
+    self.group_uuid ||= OllamaChat::UUIDV7.generate
     self
   end
 

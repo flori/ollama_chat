@@ -417,7 +417,7 @@ class OllamaChat::Chat
   def interact_with_user
     loop do
       content           = nil
-      group_uuid        = SecureRandom.uuid_v7
+      group_uuid        = OllamaChat::UUIDV7.generate
       tools_were_called = false
       enable_content_parsing
       type         = :terminal_input

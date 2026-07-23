@@ -328,11 +328,11 @@ describe OllamaChat::MessageList do
 
   context 'with uuid groups' do
     let :group_1 do
-      SecureRandom.uuid_v7
+      OllamaChat::UUIDV7.generate
     end
 
     let :group_2 do
-      SecureRandom.uuid_v7
+      OllamaChat::UUIDV7.generate
     end
 
     it 'can drop n conversations exhanges' do

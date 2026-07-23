@@ -1,6 +1,6 @@
 describe OllamaChat::FollowChat do
   let :group_uuid do
-    SecureRandom.uuid_v7
+    OllamaChat::UUIDV7.generate
   end
 
   let :messages do

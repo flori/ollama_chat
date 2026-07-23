@@ -81,7 +81,7 @@ describe OllamaChat::SessionManagement do
     end
 
     it 'does not override existing group UUIDs' do
-      fixed_id = SecureRandom.uuid_v7
+      fixed_id = OllamaChat::UUIDV7.generate
       u1 = OllamaChat::Message.new(role: 'user', content: 'hello', group_uuid: fixed_id)
       a1 = OllamaChat::Message.new(role: 'assistant', content: 'hi', group_uuid: fixed_id)
 
