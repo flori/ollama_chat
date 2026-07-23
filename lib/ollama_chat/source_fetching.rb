@@ -212,8 +212,9 @@ module OllamaChat::SourceFetching
     else
       STDOUT.puts m
     end
-    source = source.to_s
+    source  = source.to_s
     command = false
+    inputs  = inputs.map { |chunk| "Source: #{source}\n#{chunk}" }
     if source.start_with?(?!)
       source = Kramdown::ANSI::Width.truncate(
         source[1..-1].gsub(/\W+/, ?_),

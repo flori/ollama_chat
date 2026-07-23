@@ -35,6 +35,32 @@ describe OllamaChat::SourceFetching do
     )
   end
 
+  it 'adds source to the embedding for potential retrieval later' do
+    source = './spec/assets/example.html'
+    source_io = StringIO.new("Test content")
+    source_io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
+
+    docs = double('Documents', collection: 'default')
+    embedding = double('Embedding', on?: true)
+
+    # Allow the pre-check to pass so the method continues to embedding logic
+    expect(docs).to receive(:source_modified?).with(source).and_return(true)
+
+    chat.instance_variable_set(:@documents, docs)
+    chat.instance_variable_set(:@embedding, embedding)
+
+    inputs = %w[ test-input ]
+    expect_any_instance_of(Documentrix::Documents::Splitters::Semantic).to\
+      receive(:split).and_return(inputs)
+
+    expect(docs).to receive(:source_update) do |inputs, options|
+      expect(inputs.first).to start_with("Source: #{source}\n")
+      expect(options[:source]).to eq source
+    end
+
+    chat.embed_source(source_io, source)
+  end
+
   describe '#fetch_source' do
     context 'with filename' do
       it 'can handle files without spaces' do
