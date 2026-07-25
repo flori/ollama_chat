@@ -375,11 +375,6 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/web 23 query")).to eq 'the response'
     end
 
-    it 'returns :next when input is "/conversation save\s+(.+)$"' do
-      expect(chat.messages).to receive(:save_conversation).with('./some_file', messages: [])
-      expect(chat.handle_input("/conversation save ./some_file")).to eq :next
-    end
-
     it 'returns :next when input is "/links(?:\s+(clear))?$" ' do
       expect(chat).to receive(:manage_links).with(nil)
       expect(chat.handle_input("/links")).to eq :next
@@ -387,9 +382,41 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.handle_input("/links clear")).to eq :next
     end
 
-    it 'returns :next when input is "/conversation load\s+(.+)$"' do
-      expect(chat.messages).to receive(:load_conversation).with('./some_file')
-      expect(chat.handle_input("/conversation load ./some_file")).to eq :next
+    describe 'conversation' do
+      it 'returns :next when input is "/conversation save\s+(.+)$"' do
+        expect(chat).to receive(:save_conversation).with('./some_file', clean: false)
+        expect(chat.handle_input("/conversation save ./some_file")).to eq :next
+      end
+
+      it 'returns :next when input is "/conversation save -c ./some_file"' do
+        expect(chat).to receive(:save_conversation).with('./some_file', clean: 1)
+        expect(chat.handle_input("/conversation save -c ./some_file")).to eq :next
+      end
+
+      it 'returns :next when input is "/conversation save" without path' do
+        expect { chat.handle_input("/conversation save") }.not_to raise_error
+        expect(chat.handle_input("/conversation save")).to eq :next
+      end
+
+      it 'returns :next when input is "/conversation load\s+(.+)$"' do
+        expect(chat).to receive(:load_conversation).with('./some_file')
+        expect(chat.handle_input("/conversation load ./some_file")).to eq :next
+      end
+
+      it 'returns :next when input is "/conversation load" without path' do
+        expect { chat.handle_input("/conversation load") }.not_to raise_error
+        expect(chat.handle_input("/conversation load")).to eq :next
+      end
+
+      it 'returns :next when input is "/conversation clean$"' do
+        expect(chat).to receive(:confirm?).and_return true
+        expect(chat.handle_input("/conversation clean")).to eq :next
+      end
+
+      it 'returns :next when input is "/conversation clean" and user cancels' do
+        expect(chat).to receive(:confirm?).and_return false
+        expect(chat.handle_input("/conversation clean")).to eq :next
+      end
     end
 
     describe 'tools' do

@@ -523,21 +523,37 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(save|load)((?:\s+-(?:[c]))*)\s+([^-].*)$),
-    complete: [ 'conversation', %w[ save load ] ],
+    regexp: %r(^/conversation\s+(clean|save|load)(\s+-c)?(?:\s+([^-].*))?$),
+    complete: [ 'conversation', %w[ save load clean ] ],
     options: '[-c]',
     help: <<~EOT
       💾 Save/Load conversation state
-         (-c to clean first)
+         (-c to clean before saving)
+         Or clean inplace (removes tool content, images, and thinking)
     EOT
   ) do |subcommand,opts,path|
-    opts = go_command('c', opts.to_s)
+    if %w[ save load ].include?(subcommand) && path.blank?
+      STDERR.puts "Require a path as argument to save/load!"
+      next :next
+    end
     case subcommand
     when 'save'
+      opts = go_command('c', opts.to_s)
       save_conversation(path, clean: opts[?c])
     when 'load'
       load_conversation(path)
       repair_group_uuids
+    when 'clean'
+      if confirm?(
+          prompt: '🔔 Clean tool content, images, and thinking from conversation? (y/n) ',
+          yes: /\Ay/i
+        )
+      then
+        messages.clean_messages!
+        STDOUT.puts "Conversation cleaned."
+      else
+        STDOUT.puts 'Cancelled.'
+      end
     end
     :next
   end

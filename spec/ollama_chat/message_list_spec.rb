@@ -47,6 +47,15 @@ describe OllamaChat::MessageList do
     expect(list.size).to eq 1
   end
 
+  it 'cleans messages by removing tool content' do
+    list << OllamaChat::Message.new(role: 'assistant', content: 'tool call', tool_name: 'test')
+    expect(list.messages.last.content).to eq 'tool call'
+
+    list.clean_messages!
+
+    expect(list.messages.last.content).to eq ''
+  end
+
   it 'can be added to' do
     expect(list.size).to eq 1
     list << OllamaChat::Message.new(role: 'user', content: 'world')

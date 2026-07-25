@@ -204,6 +204,17 @@ class OllamaChat::MessageList
     end
   end
 
+  # Cleans the messages in the list by replacing them with stripped versions.
+  # This is a destructive (mutating) operation.
+  #
+  # @param messages [Array<OllamaChat::Message>] the messages to clean.
+  #   Defaults to all current messages.
+  # @return [OllamaChat::MessageList] self to allow for method chaining.
+  def clean_messages!(messages: @messages)
+    @messages = clean_messages(messages:)
+    self
+  end
+
   # Displays the most recent messages from the conversation history.
   #
   # This method prints a specified number of trailing messages to the console
