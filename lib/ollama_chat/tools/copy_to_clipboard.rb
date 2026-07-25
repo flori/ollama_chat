@@ -59,7 +59,7 @@ class OllamaChat::Tools::CopyToClipboard
       message: ,
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'copy_to_clipboard' })
+    chat.log(:error, e, data: { tool: name })
     {
       error:   e.class,
       message: e.message,

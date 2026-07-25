@@ -54,6 +54,7 @@ module OllamaChat::FavouritesManagement
           return
         when SearchUI::Wrapper
           models::Favourite.create(context: type, name: chosen.value)
+          log(:info, "Favourite added", data: { context: type, name: chosen.value })
         end
       end
     end
@@ -80,6 +81,7 @@ module OllamaChat::FavouritesManagement
           return
         when SearchUI::Wrapper
           models::Favourite.where(context: type, name: chosen.value).destroy
+          log(:info, "Favourite removed", data: { context: type, name: chosen.value })
         end
       end
     end

@@ -81,6 +81,7 @@ module OllamaChat::History
         read_io(input:).to_a
       Reline::HISTORY.clear
       Reline::HISTORY.push(*history_data)
+      log(:info, "History initialized", data: { entries: history_data.size })
     end
   end
 
@@ -96,6 +97,7 @@ module OllamaChat::History
       OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').
         write_io(output:, collection: Reline::HISTORY)
       session.history = output.string
+      log(:info, "History saved", data: { entries: Reline::HISTORY.size })
     end
   end
 
@@ -113,6 +115,7 @@ module OllamaChat::History
       Reline::HISTORY.clear
     ensure
       save_history
+      log(:info, "History cleared")
     end
   end
 end

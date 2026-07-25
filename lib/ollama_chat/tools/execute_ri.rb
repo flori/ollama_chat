@@ -45,7 +45,7 @@ class OllamaChat::Tools::ExecuteRI
     result = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
     { cmd:, result: }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'execute_ri', topic: })
+    chat.log(:error, e, data: { tool: name, topic: })
     { error: e.class, message: e.message }.to_json
   end
 

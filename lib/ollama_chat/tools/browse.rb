@@ -73,7 +73,7 @@ class OllamaChat::Tools::Browse
       url:        ,
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'browse', url: })
+    chat.log(:error, e, data: { tool: name, url: })
     { error: e.class, message: e.message }.to_json
   end
 

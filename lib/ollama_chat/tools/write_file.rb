@@ -22,10 +22,9 @@ class OllamaChat::Tools::WriteFile
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          File writer – Saves content into path, either overwriting or
-          appending based on mode.
-          A backup is automatically created before writing, if the file already
-          exists. Path must be allowed.
+          File writer - Saves content into path, either overwriting or
+          appending based on `mode`. A backup is automatically created before
+          writing, if the file already exists. Path must be allowed.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -79,32 +78,37 @@ class OllamaChat::Tools::WriteFile
 
     backup_path = nil
 
+    content = args.content
+
     # Write the file
     case args.mode
     when 'append'
       File.open(path, 'a') do |f|
         backup_path = perform_backup(path)
-        f.write(args.content)
+        f.write(content)
       end
     when 'overwrite', nil
       File.secure_write(path) do |output|
         backup_path = perform_backup(path)
-        output.write args.content
+        output.write content
       end
     else
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
 
     message = "Wrote #{es.bytes_formatted} (#{es.tokens_formatted}) to file #{path.to_s.inspect}."
+    chat.log(:info, "File written", data: {
+      tool: name, path: path.to_s, mode: args.mode || 'overwrite', bytes: es.bytes_formatted
+    })
 
     {
-      success: true,
-      path:    path.to_s,
-      backup:  backup_path.to_s,
-      message: ,
+      success:  true,
+      path:     path.to_s,
+      backup:   backup_path.to_s,
+      message:  ,
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'write_file', path: args.path })
+    chat.log(:error, e, data: { tool: name, path: args.path })
     {
       error:   e.class,
       path:    e.ask_and_send(:path),

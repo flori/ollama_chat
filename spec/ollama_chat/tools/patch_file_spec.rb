@@ -46,14 +46,14 @@ describe OllamaChat::Tools::PatchFile do
 
     it 'replaces a single line correctly' do
       edits = [{ start_line: 3, end_line: 3, text: '"Miyu"' }]
-      result = tool.apply_edits(test_file, edits)
+      result = tool.apply_edits(File.read(test_file), edits)
       expect(result).to include('"Miyu"')
       expect(result).not_to include('"Florian"')
     end
 
     it 'defaults end_line to start_line for implicit single-line replacements' do
       edits = [{ start_line: 3, text: '"Surgical Miyu"' }]
-      result = tool.apply_edits(test_file, edits)
+      result = tool.apply_edits(File.read(test_file), edits)
       expect(result).to include('"Surgical Miyu"')
       expect(result).not_to include('"Florian"')
     end
@@ -67,7 +67,7 @@ describe OllamaChat::Tools::PatchFile do
       EOT
       # Replace lines 2-4 (the name method)
       edits = [{ start_line: 2, end_line: 4, text: new_block.chomp }]
-      result = tool.apply_edits(test_file, edits)
+      result = tool.apply_edits(File.read(test_file), edits)
       expect(result).to include('puts "Precision active!"')
     end
 
@@ -76,7 +76,7 @@ describe OllamaChat::Tools::PatchFile do
         { start_line: 2, end_line: 4, text: 'def name; "Top"; end' },
         { start_line: 6, end_line: 8, text: 'def age; 28; end' }
       ]
-      result = tool.apply_edits(test_file, edits)
+      result = tool.apply_edits(File.read(test_file), edits)
       expect(result).to include('"Top"')
       expect(result).to include('28')
     end
@@ -86,13 +86,13 @@ describe OllamaChat::Tools::PatchFile do
         { start_line: 2, end_line: 4, text: 'A' },
         { start_line: 3, end_line: 5, text: 'B' }
       ]
-      expect { tool.apply_edits(test_file, edits) }.to\
+      expect { tool.apply_edits(File.read(test_file), edits) }.to\
         raise_error(OllamaChat::ToolFunctionArgumentError, /Overlapping/)
     end
 
     it 'raises error on out-of-bounds ranges' do
       edits = [{ start_line: 100, end_line: 101, text: 'Void' }]
-      expect { tool.apply_edits(test_file, edits) }.to\
+      expect { tool.apply_edits(File.read(test_file), edits) }.to\
         raise_error(OllamaChat::ToolFunctionArgumentError, /Invalid range/)
     end
 
@@ -101,7 +101,7 @@ describe OllamaChat::Tools::PatchFile do
         { start_line: 2, end_line: 4, text: 'Valid' },
         { text: 'Missing start line' }
       ]
-      expect { tool.apply_edits(test_file, edits) }.to\
+      expect { tool.apply_edits(File.read(test_file), edits) }.to\
         raise_error(OllamaChat::ToolFunctionArgumentError, /Edit #2 is missing a start_line/)
     end
 
@@ -110,7 +110,7 @@ describe OllamaChat::Tools::PatchFile do
         { start_line: 2, end_line: 4, text: 'Valid' },
         { start_line: 23 },
       ]
-      expect { tool.apply_edits(test_file, edits) }.to\
+      expect { tool.apply_edits(File.read(test_file), edits) }.to\
         raise_error(OllamaChat::ToolFunctionArgumentError, /Edit #2 is missing its substiution text/)
     end
 
@@ -119,8 +119,8 @@ describe OllamaChat::Tools::PatchFile do
       empty_file = test_file
       File.write(empty_file, '')
       text  = 'Initial content'
-      edits = [{ start_line: 1, end_line: 1, text: }]
-      expect(tool.apply_edits(empty_file, edits)).to eq text
+      edits = [{ start_line: 1, end_line: 1, text: text }]
+      expect(tool.apply_edits('', edits)).to eq text
       File.delete(empty_file) if File.exist?(empty_file)
     end
   end
@@ -128,10 +128,11 @@ describe OllamaChat::Tools::PatchFile do
   it 'can be executed successfully with valid edits' do
     const_conf_as('OC::DIFF_TOOL' => Pathname.new(`which true`.chomp))
     File.write(test_file, "Line 1\nLine 2\n")
+    content = File.read(test_file)
 
     edits = [{ start_line: 2, end_line: 2, text: 'Modified Line 2' }]
-    mtime = File.mtime(test_file).iso8601(0)
-    args_double = double('Arguments', path: test_file, edits:, mtime:, line_count: 2)
+    checksum = '%08x' % Zlib.crc32(content)
+    args_double = double('Arguments', path: test_file, edits:, checksum:)
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
     tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
@@ -159,5 +160,32 @@ describe OllamaChat::Tools::PatchFile do
 
     result = tool.execute(tool_call, chat:)
     expect(json_object(result).error).to eq 'OllamaChat::InvalidPathError'
+  end
+
+  it 'raises error when edits is not an array' do
+    args_double = double('Arguments', path: test_file, edits: { invalid: 'hash' })
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
+
+    result = tool.execute(tool_call, chat:)
+    expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
+  end
+
+  it 'raises error when path is missing' do
+    args_double = double('Arguments', path: '', edits: [])
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
+
+    result = tool.execute(tool_call, chat:)
+    expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
+  end
+
+  it 'raises error when checksum mismatches' do
+    File.write(test_file, "Line 1\nLine 2\n")
+    args_double = double('Arguments', path: test_file, edits: [], checksum: 'deadbeef')
+    tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
+
+    result = tool.execute(tool_call, chat:)
+    expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
+  ensure
+    File.delete(test_file) if File.exist?(test_file)
   end
 end

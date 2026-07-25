@@ -15,12 +15,13 @@ class OllamaChat::FollowChat
 
   # Initializes a new instance of OllamaChat::FollowChat.
   #
-  # @param [OllamaChat::Chat] chat The chat object, which represents the
+  # @param chat [OllamaChat::Chat] The chat object, which represents the
   #   conversation context.
-  # @param [#to_a] messages A collection of message objects, representing the
+  # @param messages [#to_a] A collection of message objects, representing the
   #   conversation history.
-  # @param [String] voice (optional) to speek with if any.
-  # @param [IO] output (optional) The output stream where terminal output
+  # @param group_uuid [String, nil] The group UUID for the conversation.
+  # @param voice [String, nil] (optional) The voice to speak with.
+  # @param output [IO] (optional) The output stream where terminal output
   #   should be printed. Defaults to STDOUT.
   #
   # @return [OllamaChat::FollowChat] A new instance of OllamaChat::FollowChat.
@@ -167,21 +168,20 @@ class OllamaChat::FollowChat
         )
         result = OllamaChat::Tools.registered[name].execute(tool_call, chat:)
         if confirmed == :explicit
-          chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmation: :explicit })
+          chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmed: })
         else
-          chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmation: :implicit })
+          chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmed: })
         end
       end
 
       chat.tool_call_results[name] << result
-
       data    = nil
       message = begin
                    data = JSON.parse(result)
-                   chat.log(:info, "Tool result", data:)
-                   data['message']
+                   chat.log(:info, "Tool result", data: { result: data })
+                   data.to_hash['message'] if data.respond_to?(:to_hash)
                  rescue
-                   chat.log(:info, "Tool result", data: { raw_result: result })
+                   chat.log(:info, "Tool result", data: { result: })
                    nil
                  end
       warn =
@@ -346,39 +346,52 @@ class OllamaChat::FollowChat
     end
   end
 
-  # The eval_stats method processes response statistics and formats them into a
-  # colored, readable string output.
+  # Extracts performance statistics from an Ollama response and formats them
+  # into a hash of human-readable strings and metrics.
   #
-  # @param response [ Object ] the response object containing evaluation metrics
-  #
-  # @return [ String ] a formatted string with statistical information about
-  #   the evaluation process including durations, counts, and rates, styled
-  #   with colors and formatting
-  def eval_stats(response)
+  # @param response [Object] the response object containing evaluation metrics
+  # @return [Hash] a hash of formatted statistics including durations, counts, and rates
+  def stats_hash(response)
     eval_duration        = response.eval_duration.to_f / 1e9
     prompt_eval_duration = response.prompt_eval_duration.to_f / 1e9
-    stats_text = {
-      eval_duration:        Tins::Duration.new(eval_duration),
+    {
+      eval_duration:        Tins::Duration.new(eval_duration).to_s,
       eval_count:           response.eval_count.to_i,
-      eval_rate:            bold { "%.2f t/s" % (response.eval_count.to_i / eval_duration) } + color(111),
-      prompt_eval_duration: Tins::Duration.new(prompt_eval_duration),
+      eval_rate:            "%.2f t/s" % (response.eval_count.to_i / eval_duration),
+      prompt_eval_duration: Tins::Duration.new(prompt_eval_duration).to_s,
       prompt_eval_count:    response.prompt_eval_count.to_i,
-      prompt_eval_rate:     bold { "%.2f t/s" % (response.prompt_eval_count.to_i / prompt_eval_duration) } + color(111),
-      total_duration:       Tins::Duration.new(response.total_duration / 1e9),
-      load_duration:        Tins::Duration.new(response.load_duration / 1e9),
-    }.map { _1 * ?= } * ' '
+      prompt_eval_rate:     "%.2f t/s" % (response.prompt_eval_count.to_i / prompt_eval_duration),
+      total_duration:       Tins::Duration.new(response.total_duration / 1e9).to_s,
+      load_duration:        Tins::Duration.new(response.load_duration / 1e9).to_s,
+    }
+  end
+
+  # The eval_stats method processes a statistics hash and formats it into a
+  # colored, readable string output.
+  #
+  # @param stats [Hash] the statistics hash containing evaluation metrics
+  #
+  # @return [String] a formatted string with statistical information about
+  #   the evaluation process including durations, counts, and rates, styled
+  #   with colors and formatting
+  def eval_stats(stats)
+    stats_text = stats.
+      deep_transform(value: -> idx, v { idx =~ /_rate\z/ ? bold(v) + color(111) : v }).
+      map { _1 * ?= } * ' '
     '📊 ' + color(111) {
       Kramdown::ANSI::Width.wrap(stats_text, percentage: 90).gsub(/(?<!\A)^/, '   ')
     }
   end
 
-  # The output_eval_stats method outputs evaluation statistics to the specified
-  # output stream.
+  # The output_eval_stats method extracts performance statistics from the response,
+  # logs them to the chat history, and prints a formatted summary to the terminal.
   #
-  # @param response [ Object ] the response object containing evaluation data
+  # @param response [Object] the response object containing evaluation data
   def output_eval_stats(response)
     response.done or return
-    @output.puts "", eval_stats(response)
+    stats = stats_hash(response)
+    chat.log(:info, 'Ollama chat response received', data: { stats: })
+    @output.puts "", eval_stats(stats)
   end
 
   # The debug_output method conditionally outputs the response object using jj

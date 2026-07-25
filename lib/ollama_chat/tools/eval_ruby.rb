@@ -18,7 +18,7 @@ class OllamaChat::Tools::EvalRuby
     Tool.new(
       type: 'function',
       function: Tool::Function.new(
-        name: 'eval_ruby',
+        name:,
         description: <<~EOT,
           Evaluates Ruby code in a sandboxed Docker container (ruby:#{RUBY_VERSION}-alpine).
           Pipes the source text to IRB with a minimal prompt.
@@ -94,7 +94,7 @@ class OllamaChat::Tools::EvalRuby
       }.to_json
     end
   rescue => e
-    chat.log(:error, e, data: { tool: 'eval_ruby', version: })
+    chat.log(:error, e, data: { tool: name, version: })
     {
       error: e.class,
       message: "Failed to evaluate Ruby code: #{e.message}"

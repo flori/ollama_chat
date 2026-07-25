@@ -8,7 +8,7 @@ describe OllamaChat::WebSearching do
   it 'can search web with duckduckgo' do
     url = 'https://www.duckduckgo.com/html/?q=foo'
     chat.config.web_search.engines.duckduckgo.attributes_update(url:)
-    expect(chat).to receive(:search_engine).and_return 'duckduckgo'
+    expect(chat).to receive(:search_engine).at_least(:once).and_return 'duckduckgo'
     stub_request(:get, url).
       with(headers: { 'Host'=> 'www.duckduckgo.com' }).
       to_return(status: 200, body: asset_content('duckduckgo.html'), headers: {})
@@ -20,7 +20,7 @@ describe OllamaChat::WebSearching do
   it 'can search web with searxng' do
     url = 'http://localhost:8088/search?format=json&language=en&q=foo'
     chat.config.web_search.engines.searxng.attributes_update(url:)
-    expect(chat).to receive(:search_engine).and_return 'searxng'
+    expect(chat).to receive(:search_engine).at_least(:once).and_return 'searxng'
     stub_request(:get, url).
       with(headers: { 'Host'=>'localhost:8088' }).
       to_return(status: 200, body: asset_content('searxng.json'), headers: {})

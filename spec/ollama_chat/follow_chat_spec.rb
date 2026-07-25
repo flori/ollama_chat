@@ -29,6 +29,11 @@ describe OllamaChat::FollowChat do
 
   it 'can follow without markdown' do
     expect(chat).to receive(:assistant).and_return nil
+    expect(chat).to receive(:log).with(
+      :info,
+      'Ollama chat response received',
+      hash_including(data: kind_of(Hash))
+    )
     message = OllamaChat::Message.new(role: 'assistant', content: 'world')
     response = double(message:, done: false)
     expect(output).to receive(:print).with(

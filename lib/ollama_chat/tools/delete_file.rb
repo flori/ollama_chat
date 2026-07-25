@@ -17,7 +17,7 @@ class OllamaChat::Tools::DeleteFile
     Tool.new(
       type: 'function',
       function: Tool::Function.new(
-        name: self.class.register_name,
+        name:,
         description: <<~EOT,
           File deleter – Deletes a file at the given path.
           A backup is automatically created before deletion. Path must be
@@ -60,6 +60,7 @@ class OllamaChat::Tools::DeleteFile
 
     path.delete
 
+    chat.log(:info, "File deleted", data: { tool: name, path: path.to_s })
     {
       success: true,
       path:    path.to_s,
@@ -67,7 +68,7 @@ class OllamaChat::Tools::DeleteFile
       message: "File #{path} deleted successfully. Backup created at #{backup_path}.",
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'delete_file', path: args.path })
+    chat.log(:error, e, data: { tool: name, path: args.path })
     {
       error:   e.class,
       path:    e.ask_and_send(:path),

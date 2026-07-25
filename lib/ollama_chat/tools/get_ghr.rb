@@ -106,7 +106,7 @@ class OllamaChat::Tools::GetGHR
       data.to_json
     end
   rescue => e
-    chat.log(:error, e, data: { tool: 'get_ghr', user:, repo: })
+    chat.log(:error, e, data: { tool: name, user:, repo: })
     { error: e.class, message: e.message, user:, repo: }.to_json
   end
 

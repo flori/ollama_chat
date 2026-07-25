@@ -109,14 +109,17 @@ module OllamaChat::Clipboard
   # message to standard error and does not re-raise the exception.
   #
   # @param edit [truthy/falsy] If true, opens the content in the editor for
-  #   modification before copying (default: true)
+  #   modification before copying (default: false)
   #
   # @return [TrueClass] if the copying has been performed successfully.
   def copy_to_clipboard(edit: false)
-    perform_copy_to_clipboard(edit:)
+    text = last_message_content(content: false)
+    perform_copy_to_clipboard(text: text, edit:)
+    log(:info, "Copied to clipboard", data: { bytes: format_bytes(text.bytesize) }) if text
     STDOUT.puts "The last response has been successfully copied to the system clipboard."
     true
   rescue OllamaChat::OllamaChatError => e
+    log(:error, e, data: { method: __method__ })
     STDERR.puts e.message
   end
 
@@ -133,9 +136,11 @@ module OllamaChat::Clipboard
   #   or nil if an error occurred
   def paste_from_clipboard(edit: false)
     result = perform_paste_from_clipboard(edit:)
+    log(:info, "Pasted from clipboard", data: { bytes: format_bytes(result.bytesize) }) if result
     STDOUT.puts "The clipboard content has been successfully copied to the chat."
     result
   rescue OllamaChat::OllamaChatError => e
+    log(:error, e, data: { method: __method__ })
     STDERR.puts e.message
   end
 end

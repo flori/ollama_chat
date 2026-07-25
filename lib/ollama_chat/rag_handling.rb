@@ -53,11 +53,13 @@ module OllamaChat::RAGHandling
         when '[ALL]'
           if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
             @documents.clear
+            log(:info, "Collection cleared", data: { collection: })
             STDOUT.puts "Cleared collection #{bold{collection}}."
             break
           end
         when /./
           @documents.clear(tags: [ tag ])
+          log(:info, "Tag cleared from collection", data: { collection:, tag: })
           STDOUT.puts "Cleared tag #{tag} from collection #{bold{collection}}."
         end
       end
@@ -98,8 +100,11 @@ module OllamaChat::RAGHandling
       @documents.collection = collection
     end
   ensure
-    @session.update(current_collection: collection)
-    STDOUT.puts "Using collection #{bold{collection}}."
+    if collection
+      @session.update(current_collection: collection)
+      log(:info, "Collection switched", data: { collection: })
+      STDOUT.puts "Using collection #{bold{collection}}."
+    end
     info
   end
 
@@ -116,6 +121,7 @@ module OllamaChat::RAGHandling
       if new_collection = ask?(prompt:, prefill: current_collection).full?(:to_sym)
         begin
           @documents.rename_collection(new_collection)
+          log(:info, "Collection renamed", data: { old_name: current_collection, new_name: new_collection })
           STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
         rescue
           STDERR.puts "Renaming to #{new_collection} failed, it already exists."
@@ -161,6 +167,7 @@ module OllamaChat::RAGHandling
       r = embed(source, tags:) or next
       results << r
     end
+    log(:info, "Collection updated", data: { collection:, sources_updated: results.size })
     results * "\n"
   end
 end

@@ -23,7 +23,7 @@ class OllamaChat::Tools::ReadFile
     Tool.new(
       type: 'function',
       function: Tool::Function.new(
-        name: 'read_file',
+        name:,
         description: <<~EOT,
           File reader – Returns raw text from path if it’s within allowed
           directories. No side effects; useful for inspecting config or source
@@ -37,7 +37,10 @@ class OllamaChat::Tools::ReadFile
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The path to the file to read (must be within allowed directories)'
+              description: <<~EOT
+                The path to the file to read (must be within allowed
+                directories)
+              EOT
             ),
             start_line: Tool::Function::Parameters::Property.new(
               type: 'integer',
@@ -84,9 +87,14 @@ class OllamaChat::Tools::ReadFile
     line_numbers = args.line_numbers
 
     path                = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
-    content, line_count = extract_range(path.read, start_line, end_line, line_numbers:)
+    full_content        = path.read
+    content, line_count = extract_range(full_content, start_line, end_line, line_numbers:)
+    checksum            = '%08x' % Zlib.crc32(full_content) if line_numbers && !start_line && !end_line
     es                  = OllamaChat::TokenEstimator.estimate(content)
     message             = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
+    chat.log(:info, "File read", data: {
+      tool: name, path: path.to_s, bytes: es.bytes_formatted, tokens: es.tokens_formatted
+    })
 
     {
       path:         ,
@@ -96,10 +104,11 @@ class OllamaChat::Tools::ReadFile
       end_line:     ,
       line_numbers: ,
       line_count:   ,
+      checksum:     ,
       message:      ,
-    }.to_json
+    }.compact.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'read_file', path: args.path })
+    chat.log(:error, e, data: { tool: name, path: args.path })
     {
       error:      e.class,
       path:       e.ask_and_send(:path),

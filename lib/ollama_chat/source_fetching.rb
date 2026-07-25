@@ -1,6 +1,6 @@
 # A module that provides functionality for fetching and processing various
 # types of content sources.
-#
+
 # The SourceFetching module encapsulates methods for retrieving content from
 # different source types including URLs, file paths, and shell commands. It
 # handles the logic for determining the appropriate fetching method based on
@@ -38,10 +38,12 @@ module OllamaChat::SourceFetching
     when %r{\A!(.*)}
       command = $1
       OllamaChat::Utils::Fetcher.execute(command) do |tmp|
+        log(:info, "Command executed", data: { command:, bytes: format_bytes(tmp.size) })
         block.(tmp)
       end
     when %r{\Ahttps?://\S+}
       get_url(source, cache:) do |tmp|
+        log(:info, "URL fetched", data: { url: source, bytes: format_bytes(tmp.size) })
         block.(tmp)
       end
     when %r{\Afile://([^\s#]+)}
@@ -68,6 +70,7 @@ module OllamaChat::SourceFetching
   rescue => e
     msg = "Fetching source #{source.to_s.inspect}: #{e.class} #{e}"
     STDERR.puts "#{msg}\n#{e.backtrace * ?\n}"
+    log(:error, msg, data: { source: source.to_s, error: e.class })
     confirm?(prompt: '⏎  Press any key to continue (%s). ', output: STDERR, timeout: 3)
     msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
     block.(msg)
@@ -86,6 +89,7 @@ module OllamaChat::SourceFetching
   # @param source [String, #to_s] The identifier or path for the source of the image
   def add_image(images, source_io, source)
     STDERR.puts "Adding #{source_io&.content_type} image #{source.to_s.inspect}."
+    log(:info, "Image added", data: { source: source.to_s, content_type: source_io&.content_type })
     image = Ollama::Image.for_io(source_io, path: source.to_s)
     (images << image).uniq!
   end
@@ -103,8 +107,13 @@ module OllamaChat::SourceFetching
     source        = source.to_s
     document_type = source_io&.content_type.full? { |ct| italic { ct } + ' ' }
     STDOUT.puts "Importing #{document_type}document #{source.to_s.inspect} now."
+    log(:info, "Source imported", data: { source:, content_type: source_io&.content_type })
     source_content = parse_source(source_io)
-    "Imported #{source.inspect}:\n\n#{source_content}\n\n"
+    <<~EOT
+      Imported #{source.inspect}:
+
+      #{source_content}
+    EOT
   end
 
   # Imports content from the specified source and processes it.
@@ -136,6 +145,7 @@ module OllamaChat::SourceFetching
   # @return [String, nil] The formatted summary message or nil if content is empty or cannot be processed
   def summarize_source(source_io, source, words: nil)
     STDOUT.puts "Summarizing #{italic { source_io&.content_type }} document #{source.to_s.inspect} now."
+    log(:info, "Source summarized", data: { source: source.to_s, content_type: source_io&.content_type, words: })
     words = words.to_i
     words < 1 and words = 100
     source_content = parse_source(source_io)
@@ -176,6 +186,7 @@ module OllamaChat::SourceFetching
     @embedding.on? or return parse_source(source_io)
     unless @documents.source_modified?(source)
       STDOUT.puts "Source #{source.to_s.inspect} already up-to-date. => Skipping."
+      log(:info, "Source up-to-date", data: { source: source.to_s })
       return
     end
     text = parse_source(source_io) or return
@@ -207,6 +218,12 @@ module OllamaChat::SourceFetching
     inputs or return
     m = "Embedded #{italic { source_io&.content_type }} document "\
       "#{source.to_s.inspect} in collection #{collection.to_s.inspect}."
+    log(:info, "Source embedded", data: {
+      source: source.to_s,
+      content_type: source_io&.content_type&.to_s,
+      collection: collection.to_s,
+      chunks: inputs.size
+    })
     if count
       STDOUT.puts '%u. %s' % [ count, m ]
     else
@@ -264,6 +281,7 @@ module OllamaChat::SourceFetching
   # @return [ Object ] returns the result of the block execution if the file exists
   def fetch_source_as_filename(filename, &block)
     OllamaChat::Utils::Fetcher.read(filename) do |tmp|
+      log(:info, "File read", data: { path: filename, bytes: format_bytes(tmp.size) })
       block.(tmp)
     end
   end

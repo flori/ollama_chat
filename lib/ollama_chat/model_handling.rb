@@ -342,6 +342,7 @@ module OllamaChat::ModelHandling
 
     old_model != @model and reconfigure_model_options(profile:, keep_options:)
 
+    log(:info, "Model switched", data: { old_model:, new_model: @model, profile: })
     @model_metadata
   end
 

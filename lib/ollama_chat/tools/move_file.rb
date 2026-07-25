@@ -16,7 +16,7 @@ class OllamaChat::Tools::MoveFile
     Tool.new(
       type: 'function',
       function: Tool::Function.new(
-        name: self.class.register_name,
+        name:,
         description: <<~EOT,
           File mover/renamer – Moves a file from the source path to the destination path.
           The destination path must not already exist. Both paths must be allowed.
@@ -68,6 +68,7 @@ class OllamaChat::Tools::MoveFile
 
     # Perform the move
     FileUtils.mv(source, destination)
+    chat.log(:info, "File moved", data: { tool: name, source: source.to_s, destination: destination.to_s })
 
     {
       success:     true,
@@ -76,7 +77,7 @@ class OllamaChat::Tools::MoveFile
       message:     "File moved successfully from #{source} to #{destination}.",
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'move_file', source: source.to_s, destination: destination.to_s })
+    chat.log(:error, e, data: { tool: name, source: source.to_s, destination: destination.to_s })
     {
       error:   e.class,
       source:  e.ask_and_send(:source),

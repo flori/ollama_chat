@@ -77,7 +77,7 @@ class OllamaChat::Tools::SearchWeb
       results:,
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'search_web', query: args.query })
+    chat.log(:error, e, data: { tool: name, query: args.query })
     {
       error:   e.class,
       message: e.message,

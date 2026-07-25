@@ -42,6 +42,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.message).to include('Read 20.0 B (6.0 T) from')
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
+    expect(json.checksum).not_to be_present
   end
 
   it 'can extract range when start_line is provided and end_line is nil' do
@@ -63,6 +64,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.message).to include('Read 20.0 B (6.0 T) from')
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
+    expect(json.checksum).not_to be_present
   end
 
   it 'can extract range when start_line is nil and end_line is provided' do
@@ -84,6 +86,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.message).to include('Read 20.0 B (6.0 T) from')
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
+    expect(json.checksum).not_to be_present
   end
 
   it 'returns empty content when end_line is less than start_line' do
@@ -104,6 +107,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.content).to eq ''
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
+    expect(json.checksum).not_to be_present
   end
 
   it 'can prefix each line with its line number' do
@@ -123,6 +127,7 @@ describe OllamaChat::Tools::ReadFile do
     json = json_object(result)
     expect(json.content).to include("1: puts \"Hello World!\"\n")
     expect(json.line_count).to eq 1
+    expect(json.checksum).to match(/\A[0-9a-f]{8}\z/)
   end
 
   it 'does not prefix lines when line_numbers is false' do
@@ -143,6 +148,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.content).not_to include("1: ")
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
+    expect(json.checksum).not_to be_present
   end
 
   it 'can extract range with start_line and end_line with line numbers' do
@@ -166,6 +172,7 @@ describe OllamaChat::Tools::ReadFile do
     EOT
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to eq 5
+    expect(json.checksum).not_to be_present
   end
 
   it 'can handle execution errors gracefully when path is not allowed' do
@@ -190,6 +197,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
+    expect(json.checksum).not_to be_present
   end
 
   it 'can handle exceptions gracefully' do
@@ -212,6 +220,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
+    expect(json.checksum).to be_nil
     expect(json.message).to match(/Failed to read file:.* does not exist/)
   end
 end

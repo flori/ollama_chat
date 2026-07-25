@@ -123,6 +123,10 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       records = rerank_records(chat, query, records)
     end
 
+    chat.log(:info, "Snippets retrieved", data: {
+      tool: name, collection: chat.documents.collection, hits: records.size
+    })
+
     collection_name = chat.documents.collection
     message =
       if records.any?
@@ -158,7 +162,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       rerank:,
     }.to_json
   rescue => e
-    chat.log(:error, e, data: { tool: 'retrieve_document_snippets', query: args.query })
+    chat.log(:error, e, data: { tool: name, query: args.query })
     { error: e.class.name, message: e.message }.to_json
   ensure
     old_collection and chat.documents.collection = old_collection
@@ -194,7 +198,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
         records  = records.values_at(*indices) if indices.any?
       end
     rescue => e
-      chat.log(:error, e, data: { tool: 'retrieve_document_snippets', context: 'rerank' })
+      chat.log(:error, e, data: { tool: name, context: 'rerank' })
     end
     records
   end

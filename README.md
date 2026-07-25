@@ -120,7 +120,7 @@ A source isn't just a filename; it can be any of the following:
 *   **Remote URLs**: Any `http://` or `https://` link. The command will fetch the
     web content and parse it before importing.
 *   **Shell Commands (`!`)**: Any source starting with an exclamation mark is
-    executed as a shell command, and its **STDOUT** is imported as the content. 
+    executed as a shell command, and its **STDOUT** is imported as the content.
     *   *Example*: `/input !ls -la` imports the current directory listing.
     *   *Example*: `/input !git branch` tells the AI which branch you are on.
 
@@ -357,6 +357,56 @@ functionality:
 
 These parameters provide greater flexibility in how you interact with
 `ollama_chat`, whether from the command line or integrated tools like `vim`.
+
+### Using `ollama_chat_log` to Inspect Application Logs
+
+OllamaChat produces structured JSON logs that capture every tool execution,
+conversation state, and internal event. The `ollama_chat_log` utility allows you
+to filter, colorize, and tail these logs in real-time, displaying the full
+structured data payload by default.
+
+#### Basic Usage
+
+By default, `ollama_chat_log` reads the current session's log file located at
+`~/.local/state/ollama_chat/chat.json` (or wherever the default points).
+
+```bash
+# Show the last 10 log entries
+$ ollama_chat_log
+
+# Show the last 50 entries
+$ ollama_chat_log -n 50
+```
+
+#### Real-time Tailing
+
+Use the `-f` flag to follow the log file as new entries are appended, similar to
+`tail -f`.
+
+```bash
+$ ollama_chat_log -f
+```
+
+#### Filtering Logs with `-m`
+
+The `-m` flag allows you to filter logs based on nested JSON paths using dot
+notation. You can match for key presence or substring matches within values.
+
+- **Key Presence**: `-m "data.tool"` (shows only logs that have a `tool` key)
+- **Substring Match**: `-m "data.tool=read_file"` (shows logs where the tool is `read_file`)
+- **Nested Paths**: `-m "data.function.name=patch_file"`
+- **Regexp Match**: `-m "data.tool=^(write_file|patch_file)$"`
+
+You can chain multiple `-m` flags together. All patterns must match for a log
+entry to be displayed (AND logic).
+
+```bash
+# Show only successful file reads
+$ ollama_chat_log -m "data.tool=read_file" -m "level=info"
+
+# Follow and watch for specific tool executions
+$ ollama_chat_log -f -m "data.tool=execute_grep"
+```
 
 ## Available Tools
 

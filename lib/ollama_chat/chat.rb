@@ -15,6 +15,7 @@ require 'csv'
 require 'socket'
 require 'shellwords'
 require 'context_spook'
+require 'zlib'
 
 # A chat client for interacting with Ollama models through a terminal
 # interface.
@@ -160,9 +161,9 @@ class OllamaChat::Chat
   # @return [Array] a list of images to be sent with the next prompt
   attr_reader :images
 
-  # Provides read-only access to the cache instance used by the object
+  # Provides read-only access to the cache instance used by the object.
   #
-  # @attr_reader [Cache] the cache instance
+  # @return [OllamaChat::RedisCache, nil] the cache instance
   attr_reader :cache
 
   # The start method initializes the chat session by displaying information,
@@ -289,7 +290,13 @@ class OllamaChat::Chat
   # @param opts [Hash] keyword arguments for the chat call
   # @param block [Proc] optional handler block
   def call_ollama_chat(**opts, &block)
-    log(:info, "Ollama chat request", data: { opts: })
+    if debug
+      log(:debug, "Ollama chat request sent", data: opts)
+    else
+      clean_opts = opts.dup
+      clean_opts = clean_opts.slice!(:messages, :tools)
+      log(:info, "Ollama chat request sent", data: clean_opts)
+    end
     ollama.chat(**opts, &block)
   end
 
@@ -414,6 +421,8 @@ class OllamaChat::Chat
   # The method also handles server socket messages, manages chat history, and
   # ensures proper cleanup and configuration handling throughout the
   # interaction.
+  #
+  # @return [Integer] returns 0 on successful completion or raises an error
   def interact_with_user
     loop do
       content           = nil
@@ -634,7 +643,7 @@ class OllamaChat::Chat
     end
   end
 
-  # Adds documents from command line arguments to the document collection
+  # Adds documents from command line arguments to the document collection.
   #
   # Processes a list of document paths or URLs, handling both local files and
   # remote resources.

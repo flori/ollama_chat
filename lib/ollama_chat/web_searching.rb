@@ -27,6 +27,9 @@ module OllamaChat::WebSearching
     search_command = :"search_web_with_#{search_engine}"
     if respond_to?(search_command, true)
       send(search_command, query, n).tap do |results|
+        log(:info, "Web search performed", data: {
+          search_engine:, query:, results: results.size
+        })
         results.each { |url| links.add(url) }
       end
     else

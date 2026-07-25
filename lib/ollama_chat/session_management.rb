@@ -13,6 +13,13 @@ module OllamaChat::SessionManagement
     output = StringIO.new
     messages.write_conversation_jsonl(output)
     session.update(messages: output.string)
+    es = session.estimate_tokens
+    log(:info, "Messages stored in session", data: {
+      session_id: session.id,
+      size:       es.bytes_formatted,
+      tokens:     es.tokens_formatted,
+      messages:   session.count_messages
+    })
     self
   end
 
@@ -28,6 +35,7 @@ module OllamaChat::SessionManagement
       output:, collection: links
     )
     session.update(links: output.string)
+    log(:info, "Links stored in session", data: { session_id: session.id, count: links.count })
     self
   end
 
@@ -104,13 +112,13 @@ module OllamaChat::SessionManagement
                       else
                         name
                       end
-        es = OllamaChat::TokenEstimator.estimate(s.messages.to_s)
+        es = s.estimate_tokens
         table << [
           s.id.to_s,
           name,
           es.bytes_formatted,
           es.tokens_formatted,
-          s.messages.to_s.count(?\n),
+          s.count_messages,
           s.age(now:),
         ]
       end
@@ -127,9 +135,8 @@ module OllamaChat::SessionManagement
   #
   # @param output [IO] the output stream to write the information to (default: STDOUT)
   def show_session(output: STDOUT)
-    size_bytes     = session.messages.to_s.size
-    es             = OllamaChat::TokenEstimator.estimate(size_bytes)
-    messages_count = session.messages.to_s.count(?\n)
+    es             = session.estimate_tokens
+    messages_count = session.count_messages
     output.puts "#{bold{session.name}} (#{italic{session.id}}), #{es.bytes_formatted}/#{es.tokens_formatted}, #{messages_count} messages"
   end
 
@@ -187,6 +194,7 @@ module OllamaChat::SessionManagement
       use_model(_1)
       copy_model_options_to_session
     }
+    log(:info, "New session created", data: { session_id: session.id, name: session.name })
     nil
   end
 
@@ -213,6 +221,7 @@ module OllamaChat::SessionManagement
       use_model(_1)
       copy_model_options_to_session
     }
+    log(:info, "Session duplicated", data: { session_id: session.id, name: session.name, old_session_id: old_session.id })
     nil
   end
 
@@ -266,6 +275,7 @@ module OllamaChat::SessionManagement
       ) or return
       change_session(chosen.id)
       models::Session.where(id: current_session_id).destroy
+      log(:info, "Session deleted", data: { session_id: current_session_id, name: current_session_name })
       STDOUT.puts "Just deleted session #{current_session_name.inspect}!"
     end
   end
@@ -315,6 +325,7 @@ module OllamaChat::SessionManagement
           STDOUT.puts "Session with name #{name.inspect} already exists."
         else
           session.update(name:)
+          log(:info, "Session renamed", data: { session_id: session.id, new_name: name })
           STDOUT.puts "Renamed current session to #{name.inspect}."
         end
       else
@@ -431,6 +442,7 @@ module OllamaChat::SessionManagement
         set_current_system_prompt(session.current_system_prompt.full? || 'default')
         if session.lock?
           session_apply
+          log(:info, "Session changed", data: { session_id: session.id, name: session.name, previous_session_id: })
           info_session
           break
         else
@@ -479,8 +491,8 @@ module OllamaChat::SessionManagement
       now = Time.now
       sessions = session_query.order(Sequel.desc(:updated_at)).map { |session|
         duration = session.age(now:)
-        es       = OllamaChat::TokenEstimator.estimate(session.messages.to_s)
-        count    = session.messages.to_s.count(?\n)
+        es       = session.estimate_tokens
+        count    = session.count_messages
         locked   = if pid = session.locked?
                      if pid == $$
                        " 🔓#{pid} "

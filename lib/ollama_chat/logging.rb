@@ -31,14 +31,35 @@ module OllamaChat::Logging
     payload = {
       msg:   ,
       data:  data || {}
-    }
+    }.symbolize_keys_recursive
 
     if msg.is_a?(Exception)
+      if backtrace = msg.ask_and_send(:backtrace)
+        payload[:data][:backtrace] = backtrace
+      end
       payload[:msg] = msg = "#{msg.class}: #{msg.message}"
-      payload[:data][:backtrace] = msg.ask_and_send(:backtrace)
     else
-      payload[:msg] = msg.to_s
+      payload[:msg] = msg = msg.to_s
     end
+
+    # Sanitize payload for safe JSON serialization: break circular references
+    # and coerce non-serializable objects to strings while preserving
+    # primitives/hashes/arrays
+    payload = payload.deep_transform(
+      circular: ?…,
+      value: -> node {
+        keep = [
+          responding?(:to_hash), responding?(:to_ary), responding?(:to_int),
+          true, false, nil,
+        ]
+        case node
+        when *keep
+          node
+        else
+          node.to_s
+        end
+      }
+    )
 
     logger.send(severity, payload)
     warn and self.warn(msg)

@@ -92,7 +92,8 @@ module OllamaChat::PromptManagement
                 end
 
       prompt_content = edit_text(content)
-      store_prompt(name, prompt_content, context:).to_s
+      store_prompt(name, prompt_content, context:)
+      log(:info, "Prompt added", data: { name:, context: })
       true
     end
   end
@@ -114,6 +115,7 @@ module OllamaChat::PromptManagement
       yes: /\Ay/i
     ) or return
     selected_prompt.destroy
+    log(:info, "Prompt deleted", data: { name: selected_prompt.name, context: })
   end
 
   # Interactively selects an existing prompt and allows the user to edit its
@@ -125,6 +127,7 @@ module OllamaChat::PromptManagement
     selected_prompt = choose_prompt(context:, prompt: 'Which spell needs some fine-tuning? %s') or return
     selected_prompt.metadata['content'] = edit_text(selected_prompt.metadata['content'].to_s)
     selected_prompt.save
+    log(:info, "Prompt edited", data: { name: selected_prompt.name, context: })
     self
   end
 
@@ -164,6 +167,7 @@ module OllamaChat::PromptManagement
     duplicated_prompt.name = name
     duplicated_prompt.metadata['default'] = false
     duplicated_prompt.save
+    log(:info, "Prompt duplicated", data: { name:, old_name: selected_prompt.name, context: })
     self
   end
 
@@ -197,6 +201,7 @@ module OllamaChat::PromptManagement
     prompt_name = determine_valid_new_name_for_prompt('to import', context:) or return
     prompt_content = filename.read
     store_prompt(prompt_name, prompt_content, context:)
+    log(:info, "Prompt imported", data: { name: prompt_name, source: filename.to_s, context: })
     STDOUT.puts "Imported prompt as #{prompt_name.inspect}."
     self
   end
@@ -220,6 +225,7 @@ module OllamaChat::PromptManagement
     )
     filename = determine_valid_output_filename('to write to') or return
     filename.write(selected_prompt.to_s)
+    log(:info, "Prompt exported", data: { name: selected_prompt.name, dest: filename.to_s, context: })
     STDOUT.puts "Prompt #{selected_prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
     self
   end

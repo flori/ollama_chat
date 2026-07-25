@@ -50,6 +50,21 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
     Tins::Duration.new(updated_at ? now - updated_at : 0)
   end
 
+  # Estimates the token and byte size of the session's message history.
+  #
+  # @return [OllamaChat::TokenEstimator::Estimate] the estimated token and byte counts
+  def estimate_tokens
+    size_bytes = messages.to_s.size
+    OllamaChat::TokenEstimator.estimate(size_bytes)
+  end
+
+  # Counts the number of messages in the session's JSONL history.
+  #
+  # @return [Integer] the number of messages stored in the session
+  def count_messages
+    messages.to_s.count(?\n)
+  end
+
   # @!attribute [v] id
   #   @return [Integer] The primary key for the session.
   #
@@ -128,13 +143,11 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] updated_at
   #   @return [Time, nil] The timestamp of the last update to the session.
 
-  # The with_defaults method is a factory method that initializes a new
-  # Session model instance with a set of default values derived
-  # from the
-  # @param chat [OllamaChat::Chat] the active chat instance used to
-  #   extract
-  # @return [OllamaChat::Database::Models::Session] a new session
-  #   instance with default attributes
+  # Factory method that initializes a new Session model instance with a set
+  # of default values derived from the active chat configuration.
+  #
+  # @param chat [OllamaChat::Chat] the active chat instance used to extract defaults
+  # @return [OllamaChat::Database::Models::Session] a new session instance with default attributes
   def self.with_defaults(chat)
     tools_default_enabled =
       chat.config.tools.functions.to_h.

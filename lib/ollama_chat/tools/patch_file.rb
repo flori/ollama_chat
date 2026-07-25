@@ -1,9 +1,9 @@
 # A tool for proposing changes to a file through an interactive diff session.
 #
 # This tool allows the assistant to propose specific line-range replacements.
-# The resulting content is written to a temporary file and opened in a diff tool
-# (e.g., vimdiff) alongside the original file, enabling the user to selectively
-# apply changes.
+# The resulting content is written to a temporary file and opened in a diff
+# tool (e.g., vimdiff) alongside the original file, enabling the user to
+# selectively apply changes.
 class OllamaChat::Tools::PatchFile
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
@@ -36,15 +36,15 @@ class OllamaChat::Tools::PatchFile
           expected content. To save tokens, you can read just the range around
           your target area using `read_file` with specific start/end lines.
 
-          FRESHNESS CHECK: You MUST provide the current `mtime` and `line_count`
+          FRESHNESS CHECK: You MUST provide the current `checksum` (CRC32)
           of the file as returned by `read_file`. This ensures you are patching
           the most recent version of the file and prevents stale context errors.
 
-          Returns JSON with success or failure result. In the success case
-          a backup is created from the unchanged file.
-
-          Do not call this tool function unless explicitly requested by the
-          user.
+          IMPORTANT: The checksum is only returned by `read_file` when the
+          entire file is read with `line_numbers: true` (no start_line or
+          end_line specified). This is deliberate — you must have read the
+          complete file with line numbers before patching, ensuring you have
+          full context of the file's structure.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -79,16 +79,12 @@ class OllamaChat::Tools::PatchFile
                 },
               )
             ),
-            mtime: Tool::Function::Parameters::Property.new(
+            checksum: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The current modification time (ISO 8601) of the file from the latest `read_file` call.'
-            ),
-            line_count: Tool::Function::Parameters::Property.new(
-              type: 'integer',
-              description: 'The exact number of lines in the file from the latest `read_file` call.'
+              description: 'The CRC32 checksum of the file from the latest `read_file` call (8 hex chars).'
             ),
           },
-          required: %w[path edits mtime line_count]
+          required: %w[path edits checksum]
         )
       )
     )
@@ -109,11 +105,15 @@ class OllamaChat::Tools::PatchFile
     edits = args.edits or
       raise OllamaChat::ToolFunctionArgumentError,
       'require edits to patch file path with'
+    edits.is_a?(Array) or
+      raise OllamaChat::ToolFunctionArgumentError,
+      'edits needs to be an array of edits'
     edits = edits.map(&:to_h)
 
     path = args.path.full? or
       raise OllamaChat::ToolFunctionArgumentError,
       'require path to file to be patched'
+
     path = assert_valid_path(
       path,
       config.tools.functions.patch_file.allowed?,
@@ -121,26 +121,23 @@ class OllamaChat::Tools::PatchFile
     )
 
     # Freshness check to prevent stale context patching
-    current_mtime = File.mtime(path).iso8601(0)
-    current_lines = File.open(path) { _1.each_line.count }
+    content, current_checksum = File.open(path, 'r') { |file|
+      [ file.read.tap { file.rewind }, '%08x' % Zlib.crc32(file) ]
+    }
 
-    submitted_mtime = args.mtime
-    submitted_lines = args.line_count
-
-    if submitted_mtime != current_mtime
+    if args.checksum != current_checksum
       raise OllamaChat::ToolFunctionArgumentError,
-        "Stale context: File `#{path}` has been modified since your last read. "\
-        "Expected mtime `#{current_mtime}`, got `#{submitted_mtime}`."
+        "Stale context: File `#{path}` has been modified since your last read. " \
+        "Expected checksum `#{current_checksum}`, got `#{args.checksum}`."
     end
 
-    if submitted_lines != current_lines
-      raise OllamaChat::ToolFunctionArgumentError,
-        "Stale context: File `#{path}` line count mismatch. "\
-        "Expected `#{current_lines}`, got `#{submitted_lines}`."
-    end
+    # We use the content we just read for the patch, as it's verified fresh
+    patched_content = apply_edits(content, edits)
+    result  = apply_patch(chat, path, patched_content)
 
-    content = apply_edits(path, edits)
-    result  = apply_patch(chat, path, content)
+    chat.log(:info, "File patched", data: {
+      tool: name, path: path.to_s, success: result[:success], edits_count: edits.size
+    })
 
     message =
       if result[:success]
@@ -159,31 +156,38 @@ class OllamaChat::Tools::PatchFile
         "Failed to apply patch to file #{path.to_s.inspect}."
       end
 
+    mtime, checksum = File.open(path, 'rb') {
+      [ _1.mtime.iso8601(0), '%08x' % Zlib.crc32(_1) ]
+    }
+
     (result | {
-      path:    path.to_s,
-      message: ,
+      path:     path.to_s,
+      message:  message,
+      mtime:    ,
+      checksum: ,
     }).to_json
+
   rescue => e
-    chat.log(:error, e, data: { tool: 'patch_file', path: path.to_s })
+    chat.log(:error, e, data: { tool: name, path: path.to_s })
     {
-      error:   e.class,
-      success: false,
-      message: "Failed to apply patch to file #{path.to_s.inspect}: #{e.message}",
-      edits:   defined?(edits) ? edits : nil,
-    }.to_json
+      error:     e.class,
+      success:   false,
+      message:   "Failed to apply patch to file #{path.to_s.inspect}: #{e.message}",
+      edits:     defined?(edits) ? edits : nil,
+    }.compact.to_json
   end
 
   private
 
   # Applies range-based edits in reverse order to a file's content.
   #
-  # @param path [Pathname] The path to the existing file
+  # @param content [String] The raw content of the file
   # @param edits [Array<Hash>] A list of edit objects containing :start_line,
   #   :end_line, and :text
   #
   # @return [String] The resulting content after all replacements
-  def apply_edits(path, edits)
-    lines = File.readlines(path, chomp: true)
+  def apply_edits(content, edits)
+    lines = content.lines(chomp: true)
 
     # 1. Validation & Overlap Check
     validate_and_check_overlaps!(edits, lines.size)
@@ -202,6 +206,12 @@ class OllamaChat::Tools::PatchFile
     lines * ?\n
   end
 
+  # Validates the provided edits and checks for overlapping line ranges.
+  #
+  # @param edits [Array<Hash>] The edits to validate
+  # @param file_size [Integer] The total number of lines in the file
+  # @raise [OllamaChat::ToolFunctionArgumentError] if edits are invalid or
+  #   overlapping
   def validate_and_check_overlaps!(edits, file_size)
     edits.each_with_index do |e, i|
       e[:start_line] or raise OllamaChat::ToolFunctionArgumentError,
@@ -228,11 +238,19 @@ class OllamaChat::Tools::PatchFile
   end
 
   # Computes the MD5 digest of the file located at the given path.
+  #
+  # @param path [Pathname] The path to the file
+  # @return [String] The MD5 digest of the file
   def digest(path)
     Digest::MD5.file(path)
   end
 
   # Launches an interactive diff session to apply proposed changes.
+  #
+  # @param chat [OllamaChat::Chat] The chat instance
+  # @param path [Pathname] The path to the file being patched
+  # @param content [String] The proposed patched content
+  # @return [Hash] The result of the patch application
   def apply_patch(chat, path, content)
     old_digest = digest(path)
     diff_tool  = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'

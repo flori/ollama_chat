@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+require 'ollama_chat'
+require 'file/tail'
+require 'tins/xt'
+
+opts     = Tins::GO.go 'fm:n:h:', defaults: { ?n => 10  }
+log_path = ARGV.shift || OC::OLLAMA::CHAT::LOGFILE
+
+if opts[?h]
+  puts <<~EOT
+    Usage: #{File.basename($0)} [OPTIONS] [LOGFILE]
+
+    Options:
+    -f            Follow the log file (real-time tailing)
+    -n NUMBER     Rewind and show the last NUMBER of lines before starting
+    -m MATCH      Filter logs by JSON key paths and values (can be used multiple times)
+                  - Key presence match: -m "data.tool"
+                  - Substring match:    -m "data.tool=read_file" or -m "level=ERROR"
+                  - Regexp match:       -m "data.tool=^(write_file|patch_file)$"
+                  - Nested path match:  -m "data.function.name=write_file"
+    -h            Show this help
+
+    LOGFILE       Path to the JSON log file (defaults to the current chat log)
+  EOT
+  exit 0
+end
+
+unless File.exist?(log_path)
+  STDERR.puts "Error: Log file not found at #{log_path.inspect}"
+  exit 1
+end
+
+# The processing loop
+def process_logs(path, follow: false, rewind: 0, display_data: true, match: nil)
+  if follow
+    # Real-time tailing implementation
+    puts "Watching logs... (Ctrl+C to stop)"
+    File::Tail::Logfile.open(path, backward: rewind) do |log|
+      log.tail do |line|
+        output = OllamaChat::Utils::LogViewer.format_line(line, display_data:, match:)
+        output or next
+        puts output
+      end
+    end
+  else
+    File::Tail::Logfile.open(path, backward: rewind) do |log|
+      log.each do |line|
+        output = OllamaChat::Utils::LogViewer.format_line(line, display_data:, match:)
+        output or next
+        puts output
+      end
+    end
+  end
+rescue Interrupt
+  puts "\nStopping log viewer..."
+end
+
+process_logs(
+  log_path,
+  follow:       opts[?f],
+  rewind:       opts[?n].to_i,
+  match:        opts[?m]
+)

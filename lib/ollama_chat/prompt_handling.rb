@@ -88,7 +88,11 @@ module OllamaChat::PromptHandling
     patterns = Array(patterns.full? || '**/*.{txt,md}')
     filename = choose_filename(patterns)
 
-    filename.read if filename&.exist?
+    content = filename.read if filename&.exist?
+    log(:info, "Prompt loaded from file", data: {
+      file: filename&.to_s, bytes: content&.size
+    })
+    content
   end
 
 
