@@ -1,5 +1,46 @@
 # Changes
 
+## 2026-07-26 v0.0.101
+
+### Added
+
+- Introduced a `clean` subcommand to `/conversation` to remove tool content,
+  images, and thinking from messages in place, including a confirmation prompt
+  for the destructive operation.
+- Implemented `OllamaChat::Utils::LogViewer` and the `bin/ollama_chat_log`
+  utility for real-time, colorized JSON log tailing with regex filtering.
+- Added `estimate_tokens` and `count_messages` helper methods to
+  `OllamaChat::Database::Models::Session`.
+- Implemented `clean_messages!` in `MessageList` with associated YARD
+  documentation.
+
+### Changed
+
+- Enhanced file patching integrity by replacing `mtime` and `line_count` checks
+  with a CRC32 `checksum`. This acts as a "proof of reading": since LLMs cannot
+  calculate CRC32 in their head, echoing the checksum proves they have the
+  latest file context including linenumbers without requiring cryptographic
+  security.
+- Updated `read_file` to conditionally return `checksum` only when full-file
+  line numbers are requested, optimizing token usage for non-patching workflows.
+- Refactored `OllamaChat::Logging#log` to use `deep_transform` for payload
+  sanitization, handling circular references and non-serializable objects.
+- Standardized the `tool: name` variable across 28+ tool classes to ensure
+  consistent audit trails.
+- Expanded logging coverage for file operations, grep, tests, RAG handling,
+  session management, and clipboard operations.
+- Split `OllamaChat::FollowChat#eval_stats` into a data extraction method
+  `stats_hash` and a separate formatting method.
+- Updated `/conversation` command to support the `-c` flag for `save` and added
+  path validation for `save` and `load` subcommands.
+- Modified `lib/ollama_chat/tools/patch_file.rb` to validate that `edits` is an
+  `Array` and handle `checksum` mismatches.
+
+### Fixed
+
+- Improved option parsing scope within the `/conversation` command by moving
+  logic inside the `when 'save'` block.
+
 ## 2026-07-23 v0.0.100
 
 ### New Features
