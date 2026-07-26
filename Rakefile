@@ -32,7 +32,7 @@ GemHadar do
 
   required_ruby_version  '>= 3.2'
 
-  executables << 'ollama_chat' << 'ollama_chat_send'
+  executables << 'ollama_chat' << 'ollama_chat_send' << 'ollama_chat_log'
 
   github_workflows(
     'static.yml' => {}
