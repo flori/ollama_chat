@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-07-26 v0.0.102
+
+- Added `ollama_chat_log` executable to the gem manifest in the `Rakefile` and
+  `ollama_chat.gemspec`.
+
 ## 2026-07-26 v0.0.101
 
 ### Added
