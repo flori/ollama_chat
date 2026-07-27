@@ -100,6 +100,7 @@ describe OllamaChat::Parsing do
     end
 
     it 'can parse Postscript' do
+      `which gs`.present? or skip 'no gs in path'
       asset_io('example.ps') do |io|
         def io.content_type
           'application/postscript'
@@ -109,6 +110,7 @@ describe OllamaChat::Parsing do
     end
 
     it 'can parse PDF' do
+      `which gs`.present? or skip 'no gs in path'
       asset_io('example.pdf') do |io|
         def io.content_type
           'application/pdf'
@@ -118,6 +120,7 @@ describe OllamaChat::Parsing do
     end
 
     it 'can parse EPUB' do
+      `which pandoc`.present? or skip 'no pandoc in path'
       asset_io('example.epub') do |io|
         def io.content_type
           'application/epub+zip'
