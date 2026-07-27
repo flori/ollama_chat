@@ -134,7 +134,7 @@ module OllamaChat::Information
     output.print '  '; think_loud.show(output:)
     output.print '  '; think_strip.show(output:)
     output.print '  🛠️ '; tools_support.show(output:)
-    output.print '\u2699\uFE0F Chat Settings'
+    output.print "\u2699\uFE0F Chat Settings"
     output.print '  '; markdown.show(output:)
     output.print '  '; stream.show(output:)
     output.print '  🎙️ '; voice.show(output:)

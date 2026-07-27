@@ -75,6 +75,12 @@ describe OllamaChat::Tools::GetJiraIssue do
   end
 
   context 'when not configured via env var' do
+    before do
+      const_conf_as(
+        'OC::OLLAMA::CHAT::TOOLS::JIRA::URL' => nil,
+      )
+    end
+
     it 'can handle execution errors gracefully' do
       issue_key = 'FOO-1234'
       tool_call = double(
