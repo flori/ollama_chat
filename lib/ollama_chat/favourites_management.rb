@@ -11,7 +11,7 @@ module OllamaChat::FavouritesManagement
   # @param favourited [Boolean] whether the item is a favourite
   # @return [String] the decorated string
   def prefix_favourite(string, favourited)
-    fav = favourited ? '❤️' : '🩶'
+    fav = favourited ? "\u2764\uFE0F" : '🩶'
     "%s %s" % [ fav, string ]
   end
 

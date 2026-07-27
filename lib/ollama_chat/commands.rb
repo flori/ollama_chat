@@ -58,7 +58,7 @@ module OllamaChat::Commands
     complete: [ 'config', %w[ edit reload ] ],
     optional: true,
     help: <<~EOT
-      ⚙️ View, edit, or reload configuration
+      \u2699\uFE0F View, edit, or reload configuration
     EOT
   ) do |subcommand|
     case subcommand
@@ -110,7 +110,7 @@ module OllamaChat::Commands
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
     complete: [ 'favourite', %w[ add delete ], %w[ model prompt system persona suggest ] ],
     help: <<~EOT
-      ⭐ Manage favorites (add/delete models,
+      \u2B50\uFE0F Manage favorites (add/delete models,
          prompts, personae)
     EOT
   ) do |subcommand, type|
@@ -720,7 +720,7 @@ module OllamaChat::Commands
     name: :compose,
     regexp: %r(^/compose$),
     help: <<~EOT
-      ✍️  Compose message in external editor
+      \u270D\uFE0F  Compose message in external editor
     EOT
   ) do
     edit_text.full? or :next
@@ -930,7 +930,7 @@ module OllamaChat::Commands
     complete: [ 'info', %w[ session model runtime rag ] ],
     optional: true,
     help: <<~EOT,
-      ℹ️ Show info:
+      \u2139\uFE0F Show info:
          - session: Current chat details
          - model: Active AI model info
          - runtime: System/environmental data
