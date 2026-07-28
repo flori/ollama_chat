@@ -108,8 +108,9 @@ module OllamaChat::ModelHandling
   # Ollama::Options instance based on the edited configuration.
   #
   # @param model_name [String] the name of the model whose options are to be
-  #   edited.
-  def edit_model_options(model_name, profile: nil)
+  #   edited, defaults to @model.
+  def edit_model_options(model_name = nil, profile: nil)
+    model_name         ||= @model
     profile            ||= 'default'
     model_options        = get_stored_model_options(model_name, profile:)
     model_options        = fill_up_model_options(model_options)
@@ -147,19 +148,25 @@ module OllamaChat::ModelHandling
   # This method retrieves the options stored for the current session and
   # updates the active model options to match, ensuring the model behavior
   # aligns with the session's specific configuration.
-  def copy_model_options_from_session(profile: nil)
+  #
+  # @param model_name [String, nil] the model to use; defaults to @model
+  # @param profile [String, nil] the profile context for model options
+  def copy_model_options_from_session(model_name = nil, profile: nil)
     profile       ||= 'default'
-    model_name      = @model
+    model_name      ||= @model
     model_options   = get_session_model_options
     store_model_options(model_name, model_options, profile:)
     STDOUT.puts "Model options #{italic{profile}} for #{bold{model_name}} were copied from session model options."
   end
 
   # Resets the session's model options to match the stored defaults for the
-  # current model.
-  def copy_model_options_to_session(profile: nil)
+  # specified model.
+  #
+  # @param model_name [String, nil] the model to use; defaults to @model
+  # @param profile [String, nil] the profile context for model options
+  def copy_model_options_to_session(model_name = nil, profile: nil)
     profile              ||= 'default'
-    model_name             = @model
+    model_name             ||= @model
     stored_model_options   = get_stored_model_options(model_name, profile:)
     session.update(model_options: stored_model_options)
     STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} were copied to session model options."
@@ -319,7 +326,7 @@ module OllamaChat::ModelHandling
   # metadata for the selected model.
   #
   # @param model [ String, nil ] the model name to use; if omitted, the current
-  #   model is retained
+  #   model can be selected
   # @param keep_options [Boolean] if true, session-specific model options are
   #   retained instead of reverting to model defaults.
   #
@@ -328,7 +335,7 @@ module OllamaChat::ModelHandling
     profile   ||= 'default'
     old_model   = @model
 
-    if model.nil?
+    if model.blank?
       @model = choose_model('', @model)
     else
       @model = choose_model(model, config.model.name)

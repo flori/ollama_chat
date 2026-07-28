@@ -335,16 +335,17 @@ class OllamaChat::Chat
     !!@parse_content
   end
 
-  # Returns whether there is a prompt waiting to be prefilled into the input buffer.
+  # Returns the prefill prompt string if one exists and is not empty, or nil
+  # otherwise.
   #
-  # @return [Boolean] true if a prefill prompt exists and is not empty, false otherwise
+  # @return [String, NilClass] the prefill prompt string, or nil if not set or empty
   def prefill_prompt
     @prefill_prompt.full?
   end
 
-  # Sets the content to be prefilled into the next user input prompt.
-  #
-  # @param prefill_prompt [String, nil] The text to prefill, or nil to clear it
+  # @!attribute [w] prefill_prompt=
+  #   Sets the content to be prefilled into the next user input prompt.
+  #   @return [String, NilClass] the prompt
   attr_writer :prefill_prompt
 
   # Signals a graceful shutdown of the application.

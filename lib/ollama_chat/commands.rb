@@ -125,34 +125,38 @@ module OllamaChat::Commands
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))(?:\s+(-p\s*\w+))?$),
+    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))?((?:\s+(?:-p\s+\w+|-m))*)$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
     help: <<~EOT
       🤖 Manage AI models & profiles:
-         - change: Switch active model (-p [profile])
+         - change: Switch active model
          - options: Edit saved profile config
          - options from session: Save live → Saved
          - options to session: Apply Saved → Live
+         -p [profile] specify profile (default: 'default')
+         -m          interactively choose a model
     EOT
   ) do |subcommand, opts|
+    opts = go_command('p:m', opts, defaults: { ?p => 'default' })
+    model = if opts[?m]
+              choose_model('', @model)
+            else
+              @model
+            end
     case subcommand
     when 'change'
-      opts = go_command('p:', opts, defaults: { ?p => 'default' })
       begin
-        use_model(profile: opts[?p])
+        use_model(model, profile: opts[?p])
       rescue OllamaChat::UnknownModelError => e
         msg = "Caught #{e.class}: #{e}"
         log(:error, msg, data: { command: 'model', profile: opts[?p] }, warn: true)
       end
     when 'options'
-      opts = go_command('p:', opts, defaults: { ?p => 'default' })
-      edit_model_options(@model, profile: opts[?p])
+      edit_model_options(model, profile: opts[?p])
     when 'options from session'
-      opts = go_command('p:', opts, defaults: { ?p => 'default' })
-      copy_model_options_from_session(profile: opts[?p])
+      copy_model_options_from_session(model, profile: opts[?p])
     when 'options to session'
-      opts = go_command('p:', opts, defaults: { ?p => 'default' })
-      copy_model_options_to_session(profile: opts[?p])
+      copy_model_options_to_session(model, profile: opts[?p])
     end
     :next
   end
