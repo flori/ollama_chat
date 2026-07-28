@@ -23,8 +23,10 @@ class OllamaChat::Tools::RunTests
         description: <<~EOT,
            Test Runner - Runs all tests/specs under *path* the path were the
            tests/specs are located. `coverage=false` by default; set to true
-           for a coverage report. Returns JSON with test counts and, if
-           requested, coverage percentage.
+           for a coverage report. Returns JSON with the raw output and
+           status. After execution, provide a concise overview of the test
+           run, summarizing examples, failures, and coverage percentage
+           if available.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -57,8 +59,9 @@ class OllamaChat::Tools::RunTests
     coverage = tool_call.function.arguments.coverage || false
     path     = check_path(path, config)
     output, success = run_tests(path, coverage)
+    result = JSON.parse(output.lines.last) rescue nil
     chat.log(:info, "Tests executed", data: {
-      tool: name, path: path.to_s, success:
+      tool: name, path: path.to_s, success:, result:
     })
 
     message =
@@ -110,7 +113,11 @@ class OllamaChat::Tools::RunTests
   # @return [String, Boolean] the captured output and a success flag
   def run_tests(path, coverage)
     env = ENV.to_h | { 'START_SIMPLECOV' => coverage ? '1' : '0' }
-    cmd = [ test_runner, Shellwords.escape(path) ].join(' ')
+    runner = test_runner
+    unless runner.include?('%{path}')
+      runner = runner.gsub('%', '%%') % ' %{path}'
+    end
+    cmd = runner % { path: Shellwords.escape(path) }
     output, success = execute_test_command(env, cmd)
     return output, success
   end

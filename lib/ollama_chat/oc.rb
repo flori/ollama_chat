@@ -169,7 +169,11 @@ module OC
 
         # Run Tests tool configuration
         TEST_RUNNER = set do
-          description 'Configured test runner for run_tests tool function'
+          description <<~EOT
+            Test runner command template. Use %{path} to specify where the test
+            path argument goes; otherwise it is appended at the end.
+          EOT
+
           default     'rspec'
           required     true
         end
