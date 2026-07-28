@@ -172,13 +172,18 @@ module OllamaChat::ModelHandling
     STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} were copied to session model options."
   end
 
-  # Presents a list of stored profiles for the given model and prompts the user
-  # to select one.
+  # Presents an interactive list of stored configuration profiles for the
+  # specified model and prompts the user to select one.
+  #
+  # If only one profile exists for the model, it is returned immediately without
+  # prompting. If the user cancels the selection or chooses `[EXIT]`, `nil` is
+  # returned.
   #
   # @param model_name [String] the name of the model whose profiles are to be listed
-  # @return [String, nil] the selected profile name, or nil if none was chosen
+  # @return [String, nil] the selected profile name, or `nil` if none was chosen
   def choose_profile_for_model(model_name)
     profiles = models::ModelOptions.where(model_name:).order(:profile).map(&:profile)
+    profiles.size < 2 and return profiles.first
     profiles = [ '[EXIT]' ] + profiles
     case chosen = choose_entry(profiles, prompt: "Choose profile for #{bold{model_name}}: %s")
     when '[EXIT]', nil

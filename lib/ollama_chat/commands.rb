@@ -125,7 +125,7 @@ module OllamaChat::Commands
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))?((?:\s+(?:-p\s+\w+|-m))*)$),
+    regexp: %r(^/model(?:\s+(change|options|options from session|options to session))?((?:\s+(?:-m))*)$),
     complete: [ 'model', %w[ change options options\ from\ session options\ to\ session ] ],
     help: <<~EOT
       🤖 Manage AI models & profiles:
@@ -133,30 +133,26 @@ module OllamaChat::Commands
          - options: Edit saved profile config
          - options from session: Save live → Saved
          - options to session: Apply Saved → Live
-         -p [profile] specify profile (default: 'default')
-         -m          interactively choose a model
+         -m interactively choose a model
     EOT
   ) do |subcommand, opts|
-    opts = go_command('p:m', opts, defaults: { ?p => 'default' })
-    model = if opts[?m]
-              choose_model('', @model)
-            else
-              @model
-            end
+    opts    = go_command('m', opts)
+    model   = opts[?m] ? choose_model('', @model) : @model
+    profile = choose_profile_for_model(model) || 'default'
     case subcommand
     when 'change'
       begin
-        use_model(model, profile: opts[?p])
+        use_model(model, profile:)
       rescue OllamaChat::UnknownModelError => e
         msg = "Caught #{e.class}: #{e}"
-        log(:error, msg, data: { command: 'model', profile: opts[?p] }, warn: true)
+        log(:error, msg, data: { command: 'model', profile: }, warn: true)
       end
     when 'options'
-      edit_model_options(model, profile: opts[?p])
+      edit_model_options(model, profile:)
     when 'options from session'
-      copy_model_options_from_session(model, profile: opts[?p])
+      copy_model_options_from_session(model, profile:)
     when 'options to session'
-      copy_model_options_to_session(model, profile: opts[?p])
+      copy_model_options_to_session(model, profile:)
     end
     :next
   end
