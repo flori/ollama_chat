@@ -20,116 +20,134 @@ describe OllamaChat::Commands, protect_env: true do
 
   connect_to_ollama_server
 
-  it 'returns :next when input is "/reconnect"' do
-    expect(chat).to receive(:connect_ollama).and_return double('ollama')
-    expect(chat.handle_input("/reconnect")).to eq :next
+  describe '/reconnect' do
+    it 'returns :next when input is "/reconnect"' do
+      expect(chat).to receive(:connect_ollama).and_return double('ollama')
+      expect(chat.handle_input("/reconnect")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/copy"' do
-    expect(chat).to receive(:copy_to_clipboard).with(edit: false)
-    expect(chat.handle_input("/copy")).to eq :next
+  describe '/copy' do
+    it 'returns :next when input is "/copy"' do
+      expect(chat).to receive(:copy_to_clipboard).with(edit: false)
+      expect(chat.handle_input("/copy")).to eq :next
+    end
+
+    it 'returns :next when input is "/copy -e"' do
+      expect(chat).to receive(:copy_to_clipboard).with(edit: 1)
+      expect(chat.handle_input("/copy -e")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/copy -e"' do
-    expect(chat).to receive(:copy_to_clipboard).with(edit: 1)
-    expect(chat.handle_input("/copy -e")).to eq :next
+  describe '/paste' do
+    it 'returns "pasted this" when input is "/paste"' do
+      expect(chat).to receive(:paste_from_clipboard).with(edit: false).
+        and_return "pasted this"
+      expect(chat.handle_input("/paste")).to eq "pasted this"
+    end
+
+    it 'returns "pasted this" when input is "/paste -e"' do
+      expect(chat).to receive(:paste_from_clipboard).with(edit: 1).
+        and_return "pasted this"
+      expect(chat.handle_input("/paste -e")).to eq "pasted this"
+    end
   end
 
-  it 'returns "pasted this" when input is "/paste"' do
-    expect(chat).to receive(:paste_from_clipboard).with(edit: false).
-      and_return "pasted this"
-    expect(chat.handle_input("/paste")).to eq "pasted this"
+  describe '/toggle' do
+    it 'returns :next when input is "/toggle markdown"' do
+      expect(chat.markdown).to receive(:toggle)
+      expect(chat.handle_input("/toggle markdown")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle stream"' do
+      expect(chat.stream).to receive(:toggle)
+      expect(chat.handle_input("/toggle stream")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle location"' do
+      expect(chat.location).to receive(:toggle)
+      expect(chat.handle_input("/toggle location")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle runtime_info"' do
+      expect(chat.runtime_info).to receive(:toggle)
+      expect(chat.handle_input("/toggle runtime_info")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle voice"' do
+      expect(chat.voice).to receive(:toggle)
+      expect(chat.handle_input("/toggle voice")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle nixda"' do
+      expect(chat).to receive(:display_chat_help)
+      expect(chat.handle_input("/toggle nixda")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle embedding"' do
+      expect(chat.embedding_paused).to receive(:toggle)
+      expect(chat.embedding).to receive(:show)
+      expect(chat.handle_input("/toggle embedding")).to eq :next
+    end
   end
 
-  it 'returns "pasted this" when input is "/paste -e"' do
-    expect(chat).to receive(:paste_from_clipboard).with(edit: 1).
-      and_return "pasted this"
-    expect(chat.handle_input("/paste -e")).to eq "pasted this"
+  describe '/voice' do
+    it 'returns :next when input is "/voice"' do
+      expect(chat).to receive(:change_voice)
+      expect(chat.handle_input("/voice")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/toggle markdown"' do
-    expect(chat.markdown).to receive(:toggle)
-    expect(chat.handle_input("/toggle markdown")).to eq :next
+  describe '/list' do
+    it 'returns :next when input is "/list(?:\\s+(\\d*))? "' do
+      expect(chat.messages).to receive(:list_conversation).with(4, think_loud: true)
+      expect(chat.handle_input("/list 2")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/toggle stream"' do
-    expect(chat.stream).to receive(:toggle)
-    expect(chat.handle_input("/toggle stream")).to eq :next
+  describe '/clear' do
+    it 'returns :next when input is "/clear (messages|links|history|tags|images|all)"' do
+      expect(chat).to receive(:clean).with('messages')
+      expect(chat.handle_input("/clear messages")).to eq :next
+      expect(chat).to receive(:clean).with('links')
+      expect(chat.handle_input("/clear links")).to eq :next
+      expect(chat).to receive(:clean).with('history')
+      expect(chat.handle_input("/clear history")).to eq :next
+      expect(chat).to receive(:clean).with('tags')
+      expect(chat.handle_input("/clear tags")).to eq :next
+      expect(chat).to receive(:clean).with('images')
+      expect(chat.handle_input("/clear images")).to eq :next
+      expect(chat).to receive(:clean).with('all')
+      expect(chat.handle_input("/clear all")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/toggle location"' do
-    expect(chat.location).to receive(:toggle)
-    expect(chat.handle_input("/toggle location")).to eq :next
+  describe '/last' do
+    it 'returns :next when input is "/last"' do
+      expect(chat.messages).to receive(:show_last)
+      expect(chat.handle_input("/last")).to eq :next
+    end
+
+    it 'returns :next when input is "/last 2"' do
+      expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: true)
+      expect(chat.handle_input("/last 2")).to eq :next
+    end
+
+    it 'returns :next when input is "/last -p 2"' do
+      expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: false)
+      expect(chat.handle_input("/last -p 2")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/toggle runtime_info"' do
-    expect(chat.runtime_info).to receive(:toggle)
-    expect(chat.handle_input("/toggle runtime_info")).to eq :next
+  describe '/drop' do
+    it 'returns :next when input is "/drop(?:\\s+(\\d*))?"' do
+      expect(chat.messages).to receive(:drop).with(?2)
+      expect(chat.messages).to receive(:show_last)
+      expect(chat.handle_input("/drop 2")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/toggle voice"' do
-    expect(chat.voice).to receive(:toggle)
-    expect(chat.handle_input("/toggle voice")).to eq :next
-  end
-
-  it 'returns :next when input is "/toggle nixda"' do
-    expect(chat).to receive(:display_chat_help)
-    expect(chat.handle_input("/toggle nixda")).to eq :next
-  end
-
-  it 'returns :next when input is "/toggle embedding"' do
-    expect(chat.embedding_paused).to receive(:toggle)
-    expect(chat.embedding).to receive(:show)
-    expect(chat.handle_input("/toggle embedding")).to eq :next
-  end
-
-  it 'returns :next when input is "/voice"' do
-    expect(chat).to receive(:change_voice)
-    expect(chat.handle_input("/voice")).to eq :next
-  end
-
-  it 'returns :next when input is "/list(?:\\s+(\\d*))? "' do
-    expect(chat.messages).to receive(:list_conversation).with(4, think_loud: true)
-    expect(chat.handle_input("/list 2")).to eq :next
-  end
-
-  it 'returns :next when input is "/clear (messages|links|history|tags|images|all)"' do
-    expect(chat).to receive(:clean).with('messages')
-    expect(chat.handle_input("/clear messages")).to eq :next
-    expect(chat).to receive(:clean).with('links')
-    expect(chat.handle_input("/clear links")).to eq :next
-    expect(chat).to receive(:clean).with('history')
-    expect(chat.handle_input("/clear history")).to eq :next
-    expect(chat).to receive(:clean).with('tags')
-    expect(chat.handle_input("/clear tags")).to eq :next
-    expect(chat).to receive(:clean).with('images')
-    expect(chat.handle_input("/clear images")).to eq :next
-    expect(chat).to receive(:clean).with('all')
-    expect(chat.handle_input("/clear all")).to eq :next
-  end
-
-  it 'returns :next when input is "/last"' do
-    expect(chat.messages).to receive(:show_last)
-    expect(chat.handle_input("/last")).to eq :next
-  end
-
-  it 'returns :next when input is "/last 2"' do
-    expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: true)
-    expect(chat.handle_input("/last 2")).to eq :next
-  end
-
-  it 'returns :next when input is "/last -p 2"' do
-    expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: false)
-    expect(chat.handle_input("/last -p 2")).to eq :next
-  end
-
-  it 'returns :next when input is "/drop(?:\\s+(\\d*))?"' do
-    expect(chat.messages).to receive(:drop).with(?2)
-    expect(chat.messages).to receive(:show_last)
-    expect(chat.handle_input("/drop 2")).to eq :next
-  end
-
-  context 'model command' do
+  describe 'model command' do
     it 'returns :next when input is "/model change"' do
       expect(chat).to receive(:choose_model).and_return 'llama3.1'
       expect(chat.handle_input("/model change")).to eq :next
@@ -207,66 +225,80 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
-  it 'returns :next when input is "/session model options change"' do
-    expect(chat).to receive(:choose_profile_for_model).with(nil).and_return('default')
-    expect(chat).to receive(:copy_model_options_to_session).with(profile: 'default')
-    expect(chat.handle_input("/session model options change")).to eq :next
+  describe '/session model options change' do
+    it 'returns :next when input is "/session model options change"' do
+      expect(chat).to receive(:choose_profile_for_model).with(nil).and_return('default')
+      expect(chat).to receive(:copy_model_options_to_session).with(profile: 'default')
+      expect(chat.handle_input("/session model options change")).to eq :next
+    end
+
+    it 'returns :next when input is "/session model options change -p foo"' do
+      expect(chat).to receive(:copy_model_options_to_session).with(profile: 'foo')
+      expect(chat.handle_input("/session model options change -p foo")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/session model options change -p foo"' do
-    expect(chat).to receive(:copy_model_options_to_session).with(profile: 'foo')
-    expect(chat.handle_input("/session model options change -p foo")).to eq :next
+  describe '/system' do
+    it 'returns :next when input is "/system change"' do
+      expect(chat).to receive(:change_system_prompt).with(nil)
+      expect(chat.messages).to receive(:show_system_prompt)
+      expect(chat.handle_input("/system change")).to eq :next
+    end
+
+    it 'returns :next when input is "/system"' do
+      expect(chat).not_to receive(:change_system_prompt)
+      expect(chat.messages).to receive(:show_system_prompt)
+      expect(chat.handle_input("/system")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/system change"' do
-    expect(chat).to receive(:change_system_prompt).with(nil)
-    expect(chat.messages).to receive(:show_system_prompt)
-    expect(chat.handle_input("/system change")).to eq :next
+  describe '/regenerate' do
+    it 'returns :next when input is "/regenerate"' do
+      expect(STDOUT).to receive(:puts).with(/Not enough messages/)
+      expect(chat.handle_input("/regenerate")).to eq :redo
+    end
+
+    it 'returns :next when input is "/regenerate -e"' do
+      expect(STDOUT).to receive(:puts).with(/Not enough messages/)
+      expect(chat.handle_input("/regenerate -e")).to eq :redo
+    end
   end
 
-  it 'returns :next when input is "/system"' do
-    expect(chat).not_to receive(:change_system_prompt)
-    expect(chat.messages).to receive(:show_system_prompt)
-    expect(chat.handle_input("/system")).to eq :next
+  describe '/change response' do
+    it 'returns :next when input is "/change response"' do
+      expect(chat.handle_input("/change response")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/regenerate"' do
-    expect(STDOUT).to receive(:puts).with(/Not enough messages/)
-    expect(chat.handle_input("/regenerate")).to eq :redo
+  describe '/collection' do
+    it 'returns :next when input is "/collection(clear|change)"' do
+      expect(chat).to receive(:choose_entry)
+      expect(STDOUT).to receive(:puts).with(/Exiting/)
+      expect(chat.handle_input("/collection clear")).to eq :next
+      expect(chat).to receive(:choose_entry)
+      expect(chat).to receive(:info)
+      expect(STDOUT).to receive(:puts).with(/./)
+      expect(chat.handle_input("/collection change")).to eq :next
+      expect(STDOUT).to receive(:puts).with(array_including(:default))
+      expect(chat.handle_input("/collection list")).to eq :next
+      expect(chat).to receive(:rename_collection).with(collection.to_sym)
+      expect(chat.handle_input("/collection rename")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/regenerate -e"' do
-    expect(STDOUT).to receive(:puts).with(/Not enough messages/)
-    expect(chat.handle_input("/regenerate -e")).to eq :redo
+  describe '/info' do
+    it 'returns :next when input is "/info"' do
+      expect(chat).to receive(:info)
+      expect(chat.handle_input("/info")).to eq :next
+    end
   end
 
-  it 'returns :next when input is "/change response"' do
-    expect(chat.handle_input("/change response")).to eq :next
-  end
-
-  it 'returns :next when input is "/collection(clear|change)"' do
-    expect(chat).to receive(:choose_entry)
-    expect(STDOUT).to receive(:puts).with(/Exiting/)
-    expect(chat.handle_input("/collection clear")).to eq :next
-    expect(chat).to receive(:choose_entry)
-    expect(chat).to receive(:info)
-    expect(STDOUT).to receive(:puts).with(/./)
-    expect(chat.handle_input("/collection change")).to eq :next
-    expect(STDOUT).to receive(:puts).with(array_including(:default))
-    expect(chat.handle_input("/collection list")).to eq :next
-    expect(chat).to receive(:rename_collection).with(collection.to_sym)
-    expect(chat.handle_input("/collection rename")).to eq :next
-  end
-
-  it 'returns :next when input is "/info"' do
-    expect(chat).to receive(:info)
-    expect(chat.handle_input("/info")).to eq :next
-  end
-
-  it 'returns :next when input is "/document policy"' do
-    expect_any_instance_of(OllamaChat::StateSelectors::DatabaseStateSelector).
-      to receive(:choose_entry)
-    expect(chat.handle_input("/document policy")).to eq :next
+  describe '/document policy' do
+    it 'returns :next when input is "/document policy"' do
+      expect_any_instance_of(OllamaChat::StateSelectors::DatabaseStateSelector).
+        to receive(:choose_entry)
+      expect(chat.handle_input("/document policy")).to eq :next
+    end
   end
 
   describe '/input' do
@@ -404,16 +436,20 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
-  it 'returns "the response" when input is "/web\\s+(?:(\\d+)\\s+)?(.+)"' do
-    expect(chat).to receive(:web).with('23', 'query').and_return 'the response'
-    expect(chat.handle_input("/web 23 query")).to eq 'the response'
+  describe '/web' do
+    it 'returns "the response" when input is "/web\\s+(?:(\\d+)\\s+)?(.+)"' do
+      expect(chat).to receive(:web).with('23', 'query').and_return 'the response'
+      expect(chat.handle_input("/web 23 query")).to eq 'the response'
+    end
   end
 
-  it 'returns :next when input is "/links(?:\\s+(clear))?$ "' do
-    expect(chat).to receive(:manage_links).with(nil)
-    expect(chat.handle_input("/links")).to eq :next
-    expect(chat).to receive(:manage_links).with('clear')
-    expect(chat.handle_input("/links clear")).to eq :next
+  describe '/links' do
+    it 'returns :next when input is "/links(?:\\s+(clear))?$ "' do
+      expect(chat).to receive(:manage_links).with(nil)
+      expect(chat.handle_input("/links")).to eq :next
+      expect(chat).to receive(:manage_links).with('clear')
+      expect(chat.handle_input("/links clear")).to eq :next
+    end
   end
 
   describe 'conversation' do
@@ -470,23 +506,31 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
-  it 'returns :next when input is "/config"' do
-    expect(chat).to receive(:display_config)
-    expect(chat.handle_input("/config")).to eq :next
+  describe '/config' do
+    it 'returns :next when input is "/config"' do
+      expect(chat).to receive(:display_config)
+      expect(chat.handle_input("/config")).to eq :next
+    end
   end
 
-  it 'returns :return when input is "/quit"' do
-    expect { chat.handle_input("/quit") }.to\
-      raise_error(OllamaChat::OllamaChatQuitError)
+  describe '/quit' do
+    it 'returns :return when input is "/quit"' do
+      expect { chat.handle_input("/quit") }.to\
+        raise_error(OllamaChat::OllamaChatQuitError)
+    end
   end
 
-  it 'returns :next when input is "/nixda"' do
-    expect(chat).to receive(:display_chat_help)
-    expect(chat.handle_input("/nixda")).to eq :next
+  describe '/nixda' do
+    it 'returns :next when input is "/nixda"' do
+      expect(chat).to receive(:display_chat_help)
+      expect(chat.handle_input("/nixda")).to eq :next
+    end
   end
 
-  it 'returns "the help message" when input is "/help me"' do
-    expect(chat).to receive(:help_message).and_return 'the help message'
-    expect(chat.handle_input("/help me")).to include 'the help message'
+  describe '/help' do
+    it 'returns "the help message" when input is "/help me"' do
+      expect(chat).to receive(:help_message).and_return 'the help message'
+      expect(chat.handle_input("/help me")).to include 'the help message'
+    end
   end
 end
