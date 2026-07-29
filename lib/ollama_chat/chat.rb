@@ -169,6 +169,10 @@ class OllamaChat::Chat
   # The start method initializes the chat session by displaying information,
   # then prompts the user for input to begin interacting with the chat.
   def start
+    log(:info, 'Starting chat client', data: {
+      client:, server: { version: server_version, url: server_url }, user:,
+      config: @ollama_chat_config.filename,
+    })
     begin
       if model = session.current_model.full?
         use_model(model, keep_options: true)
