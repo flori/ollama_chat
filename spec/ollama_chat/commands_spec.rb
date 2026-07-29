@@ -89,6 +89,26 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.embedding).to receive(:show)
       expect(chat.handle_input("/toggle embedding")).to eq :next
     end
+
+    it 'returns :next when input is "/toggle markdown -y"' do
+      expect(chat.markdown).to receive(:set).with(true, show: true)
+      expect(chat.handle_input("/toggle markdown -y")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle markdown -n"' do
+      expect(chat.markdown).to receive(:set).with(false, show: true)
+      expect(chat.handle_input("/toggle markdown -n")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle stream -y"' do
+      expect(chat.stream).to receive(:set).with(true, show: true)
+      expect(chat.handle_input("/toggle stream -y")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle stream -n"' do
+      expect(chat.stream).to receive(:set).with(false, show: true)
+      expect(chat.handle_input("/toggle stream -n")).to eq :next
+    end
   end
 
   describe '/voice' do
@@ -148,23 +168,18 @@ describe OllamaChat::Commands, protect_env: true do
   end
 
   describe 'model command' do
-    it 'returns :next when input is "/model change"' do
-      expect(chat).to receive(:choose_model).and_return 'llama3.1'
-      expect(chat.handle_input("/model change")).to eq :next
-    end
-
-    it 'returns :next when input is "/model change -m" with default profile' do
+    it 'returns :next when input is "/model change" with default profile' do
       expect(chat).to receive(:choose_model).and_return 'mistral'
       expect(chat).to receive(:choose_profile_for_model).with('mistral').and_return nil
       expect(chat).to receive(:use_model).with('mistral', profile: 'default')
-      expect(chat.handle_input("/model change -m")).to eq :next
+      expect(chat.handle_input("/model change")).to eq :next
     end
 
-    it 'returns :next when input is "/model change -m" with custom profile' do
+    it 'returns :next when input is "/model change" with custom profile' do
       expect(chat).to receive(:choose_model).and_return 'mistral'
       expect(chat).to receive(:choose_profile_for_model).with('mistral').and_return 'foo'
       expect(chat).to receive(:use_model).with('mistral', profile: 'foo')
-      expect(chat.handle_input("/model change -m")).to eq :next
+      expect(chat.handle_input("/model change")).to eq :next
     end
 
     it 'returns :next when input is "/model options" with default profile' do

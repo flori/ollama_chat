@@ -86,19 +86,33 @@ module OllamaChat::Commands
 
   command(
     name: :toggle,
-    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding))?$),
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding)(?:\s+(-[yn]))?)?$),
     complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
     help: <<~EOT
       🎛️ Toggle feature switches
       (markdown, stream, location, runtime_info,
       voice, think_loud, think_strip, embedding)
+      Options: -y (on), -n (off)
     EOT
-  ) do |toggle_name|
+  ) do |toggle_name, flag|
     if toggle_name == 'embedding'
-      embedding_paused.toggle(show: false)
+      if flag == '-y'
+        embedding_paused.set(false)
+      elsif flag == '-n'
+        embedding_paused.set(true)
+      else
+        embedding_paused.toggle(show: false)
+      end
       embedding.show
     elsif toggle_name
-      send(toggle_name).toggle
+      switch = send(toggle_name)
+      if flag == '-y'
+        switch.set(true, show: true)
+      elsif flag == '-n'
+        switch.set(false, show: true)
+      else
+        switch.toggle
+      end
     else
       STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
     end
@@ -136,17 +150,21 @@ module OllamaChat::Commands
          -m interactively choose a model
     EOT
   ) do |subcommand, opts|
-    opts    = go_command('m', opts)
-    model   = opts[?m] ? choose_model('', @model) : @model
-    profile = choose_profile_for_model(model) || 'default'
-    case subcommand
-    when 'change'
+    if subcommand == 'change'
       begin
+        model   = choose_model('', @model)
+        profile = choose_profile_for_model(model) || 'default'
         use_model(model, profile:)
       rescue OllamaChat::UnknownModelError => e
         msg = "Caught #{e.class}: #{e}"
         log(:error, msg, data: { command: 'model', profile: }, warn: true)
       end
+      next :next
+    end
+    opts    = go_command('m', opts)
+    model   = opts[?m] ? choose_model('', @model) : @model
+    profile = choose_profile_for_model(model) || 'default'
+    case subcommand
     when 'options'
       edit_model_options(model, profile:)
     when 'options from session'
