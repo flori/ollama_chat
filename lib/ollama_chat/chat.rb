@@ -101,7 +101,7 @@ class OllamaChat::Chat
   # @raise [RuntimeError] If the Ollama API version is less than 0.9.0, indicating
   #   incompatibility with required API features
   def initialize(argv: ARGV.dup)
-    @opts               = go 'f:u:m:c:C:D:l:nMESVh', argv
+    @opts               = go 'f:u:m:l:nSVh', argv
     @opts[?h] and exit usage
     @opts[?V] and exit version
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
@@ -112,14 +112,8 @@ class OllamaChat::Chat
     setup_switches
     setup_state_selectors(config)
     connect_ollama
-    if conversation_file = @opts[?c]
-      messages.load_conversation(conversation_file)
-    else
-      messages.read_conversation_jsonl(session.messages.to_s)
-    end
-    repair_group_uuids
-    embedding_enabled.set(config.embedding.enabled && !@opts[?E])
-    @documents            = setup_documents
+    @documents = setup_documents
+    models::Collection.sync(self)
     @cache                = setup_cache
     @images               = []
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
@@ -221,7 +215,6 @@ class OllamaChat::Chat
   # @return [ Symbol ] the collection name symbol
   def initial_collection
     (
-      @opts[?C] ||
       session&.current_collection.full? ||
       config.embedding.collection.full? ||
       :default
@@ -639,10 +632,6 @@ class OllamaChat::Chat
         redis_url:         config.redis.documents.url?,
         debug:
       )
-
-      document_list = @opts[?D].to_a
-      add_documents_from_argv(document_list)
-      @documents
     else
       NULL
     end

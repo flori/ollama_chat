@@ -1,10 +1,6 @@
 describe OllamaChat::Commands, protect_env: true do
-  let :collection do
-    "test-#{Random.hex}"
-  end
-
   let :argv do
-    chat_default_config(%w[ -C ] << collection)
+    chat_default_config
   end
 
   before do
@@ -291,11 +287,11 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/collection clear")).to eq :next
       expect(chat).to receive(:choose_entry)
       expect(chat).to receive(:info)
-      expect(STDOUT).to receive(:puts).with(/./)
+      expect(STDOUT).to receive(:puts).with(/Using collection/)
       expect(chat.handle_input("/collection change")).to eq :next
-      expect(STDOUT).to receive(:puts).with(array_including(:default))
+      expect(STDOUT).to receive(:puts).with(/default/)
       expect(chat.handle_input("/collection list")).to eq :next
-      expect(chat).to receive(:rename_collection).with(collection.to_sym)
+      expect(chat).to receive(:rename_collection).with(:default)
       expect(chat.handle_input("/collection rename")).to eq :next
     end
   end

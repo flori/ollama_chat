@@ -72,6 +72,7 @@ module OllamaChat::Information
   #
   # @param output [IO] the output stream to write the message to
   def collection_stats(output: STDOUT)
+    col          = database_collection?(collection)
     length       = (Tins::Terminal.cols - 10).clamp(0..)
     wrapped_tags = Kramdown::ANSI::Width.
       wrap(@documents.tags.to_a.join(', '), length:).
@@ -79,6 +80,7 @@ module OllamaChat::Information
     output.puts <<~EOT
       Current Collection
         Name: #{bold{collection}}
+        Patterns: #{italic{col&.patterns&.join(' ')}}
         #Embeddings: #{@documents.size}
         #Tags: #{@documents.tags.size}
         Tags:
@@ -235,11 +237,6 @@ module OllamaChat::Information
         -n             create a new session
         -u URL         the ollama base url, OLLAMA_URL
         -m MODEL       the ollama chat model, OLLAMA_CHAT_MODEL, ?selector
-        -c CHAT        a saved chat conversation to load
-        -C COLLECTION  name of the collection used in this conversation
-        -D DOCUMENT    load document and add to embeddings collection (multiple)
-        -M             use (empty) MemoryCache for this chat session
-        -E             disable embeddings for this chat session
         -S             open a socket to receive input from ollama_chat_send
         -V             display the current version number and quit
         -h             this help
@@ -297,6 +294,21 @@ module OllamaChat::Information
     config.infobar.message.to_h
   end
 
+  # Retrieves a hash of collection names and their descriptions from the
+  # database.
+  #
+  # This is used to provide context to the AI model about available RAG
+  # collections.
+  #
+  # @return [Hash{String => String}] a hash mapping collection names to their
+  #   descriptions
+  def collection_descriptions
+    cols = models::Collection.select(:name, :description).order(:name)
+    cols.each_with_object({}) do |c, hash|
+      hash[c.name] = c.description
+    end
+  end
+
   # Generates a hash containing static runtime information.
   #
   # This method collects session-level constants including the user,
@@ -307,7 +319,7 @@ module OllamaChat::Information
   def static_runtime_information_values
     {
       client:               ,
-      collections:          JSON.pretty_generate(config.embedding.collection_descriptions?),
+      collections:          JSON.pretty_generate(collection_descriptions),
       current_directory:    Pathname.pwd.expand_path.to_path,
       languages:            config.languages * ', ',
       location:             location.on?.full? { location_description } || 'n/a',

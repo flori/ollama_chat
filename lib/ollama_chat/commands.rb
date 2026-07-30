@@ -601,13 +601,17 @@ module OllamaChat::Commands
 
   command(
     name: :collection,
-    regexp: %r(^/collection(?:\s+(change|clear|list|rename|update))?$),
-    complete: [ 'collection', %w[ change clear list rename update ] ],
+    regexp: %r(^/collection(?:\s+(change|clear|list|rename|update(?: all)?|new|edit|delete))?$),
+    complete: [ 'collection', %w[ change clear list rename update update\ all new edit delete ] ],
     optional: true,
     help: <<~EOT
       📚 Manage RAG collections:
          - change/clear/list/rename
          - update: Re-index modified docs
+         - update all: Re-index all collections
+         - new: Interactively create a new collection
+         - edit: Interactively update an existing collection
+         - delete: Permanently remove a collection
          - (no subcommand): Show stats
     EOT
   ) do |subcommand|
@@ -620,11 +624,25 @@ module OllamaChat::Commands
       list_collections
     when 'rename'
       rename_collection(collection)
+    when 'update all'
+      results = ''
+      all_collections.pluck(:name).each do |collection|
+        STDOUT.puts "📝 Updating collection #{collection.inspect}… "
+        results << update_collection(collection) << ?\n
+        STDOUT.puts "✅ Done."
+      end
+      results.full? and next results
     when 'update'
-      if results = update_collection
+      if results = update_collection(collection)
         disable_content_parsing
         next results
       end
+    when 'new'
+      create_collection
+    when 'edit'
+      edit_collection
+    when 'delete'
+      delete_collection
     when nil
       collection_stats
     end

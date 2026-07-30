@@ -5,15 +5,6 @@
 # changing collections, listing collections, and renaming collections within
 # the RAG system.
 module OllamaChat::RAGHandling
-  private
-
-  # Returns the name of the currently active document collection.
-  #
-  # @return [String, Symbol] the name of the current collection
-  def collection
-    @documents.collection
-  end
-
   # Temporarily switches the RAG collection to the specified collection.
   #
   # The current collection is stored and restored after the block is executed,
@@ -30,6 +21,24 @@ module OllamaChat::RAGHandling
     yield other_collection
   ensure
     @documents.collection = old_collection
+  end
+
+  private
+
+  # Looks up a collection in the database by name.
+  #
+  # @param collection [String, Symbol, #to_s] the collection name to look up
+  # @return [OllamaChat::Database::Models::Collection, nil] the found
+  #   collection, or `nil` if not present in the database
+  def database_collection?(collection)
+    models::Collection[name: collection.to_s]
+  end
+
+  # Returns the name of the currently active document collection.
+  #
+  # @return [String, Symbol] the name of the current collection
+  def collection
+    @documents.collection
   end
 
   # Clears documents from the collection through an interactive user interface.
@@ -82,18 +91,18 @@ module OllamaChat::RAGHandling
   #
   # @param current_collection [ String, nil ] the name of the currently active collection
   def choose_collection(current_collection)
-    collections = [ current_collection ] + @documents.collections.to_a
+    collections = [ current_collection ] + all_collections.pluck(:name)
     collections = collections.filter_map(&:to_s).uniq.sort
     collections.unshift('[EXIT]').unshift('[NEW]')
     collection = choose_entry(
       collections,
       prompt: 'Which archive of knowledge shall we delve into? %s'
     ) || current_collection
-    case collection&.to_s
+    case collection = collection&.to_s
     when '[NEW]'
-      @documents.collection = ask?(
-        prompt: "❓ Enter name of the new collection: "
-      )
+      if name = create_collection
+        @documents.collection = name
+      end
     when nil, '[EXIT]'
       STDOUT.puts "Exiting chooser."
     when /./
@@ -118,13 +127,20 @@ module OllamaChat::RAGHandling
   def rename_collection(current_collection)
     switch_history(:rename_collection) do
       prompt = 'Rename collection %s to: ' % current_collection
-      if new_collection = ask?(prompt:, prefill: current_collection).full?(:to_sym)
+      new_collection = switch_history :collection do
+        ask?(prompt:, prefill: current_collection).full?(:to_sym)
+      end
+      if new_collection
         begin
           @documents.rename_collection(new_collection)
+          col = database_collection?(current_collection)
+          col&.update(name: new_collection.to_s)
           log(:info, "Collection renamed", data: { old_name: current_collection, new_name: new_collection })
           STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
-        rescue
-          STDERR.puts "Renaming to #{new_collection} failed, it already exists."
+        rescue Sequel::UniqueConstraintViolation
+          STDERR.puts "❌ Renaming to #{new_collection} failed, it already exists in database."
+        rescue => e
+          STDERR.puts "❌ Renaming to #{new_collection} failed: #{e.message}"
         end
       else
         STDOUT.puts "Renaming cancelled."
@@ -132,42 +148,204 @@ module OllamaChat::RAGHandling
     end
   end
 
+  # Retrieves all document collections registered in the database.
+  #
+  # @return [Sequel::Dataset] a dataset of all collections ordered by name.
+  def all_collections
+    models::Collection.order(:name)
+  end
+
   # Displays the list of available collections in the terminal.
   #
   # This method retrieves the current collection and the full list of available
-  # collections from the internal document handler, highlighting the active one.
+  # collections and their descriptions from the internal document handler,
+  # highlighting the active one.
   def list_collections
-    current_collection = collection
-    STDOUT.puts @documents.collections.
-      map { |c| current_collection == c ? bold { c } : c }
+    current_collection = collection.to_s
+    collections = all_collections.select(:name, :description)
+    use_pager do |output|
+      collections.each { |c|
+        collection_name = current_collection == c.name ? bold { c.name } : c.name
+        collection_description = c.description
+        output.puts '%s: %s' % [ collection_name, collection_description ]
+      }
+    end
   end
 
   # Updates the documents in the current collection by re-embedding any sources
-  # that have been modified since they were first added.
+  # that have been modified since they were first added, and embedding any new
+  # files matching the collection's patterns.
   #
   # This method iterates through all records in the active collection and
   # identifies unique sources. For each modified source, it preserves the
   # existing tags, removes the stale records, and re-embeds the current
-  # version of the source.
+  # version of the source. It then scans for new files matching the
+  # collection's patterns and embeds them.
   #
   # @return [String] a newline-separated string of embedding result messages.
-  def update_collection
-    results = []
-    seen = {}
-    @documents.each_record do |record|
-      source = @documents.normalize_source(record.source) or next
-      seen.key?(source) and next
-      seen[source] = true
-      unless @documents.source_modified?(source)
-        infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
-        next
+  def update_collection(collection)
+    switch_collection(collection) do
+      unless col = database_collection?(collection)
+        STDERR.puts "❌ Collection #{collection.inspect} not found in database."
+        return
       end
-      tags = record.tags_set
-      @documents.source_remove(source)
-      r = embed(source, tags:) or next
-      results << r
+      results = []
+      seen = {}
+      @documents.each_record do |record|
+        source = @documents.normalize_source(record.source) or next
+        seen.key?(source) and next
+        seen[source] = true
+        unless @documents.source_modified?(source)
+          infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
+          next
+        end
+        tags = record.tags_set
+        @documents.source_remove(source)
+        r = embed(source, tags:) or next
+        results << r
+      end
+
+      if patterns = col.patterns.full?
+        all_file_set(patterns).each do |file|
+          seen[file.to_s] and next
+          seen[file.to_s] = true
+          r = embed(file.to_s, tags: []) or next
+          results << r
+        end
+      end
+
+      log(:info, "Collection updated", data: { collection:, sources_updated: results.size })
+      results * "\n"
     end
-    log(:info, "Collection updated", data: { collection:, sources_updated: results.size })
-    results * "\n"
+  end
+
+  # Extracts and normalizes file patterns from a space-separated string.
+  #
+  # Splits the input string by whitespace, strips each pattern, and expands
+  # them to absolute paths. Returns an empty array if the input is blank.
+  #
+  # @param patterns_str [String, nil] the space-separated glob patterns
+  # @return [Array<String>] an array of expanded absolute path patterns
+  def extract_patterns(patterns_str)
+    patterns = patterns_str.full? ? patterns_str.split(/\s+/).map(&:strip) : []
+    patterns.map { File.expand_path(_1) }
+  end
+
+  # Interactively create a new collection record.
+  def create_collection
+    name = ask?(prompt: "📚 Name of the new collection: ")
+    unless name.full?
+      STDERR.puts "❌ Cancelled creation of collection."
+      return
+    end
+
+    if database_collection?(name)
+      STDERR.puts "❌ Collection #{name.inspect} already exists."
+      return
+    end
+
+    description = ask?(prompt: "📝 Description: ")
+    unless description.full?
+      STDERR.puts "❌ Cancelled creation of collection #{name.inspect}."
+      return
+    end
+    patterns_str = ask?(prompt: "🔍 Patterns (space-separated globs, e.g., lib/**/*.rb): ")
+    patterns = extract_patterns(patterns_str)
+
+    begin
+      models::Collection.create(
+        name: name.to_s,
+        description: description.to_s,
+        patterns:
+      )
+      if patterns.full?
+        update_collection(name.to_s)
+      end
+      STDOUT.puts "✅ Created collection '#{name}'."
+      log(:info, "Collection created", data: { name: name, description:, patterns: })
+    rescue Sequel::UniqueConstraintViolation
+      STDERR.puts "❌ Collection #{name.inspect} already exists."
+    rescue Sequel::Error => e
+      STDERR.puts "❌ Database error: #{e.message}"
+    end
+    name.to_s
+  end
+
+  # Interactively update attributes of an existing collection.
+  def edit_collection
+    collections = models::Collection.order(:name).pluck(:name)
+    collections.unshift('[CANCEL]')
+    target_name = choose_entry(
+      collections,
+      prompt: '📚 Which collection to edit? %s'
+    )
+    return if target_name.nil? || target_name == '[CANCEL]'
+
+    col = database_collection?(target_name)
+    unless col
+      STDERR.puts "❌ Collection #{target_name.inspect} not found in database."
+      return
+    end
+
+    new_description = switch_history :collection do
+      ask?(
+        prompt: "📝 New description (leave blank to keep): ",
+        prefill: col.description
+      )
+    end
+    patterns = switch_history :patterns do
+      patterns_str = ask?(
+        prompt: "🔍 New patterns (space-separated, leave blank to keep): ",
+        prefill: col.patterns.full?(:join, ' ')
+      )
+      extract_patterns(patterns_str)
+    end
+
+    col.description = new_description.full? ? new_description.to_s : col.description
+    col.patterns    = patterns
+
+    begin
+      col.save
+      STDOUT.puts "✅ Updated collection '#{col.name}'."
+      log(:info, "Collection updated", data: { name: col.name })
+    rescue Sequel::Error => e
+      STDERR.puts "❌ Database error: #{e.message}"
+    end
+  end
+
+  # Permanently remove a collection from DB and purge from Documentrix.
+  def delete_collection
+    choose_with_state do
+      loop do
+        collections = models::Collection.order(:name).pluck(:name)
+        collections.unshift('[CANCEL]')
+        target_name = choose_entry(
+          collections,
+          prompt: '🗑️ Which collection to delete? %s'
+        )
+        break if target_name.nil? || target_name == '[CANCEL]'
+
+        col = database_collection?(target_name)
+        unless col
+          STDERR.puts "❌ Collection #{target_name.inspect} not found in database."
+          next
+        end
+
+        if confirm?(prompt: "⚠️ Are you sure you want to permanently delete #{target_name.inspect}? (y/n) ", yes: /\Ay/i)
+          begin
+            col.chat = self
+            col.destroy
+            STDOUT.puts "✅ Deleted collection #{target_name.inspect}."
+            log(:info, "Collection deleted", data: { name: target_name })
+          rescue Sequel::Error => e
+            STDERR.puts "❌ Database error: #{e.message}"
+          rescue => e
+            STDERR.puts "❌ Error removing from Documentrix: #{e.message}"
+          end
+        else
+          STDOUT.puts "🚫 Deletion cancelled."
+        end
+      end
+    end
   end
 end

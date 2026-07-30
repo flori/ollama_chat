@@ -1,10 +1,10 @@
 describe OllamaChat::Chat, protect_env: true do
   let :collection do
-    "test-#{Random.hex}"
+    :default
   end
 
   let :argv do
-    chat_default_config(%w[ -C ] << collection)
+    chat_default_config
   end
 
   before do
@@ -26,54 +26,14 @@ describe OllamaChat::Chat, protect_env: true do
     end
   end
 
-  context 'loading conversations' do
-    connect_to_ollama_server(instantiate: false)
-
-    let :argv do
-      chat_default_config(%w[ -C ] << collection << '-c' << asset('conversation.json'))
-    end
-
-    it 'dispays the last exchange of the converstation' do
-      expect(chat).to receive(:interact_with_user).and_return 0
-      expect(STDOUT).to receive(:puts).at_least(1)
-      chat.start
-    end
-  end
-
   describe OllamaChat::DocumentCache do
     connect_to_ollama_server(instantiate: false)
-
-    context 'with MemoryCache' do
-      let :argv do
-        chat_default_config(%w[ -M ])
-      end
-
-      it 'can use MemoryCache' do
-        expect(chat.documents.cache).to be_a Documentrix::Documents::MemoryCache
-      end
-    end
 
     context 'falls back to MemoryCache' do
       it 'falls back to MemoryCache' do
         expect_any_instance_of(OllamaChat::Chat).to\
           receive(:document_cache_class).and_raise(NameError)
         expect(chat.documents.cache).to be_a Documentrix::Documents::MemoryCache
-      end
-    end
-  end
-
-  describe Documentrix::Documents do
-    context 'with documents' do
-    connect_to_ollama_server(instantiate: false)
-
-      let :argv do
-        chat_default_config(%w[ -C ] << collection << '-D' << asset('example.html'))
-      end
-
-      it 'Adds documents passed to app via -D option' do
-        expect_any_instance_of(OllamaChat::Chat).to receive(:add_documents_from_argv).
-          with([ asset('example.html') ])
-        chat
       end
     end
   end
@@ -92,7 +52,7 @@ describe OllamaChat::Chat, protect_env: true do
     it 'can display collection_stats' do
       chat
       expect(STDOUT).to receive(:puts).with(
-        /Current Collection\n  Name: \e\[1m#{collection}\e\[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags:/
+        /Current Collection\n  Name: \e\[1mdefault\e\[0m\n  Patterns: \e\[3m\e\[0m\n  #Embeddings: 0\n  #Tags: 0\n  Tags:/
       )
       expect(chat.collection_stats).to be_nil
     end

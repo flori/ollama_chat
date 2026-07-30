@@ -63,7 +63,7 @@ module OllamaChat::SessionManagement
   # @return [OllamaChat::Database::Models::Session] a new session with default
   #   attributes
   def new_session
-    OllamaChat::Database::Models::Session.with_defaults(self)
+    models::Session.with_defaults(self)
   end
 
   # Retrieves the preferred session from the database, or creates a new one if
@@ -239,6 +239,7 @@ module OllamaChat::SessionManagement
                end
     session or abort "No session named #{bold{session_name.inspect}} found."
     if session.lock?
+      messages.read_conversation_jsonl(session.messages.to_s)
       session_apply
     else
       raise OllamaChat::OllamaChatError,
@@ -249,6 +250,7 @@ module OllamaChat::SessionManagement
   def session_apply
     session.update(working_directory: Dir.pwd)
     init_history
+    repair_group_uuids
     session
   end
 
@@ -434,13 +436,18 @@ module OllamaChat::SessionManagement
         session_close
         previous_session_id = session.id
         @session = chosen_session
-        messages.read_conversation_jsonl(session.messages.to_s)
-        repair_group_uuids
-        set_current_collection(session.current_collection.full? || :default)
-        session.current_model.full? { use_model(_1) }
-        set_default_persona_name(session.default_persona_name.full? || :none)
-        set_current_system_prompt(session.current_system_prompt.full? || 'default')
         if session.lock?
+          messages.read_conversation_jsonl(session.messages.to_s)
+          if current_collection = session.current_collection.full? and
+            database_collection?(current_collection)
+          then
+            set_current_collection(current_collection)
+          else
+            set_current_collection(:default)
+          end
+          session.current_model.full? { use_model(_1) }
+          set_default_persona_name(session.default_persona_name.full? || :none)
+          set_current_system_prompt(session.current_system_prompt.full? || 'default')
           session_apply
           log(:info, "Session changed", data: { session_id: session.id, name: session.name, previous_session_id: })
           info_session
