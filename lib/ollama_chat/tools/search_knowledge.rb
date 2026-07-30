@@ -16,12 +16,12 @@
 #
 # @note The tool is deliberately read‑only; it never mutates the chat or
 #   the underlying document store.
-class OllamaChat::Tools::RetrieveDocumentSnippets
+class OllamaChat::Tools::SearchKnowledge
   include OllamaChat::Tools::Concern
   include Kramdown::ANSI::Width
 
   # @return [String] the registered name for this tool
-  def self.register_name = 'retrieve_document_snippets'
+  def self.register_name = 'search_knowledge'
 
   # Function‑definition that the chat system exposes to the model.
   # It follows the same pattern as other tools in the project.
@@ -34,8 +34,8 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Return document snippets from the current collection of documents
-          that match the supplied query. The result is a JSON string containing
+          Search the local knowledge collections for text matching the
+          supplied query. The result is a JSON string containing
           a prompt header and an array of {text, tags} objects.
         EOT
         parameters: Tool::Function::Parameters.new(
@@ -44,7 +44,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
             query: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The query or text to search for in the document collection.
+                The query or text to search for in the knowledge collections.
               EOT
             ),
             tags: Tool::Function::Parameters::Property.new(
@@ -58,7 +58,7 @@ class OllamaChat::Tools::RetrieveDocumentSnippets
             collection: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The document collection to search in for the query or text.
+                The specific knowledge collection to search in.
               EOT
             ),
             min_similarity: Tool::Function::Parameters::Property.new(

@@ -57,7 +57,7 @@ prompts:
       - Current directory is "%{current_directory}"
       - Client is %{client}.
       - These tools have access to these allowed paths: %{tool_paths_allowed}
-      - Search in these collections with `retrieve_document_snippets`: %{collections}
+      - Search in these collections with `search_knowledge`: %{collections}
     dynamic_runtime_info: |
       There is usually no reason to mention this information to the user unless
       asked about it.
@@ -525,7 +525,7 @@ tools:
       default: true
       allowed:
         - './tmp'
-    retrieve_document_snippets:
+    search_knowledge:
       result_display_timeout: 3
       default: true
     compute_bmi:

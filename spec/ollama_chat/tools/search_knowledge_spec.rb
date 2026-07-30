@@ -1,4 +1,4 @@
-describe OllamaChat::Tools::RetrieveDocumentSnippets do
+describe OllamaChat::Tools::SearchKnowledge do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -6,7 +6,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
   connect_to_ollama_server
 
   it 'has the expected name' do
-    expect(described_class.new.name).to eq 'retrieve_document_snippets'
+    expect(described_class.new.name).to eq 'search_knowledge'
   end
 
   it 'provides a Tool instance' do
@@ -17,7 +17,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: 'Ruby array',
           tags: nil,
@@ -63,7 +63,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: 'Ruby array',
           tags: 'ruby,expert',
@@ -105,7 +105,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: 'Hobbits',
           tags: nil,
@@ -136,7 +136,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: '',
         )
@@ -153,7 +153,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: 'nonexistent',
           tags: nil,
@@ -179,7 +179,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: 'Ruby array',
           tags: nil,
@@ -216,7 +216,7 @@ describe OllamaChat::Tools::RetrieveDocumentSnippets do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'retrieve_document_snippets',
+        name: 'search_knowledge',
         arguments: double(
           query: 'Ruby array',
           tags: nil,
