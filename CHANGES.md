@@ -1,5 +1,58 @@
 # Changes
 
+## 2026-07-30 v0.0.103
+
+### Added
+
+- Introduced `-y` (on) and `-n` (off) flags to the `/toggle` command for
+  explicit state setting via `set(true, show: true)` or `set(false, show:
+  true)`.
+- Added startup logging to the Chat client in the `start` method of `chat.rb`,
+  recording the `client` and `server` versions, URL, `user`, and config
+  filename.
+- Implemented path templating support using `%{path}` in
+  `lib/ollama_chat/tools/run_tests.rb` and documented its usage in
+  `lib/ollama_chat/oc.rb`.
+- Added the `-m` flag to the `/model` command to enable interactive model
+  selection via `choose_model`.
+- Integrated JSON parsing for the last line of test output within execution
+  logs.
+
+### Changed
+
+- Optimized the `/model change` command by moving option parsing after an early
+  exit for the `change` subcommand.
+- Simplified the `/model` command by removing the `-p` flag and introducing
+  `choose_profile_for_model` for automatic profile resolution, falling back to
+  the `'default'` profile.
+- Refactored `use_model` and related methods to utilize keyword shorthand.
+- Updated `model_handling.rb` methods (`edit_model_options`,
+  `copy_model_options_from_session`, and `copy_model_options_to_session`) to
+  accept an optional `model_name` argument.
+- Standardized emoji rendering in tmux using Unicode escape sequences and
+  Variation Selector-16 across `lib/ollama_chat/commands.rb`,
+  `lib/ollama_chat/dialog.rb`, `lib/ollama_chat/favourites_management.rb` (via
+  `prefix_favourite`), and `lib/ollama_chat/information.rb`.
+- Updated the `OLLAMA_CHAT_TOOLS_TEST_RUNNER` environment variable to include
+  the `--no-color` flag for `bundle exec rspec`.
+
+### Fixed
+
+- Ensured the Jira tool is unconfigured in specs by setting the
+  `OC::OLLAMA::CHAT::TOOLS::JIRA::URL` constant to `nil` using `const_conf_as`.
+
+### Refactored
+
+- Reorganized command specs into dedicated `describe` blocks for `/copy`,
+  `/paste`, `/toggle`, and `/clear` within `commands_spec.rb`.
+- Moved `handle_input` test cases from `chat_spec.rb` to a new
+  `commands_spec.rb`.
+- Updated parsing specs in `spec/ollama_chat/parsing_spec.rb` to conditionally
+  skip tests based on the presence of `gs` (Postscript/PDF) or `pandoc` (EPUB).
+
+### Dependencies
+- Updated `rubygems_version` to **4.0.17**.
+
 ## 2026-07-26 v0.0.102
 
 - Added `ollama_chat_log` executable to the gem manifest in the `Rakefile` and
