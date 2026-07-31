@@ -1,5 +1,31 @@
 # Changes
 
+## 2026-07-31 v0.0.104
+
+### Changed
+
+#### Added
+
+- Enabled interactive profile creation with duplicate validation by supporting
+  the `allow_new` keyword argument in `choose_profile_for_model`.
+
+#### Changed
+
+- Standardized API naming conventions by renaming the `offer_new_session`
+  parameter to `allow_new` in `session_management.rb` and `choose_session`.
+- Updated `commands.rb` to pass `allow_new: true` to `choose_profile_for_model`
+  during `/model options` and implemented an early return on profile selection
+  cancellation.
+- Renamed the `OllamaChat::Tools::RetrieveDocumentSnippets` class to
+  `SearchKnowledge`.
+- Updated tool registration, default configuration, and descriptions for
+  `search_knowledge` to reference knowledge collections.
+
+#### Fixed
+
+- Adjusted `commands_spec.rb` test cases to reflect updated method signatures
+  and expected behavior for profile selection.
+
 ## 2026-07-30 v0.0.103
 
 ### Added
