@@ -163,13 +163,15 @@ module OllamaChat::Commands
     end
     opts    = go_command('m', opts)
     model   = opts[?m] ? choose_model('', @model) : @model
-    profile = choose_profile_for_model(model) || 'default'
     case subcommand
     when 'options'
+      profile = choose_profile_for_model(model, allow_new: true) or next :next
       edit_model_options(model, profile:)
     when 'options from session'
+      profile = choose_profile_for_model(model) || 'default'
       copy_model_options_from_session(model, profile:)
     when 'options to session'
+      profile = choose_profile_for_model(model) || 'default'
       copy_model_options_to_session(model, profile:)
     end
     :next

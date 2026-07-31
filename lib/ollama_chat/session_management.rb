@@ -231,7 +231,7 @@ module OllamaChat::SessionManagement
   # @return [OllamaChat::Database::Models::Session] the initialized session
   def setup_session
     @session = if session_name = @opts[?l]
-                 choose_session(session_name,  offer_new_session: true)
+                 choose_session(session_name,  allow_new: true)
                elsif @opts[?n]
                  new_session
                else
@@ -262,7 +262,7 @@ module OllamaChat::SessionManagement
       will be deleted, pick a new session to switch to.
     EOT
     confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
-    chosen = choose_session(??, except_id: current_session_id, offer_new_session: true, exit_app: true)
+    chosen = choose_session(??, except_id: current_session_id, allow_new: true, exit_app: true)
     if chosen == :quit_app
       STDOUT.puts "Exiting application."
       exit 0
@@ -423,7 +423,7 @@ module OllamaChat::SessionManagement
     name.full? or name = ??
     previous_session_id = nil
     loop do
-      if chosen_session = choose_session(name, offer_new_session: true)
+      if chosen_session = choose_session(name, allow_new: true)
         if chosen_session.nil? || chosen_session == session
           confirm?(
             prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ",
@@ -468,9 +468,9 @@ module OllamaChat::SessionManagement
   #
   # @param session_name [String] the name, ID, or pattern to search for
   # @param except_id [String, Integer, nil] an ID to exclude from the search results
-  # @param offer_new_session [Boolean] whether to offer creating a new session
+  # @param allow_new [Boolean] whether to offer creating a new session
   # @return [OllamaChat::Database::Models::Session, nil] the chosen session or nil
-  def choose_session(session_name, except_id: nil, offer_new_session: false, exit_app: false)
+  def choose_session(session_name, except_id: nil, allow_new: false, exit_app: false)
     session_name = session_name.to_s
     session_query = models::Session
     if except_id
@@ -514,7 +514,7 @@ module OllamaChat::SessionManagement
       session_name = if sessions.size == 1
                         sessions.first.value
                       else
-                        offer_new_session and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
+                        allow_new and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
                         if exit_app
                           sessions.unshift(SearchUI::Wrapper.new('[quit-app]', display: '[QUIT-APP]'))
                         end

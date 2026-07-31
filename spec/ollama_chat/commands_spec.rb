@@ -182,14 +182,13 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/model change")).to eq :next
     end
 
-    it 'returns :next when input is "/model options" with default profile' do
-      expect(chat).to receive(:choose_profile_for_model).with(nil).and_return nil
-      expect(chat).to receive(:edit_model_options).with(nil, profile: 'default')
+    it 'returns :next when input is "/model options" with cancel' do
+      expect(chat).to receive(:choose_profile_for_model).with(nil, allow_new: true).and_return nil
       expect(chat.handle_input("/model options")).to eq :next
     end
 
     it 'returns :next when input is "/model options" with custom profile' do
-      expect(chat).to receive(:choose_profile_for_model).with(nil).and_return 'foo'
+      expect(chat).to receive(:choose_profile_for_model).with(nil, allow_new: true).and_return 'foo'
       expect(chat).to receive(:edit_model_options).with(nil, profile: 'foo')
       expect(chat.handle_input("/model options")).to eq :next
     end
@@ -220,14 +219,14 @@ describe OllamaChat::Commands, protect_env: true do
 
     it 'returns :next when input is "/model options -m" with default profile' do
       expect(chat).to receive(:choose_model).and_return 'codellama'
-      expect(chat).to receive(:choose_profile_for_model).with('codellama').and_return nil
+      expect(chat).to receive(:choose_profile_for_model).with('codellama', allow_new: true).and_return 'default'
       expect(chat).to receive(:edit_model_options).with('codellama', profile: 'default')
       expect(chat.handle_input("/model options -m")).to eq :next
     end
 
     it 'returns :next when input is "/model options from session -m" with default profile' do
       expect(chat).to receive(:choose_model).and_return 'codellama'
-      expect(chat).to receive(:choose_profile_for_model).with('codellama').and_return nil
+      expect(chat).to receive(:choose_profile_for_model).with('codellama').and_return 'default'
       expect(chat).to receive(:copy_model_options_from_session).with('codellama', profile: 'default')
       expect(chat.handle_input("/model options from session -m")).to eq :next
     end
