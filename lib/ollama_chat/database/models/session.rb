@@ -137,6 +137,12 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] messages
   #   @return [String] The full conversation history, stored in JSONL format.
   #
+  # @!attribute [v] links
+  #   @return [String] A text field storing links associated with the session.
+  #
+  # @!attribute [v] history
+  #   @return [String] A text field storing the history for the session.
+  #
   # @!attribute [v] created_at
   #   @return [Time, nil] The timestamp when the session was created.
   #
