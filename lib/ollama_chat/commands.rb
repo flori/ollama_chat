@@ -457,7 +457,7 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|-e))?(\s+(?:-[ef]|-c\s+\w+))?(?:\s+([^-].*))?$),
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
     complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset ] ],
     optional: true,
     options: '[-c CONTEXT|-e|-f]',
@@ -465,42 +465,61 @@ module OllamaChat::Commands
       📝 Manage prompt templates:
          Subcommands: edit, info, add, delete, list,
          duplicate, import, export, reset.
-         Options: -c [context], -e (edit next)
+         Options: -c [context]
+                     (? for interactive in /prompt),
+                  -e (edit next)
     EOT
   ) do |subcommand, opts, filename|
     opts = go_command('fc:', opts)
+    context = if subcommand.nil? || subcommand == '-e'
+                if opts[?c] == ??
+                  choose_prompt_context
+                else
+                  opts[?c] || 'prompt'
+                end
+              else
+                opts[?c] || choose_prompt_context
+              end
+    unless context
+       STDOUT.puts 'Cancelled.'
+       next :next
+    end
+
     case subcommand
     when 'add'
-      add_new_prompt(context: opts[?c])
+      add_new_prompt(context:)
     when 'delete'
-      choose_and_delete_prompt(context: opts[?c], force: opts[?f])
+      choose_and_delete_prompt(context:, force: opts[?f])
     when 'edit'
-      choose_and_edit_prompt(context: opts[?c])
+      choose_and_edit_prompt(context:)
     when 'list'
-      list_prompts(context: opts[?c])
+      list_prompts(context:)
     when 'duplicate'
-      duplicate_prompt(context: opts[?c])
+      duplicate_prompt(context:)
     when 'import'
-      import_prompt(filename, context: opts[?c])
+      import_prompt(filename, context:)
     when 'export'
-      export_prompt(context: opts[?c])
+      export_prompt(context:)
     when 'info'
-      info_prompt(context: opts[?c])
+      info_prompt(context:)
     when 'reset'
       if prompt = choose_prompt(
           default: true,
-          context: opts[?c],
+          context:,
           prompt: 'Which prompt needs to be restored to its origin? %s'
         )
       then
-        if reset_prompt_to_default(prompt.name, context: opts[?c])
+        if reset_prompt_to_default(prompt.name, context:)
           STDOUT.puts "Reset prompt #{bold{prompt.name}} to default."
         else
           STDOUT.puts "No default value found for prompt #{bold{prompt.name}}."
         end
       end
     when nil, '-e'
-      if prompt = choose_prompt(prompt: 'Which template shall guide the next response? %s').full?(&:to_s)
+      if prompt = choose_prompt(
+          prompt: 'Which template shall guide the next response? %s',
+          context:
+        ).full?(&:to_s)
         if subcommand
           prompt = edit_text(prompt)
           next prompt

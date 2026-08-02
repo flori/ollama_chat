@@ -21,6 +21,27 @@ module OllamaChat::PromptManagement
     end
   end
 
+  # The choose_prompt_context method presents a menu of available prompt
+  # contexts for selection. It allows the user to choose between 'prompt',
+  # 'system', and 'suggest' contexts.
+  #
+  # @return [String, nil] the selected context name, or nil if the user
+  #   cancels the selection.
+  def choose_prompt_context
+    contexts = models::Prompt.group(:context).order(:context).pluck(:context)
+    contexts.unshift('[EXIT]')
+    case chosen = choose_entry(
+      contexts,
+      prompt: '📝 Which prompt context shall we work in? %s'
+    )
+    when '[EXIT]', nil
+      STDOUT.puts "Exiting chooser."
+      return
+    else
+      chosen
+    end
+  end
+
   # The choose_prompt method presents a menu of available prompts for
   # selection. It retrieves the list of prompt names from the database, adds an
   # '[EXIT]' option, and displays them via the Chooser utility.
