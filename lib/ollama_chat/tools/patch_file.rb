@@ -36,9 +36,10 @@ class OllamaChat::Tools::PatchFile
           expected content. To save tokens, you can read just the range around
           your target area using `read_file` with specific start/end lines.
 
-          FRESHNESS CHECK: You MUST provide the current `checksum` (CRC32)
-          of the file as returned by `read_file`. This ensures you are patching
-          the most recent version of the file and prevents stale context errors.
+          FRESHNESS CHECK: You MUST provide the current `checksum` (8 hex
+          digits long CRC32) of the file as returned by `read_file`. This
+          ensures you are patching the most recent version of the file and
+          prevents stale context errors.
 
           IMPORTANT: The checksum is only returned by `read_file` when the
           entire file is read with `line_numbers: true` (no start_line or
@@ -81,7 +82,10 @@ class OllamaChat::Tools::PatchFile
             ),
             checksum: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The CRC32 checksum of the file from the latest `read_file` call (8 hex chars).'
+              description: <<~EOT
+                The CRC32 checksum of the file from the latest `read_file` call
+                (8 hex digits long).
+              EOT
             ),
           },
           required: %w[path edits checksum]
