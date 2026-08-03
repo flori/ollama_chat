@@ -233,6 +233,17 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:copy_model_options_to_session).with('codellama', profile: 'default')
       expect(chat.handle_input("/model options to session -m")).to eq :next
     end
+
+    it 'returns :next when input is "/model options copy"' do
+      expect(chat).to receive(:copy_model_options_profile).with(nil)
+      expect(chat.handle_input("/model options copy")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options copy -m"' do
+      expect(chat).to receive(:choose_model).and_return 'codellama'
+      expect(chat).to receive(:copy_model_options_profile).with('codellama')
+      expect(chat.handle_input("/model options copy -m")).to eq :next
+    end
   end
 
   describe '/session model options change' do

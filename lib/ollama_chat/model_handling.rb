@@ -172,6 +172,37 @@ module OllamaChat::ModelHandling
     STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} were copied to session model options."
   end
 
+  # Interactively copies model options from a source model/profile to the
+  # current model/profile. Displays a side-by-side comparison if the
+  # destination profile already exists and prompts for override confirmation.
+  #
+  # @param model [String] the destination model for the copied options
+  def copy_model_options_profile(model)
+    src_model   = choose_model('', model)
+    src_profile = choose_profile_for_model(src_model) || 'default'
+    dst_model   = model
+    dst_profile = choose_profile_for_model(dst_model, allow_new: true) || src_profile
+
+    src_opts = get_stored_model_options(src_model, profile: src_profile).full? or return
+
+    dst_opts = get_stored_model_options(dst_model, profile: dst_profile)
+    if dst_opts.present?
+      STDOUT.puts "Profile #{italic{dst_profile}} already exists for #{bold{dst_model}}."
+      STDOUT.puts "\n📥 Source (#{src_model}/#{src_profile}):"
+      STDOUT.puts JSON.pretty_generate(src_opts)
+      STDOUT.puts "\n📤 Destination (#{dst_model}/#{dst_profile}):"
+      STDOUT.puts JSON.pretty_generate(dst_opts)
+
+      unless confirm?(prompt: "⚠️ Override existing profile? (y/n) ", yes: /\Ay/i)
+        STDOUT.puts "Cancelled."
+        return
+      end
+    end
+
+    store_model_options(dst_model, src_opts, profile: dst_profile)
+    STDOUT.puts "✅ Copied options from #{italic{src_model}}/#{italic{src_profile}} to #{bold{dst_model}}/#{italic{dst_profile}}."
+  end
+
   # Presents an interactive list of stored configuration profiles for the
   # specified model and prompts the user to select one.
   #
@@ -196,8 +227,8 @@ module OllamaChat::ModelHandling
       STDOUT.puts "Cancelled."
       return
     when '[NEW]'
-      name = ask("Enter new profile name: ") or return
-      if models::ModelOptions.where(model_name:, profile: name).exists?
+      name = ask?(prompt: 'Enter new profile name: ') or return
+      if models::ModelOptions.where(model_name:, profile: name).present?
         STDERR.puts "Profile #{name.inspect} already exists!"
         return
       end

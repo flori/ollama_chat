@@ -159,7 +159,7 @@ module OllamaChat::SessionManagement
         STDOUT.puts "Cancelled."
         return nil
       end
-      if models::Session.where(name: session_name).first
+      if models::Session.where(name: session_name).present?
         STDOUT.puts "Session named #{bold{session_name}} already exists."
       else
         break
@@ -323,7 +323,7 @@ module OllamaChat::SessionManagement
       if name == session.name
         STDOUT.puts "Keeping the old name #{name.inspect}."
       elsif name.present?
-        if exists = models::Session.where(name:).first
+        if exists = models::Session.where(name:).present?
           STDOUT.puts "Session with name #{name.inspect} already exists."
         else
           session.update(name:)
