@@ -826,7 +826,7 @@ module OllamaChat::Commands
       if opts[?p]
         words = opts.fetch(?w, 100)
         all   = opts.fetch(?a, false)
-        arg and patterns = arg.scan(/(\S+)/).flatten
+        patterns = extract_patterns(arg)
         next provide_file_set_content(patterns, all:, skip_blank: true) { summarize(_1, words:) } || :next
       elsif arg
         words = opts.fetch(?w, 100)
@@ -840,7 +840,7 @@ module OllamaChat::Commands
       opts = go_command('pa', opts)
       if opts[?p]
         all      = opts.fetch(?a, false)
-        patterns = arg&.scan(/(\S+)/)&.flatten.full? || [ '**/*' ]
+        patterns = extract_patterns(arg).full? || [ '**/*' ]
         next context_spook(patterns, all:) || :next
       elsif arg
         next context_spook(Array(arg.to_s), all: true) || :next
@@ -862,7 +862,7 @@ module OllamaChat::Commands
         tags = opts[?t].full?(:split, ?,)
         if opts[?p]
           all = opts.fetch(?a, false)
-          arg and patterns = arg.scan(/(\S+)/).flatten
+          patterns = extract_patterns(arg)
           next provide_file_set_content(patterns, all:, skip_blank: true) { embed(_1, tags:) } || :next
         elsif arg
           next embed(arg, tags:) || :next
@@ -875,7 +875,7 @@ module OllamaChat::Commands
       opts = go_command('pae', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
-        arg and patterns = arg.scan(/(\S+)/).flatten
+        patterns = extract_patterns(arg)
         read = -> pathname {
           STDOUT.puts "Reading #{pathname.to_s.inspect}."
           pathname.read
@@ -895,7 +895,7 @@ module OllamaChat::Commands
       opts = go_command('pae', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
-        arg and patterns = arg.scan(/(\S+)/).flatten
+        patterns = extract_patterns(arg)
         next provide_file_set_content(patterns, all:, skip_blank: true) { import(_1) } || :next
       elsif arg
         source = arg

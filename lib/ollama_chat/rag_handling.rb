@@ -219,15 +219,16 @@ module OllamaChat::RAGHandling
     end
   end
 
-  # Extracts and normalizes file patterns from a space-separated string.
+  # Extracts and normalizes file patterns from a shell-style string.
   #
-  # Splits the input string by whitespace, strips each pattern, and expands
-  # them to absolute paths. Returns an empty array if the input is blank.
+  # Splits the input string using shell semantics, correctly handling
+  # spaces enclosed in single/double quotes or escaped with backslashes.
+  # Each resulting pattern is expanded to an absolute path.
   #
-  # @param patterns_str [String, nil] the space-separated glob patterns
+  # @param patterns_str [String, nil] the shell-style glob patterns
   # @return [Array<String>] an array of expanded absolute path patterns
   def extract_patterns(patterns_str)
-    patterns = patterns_str.full? ? patterns_str.split(/\s+/).map(&:strip) : []
+    patterns = Shellwords.split(patterns_str.to_s)
     patterns.map { File.expand_path(_1) }
   end
 
