@@ -351,16 +351,32 @@ module OllamaChat::ModelHandling
         session.update(model_options: default_model_options)
       end
     elsif !keep_options && session_model_options != stored_model_options
-      STDOUT.puts <<~EOT
-          ⚠️ Session model options differ from defaults for model #@model!
-          Session model options:
-          #{JSON.pretty_generate(session_model_options)}
-          Default model options:
-          #{JSON.pretty_generate(stored_model_options)}
-      EOT
-      confirm?(
-          prompt: "❓ Overwrite session model options with defaults? (y/n) ", yes: /\Ay/i
-      ) and session.update(model_options: stored_model_options)
+      all_profiles = models::ModelOptions.where(model_name: @model).
+        order(:profile).all
+
+      matching = all_profiles.any? do |mo|
+        mo.options.ask_and_send(:symbolize_keys_recursive) == session_model_options
+      end
+
+      unless matching
+        use_pager do |output|
+          output.puts "⚠️ Session model options differ from current profile (#{italic{profile}}) and don't match any saved profile!"
+          output.puts "\n📋 Available profiles for #{bold{@model}}:"
+          all_profiles.each do |mo|
+            output.puts "\n📄 #{italic{mo.profile}}:"
+            output.puts JSON.pretty_generate(mo.options.ask_and_send(:symbolize_keys_recursive))
+          end
+        end
+
+        if confirm?(prompt: "\n❓ Switch to an existing profile? (y/n) ", yes: /\Ay/i)
+          chosen = choose_profile_for_model(@model)
+          if chosen
+            new_opts = get_stored_model_options(@model, profile: chosen)
+            session.update(model_options: new_opts)
+            STDOUT.puts "Switched to profile #{italic{chosen}}."
+          end
+        end
+      end
     end
   end
 
