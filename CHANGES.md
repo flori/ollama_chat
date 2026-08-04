@@ -1,5 +1,48 @@
 # Changes
 
+## 2026-08-04 v0.0.105
+
+### New Features
+
+- **Collection Management**: Introduced the
+  `OllamaChat::Database::Models::Collection` model and a corresponding `Sequel`
+  migration for persistent storage. Added interactive CLI commands under
+  `/collection` including `new`, `edit`, `delete`, and `update all`.
+- **Model Profile Copying**: Added an `options copy` subcommand to allow users
+  to interactively copy configuration profiles between models, including
+  implementation of `copy_model_options_profile`.
+- **Interactive Prompt Contexts**: Implemented `choose_prompt_context` in
+  `prompt_management.rb`, allowing the `/prompt` command to dynamically query
+  and select contexts via a new `-c ?` flag.
+
+### Enhancements
+
+- **Model Options Matching**: Improved profile matching by replacing default
+  overwrite prompts with comprehensive checks against all saved `ModelOptions`
+  profiles using `ask_and_send(:symbolize_keys_recursive)`. Added pager display
+  for available profiles via `use_pager` and the ability to switch profiles via
+  `choose_profile_for_model`.
+- **Collection Synchronization**: Enhanced `list_collections` with descriptions
+  and paging, and implemented a `Collection.sync` method to backfill database
+  records during startup.
+- **Command Refactoring**: Renamed `show_session` to `info_session` within the
+  `Commands` module for increased verbosity when no subcommand is provided.
+
+### Bug Fixes & Maintenance
+
+- **Documentation**: 
+    - Clarified that the `checksum` for the `patch_file` tool must be an 8 hex
+      digit long CRC32.
+    - Added YARD `@!attribute` documentation for `links` and `history` in the
+      `Session` model.
+- **Code Cleanup**: 
+    - Replaced `.exists?` and `.first` dataset checks with `.present?` in
+      `model_handling.rb` and `session_management.rb`.
+    - Removed deprecated CLI flags `-c`, `-C`, `-D`, `-M`, and `-E` in favor of
+      interactive management.
+    - Added an `after_destroy` hook to the `Collection` model to purge
+      corresponding `Documentrix` vector data.
+
 ## 2026-07-31 v0.0.104
 
 ### Changed
