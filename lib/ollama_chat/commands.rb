@@ -279,7 +279,7 @@ module OllamaChat::Commands
   ) do |subcommand, opts, name|
     case subcommand
     when nil
-      show_session
+      info_session
     when 'list'
       list_sessions
     when 'new'
