@@ -535,7 +535,8 @@ class OllamaChat::Chat
         store_messages_in_session
       rescue Ollama::Errors::BadRequestError
         if (think? || tools_support.on?) && !retried
-          STDOUT.puts "#{bold('Error')}: in think mode/with tool support, switch both off and retry."
+          msg = "Error in think mode/with tool support, switch both off and retry."
+          log(:warn, msg, warn: true)
           sleep 1
           think_mode.selected  = 'disabled'
           tools_support.set false
