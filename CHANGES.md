@@ -1,5 +1,49 @@
 # Changes
 
+## 2026-08-06 v0.0.106
+
+### Added
+
+- New `/model options delete` subcommand to allow removing saved profiles.
+- Implementation of `delete_model_options_profile` in `model_handling.rb`.
+- New `/prompt rename` subcommand for prompt templates.
+- Implementation of `rename_prompt` method in `prompt_management.rb`.
+- Support for shell-style quoting for file pattern arguments using
+  `Shellwords.split`.
+
+### Changed
+
+- Tightened validation for the `/conversation` command to restrict filenames to
+  `.json` or `.jsonl` extensions.
+- Updated `options` string documentation to include the optional `FILENAME`
+  argument and added format hints to `save` and `load` subcommands.
+- Added a `suggest` parameter to `choose_profile_for_model` to allow specific
+  profiles to be inserted at the top of selection lists.
+- Updated `copy_model_options_profile` to use the source profile as the
+  suggested destination.
+- Refactored error logging in `OllamaChat::Chat` to use a standardized `log`
+  method with `:warn` level instead of direct `STDOUT.puts`.
+- Centralized pattern parsing logic by replacing `arg.scan(/(\S+)/).flatten`
+  with `extract_patterns` in `commands.rb`.
+- Updated context generation in `input_content.rb` to dynamically call
+  `to_json` or `to_toon` based on the selected format.
+
+### Fixed
+
+- Resolved a scope limitation in `Prompt#after_destroy` by replacing
+  `models::Favourite` with `OllamaChat::Database::Models::Favourite`.
+- Ensured the `default` profile remains valid by resetting it to an empty
+  options `{}` instead of deleting it during model option removal.
+
+### Refactored
+
+- Improved readability in `model_handling.rb` by wrapping long `STDOUT.puts`
+  strings.
+- Wrapped prompt operations in `switch_history(:prompt)` for improved
+  consistency.
+- Updated YARD documentation for `extract_patterns` to reflect new shell
+  semantics.
+
 ## 2026-08-04 v0.0.105
 
 ### New Features
