@@ -206,6 +206,29 @@ module OllamaChat::ModelHandling
       "to #{bold{dst_model}}/#{italic{dst_profile}}."
   end
 
+  # Interactively deletes a stored model options profile.
+  #
+  # If the deleted profile is the default one, it is replaced with an empty
+  # options hash `{}` to ensure the model always has a valid default profile.
+  #
+  # @param model [String] the model whose profile should be deleted
+  def delete_model_options_profile(model)
+    profile = choose_profile_for_model(model) or return
+
+    if confirm?(prompt: "🔔 Really delete profile #{bold{profile}} for #{bold{model}}? (y/n) ", yes: /\Ay/i)
+      if profile == 'default'
+        store_model_options(model, {}, profile:)
+        STDOUT.puts "Default profile #{italic{profile}} for #{bold{model}} has been reset to empty options."
+      else
+        models::ModelOptions.where(model_name: model, profile:).destroy
+        STDOUT.puts "Profile #{italic{profile}} for #{bold{model}} deleted."
+      end
+      log(:info, "Model options profile deleted", data: { model:, profile: })
+    else
+      STDOUT.puts "Cancelled."
+    end
+  end
+
   # Presents an interactive list of stored configuration profiles for the
   # specified model and prompts the user to select one.
   #
