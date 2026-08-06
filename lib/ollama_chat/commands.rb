@@ -460,14 +460,14 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
-    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset ] ],
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|rename|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
+    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset rename ] ],
     optional: true,
     options: '[-c CONTEXT|-e|-f]',
     help: <<~EOT,
       📝 Manage prompt templates:
          Subcommands: edit, info, add, delete, list,
-         duplicate, import, export, reset.
+         duplicate, import, export, reset, rename.
          Options: -c [context]
                      (? for interactive in /prompt),
                   -e (edit next)
@@ -499,6 +499,8 @@ module OllamaChat::Commands
       list_prompts(context:)
     when 'duplicate'
       duplicate_prompt(context:)
+    when 'rename'
+      rename_prompt(context:)
     when 'import'
       import_prompt(filename, context:)
     when 'export'

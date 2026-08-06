@@ -88,11 +88,11 @@ module OllamaChat::PromptManagement
   # Interactively prompts the user for a name and content (optionally loading
   # from a file) to create a new prompt template.
   #
-  # @return [Boolean, nil] true if the prompt was added, nil if the process was
+  # @return [self, nil] self if the prompt was added, nil if the process was
   #   cancelled
   def add_new_prompt(context: nil)
     context ||= 'prompt'
-    switch_history(:add_prompt) do
+    switch_history(:prompt) do
       name = determine_valid_new_name_for_prompt('to add', context:) or return
 
       sources       = %w[ [CLIPBOARD] [FILES] [EMPTY/MANUAL] ]
@@ -115,7 +115,7 @@ module OllamaChat::PromptManagement
       prompt_content = edit_text(content)
       store_prompt(name, prompt_content, context:)
       log(:info, "Prompt added", data: { name:, context: })
-      true
+      self
     end
   end
 
@@ -165,31 +165,75 @@ module OllamaChat::PromptManagement
   #   cancelled the operation or no prompt was selected.
   def duplicate_prompt(context: nil)
     context ||= 'prompt'
-    selected_prompt = choose_prompt(context:, prompt: 'Which prompt shall be the basis for a new one? %s') or return
-    STDOUT.puts kramdown_ansi_parse(
-      selected_prompt.to_s + "\n---"
-    )
-    name = nil
-    loop do
-      name = ask?(
-        prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: "
+    switch_history(:prompt) do
+      selected_prompt = choose_prompt(context:, prompt: 'Which prompt shall be the basis for a new one? %s') or return
+      STDOUT.puts kramdown_ansi_parse(
+        selected_prompt.to_s + "\n---"
       )
-      if name.nil?
-        STDOUT.puts "Cancelled."
-        return nil
+      name = nil
+      loop do
+        name = ask?(
+          prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: "
+        )
+        if name.nil?
+          STDOUT.puts "Cancelled."
+          return nil
+        end
+        if prompt(name, context:)
+          STDOUT.puts "Prompt named #{bold{name}} already exists."
+        else
+          break
+        end
       end
-      if prompt(name, context:)
-        STDOUT.puts "Prompt named #{bold{name}} already exists."
-      else
-        break
-      end
+      duplicated_prompt = selected_prompt.duplicate
+      duplicated_prompt.name = name
+      duplicated_prompt.metadata['default'] = false
+      duplicated_prompt.save
+      log(:info, "Prompt duplicated", data: { name:, old_name: selected_prompt.name, context: })
+      self
     end
-    duplicated_prompt = selected_prompt.duplicate
-    duplicated_prompt.name = name
-    duplicated_prompt.metadata['default'] = false
-    duplicated_prompt.save
-    log(:info, "Prompt duplicated", data: { name:, old_name: selected_prompt.name, context: })
-    self
+  end
+
+  # Interactively selects an existing prompt and renames it.
+  #
+  # @return [self, nil] the current context on success, or nil if the user
+  #   cancelled the operation or no prompt was selected.
+  def rename_prompt(context: nil)
+    context ||= 'prompt'
+    switch_history(:prompt) do
+      selected_prompt = choose_prompt(
+        prompt: 'Which prompt would you like to rename? %s',
+        context:
+      ) or return
+
+      STDOUT.puts kramdown_ansi_parse(
+        selected_prompt.to_s + "\n---"
+      )
+
+      name = nil
+      loop do
+        name = ask?(
+          prompt: "❓ Enter new prompt name, C-c ⇒ cancel: "
+        )
+        if name.nil?
+          STDOUT.puts "Cancelled."
+          return nil
+        end
+        if name == selected_prompt.name
+          STDOUT.puts "That is the current name."
+        elsif prompt(name, context:)
+          STDOUT.puts "Prompt named #{bold{name}} already exists."
+        else
+          break
+        end
+      end
+
+      old_name = selected_prompt.name
+      selected_prompt.name = name
+      selected_prompt.save
+      log(:info, "Prompt renamed", data: { old_name:, new_name: name, context: })
+      self
+    end
   end
 
   # Interactively imports a prompt from a file.
@@ -366,21 +410,23 @@ module OllamaChat::PromptManagement
   #   the operation was cancelled.
   def determine_valid_new_name_for_prompt(action, context: nil)
     context ||= 'prompt'
-    prompt_name = nil
-    loop do
-      prompt_name = ask?(
-        prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: "
-      )
-      if prompt_name.nil?
-        STDOUT.puts "Cancelled."
-        return nil
+    switch_history(:prompt) do
+      prompt_name = nil
+      loop do
+        prompt_name = ask?(
+          prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: "
+        )
+        if prompt_name.nil?
+          STDOUT.puts "Cancelled."
+          return nil
+        end
+        if prompt(prompt_name, context:)
+          STDOUT.puts "Prompt named #{bold{prompt_name}} already exists."
+        else
+          break
+        end
       end
-      if prompt(prompt_name, context:)
-        STDOUT.puts "Prompt named #{bold{prompt_name}} already exists."
-      else
-        break
-      end
+      prompt_name
     end
-    prompt_name
   end
 end
