@@ -52,7 +52,7 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   # database when the underlying prompt is removed.
   def after_destroy
     super
-    models::Favourite.where(context:, name:).destroy
+    OllamaChat::Database::Models::Favourite.where(context:, name:).destroy
   end
 
   # Seeds the prompt table from the provided chat configuration.
