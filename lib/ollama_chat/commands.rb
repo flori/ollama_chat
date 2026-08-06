@@ -570,12 +570,13 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(clean|save|load)(\s+-c)?(?:\s+([^-].*))?$),
+    regexp: %r(^/conversation\s+(clean|save|load)(\s+-c)?(?:\s+([^-].*\.jsonl?))?$),
     complete: [ 'conversation', %w[ save load clean ] ],
-    options: '[-c]',
+    options: '[-c] [FILENAME]',
     help: <<~EOT
       💾 Save/Load conversation state
          (-c to clean before saving)
+         FILENAME ends with .json or .jsonl
          Or clean inplace (removes tool content, images, and thinking)
     EOT
   ) do |subcommand,opts,path|
