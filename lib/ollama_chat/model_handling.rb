@@ -156,7 +156,8 @@ module OllamaChat::ModelHandling
     model_name      ||= @model
     model_options   = get_session_model_options
     store_model_options(model_name, model_options, profile:)
-    STDOUT.puts "Model options #{italic{profile}} for #{bold{model_name}} were copied from session model options."
+    STDOUT.puts "Model options #{italic{profile}} for #{bold{model_name}} "\
+      "were copied from session model options."
   end
 
   # Resets the session's model options to match the stored defaults for the
@@ -169,7 +170,8 @@ module OllamaChat::ModelHandling
     model_name             ||= @model
     stored_model_options   = get_stored_model_options(model_name, profile:)
     session.update(model_options: stored_model_options)
-    STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} were copied to session model options."
+    STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} "\
+      "were copied to session model options."
   end
 
   # Interactively copies model options from a source model/profile to the
@@ -181,7 +183,7 @@ module OllamaChat::ModelHandling
     src_model   = choose_model('', model)
     src_profile = choose_profile_for_model(src_model) || 'default'
     dst_model   = model
-    dst_profile = choose_profile_for_model(dst_model, allow_new: true) || src_profile
+    dst_profile = choose_profile_for_model(dst_model, allow_new: true, suggest: src_profile)
 
     src_opts = get_stored_model_options(src_model, profile: src_profile).full? or return
 
@@ -200,7 +202,8 @@ module OllamaChat::ModelHandling
     end
 
     store_model_options(dst_model, src_opts, profile: dst_profile)
-    STDOUT.puts "✅ Copied options from #{italic{src_model}}/#{italic{src_profile}} to #{bold{dst_model}}/#{italic{dst_profile}}."
+    STDOUT.puts "✅ Copied options from #{italic{src_model}}/#{italic{src_profile}} "\
+      "to #{bold{dst_model}}/#{italic{dst_profile}}."
   end
 
   # Presents an interactive list of stored configuration profiles for the
@@ -212,12 +215,14 @@ module OllamaChat::ModelHandling
   #
   # @param model_name [String] the name of the model whose profiles are to be listed
   # @return [String, nil] the selected profile name, or `nil` if none was chosen
-  def choose_profile_for_model(model_name, allow_new: false)
+  def choose_profile_for_model(model_name, allow_new: false, suggest: nil)
     profiles = models::ModelOptions.where(model_name:).order(:profile).map(&:profile)
 
     if allow_new
+      profiles.unshift(suggest) if suggest && !profiles.member?(suggest)
       profiles = [ '[EXIT]', '[NEW]' ] + profiles
     else
+      profiles.unshift(suggest) if suggest && !profiles.member?(suggest)
       profiles.size < 2 and return profiles.first
       profiles = [ '[EXIT]' ] + profiles
     end
