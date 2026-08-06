@@ -191,7 +191,7 @@ describe OllamaChat::ToolCalling do
       })
 
       processed = []
-      chat.send(:handle_tool_call_results?) do |index, tool, content|
+      chat.expose(:handle_tool_call_results?) do |index, tool, content|
         processed << { idx: index, t: tool, c: content }
       end
 
@@ -205,7 +205,7 @@ describe OllamaChat::ToolCalling do
 
     it 'returns false if there are no results to process' do
       chat.instance_variable_set(:@tool_call_results, {})
-      expect(chat.send(:handle_tool_call_results?) { }).to be false
+      expect(chat.expose(:handle_tool_call_results?) { }).to be false
     end
   end
 end

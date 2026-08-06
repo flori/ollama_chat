@@ -172,6 +172,8 @@ class OllamaChat::Chat
   def voice_handler
     defined?(RSpec) and return []
     case config.voice.handler
+    when 'OllamaChat::TTS'
+      OllamaChat::TTS
     when 'OllamaChat::Say'
       OllamaChat::Say
     end

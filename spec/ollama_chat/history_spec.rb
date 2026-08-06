@@ -35,7 +35,7 @@ describe OllamaChat::History do
       chat # Initialize history
       Reline::HISTORY.push('original_cmd')
 
-      chat.send(:switch_history, :other) do
+      chat.expose(:switch_history, :other) do
         expect(OllamaChat::History.current_history).to eq(:other)
         expect(Reline::HISTORY).to be_empty
       end

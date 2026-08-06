@@ -62,6 +62,7 @@ The following environment variables can be used to configure behavior:
 - `OLLAMA_URL` - Base URL for Ollama server (default: `http://localhost:11434`)
 - `OLLAMA_HOST` - Base hostname for Ollama server (default: `localhost:11434`)
 - `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL
+- `TTS_URL` - Base URL for the [audio.cpp](https://github.com/0xshug0/audio.cpp) TTS server (default: `http://localhost:8880`)
 
 #### Chat Settings
 - `OLLAMA_CHAT_MODEL` - Default model to use (e.g., `llama3.1`)
@@ -478,6 +479,71 @@ context, manipulate files, and retrieve external information.
 low-token semantic discovery and `file_context` for a comprehensive view of
 modules or patterns. Be cautious with broad patterns in `file_context`, as
 importing too many files can exceed the LLM's context window.*
+
+## External Dependencies
+
+**ollama_chat** invokes several external executables at runtime. Most are
+optional and only required for specific features; the app degrades gracefully
+when they are absent.
+
+### Always Available
+
+| Executable | Purpose |
+| :--- | :--- |
+| `sh` | Shell executor tool (`execute_shell`) |
+| `which` | Detecting optional executables on `$PATH` |
+| `git` | Runtime info (branch, SHA, remote origin) |
+
+### Editor & Diff
+
+| Executable | Purpose | Fallback |
+| :--- | :--- | :--- |
+| `vim` | Editor integration (`/vim`, `open_file_in_editor`) | `vi` |
+| `vimdiff` | Interactive diff (`patch_file`, `/config diff`) | `$DIFF_TOOL` env var |
+| `diff` | Unified diff generation | `$DIFF_COMMAND` env var |
+| `less` / `more` | Pager fallback | `$PAGER` env var |
+
+### Optional Feature Dependencies
+
+| Executable | Feature | Notes |
+| :--- | :--- | :--- |
+| `ffplay` | TTS audio playback | Part of **FFmpeg**; required only when `voice.handler` is `OllamaChat::TTS`; the TTS backend is [audio.cpp](https://github.com/0xshug0/audio.cpp) |
+| `say` | macOS system TTS | Required only when `voice.handler` is `OllamaChat::Say` (macOS only) |
+| `ctags` | Symbol resolution | Part of **Exuberant Ctags** or **Universal Ctags**; required for `resolve_tag` tool |
+| `twg` | Jira / Teamwork Graph CLI | Required for `execute_jira_twg` and `get_jira_issue` tools |
+| `pandoc` | EPUB document parsing | Part of **Pandoc**; used when importing `.epub` files |
+| `gs` | PDF compression | Part of **Ghostscript**; used when parsing PDFs |
+| `ctc` / `pbcopy` / `wl-copy` | Clipboard copy | `ctc` (default), `pbcopy` (macOS), `wl-copy` (Wayland); configurable via `copy:` in `config.yml` |
+| `pfc` / `pbpaste` / `wl-paste` | Clipboard paste | `pfc` (default), `pbpaste` (macOS), `wl-paste` (Wayland); configurable via `paste:` in `config.yml` |
+| `open` / `xdg-open` | Open URLs in browser | macOS / Linux respectively; used by `browse` tool |
+| `rspec` | Test runner | Required for `run_tests` tool (configurable via `$OLLAMA_CHAT_TOOLS_TEST_RUNNER`) |
+| `docker` | Ruby sandbox | Required for `eval_ruby` tool |
+| `ruby` | Syntax checker | Used by `syntax_checkers.ruby` (`ruby -wc`) |
+| `node` | Syntax checker | Used by `syntax_checkers.node` (`node --check`) |
+| `python3` | Syntax checker | Used by `syntax_checkers.python` (`python3 -m py_compile`) |
+| `bash` | Syntax checker | Used by `syntax_checkers.bash` (`bash -n`) |
+
+### Example Installation (Debian / Ubuntu)
+
+```bash
+# Core (usually already present)
+sudo apt install git vim vimdiff diff
+
+# TTS (audio.cpp handler)
+sudo apt install ffmpeg
+
+# Clipboard
+# ctc is a small helper; see the project README or install from source
+
+# Document parsing
+sudo apt install pandoc ghostscript
+
+# Symbol resolution
+sudo apt install universal-ctags
+
+# eval_ruby
+sudo apt install docker.io
+```
 
 ## Download
 

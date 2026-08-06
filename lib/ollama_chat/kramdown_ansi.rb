@@ -48,4 +48,19 @@ module OllamaChat::KramdownANSI
     content = content.encode(invalid: :replace)
     retry
   end
+
+  # The kramdown_markdown_remove method strips all markdown formatting from
+  # content by first rendering it to ANSI and then removing the escape
+  # sequences, yielding plain text suitable for speech synthesis.
+  #
+  # @param content [ String, nil ] the markdown content to strip.
+  #   If nil, returns an empty string.
+  #
+  # @return [ String ] the content with all markdown and ANSI
+  #   formatting removed, suitable for TTS playback
+  def kramdown_markdown_remove(content)
+    content = kramdown_ansi_parse(content)
+    content.empty? and return ''
+    OllamaChat::Utils::StripANSI.strip_ansi(content)
+  end
 end

@@ -190,7 +190,7 @@ class OllamaChat::Tools::PatchFile
       message:      ,
       mtime:        ,
       checksum:     ,
-      syntax_check: syntax_check,
+      syntax_check: ,
     }).compact.to_json
 
   rescue => e

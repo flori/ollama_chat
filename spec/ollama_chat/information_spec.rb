@@ -43,7 +43,7 @@ describe OllamaChat::Information do
 
   it 'can display display_config' do
     expect(chat.config).to receive(:to_s).and_return('test configuration')
-    expect { chat.send(:display_config) }.not_to raise_error
+    expect { chat.expose(:display_config) }.not_to raise_error
   end
 
   it 'can show display_chat_help' do

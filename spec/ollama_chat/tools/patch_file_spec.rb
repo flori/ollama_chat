@@ -119,7 +119,7 @@ describe OllamaChat::Tools::PatchFile do
       empty_file = test_file
       File.write(empty_file, '')
       text  = 'Initial content'
-      edits = [{ start_line: 1, end_line: 1, text: text }]
+      edits = [{ start_line: 1, end_line: 1, text: }]
       expect(tool.apply_edits('', edits)).to eq text
       File.delete(empty_file) if File.exist?(empty_file)
     end

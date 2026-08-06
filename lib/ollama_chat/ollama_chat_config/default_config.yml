@@ -445,9 +445,16 @@ prompts:
       no reference to yourself or the act of
       writing.
 voice:
-  handler: OllamaChat::Say
+  #handler: OllamaChat::Say
+  #enabled: false
+  #default: Samantha
+  handler: OllamaChat::TTS
   enabled: false
-  default: Samantha
+  default: miyu
+  model: 'chatterbox'
+  stream:
+    enabled: false # false for offline models, true for streaming
+    format: 'audio'
 roles:
   user: 👨 %{sender_name}
   assistant: 🤖 %{sender_name}

@@ -14,6 +14,8 @@ require 'shellwords'
 module OC
   include ConstConf
 
+  plugin ConstConf::JSONPlugin
+
   description 'Environment config for OllamaChat'
   prefix ''
 
@@ -181,6 +183,48 @@ module OC
       USER = set do
         description '(Full) Name of the chat user'
         default     { ENV['USER'] }
+      end
+
+      TTS_URL = set do
+        description 'Base URL for the TTS (Text-to-Speech) service'
+        default     'http://localhost:8880'
+        required    true
+        sensitive   true
+        decode      { URI.parse(_1) if _1.present? }
+        check       { value.scheme =~ /\Ahttps?\z/ }
+      end
+
+      AUDIO_PLAYER_CONFIG = set do
+        description <<~EOT
+          Audio player configuration (JSON with four keys):
+
+          command   – Shell command that receives raw PCM on stdin.
+                      Opened via IO.popen(cmd, "w"); the playback thread
+                      writes audio bytes and silence chunks to its stdin.
+                      Default: ffplay s16le 24 kHz mono pipe.
+
+          frequency – Sample rate in Hz (e.g. 24000). Used to compute
+                      the byte size of silence chunks: frequency ×
+                      (bits / 8) × pause.
+
+          bits      – Bit depth per sample (e.g. 16). Determines bytes
+                      per sample for silence chunk calculation.
+
+          pause     – Seconds of silence injected when the audio queue
+                      is empty. Prevents the playback process from
+                      seeing EOF and hanging. Also the sleep duration
+                      between silence writes.
+        EOT
+        default <<~EOT
+          {
+            "command": "ffplay -autoexit -nodisp -loglevel quiet -vn -volume 80 -f s16le -ar 24000 -ch_layout mono -i -",
+            "frequency": 24000,
+            "bits": 16,
+            "pause": 0.01
+          }
+        EOT
+        decode  json
+        check   { value.command && value.frequency && value.bits && value.pause if value.present? }
       end
 
       module TOOLS
