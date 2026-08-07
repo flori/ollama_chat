@@ -160,6 +160,21 @@ class OllamaChat::Chat
   # @return [OllamaChat::RedisCache, nil] the cache instance
   attr_reader :cache
 
+
+  # Returns the voice handler class based on the configuration.
+  #
+  # This method resolves the voice handler class specified in the config.
+  # If running within RSpec, it returns an empty array to avoid side effects.
+  #
+  # @return [Class, Array] the voice handler class or an empty array if in test mode
+  def voice_handler
+    defined?(RSpec) and return []
+    case config.voice.handler
+    when 'OllamaChat::Say'
+      OllamaChat::Say
+    end
+  end
+
   # The start method initializes the chat session by displaying information,
   # then prompts the user for input to begin interacting with the chat.
   def start

@@ -343,9 +343,9 @@ prompts:
       %{runtime_info}
     assistant: You are a helpful assistant.
 voice:
+  handler: OllamaChat::Say
   enabled: false
   default: Samantha
-  list: <%= defined?(RSpec) ? '[]' : `say -v '?' 2>/dev/null`.lines.map { |l| l.force_encoding('ASCII-8BIT'); l[/^(.+?)\s+[a-z]{2}_[a-zA-Z0-9]{2,}/, 1] }.uniq.sort.to_s %>
 roles:
   user: 👨 %{sender_name}
   assistant: 🤖 %{sender_name}

@@ -29,10 +29,14 @@ class OllamaChat::FollowChat
     super(output:)
     @chat        = chat
     @output.sync = true
-    @say         = voice ? Handlers::Say.new(voice:) : NOP
     @messages    = messages
     @group_uuid  = group_uuid
     @sender      = nil
+    @say         = if voice && @chat.voice_handler.respond_to?(:new)
+                     @chat.voice_handler.new(chat:, voice:)
+                   else
+                     NOP
+                   end
   end
 
   attr_reader :chat

@@ -269,11 +269,12 @@ module OllamaChat::StateSelectors
       states:    OllamaChat::ThinkControl::THINK_MODE_STATES,
       off:       OllamaChat::ThinkControl::THINK_MODE_STATES[0, 1],
     )
+    list = voice_handler.ask_and_send(:voices) || []
     @voices = DatabaseStateSelector.new(
       chat:        self,
       attribute:   :current_voice,
       name:        'Voice',
-      states:      config.voice.list,
+      states:      list,
       allow_empty: true
     )
     @context_format = DatabaseStateSelector.new(
