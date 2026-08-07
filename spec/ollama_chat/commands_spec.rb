@@ -475,13 +475,13 @@ describe OllamaChat::Commands, protect_env: true do
 
   describe 'conversation' do
     it 'returns :next when input is "/conversation save\\s+(.+)$"' do
-      expect(chat).to receive(:save_conversation).with('./some_file', clean: false)
-      expect(chat.handle_input("/conversation save ./some_file")).to eq :next
+      expect(chat).to receive(:save_conversation).with('./some_file.jsonl', clean: false)
+      expect(chat.handle_input("/conversation save ./some_file.jsonl")).to eq :next
     end
 
-    it 'returns :next when input is "/conversation save -c ./some_file"' do
-      expect(chat).to receive(:save_conversation).with('./some_file', clean: 1)
-      expect(chat.handle_input("/conversation save -c ./some_file")).to eq :next
+    it 'returns :next when input is "/conversation save -c ./some_file.jsonl"' do
+      expect(chat).to receive(:save_conversation).with('./some_file.jsonl', clean: 1)
+      expect(chat.handle_input("/conversation save -c ./some_file.jsonl")).to eq :next
     end
 
     it 'returns :next when input is "/conversation save" without path' do
@@ -490,8 +490,8 @@ describe OllamaChat::Commands, protect_env: true do
     end
 
     it 'returns :next when input is "/conversation load\\s+(.+)$"' do
-      expect(chat).to receive(:load_conversation).with('./some_file')
-      expect(chat.handle_input("/conversation load ./some_file")).to eq :next
+      expect(chat).to receive(:load_conversation).with('./some_file.jsonl')
+      expect(chat.handle_input("/conversation load ./some_file.jsonl")).to eq :next
     end
 
     it 'returns :next when input is "/conversation load" without path' do
