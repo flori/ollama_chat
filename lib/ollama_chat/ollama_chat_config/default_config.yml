@@ -173,6 +173,12 @@ prompts:
       conversation. Output only the title and nothing else:
 
       %{content}
+    context_template_suggest: |
+      Conversation History:
+      %{history}
+
+      Create and output text following this instruction:
+      %{instruction}
   suggest:
     coding: |
       ## Context

@@ -338,16 +338,11 @@ module OllamaChat::PromptManagement
 
     # Build the context by gathering all current conversation messages
     history     = prepare_conversation_history
-    full_prompt = <<~EOT
-      Conversation History:
-      #{history}
-
-      Instruction:
-      #{instruction}
-    EOT
+    template    = prompt('context_template_suggest', context: 'prompt').to_s
+    full_prompt = template % { history:, instruction: }
 
     # Execute a silent chat oneshot call (doesn't add to history)
-    suggestions  = generate(prompt: full_prompt).full? or return
+    suggestions = generate(prompt: full_prompt).full? or return
 
     # Pass the AI's suggestions through the editor for final refinement
     edit_text(suggestions)
