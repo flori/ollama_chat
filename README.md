@@ -344,6 +344,22 @@ functionality:
   $ echo "Hello world" | ollama_chat_send -d /tmp/my_working_dir -r
   ```
 
+- **Edit Content (`-e`)**: Opens the input content in the configured editor
+  before sending. This is useful for refining the message or adding more
+  context.
+
+  ```bash
+  $ echo "Draft message..." | ollama_chat_send -e
+  ```
+
+- **File Format (`-F`)**: When using edit mode, specify a file extension to
+  enable syntax highlighting in your editor (e.g., `rb` for Ruby, `md` for
+  Markdown).
+
+  ```bash
+  $ echo "def hello; end" | ollama_chat_send -e -F rb
+  ```
+
 - **Help (`-h` or `--help`)**: Displays usage information and available options.
 
   ```bash

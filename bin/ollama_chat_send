@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'ollama_chat'
+include OllamaChat::FileEditing
 require 'tins/go'
 include Tins::GO
 
-opts = go 'f:d:rtph', ARGV
+opts = go 'f:d:F:rteph', ARGV
 
 # Displays the usage information for the ollama_chat_send command.
 #
@@ -23,6 +24,8 @@ def usage(rc = 0)
       -p         Send input with source parsing enabled (defaults to disabled)
       -f CONFIG  file to read
       -d DIR     the working directory to derive the socket file from
+      -e         Edit content in editor before sending
+      -F FORMAT  file extension for editor (e.g., rb, md)
       -h         Show this help message
 
     Send data to a running Ollama Chat client via standard input.
@@ -38,8 +41,15 @@ begin
          else
            opts[?r] ? :socket_input_with_response : :socket_input
          end
+  content = STDIN.read
+  if opts[?e]
+    basename = %w[ text ]
+    basename << opts[?F]&.sub(/\A(?=[^.])/, ?.) || '.md'
+    STDIN.reopen('/dev/tty')
+    content = edit_text(content, basename:)
+  end
   response = OllamaChat::ServerSocket.send_to_server_socket(
-    STDIN.read,
+    content,
     type:,
     config:,
     working_dir: opts[?d],
