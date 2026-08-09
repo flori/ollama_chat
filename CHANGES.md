@@ -1,5 +1,46 @@
 # Changes
 
+## 2026-08-09 v0.0.107
+
+### Added
+
+- New `-e` option to `ollama_chat_send` to open input content in the configured
+  editor before sending.
+- New `-F` option to `ollama_chat_send` to specify file extension for syntax
+  highlighting in the editor.
+- Confirmation prompts to `write_file` when overwriting existing files in
+  `overwrite` mode or creating new files in `append` mode.
+- Support for pluggable voice handler architecture via a new `handler` key in
+  the `voice` configuration.
+
+### Changed
+
+- Refactored voice handling to use a dynamic `voice_handler` method in
+  `OllamaChat::Chat` to resolve configured classes (e.g., `OllamaChat::Say`).
+- Externalized the suggestion prompt template by adding
+  `context_template_suggest` to `default_config.yml` under `prompts`, replacing
+  hardcoded heredocs in `prompt_management.rb`.
+- Updated `StateSelectors` to delegate voice list retrieval via
+  `voice_handler.ask_and_send(:voices)`.
+- Updated `FollowChat` to instantiate the resolved voice handler dynamically.
+- Refactored `OllamaChat::Say.voices` to extract logic from
+  `default_config.yml` ERB and remove RSpec-specific branching.
+- Updated `spec/ollama_chat/commands_spec.rb` to use explicit `.jsonl`
+  extensions for `/conversation save` and `/conversation load` tests.
+
+### Fixed
+
+- Reopened `STDIN` from `/dev/tty` during editing to prevent editor warnings.
+- Ensured `save_conversation` and `load_conversation` expectations match the
+  new file naming convention.
+
+### Security & Error Handling
+
+- Raised `OllamaChat::ToolFunctionArgumentError` when a user declines a file
+  operation confirmation.
+- Added `.to_s` call on `prompt` results to correctly handle `Sequel::Model`
+  return types.
+
 ## 2026-08-06 v0.0.106
 
 ### Added
