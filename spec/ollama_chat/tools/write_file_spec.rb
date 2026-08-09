@@ -21,7 +21,7 @@ describe OllamaChat::Tools::WriteFile do
     "./tmp/test_write_file_#{Tins::Token.new(bits: 128)}.txt"
   end
 
-  it 'can be executed successfully with overwrite mode' do
+  it 'can be executed successfully with overwrite mode on new file' do
     tool_call = double(
       'ToolCall',
       function: double(
@@ -51,7 +51,62 @@ describe OllamaChat::Tools::WriteFile do
     File.delete(test_write_file) if File.exist?(test_write_file)
   end
 
-  it 'can be executed successfully with append mode' do
+  it 'can be executed successfully with overwrite mode on existing file with confirmation' do
+    # Pre-create the file
+    File.write(test_write_file, 'Old content')
+
+    expect(chat).to receive(:confirm?).and_return(true)
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'write_file',
+        arguments: double(
+          path: test_write_file,
+          content: 'New content',
+          mode: 'overwrite'
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, chat:)
+
+    json = json_object(result)
+    expect(json.success).to eq true
+    expect(File.read(test_write_file)).to eq 'New content'
+  ensure
+    File.delete(test_write_file) if File.exist?(test_write_file)
+  end
+
+  it 'rejects overwrite when user declines confirmation' do
+    # Pre-create the file
+    File.write(test_write_file, 'Old content')
+
+    expect(chat).to receive(:confirm?).and_return(false)
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'write_file',
+        arguments: double(
+          path: test_write_file,
+          content: 'New content',
+          mode: 'overwrite'
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, chat:)
+
+    json = json_object(result)
+    expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
+    expect(json.message).to include('Write rejected')
+    expect(File.read(test_write_file)).to eq 'Old content'
+  ensure
+    File.delete(test_write_file) if File.exist?(test_write_file)
+  end
+
+  it 'can be executed successfully with append mode on existing file' do
     # First write some initial content
     initial_content = 'Initial content\n'
     File.secure_write(test_write_file, initial_content)
@@ -85,6 +140,53 @@ describe OllamaChat::Tools::WriteFile do
   ensure
     # Clean up
     File.delete(test_write_file) if File.exist?(test_write_file)
+  end
+
+  it 'can be executed successfully with append mode on new file with confirmation' do
+    expect(chat).to receive(:confirm?).and_return(true)
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'write_file',
+        arguments: double(
+          path: test_write_file,
+          content: 'First content\n',
+          mode: 'append'
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, chat:)
+
+    json = json_object(result)
+    expect(json.success).to eq true
+    expect(File.read(test_write_file)).to eq 'First content\n'
+  ensure
+    File.delete(test_write_file) if File.exist?(test_write_file)
+  end
+
+  it 'rejects append when user declines confirmation for new file' do
+    expect(chat).to receive(:confirm?).and_return(false)
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'write_file',
+        arguments: double(
+          path: test_write_file,
+          content: 'First content\n',
+          mode: 'append'
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, chat:)
+
+    json = json_object(result)
+    expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
+    expect(json.message).to include('Write rejected')
+    expect(File.exist?(test_write_file)).to be false
   end
 
   it 'can handle execution errors gracefully when path is not allowed' do

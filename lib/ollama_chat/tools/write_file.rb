@@ -76,6 +76,22 @@ class OllamaChat::Tools::WriteFile
 
     es = OllamaChat::TokenEstimator.estimate(args.content)
 
+    # Confirm overwrite if file already exists
+    if path.exist? && (args.mode == 'overwrite' || args.mode.nil?)
+      unless chat.confirm?(prompt: "File #{path.to_s.inspect} already exists. Overwrite? (y/N): ", yes: /\Ay/i)
+        raise OllamaChat::ToolFunctionArgumentError,
+          "Write rejected: File #{path.to_s.inspect} already exists and was not overwritten."
+      end
+    end
+
+    # Confirm creation if file doesn't exist in append mode
+    if !path.exist? && args.mode == 'append'
+      unless chat.confirm?(prompt: "File #{path.to_s.inspect} does not exist. Create it? (y/N): ", yes: /\Ay/i)
+        raise OllamaChat::ToolFunctionArgumentError,
+          "Write rejected: File #{path.to_s.inspect} does not exist and was not created."
+      end
+    end
+
     backup_path = nil
 
     content = args.content
