@@ -137,10 +137,12 @@ module OllamaChat::WebSearching
       if links.empty?
         STDOUT.puts "List is empty."
       else
-        w       = Math.log10(links.size + 1).ceil
-        format  = "%#{w}s. %s"
-        connect = -> link { hyperlink(link) { link } }
-        STDOUT.puts links.each_with_index.map { |x, i| format % [ i + 1, connect.(x) ] }
+        use_pager do |output|
+          w       = Math.log10(links.size + 1).ceil
+          format  = "%#{w}s. %s"
+          connect = -> link { hyperlink(link) { link } }
+          output.puts links.each_with_index.map { |x, i| format % [ i + 1, connect.(x) ] }
+        end
       end
     end
   end
