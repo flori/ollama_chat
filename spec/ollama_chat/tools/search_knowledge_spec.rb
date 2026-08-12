@@ -132,6 +132,29 @@ describe OllamaChat::Tools::SearchKnowledge do
     tool.execute(tool_call, chat:)
   end
 
+  it 'raises an error for invalid collection names' do
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'search_knowledge',
+        arguments: double(
+          query: 'test',
+          tags: nil,
+          collection: 'invalid/collection',
+          min_similarity: nil,
+          text_size: nil,
+          text_count: nil,
+          rerank: false,
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, chat:)
+    json = json_object(result)
+    expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
+    expect(json.message).to match(/Invalid collection name/)
+  end
+
   it 'returns an error when query is empty' do
     tool_call = double(
       'ToolCall',

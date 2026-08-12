@@ -154,7 +154,11 @@ class OllamaChat::Tools::PatchFile
             #{msg.inspect}
           EOT
         else
-          "User accepted the patch to file #{path.to_s.inspect}."
+          <<~EOT
+            User accepted the patch to file #{path.to_s.inspect}. **NEVER** call
+            the tool function with this patch again, as it has already been
+            applied successfully!
+          EOT
         end
       else
         "Failed to apply patch to file #{path.to_s.inspect}."

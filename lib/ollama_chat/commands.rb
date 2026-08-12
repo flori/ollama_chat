@@ -807,7 +807,7 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*\w+|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: <<~EOT,

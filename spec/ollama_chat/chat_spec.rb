@@ -100,4 +100,28 @@ describe OllamaChat::Chat, protect_env: true do
       expect(chat.version).to eq 0
     end
   end
+
+  describe '#initial_collection' do
+    connect_to_ollama_server(instantiate: false)
+
+    let(:session) { double('Session') }
+    let(:config) { double('Config') }
+
+    before do
+      expect(chat).to receive(:session).and_return(session)
+      expect(chat).to receive(:config).and_return(config)
+    end
+
+    it 'returns :default for invalid collection names' do
+      expect(session).to receive(:current_collection).and_return(nil)
+      expect(config).to receive_message_chain(:embedding, :collection).and_return('invalid/collection')
+      expect(chat.initial_collection).to eq(:default)
+    end
+
+    it 'returns the collection name for valid names' do
+      expect(session).to receive(:current_collection).and_return(nil)
+      expect(config).to receive_message_chain(:embedding, :collection).and_return('my.valid-collection')
+      expect(chat.initial_collection).to eq('my.valid-collection'.to_sym)
+    end
+  end
 end

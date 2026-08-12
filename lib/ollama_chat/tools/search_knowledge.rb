@@ -113,6 +113,9 @@ class OllamaChat::Tools::SearchKnowledge
     old_collection = nil
 
     if collection = args.collection.full?
+      unless collection.to_s.match?(/\A#{OllamaChat::COLLECTION_NAME_REGEXP.source}\z/)
+        raise OllamaChat::ToolFunctionArgumentError, "Invalid collection name: #{collection}"
+      end
       old_collection            = chat.documents.collection
       chat.documents.collection = collection
     end

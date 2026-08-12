@@ -229,11 +229,14 @@ class OllamaChat::Chat
   #
   # @return [ Symbol ] the collection name symbol
   def initial_collection
-    (
-      session&.current_collection.full? ||
+    c = session&.current_collection.full? ||
       config.embedding.collection.full? ||
-      :default
-    ).to_sym
+      'default'
+    if c =~ /\A#{OllamaChat::COLLECTION_NAME_REGEXP.source}\z/
+      c
+    else
+      'default'
+    end.to_sym
   end
 
   # The initial_system_prompt method returns the system prompt for the initial

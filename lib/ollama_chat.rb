@@ -65,6 +65,15 @@ module OllamaChat
   # that need to terminate the main interaction loop cleanly.
   class OllamaChatQuitError < OllamaChatError
   end
+
+  # Regular expression defining the allowed characters for collection names.
+  #
+  # Matches alphanumeric characters, underscores, hyphens, and dots.
+  # Explicitly excludes slashes and other shell metacharacters to prevent
+  # path traversal and parsing issues.
+  #
+  # @return [Regexp] the pattern for validating collection identifiers
+  COLLECTION_NAME_REGEXP = /[-\w\.]+/
 end
 
 require 'ollama'
