@@ -329,7 +329,7 @@ class OllamaChat::FollowChat
   # content.
   def display_formatted_terminal_output(output = nil)
     output ||= @output
-    output.print(*([ clear_screen, move_home, *last_message_with_user ].compact))
+    output.print(*([ move_home, erase_in_display(nil), *last_message_with_user ].compact))
   end
 
   # The display_output method shows the last message in the conversation.
