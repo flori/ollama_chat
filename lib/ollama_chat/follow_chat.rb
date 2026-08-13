@@ -39,6 +39,9 @@ class OllamaChat::FollowChat
                    end
   end
 
+  # Returns the chat object representing the conversation context.
+  #
+  # @return [OllamaChat::Chat] The chat object.
   attr_reader :chat
 
   # Returns the conversation history (an array of message objects).
@@ -74,7 +77,7 @@ class OllamaChat::FollowChat
       ensure_assistant_response_exists
       update_last_message(response)
       if chat.stream.on?
-        display_formatted_terminal_output
+        display_formatted_terminal_output(height: Tins::Terminal.lines - 1)
       else
         if display_output
           display_formatted_terminal_output
@@ -293,9 +296,9 @@ class OllamaChat::FollowChat
   def prepare_last_message
     content, thinking = @messages.last.content, @messages.last.thinking
     if chat.markdown.on?
-      content = talk_annotate { truncate_for_terminal chat.kramdown_ansi_parse(content) }
+      content = talk_annotate { chat.kramdown_ansi_parse(content) }
       if chat.think?
-        thinking = think_annotate { truncate_for_terminal chat.kramdown_ansi_parse(thinking) }
+        thinking = think_annotate { chat.kramdown_ansi_parse(thinking) }
       end
     else
       content = talk_annotate { content }
@@ -304,20 +307,28 @@ class OllamaChat::FollowChat
     return content&.chomp, thinking&.chomp
   end
 
-  # The last_message_with_user method constructs a formatted message array by
+  # The last_message_with_user method constructs a formatted string by
   # combining user information, newline characters, thinking annotations, and
   # content for display in the terminal output.
   #
-  # @return [ Array ] an array containing the user identifier, newline
-  #   character, thinking annotation (if present), and content formatted for
-  #   terminal display
-  def last_message_with_user
+  # @param height [Integer] the maximum number of lines to truncate the output
+  #   to. Defaults to 0 (no truncation).
+  #
+  # @return [String] the formatted message string containing the user
+  #   identifier, newline character, thinking annotation (if present), and
+  #   content formatted for terminal display
+  def last_message_with_user(height: 0)
     content, thinking = prepare_last_message
-    if thinking.present?
-      [ @sender + ?:, ?\n, thinking, ?\n, content ]
-    else
-      [ @sender + ?:, ?\n, content ]
+    content ||= ''
+    result = if thinking.present?
+               [ @sender + ":\n", thinking, ?\n, content ]
+             else
+               [ @sender + ":\n", content ]
+             end * ''
+    if height > 0
+      result = truncate_for_terminal(result, max_lines: height)
     end
+    result
   end
 
   # The display_formatted_terminal_output method formats and outputs the
@@ -327,9 +338,17 @@ class OllamaChat::FollowChat
   # move home commands. The method takes into account whether markdown and
   # thinking modes are enabled to determine how to process and display the
   # content.
-  def display_formatted_terminal_output(output = nil)
+  #
+  # @param output [IO, nil] the output stream to print to. Defaults to
+  #   `@output`.
+  # @param height [Integer] the maximum number of lines to truncate the output
+  #   to. Defaults to 0 (no truncation).
+  def display_formatted_terminal_output(output = nil, height: 0)
     output ||= @output
-    output.print(*([ move_home, erase_in_display(nil), *last_message_with_user ].compact))
+    output.print(
+      move_home, erase_in_display(nil),
+      last_message_with_user(height:)
+    )
   end
 
   # The display_output method shows the last message in the conversation.
@@ -345,7 +364,7 @@ class OllamaChat::FollowChat
       if chat.markdown.on?
         display_formatted_terminal_output(output)
       else
-        output.print(*last_message_with_user)
+        output.print(last_message_with_user)
       end
     end
   end
