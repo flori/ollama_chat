@@ -17,7 +17,10 @@ module OllamaChat::ThinkControl
   # * `low`: A minimal or subtle thinking intensity.
   # * `medium`: A balanced approach to thinking and reasoning.
   # * `high`: An intensive, detailed, or highly verbose thinking mode.
-  THINK_MODE_STATES = %w[ disabled enabled low medium high ]
+  # * `max`: The maximum thinking intensity, where supported by the
+  #   model. Some models treat `high` and `max` as equivalent (e.g.,
+  #   Qwen3.8 maps both to its xhigh reasoning effort).
+  THINK_MODE_STATES = %w[ disabled enabled low medium high max ]
 
   # The think method returns the current think mode selection.
   #
