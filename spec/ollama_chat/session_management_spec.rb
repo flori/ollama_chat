@@ -226,7 +226,7 @@ describe OllamaChat::SessionManagement do
   describe '#rename_session' do
     it 'updates the session name when provided a valid new name' do
       expect(chat).to receive(:ask?).and_return('renamed_session')
-      expect(chat).to receive(:switch_history).and_yield
+      expect(chat).to receive(:switch_history).with(:session_name).and_yield
       expect { chat.rename_session }.to change { chat.session.name }.to('renamed_session')
     end
   end

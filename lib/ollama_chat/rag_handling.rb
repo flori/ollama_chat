@@ -125,26 +125,24 @@ module OllamaChat::RAGHandling
   #
   # @param current_collection [Symbol] the current collection name
   def rename_collection(current_collection)
-    switch_history(:rename_collection) do
-      prompt = 'Rename collection %s to: ' % current_collection
-      new_collection = switch_history :collection do
-        ask?(prompt:, prefill: current_collection).full?(:to_sym)
+    prompt = 'Rename collection %s to: ' % current_collection
+    new_collection = switch_history :collection_name do
+      ask?(prompt:, prefill: current_collection).full?(:to_sym)
+    end
+    if new_collection
+      begin
+        @documents.rename_collection(new_collection)
+        col = database_collection?(current_collection)
+        col&.update(name: new_collection.to_s)
+        log(:info, "Collection renamed", data: { old_name: current_collection, new_name: new_collection })
+        STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
+      rescue Sequel::UniqueConstraintViolation
+        STDERR.puts "❌ Renaming to #{new_collection} failed, it already exists in database."
+      rescue => e
+        STDERR.puts "❌ Renaming to #{new_collection} failed: #{e.message}"
       end
-      if new_collection
-        begin
-          @documents.rename_collection(new_collection)
-          col = database_collection?(current_collection)
-          col&.update(name: new_collection.to_s)
-          log(:info, "Collection renamed", data: { old_name: current_collection, new_name: new_collection })
-          STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
-        rescue Sequel::UniqueConstraintViolation
-          STDERR.puts "❌ Renaming to #{new_collection} failed, it already exists in database."
-        rescue => e
-          STDERR.puts "❌ Renaming to #{new_collection} failed: #{e.message}"
-        end
-      else
-        STDOUT.puts "Renaming cancelled."
-      end
+    else
+      STDOUT.puts "Renaming cancelled."
     end
   end
 
@@ -234,7 +232,9 @@ module OllamaChat::RAGHandling
 
   # Interactively create a new collection record.
   def create_collection
-    name = ask?(prompt: "📚 Name of the new collection: ")
+    name = switch_history(:collection_name) do
+      ask?(prompt: "📚 Name of the new collection: ")
+    end
     unless name.full?
       STDERR.puts "❌ Cancelled creation of collection."
       return
@@ -245,12 +245,16 @@ module OllamaChat::RAGHandling
       return
     end
 
-    description = ask?(prompt: "📝 Description: ")
+    description = switch_history(:collection_description) do
+      ask?(prompt: "📝 Description: ")
+    end
     unless description.full?
       STDERR.puts "❌ Cancelled creation of collection #{name.inspect}."
       return
     end
-    patterns_str = ask?(prompt: "🔍 Patterns (space-separated globs, e.g., lib/**/*.rb): ")
+    patterns_str = switch_history(:patterns) do
+      ask?(prompt: "🔍 Patterns (space-separated globs, e.g., lib/**/*.rb): ")
+    end
     patterns = extract_patterns(patterns_str)
 
     begin
@@ -288,7 +292,7 @@ module OllamaChat::RAGHandling
       return
     end
 
-    new_description = switch_history :collection do
+    new_description = switch_history :collection_description do
       ask?(
         prompt: "📝 New description (leave blank to keep): ",
         prefill: col.description
