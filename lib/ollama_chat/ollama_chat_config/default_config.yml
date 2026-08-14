@@ -416,14 +416,17 @@ tools:
       result_display_timeout: 3
       url: "https://api.pirateweather.net/forecast/KeyInHeader/%{lat},%{lon}?units=%{units}"
       default: false
+      require_confirmation: true
     get_cve:
       result_display_timeout: 3
       url: 'https://cveawg.mitre.org/api/cve/%{cve_id}'
       default: true
+      require_confirmation: true
     get_endoflife:
       result_display_timeout: 3
       url: "https://endoflife.date/api/v1/products/%{product}"
       default: false
+      require_confirmation: true
     get_time:
       result_display_timeout: 3
       default: true
@@ -451,6 +454,7 @@ tools:
     browse:
       result_display_timeout: 3
       default: true
+      require_confirmation: true
     write_file:
       default: true
       require_confirmation: true
@@ -476,9 +480,9 @@ tools:
         - './spec'
     search_web:
       default: true
-      require_confirmation: true
       result_display_timeout: 3
       max_results: 25
+      require_confirmation: true
     get_url:
       default: true
       require_confirmation: true
@@ -491,10 +495,9 @@ tools:
       default: true
     open_file_in_editor:
       default: true
-      require_confirmation: true
+      require_confirmation: false
       result_display_timeout: 0
     run_tests:
-      require_confirmation: true
       result_display_timeout: 3
       default: true
       allowed:
@@ -504,10 +507,12 @@ tools:
     get_jira_issue:
       result_display_timeout: 3
       default: false
+      require_confirmation: true
     get_rfc:
       url: "https://www.rfc-editor.org/rfc/rfc%{rfc_id}.txt"
       result_display_timeout: 3
       default: true
+      require_confirmation: true
     generate_password:
       default: true
     copy_to_clipboard:
@@ -518,7 +523,7 @@ tools:
       default: true
     paste_into_editor:
       result_display_timeout: 3
-      require_confirmation: true
+      require_confirmation: false
       default: true
     execute_ri:
       result_display_timeout: 3
@@ -538,7 +543,7 @@ tools:
       result_display_timeout: 3
       default: true
     generate_image:
-      require_confirmation: true
+      require_confirmation: false
       default: true
       timeout_attempts: 23
       timeout_duration: 66
@@ -549,6 +554,7 @@ tools:
     get_ghr:
       default: true
       result_display_timeout: 3
+      require_confirmation: true
     eval_ruby:
       default: false
       result_display_timeout: 3
