@@ -1,6 +1,7 @@
 .*.sw[pon]
 .AppleDouble
 .bundle
+.obsidian
 .starscope.db
 .yardoc
 /config/searxng/*
