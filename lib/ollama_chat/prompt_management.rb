@@ -103,10 +103,12 @@ module OllamaChat::PromptManagement
                 when '[CLIPBOARD]'
                   perform_paste_from_clipboard(edit: false)
                 when '[FILES]'
-                  patterns = ask?(
-                    prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
-                    prefill: '**/*.{txt,md}'
-                  )
+                  patterns = switch_history(:patterns) do
+                    ask?(
+                      prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
+                      prefill: '**/*.{txt,md}'
+                    )
+                  end
                   patterns.nil? ? (return) : (patterns.present? ? load_prompt_from_file(patterns) : nil)
                 else
                   nil

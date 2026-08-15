@@ -204,9 +204,11 @@ module OllamaChat::SessionManagement
   # prompts the user for a new name and whether to clear the duplicated
   # session's message history.
   def duplicate_session
-    name = determine_valid_new_name_for_session(
-      'to create', default_name: session.name
-    ) or return
+    name = switch_history(:session_name) do
+      determine_valid_new_name_for_session(
+        'to create', default_name: session.name
+      )
+    end or return
     old_session = session
     old_session.unlock
     @session = session.duplicate

@@ -111,20 +111,22 @@ module OllamaChat::FileEditing
   # @return [Pathname, nil] the validated filename as a Pathname, or nil if the
   #   operation was cancelled
   def determine_valid_output_filename(action)
-    loop do
-      filename_str = ask?(
-        prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: "
-      )
-      if filename_str.nil?
-        STDOUT.puts "Cancelled."
-        return nil
-      end
+    switch_history(:filename) do
+      loop do
+        filename_str = ask?(
+          prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: "
+        )
+        if filename_str.nil?
+          STDOUT.puts "Cancelled."
+          return nil
+        end
 
-      filename = Pathname.new(filename_str)
-      if filename.exist?
-        STDERR.puts "File #{filename.to_path.inspect} already exists!"
-      else
-        return filename
+        filename = Pathname.new(filename_str)
+        if filename.exist?
+          STDERR.puts "File #{filename.to_path.inspect} already exists!"
+        else
+          return filename
+        end
       end
     end
   end

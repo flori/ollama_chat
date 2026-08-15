@@ -186,10 +186,12 @@ module OllamaChat::PersonaeManagement
               when '[CLIPBOARD]'
                 perform_paste_from_clipboard(edit: false)
               when '[FILES]'
-                patterns = ask?(
-                  prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
-                  prefill: '**/*.{txt,md}'
-                )
+                patterns = switch_history(:patterns) do
+                  ask?(
+                    prompt: "❓ Enter file patterns to load file, C-u ⇒ new, C-c ⇒ cancel: ",
+                    prefill: '**/*.{txt,md}'
+                  )
+                end
                 patterns.nil? ? (return) : (patterns.present? ? load_prompt_from_file(patterns) : nil)
               else
                 nil
@@ -516,22 +518,24 @@ module OllamaChat::PersonaeManagement
   # @param action [String] The action being performed (e.g., 'to import')
   # @return [String, nil] The validated persona name or nil if cancelled
   def determine_valid_new_name_for_persona(action)
-    persona_name = nil
-    loop do
-      persona_name = ask?(
-        prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: "
-      )
-      if persona_name.nil?
-        STDOUT.puts "Cancelled."
-        return nil
+    switch_history(:persona_name) do
+      persona_name = nil
+      loop do
+        persona_name = ask?(
+          prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: "
+        )
+        if persona_name.nil?
+          STDOUT.puts "Cancelled."
+          return nil
+        end
+        if persona_name_to_pathname(persona_name).exist?
+          STDOUT.puts "Persona prompt named #{bold{persona_name}} already exists."
+        else
+          break
+        end
       end
-      if persona_name_to_pathname(persona_name).exist?
-        STDOUT.puts "Persona prompt named #{bold{persona_name}} already exists."
-      else
-        break
-      end
+      persona_name
     end
-    persona_name
   end
 
   # Interactively duplicates an existing persona profile to a new name.

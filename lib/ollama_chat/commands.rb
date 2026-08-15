@@ -296,8 +296,10 @@ module OllamaChat::Commands
     when 'summarize'
       opts = go_command('fs', opts)
       if opts[?f] and
-          filename = ask?(prompt: "❓ Enter filename: ").full? { Pathname.new(_1) }
-        then
+        filename = switch_history(:filename) {
+          ask?(prompt: "❓ Enter filename: ")
+        }.full? { Pathname.new(_1) }
+      then
         if filename.exist? && !confirm?(
             prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
             yes: /\Ay/i

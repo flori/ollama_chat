@@ -255,7 +255,9 @@ module OllamaChat::ModelHandling
       STDOUT.puts "Cancelled."
       return
     when '[NEW]'
-      name = ask?(prompt: 'Enter new profile name: ') or return
+      name = switch_history(:profile_name) do
+        ask?(prompt: 'Enter new profile name: ')
+      end or return
       if models::ModelOptions.where(model_name:, profile: name).present?
         STDERR.puts "Profile #{name.inspect} already exists!"
         return
