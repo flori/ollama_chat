@@ -1,3 +1,5 @@
+require 'io/console'
+
 # A module that provides interactive selection and configuration functionality
 # for OllamaChat.
 #
@@ -35,27 +37,32 @@ module OllamaChat::Dialog
   # @param default  [Object, nil]  value returned when the timeout expires
   #   (defaults to `nil`)
   # @param yes      [Object, nil]  value that is considered a positive response
-  # @param output   [IO]  the IO object to write the prompt to
+  # @param output   [IO]  the IO object to write the prompt and the answer to
   #
-  # @return [Object] the character entered by the user, or the `default` value
-  #   if a timeout occurs
+  # @return [Object] the character entered by the user, the `default` value
+  #   if a timeout occurs, or `nil` if the read is interrupted (e.g. Ctrl-C)
   def confirm?(prompt:, timeout: nil, default: nil, yes: nil, output: STDOUT)
     return default if timeout&.zero?
     if prompt.include?('%s')
       prompt = prompt % (timeout ? ('timeout in %us' % timeout) : 'no timeout')
     end
-    print prompt
-    system 'stty raw'
-    keypress = nil
-    c = if timeout
-          keypress = !!IO.select([ STDIN ], nil, nil, timeout)
-          keypress ? STDIN.getc : nil
-        else
-          keypress = true
-          STDIN.getc
-        end
-    system 'stty cooked'
-    answer = c || default
+    output.print prompt
+    min    = 1
+    time   = 0
+    if timeout
+      min  = 0
+      time = timeout
+    end
+    exceptions = [ (IRB::Abort if defined? IRB), Interrupt ].compact
+    begin
+      keypress = STDIN.raw(min:, time:, intr: true) do |io|
+        io.getc
+      end
+    rescue *exceptions
+      output.puts "\u274C\uFE0F"
+      return
+    end
+    answer = keypress || default
     case
     when yes.nil?
       if keypress
@@ -68,12 +75,12 @@ module OllamaChat::Dialog
       if keypress
         output.puts "\u2705\uFE0F #{answer}"
       else
-        output.puts "☑️  #{answer}"
+        output.puts "\u2611\uFE0F #{answer}"
       end
       answer
     else
       if keypress
-        output.puts "🚫 #{answer}"
+        output.puts "\u{1F6AB} #{answer}"
       else
         output.puts "\u231B\uFE0F #{answer}"
       end
