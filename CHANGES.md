@@ -1,5 +1,69 @@
 # Changes
 
+## 2026-08-15 v0.0.108
+
+### Added
+
+- Added `require 'io/console'` to support `IO#raw` for key reads.
+- Added `max` to `THINK_MODE_STATES` in `think_control.rb` to support newer
+  Ollama releases (e.g., **0.32.13**).
+- Added migration `008_drop_think_mode_constraint.rb` to drop the `think_mode`
+  `CHECK` constraint in SQLite.
+- Added `.obsidian` to `.gitignore` and the `GemHadar` `ignore` list in
+  `Rakefile`.
+- Added `require_confirmation: true` to `get_current_weather`, `get_cve`,
+  `get_endoflife`, `browse`, `get_jira_issue`, `get_rfc`, and `get_ghr`.
+
+### Changed
+
+- Refactored `confirm?` key reads to use `STDIN.raw(min:, time:, intr: true)`
+  instead of `stty` commands.
+- Updated `confirm?` to print prompts to `output` instead of `STDOUT`.
+- Updated glyphs for confirmation: `\u2328\uFE0F` to `\u2328`, `☑️` to `\u2611`,
+  and `🚫` to `\u{1F6AB}`.
+- Scoped `Reline` histories for various interactive prompts:
+  - `duplicate_session` name prompt now scoped to `:session_name`.
+  - `determine_valid_new_name_for_persona` now scoped to `:persona_name`.
+  - `add_persona` `[FILES]` patterns prompt now scoped to `:patterns`.
+  - `add_new_prompt` `[FILES]` patterns prompt now scoped to `:patterns`.
+  - `determine_valid_output_filename` loop now scoped to `:filename`.
+  - `/session summarize -f` filename prompt now scoped to `:filename`.
+  - `choose_profile_for_model` profile name prompt now scoped to
+    `:profile_name`.
+- Scoped `Reline` histories for RAG prompts:
+  - `rename_collection` now scopes to `:collection_name`.
+  - `create_collection` scopes to `:collection_name`,
+    `:collection_description`, and `:patterns`.
+  - `edit_collection` description prompt now uses `:collection_description`.
+- Refactored terminal truncation by moving `truncate_for_terminal` from
+  `prepare_last_message` to `last_message_with_user`.
+- Added `height:` keyword argument to `last_message_with_user` and
+  `display_formatted_terminal_output`.
+- Refactored `display_formatted_terminal_output` to use `move_home` and
+  `erase_in_display(nil)` instead of `clear_screen` to prevent `tmux` flicker.
+- Updated `require_confirmation` to `false` for `open_file_in_editor`,
+  `paste_into_editor`, and `generate_image`.
+- Removed `jq` parsing from `OLLAMA_CHAT_TOOLS_TEST_RUNNER` in `.envrc`.
+- Introduced `OLLAMA_CHAT_COLLECTION_NAME_REGEXP` in `lib/ollama_chat.rb` to
+  enforce safe identifiers.
+- Updated `OLLAMA_CHAT::Chat#initial_collection` to validate names against the
+  new regex.
+- Wrapped web search link list output in `use_pager` within
+  `OLLAMA_CHAT::WebSearching`.
+
+### Fixed
+- Added `rescue` for `Interrupt` and `IRB::Abort` during key reads to return
+  `nil` and print `"\u274C\uFE0F"`.
+- Fixed `tmux` flicker in vertically split panes by avoiding full-pane redraws.
+- Fixed `OLLAMA_CHAT::Tools::PatchFile` to explicitly warn against redundant
+  tool calls.
+
+### Refactored
+- Updated YARD `@param output` and `@return` documentation.
+- Simplified `last_message_with_user` to return a single joined string.
+- Simplified `OLLAMA_CHAT::Tools::SearchKnowledge` to raise
+  `OLLAMA_CHAT::ToolFunctionArgumentError` on invalid input.
+
 ## 2026-08-09 v0.0.107
 
 ### Added
