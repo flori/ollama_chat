@@ -148,9 +148,9 @@ module OllamaChat::Commands
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m))*)$),
+    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m|-p\s+[\S]+))*)$),
     complete: [ 'model', %w[ change options options\ copy options\ delete options\ export options\ import options\ from\ session options\ to\ session ] ],
-    options: '[-m]',
+    options: '[-m|-p pattern]',
     help: <<~EOT
       🤖 Manage AI models & profiles:
          - change: Switch active model
@@ -162,6 +162,7 @@ module OllamaChat::Commands
          - options from session: Save live → Saved
          - options to session: Apply Saved → Live
          -m interactively choose a model
+         -p PATTERN narrow file search for import
     EOT
   ) do |subcommand, opts|
     if subcommand == 'change'
@@ -175,7 +176,7 @@ module OllamaChat::Commands
       end
       next :next
     end
-    opts    = go_command('m', opts)
+    opts    = go_command('mp:', opts)
     model   = opts[?m] ? choose_model('', @model) : @model
     case subcommand
     when 'options'
@@ -194,7 +195,8 @@ module OllamaChat::Commands
     when 'options export'
       export_model_options
     when 'options import'
-      filename = choose_filename('**/*.json') or next :next
+      pattern  = opts[?p] || '**/*.json'
+      filename = choose_filename(pattern) or next :next
       import_model_options(filename)
     end
     :next

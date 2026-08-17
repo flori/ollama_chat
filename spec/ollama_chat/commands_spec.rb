@@ -261,6 +261,13 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:choose_filename).with('**/*.json').and_return nil
       expect(chat.handle_input("/model options import")).to eq :next
     end
+
+    it 'returns :next when input is "/model options import -p /foo/**/*.json"' do
+      filename = Pathname.new('/foo/bar.json')
+      expect(chat).to receive(:choose_filename).with('/foo/**/*.json').and_return filename
+      expect(chat).to receive(:import_model_options).with(filename)
+      expect(chat.handle_input("/model options import -p /foo/**/*.json")).to eq :next
+    end
   end
 
   describe '/session model options change' do
