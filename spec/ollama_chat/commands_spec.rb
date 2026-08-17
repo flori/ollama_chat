@@ -244,6 +244,23 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:copy_model_options_profile).with('codellama')
       expect(chat.handle_input("/model options copy -m")).to eq :next
     end
+
+    it 'returns :next when input is "/model options export"' do
+      expect(chat).to receive(:export_model_options)
+      expect(chat.handle_input("/model options export")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options import"' do
+      filename = Pathname.new('tmp/test.json')
+      expect(chat).to receive(:choose_filename).with('**/*.json').and_return filename
+      expect(chat).to receive(:import_model_options).with(filename)
+      expect(chat.handle_input("/model options import")).to eq :next
+    end
+
+    it 'returns :next when input is "/model options import" with cancel' do
+      expect(chat).to receive(:choose_filename).with('**/*.json').and_return nil
+      expect(chat.handle_input("/model options import")).to eq :next
+    end
   end
 
   describe '/session model options change' do

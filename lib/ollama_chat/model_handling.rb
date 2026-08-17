@@ -268,6 +268,122 @@ module OllamaChat::ModelHandling
     end
   end
 
+  # Exports all stored model options for every model to a JSON file.
+  #
+  # The resulting JSON structure is:
+  #   [
+  #     { "model_name": "…", "profiles": [ { "profile": "…", "options": {…} } ] },
+  #     …
+  #   ]
+  #
+  # @return [Pathname, nil] the path of the written file, or nil if cancelled
+  def export_model_options
+    model_names = models::ModelOptions.distinct.map(&:model_name).sort
+    unless model_names.any?
+      STDERR.puts "❌ No model options stored yet!"
+      return
+    end
+
+    payload = model_names.map do |name|
+      { model_name: name,
+        profiles: models::ModelOptions.where(model_name: name)
+          .order(:profile).map { |m|
+            { profile: m.profile, options: m.options.to_h }
+          } }
+    end
+
+    filename = determine_valid_output_filename('to export model options to') or return
+    filename.write(JSON.pretty_generate(payload))
+    total = model_names.sum { |n|
+      models::ModelOptions.where(model_name: n).count
+    }
+    log(:info, "Model options exported",
+        data: { models: model_names, dest: filename.to_s })
+    STDOUT.puts "✅ #{model_names.size} model(s), #{total} profile(s) "\
+      "exported to #{filename.to_path.inspect}."
+    filename
+  end
+
+  # Imports model options from a JSON file into the database.
+  #
+  # The JSON file must be an array of entries:
+  #   [ { "model_name": "…", "profiles": [ … ] }, … ]
+  #
+  # If multiple models are present, the user selects which to import.
+  # For each profile, if an existing record has different options, both
+  # are displayed side-by-side and the user decides per-profile.
+  #
+  # @param filename [String, Pathname] the path to the JSON file to import
+  # @return [Boolean, nil] true on success, nil if cancelled
+  def import_model_options(filename)
+    filename = Pathname.new(filename)
+    data     = JSON.parse(filename.read)
+    unless data.is_a?(Array) && data.all? { |d| d['model_name'] }
+      STDERR.puts "❌ Invalid format: expected array of { 'model_name', 'profiles' }!"
+      return
+    end
+
+    # Let user pick models if more than one
+    if data.size > 1
+      options = (['[ALL]'] + data.map { |d| d['model_name'] } + ['[EXIT]'])
+      chosen  = choose_entry(options, prompt: 'Which model(s) to import? %s')
+      case chosen
+      when '[EXIT]', nil
+        STDOUT.puts "Cancelled."
+        return
+      when '[ALL]'
+        selected = data
+      else
+        selected = data.select { |d| d['model_name'] == chosen }
+      end
+    else
+      selected = data
+    end
+
+    imported = 0
+    selected.each do |entry|
+      model_name = entry['model_name']
+      profiles   = Array(entry['profiles'])
+      STDOUT.puts "\n📦 #{bold{model_name}} (#{profiles.size} profile(s))"
+
+      profiles.each do |profile_data|
+        profile = profile_data['profile'] || 'default'
+        options = profile_data['options'] || {}
+
+        existing = stored_model_options_exist?(model_name, profile:)
+        if existing
+          current = existing.options.to_h.symbolize_keys_recursive
+          incoming = options.to_h.symbolize_keys_recursive
+          if current == incoming
+            STDOUT.puts "   • #{italic{profile}}: identical, skipping."
+            next
+          end
+          STDOUT.puts "   • #{italic{profile}}: differs!"
+          STDOUT.puts "     📤 Current:"
+          STDOUT.puts "       " + JSON.pretty_generate(current).sub(/^/m, '     ')
+          STDOUT.puts "     📥 Incoming:"
+          STDOUT.puts "       " + JSON.pretty_generate(incoming).sub(/^/m, '     ')
+          unless confirm?(prompt: "     ⚠️ Overwrite? (y/n) ", yes: /\Ay/i)
+            STDOUT.puts "     Skipped."
+            next
+          end
+        end
+
+        store_model_options(model_name, options, profile:)
+        imported += 1
+        STDOUT.puts "   • #{italic{profile}}: ✅"
+      end
+    end
+
+    log(:info, "Model options imported",
+        data: { models: selected.map { |e| e['model_name'] },
+                imported:, source: filename.to_s })
+    STDOUT.puts "\n✅ Imported #{imported} profile(s) "\
+      "from #{filename.to_path.inspect}."
+    true
+  end
+
+
   # The model_present? method checks if the specified Ollama model is
   # available.
   #

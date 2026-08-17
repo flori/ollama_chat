@@ -146,14 +146,16 @@ module OllamaChat::Commands
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options(?: copy| delete)?|options from session|options to session))?((?:\s+(?:-m))*)$),
-    complete: [ 'model', %w[ change options options\ copy options\ delete options\ from\ session options\ to\ session ] ],
+    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m))*)$),
+    complete: [ 'model', %w[ change options options\ copy options\ delete options\ export options\ import options\ from\ session options\ to\ session ] ],
     help: <<~EOT
       🤖 Manage AI models & profiles:
          - change: Switch active model
          - options: Edit saved profile config
          - options copy: Copy profile from another model
          - options delete: Delete a saved profile
+         - options export: Export ALL model profiles to JSON
+         - options import: Selectively import profiles from JSON
          - options from session: Save live → Saved
          - options to session: Apply Saved → Live
          -m interactively choose a model
@@ -186,6 +188,11 @@ module OllamaChat::Commands
     when 'options to session'
       profile = choose_profile_for_model(model) || 'default'
       copy_model_options_to_session(model, profile:)
+    when 'options export'
+      export_model_options
+    when 'options import'
+      filename = choose_filename('**/*.json') or next :next
+      import_model_options(filename)
     end
     :next
   end
