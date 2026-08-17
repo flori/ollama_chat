@@ -39,15 +39,22 @@ module OllamaChat::Commands
 
   command(
     name: :paste,
-    regexp: %r(^/paste(\s+-e)?\s*$),
+    regexp: %r(^/paste(\s+-[ie])*\s*$),
+    options: '-e|-i',
     help: <<~EOT
-      📋 Paste content from the clipboard.
-         Options: -e to edit after pasting.
+      📋 Paste content from the clipboard or stdin.
+         Options:
+           -e  Edit after pasting.
+           -i  Read from stdin instead of clipboard.
     EOT
   ) do |opts|
     disable_content_parsing
-    opts = go_command('e', opts)
-    paste_from_clipboard(edit: opts[?e])
+    opts = go_command('ie', opts)
+    if opts[?i]
+      paste_from_stdin(edit: opts[?e])
+    else
+      paste_from_clipboard(edit: opts[?e])
+    end
   end
 
   ## Settings

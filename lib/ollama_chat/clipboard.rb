@@ -143,4 +143,15 @@ module OllamaChat::Clipboard
     log(:error, e, data: { method: __method__ })
     STDERR.puts e.message
   end
+
+  # Read the full text from STDIN and return it.
+  #
+  # @param edit [Boolean] If true, the text is passed through
+  #   {#edit_text} before being returned.
+  # @return [String] The raw (or edited) content read from STDIN.
+  def paste_from_stdin(edit: false)
+    text = STDIN.read
+    edit and text = edit_text(text)
+    text
+  end
 end
