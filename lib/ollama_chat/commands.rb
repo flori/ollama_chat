@@ -27,6 +27,7 @@ module OllamaChat::Commands
   command(
     name: :copy,
     regexp: %r(^/copy(\s+-e)?\s*$),
+    options: '[-e]',
     help: <<~EOT
       📋 Copy the last response to the clipboard.
          Options: -e to edit before copying.
@@ -40,7 +41,7 @@ module OllamaChat::Commands
   command(
     name: :paste,
     regexp: %r(^/paste(\s+-[ie])*\s*$),
-    options: '-e|-i',
+    options: '[-e|-i]',
     help: <<~EOT
       📋 Paste content from the clipboard or stdin.
          Options:
@@ -95,6 +96,7 @@ module OllamaChat::Commands
     name: :toggle,
     regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding)(?:\s+(-[yn]))?)?$),
     complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
+    options: '[-y|-n]',
     help: <<~EOT
       🎛️ Toggle feature switches
       (markdown, stream, location, runtime_info,
@@ -148,6 +150,7 @@ module OllamaChat::Commands
     name: :model,
     regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m))*)$),
     complete: [ 'model', %w[ change options options\ copy options\ delete options\ export options\ import options\ from\ session options\ to\ session ] ],
+    options: '[-m]',
     help: <<~EOT
       🤖 Manage AI models & profiles:
          - change: Switch active model
