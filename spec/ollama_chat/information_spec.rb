@@ -1,6 +1,6 @@
 describe OllamaChat::Information do
   let :chat do
-    OllamaChat::Chat.new argv: chat_default_config
+    OllamaChat::Chat.new(argv: chat_default_config).expose
   end
 
   connect_to_ollama_server
@@ -67,5 +67,40 @@ describe OllamaChat::Information do
 
   it 'can show server URL' do
     expect(chat.server_url).to be_a URI::HTTP
+  end
+
+  describe '#client' do
+    it 'returns progname and version separated by a space' do
+      expect(chat.client).to eq("ollama_chat #{OllamaChat::VERSION}")
+    end
+  end
+
+  describe '#collection_descriptions' do
+    it 'returns a hash of collection name to description' do
+      chat::models::Collection.insert(
+        name: 'zz_test', description: 'A test collection'
+      )
+      descs = chat.collection_descriptions
+      expect(descs).to be_a(Hash)
+      expect(descs['zz_test']).to eq('A test collection')
+    end
+
+    it 'returns an empty hash when no collections exist' do
+      chat::models::Collection.dataset.delete
+      expect(chat.collection_descriptions).to eq({})
+    end
+  end
+
+  describe '#user' do
+    it 'falls back to n/a when user is not set' do
+      const_conf_as('OC::OLLAMA::CHAT::USER' => nil)
+      expect(chat.user).to eq('n/a')
+    end
+  end
+
+  describe '#infobar_message' do
+    it 'returns a hash from the config' do
+      expect(chat.infobar_message).to be_a(Hash)
+    end
   end
 end
