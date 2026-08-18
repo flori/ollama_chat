@@ -179,8 +179,9 @@ module OllamaChat::SessionManagement
       determine_valid_new_name_for_session('to create')
     end
     session_close
-    @previous_session_id = @session.id
+    previous_session_id = @session.id
     @session = new_session
+    set_previous_session_on_change(previous_session_id)
     session.lock? or raise OllamaChat::OllamaChatError,
       "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
     if name.full?
@@ -212,6 +213,7 @@ module OllamaChat::SessionManagement
     old_session = session
     old_session.unlock
     @session = session.duplicate
+    set_previous_session_on_change(old_session.id)
     session.update(name:)
     session.lock? or raise OllamaChat::OllamaChatError,
       "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
@@ -467,10 +469,22 @@ module OllamaChat::SessionManagement
       end
     end
   ensure
+    set_previous_session_on_change(previous_session_id)
+    session.update(working_directory: Dir.pwd)
+  end
+
+  # Records the previous session ID after a session transition.
+  #
+  # Stores the ID in `@previous_session_id` so that `#previous_session`
+  # can later retrieve it, unless the ID refers to the currently active
+  # session (i.e., the user re-selected the same session).
+  #
+  # @param previous_session_id [Integer, nil] the ID of the session
+  #   that was active before the transition; `nil` if no transition occurred
+  def set_previous_session_on_change(previous_session_id)
     if previous_session_id && previous_session_id != session.id
       @previous_session_id = previous_session_id
     end
-    session.update(working_directory: Dir.pwd)
   end
 
   # Finds or selects a session based on a name, ID, or pattern.
