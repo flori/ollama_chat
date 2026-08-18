@@ -1,5 +1,59 @@
 # Changes
 
+## 2026-08-18 v0.0.109
+
+### Added
+
+*   Support for exporting and importing model options via the `/model` command:
+    *   New `export_model_options` method in `model_handling.rb` to export
+        stored model profiles to a JSON file.
+    *   New `import_model_options` method in `model_handling.rb` to import
+        profiles from a JSON file, featuring selective model picking, diff
+        display, and override confirmation.
+    *   Extended `/model` command with `options export` and `options import`
+        subcommands.
+*   `-p` pattern flag for `/model options import` to narrow file search, with a
+    fallback to `**/*.json`.
+*   `-i` flag for `/paste` command to read input from stdin:
+    *   New `paste_from_stdin` method in `clipboard.rb`.
+    *   Updated `/paste` command regex and parsing to support both `-e` and
+        `-i` flags.
+*   `options` metadata to command definitions for `/copy`, `/paste`, `/toggle`,
+    and `/model`.
+*   Comprehensive test coverage for previously untested or under-tested
+    modules:
+    *   `spec/ollama_chat/conversation_spec.rb` (9 examples).
+    *   `spec/ollama_chat/favourites_management_spec.rb` (15 examples).
+    *   `spec/ollama_chat/rag_handling_spec.rb` covering
+        `OllamaChat::RAGHandling`.
+    *   `spec/ollama_chat/prompt_handling_spec.rb` (19 examples).
+    *   `spec/ollama_chat/prompt_management_spec.rb` (47 examples).
+    *   `spec/ollama_chat/system_prompt_management_spec.rb` (20 examples).
+    *   `spec/ollama_chat/config_handling_spec.rb` (15 examples).
+    *   `spec/ollama_chat/web_searching_spec.rb` (8 examples).
+    *   `spec/ollama_chat/information_spec.rb` (5 examples).
+
+### Changed
+
+*   Refactored session management to extract and reuse
+    `set_previous_session_on_change` as a shared private method in
+    `lib/ollama_chat/session_management.rb`.
+    *   `set_new_session`, `duplicate_session`, and `change_session` now
+        delegate to this method for consistent `@previous_session_id` handling.
+*   Migrated test stubs from `allow` to `expect` across multiple spec files to
+    eliminate false-green tests where stubs were never invoked.
+*   Normalized `context` and `name` arguments in `prompt_handling.rb` to handle
+    `Symbol` inputs safely in SQL queries.
+*   Updated `s.files` and `s.test_files` in `ollama_chat.gemspec` to include
+    new configuration, asset, and test files.
+
+### Fixed
+
+*   Infinite retry loop in `kramdown_ansi.rb` by using `retried ||= false` to
+    persist the guard across `retry` calls.
+*   Incorrect YARD `@return` documentation for `#info_prompt` in
+    `prompt_management.rb`.
+
 ## 2026-08-15 v0.0.108
 
 ### Added
