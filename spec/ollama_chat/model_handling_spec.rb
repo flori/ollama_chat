@@ -34,7 +34,7 @@ describe OllamaChat::ModelHandling do
 
     it 'exports all models to file and returns the filename' do
       filename = Pathname.new('tmp/export_test.json')
-      allow(chat).to receive(:determine_valid_output_filename).and_return filename
+      expect(chat).to receive(:determine_valid_output_filename).and_return filename
       expect(chat.export_model_options).to eq filename
       data   = JSON.parse(filename.read)
       expect(data).to be_an(Array)
@@ -51,7 +51,7 @@ describe OllamaChat::ModelHandling do
     end
 
     it 'returns nil when filename selection is cancelled' do
-      allow(chat).to receive(:determine_valid_output_filename).and_return nil
+      expect(chat).to receive(:determine_valid_output_filename).and_return nil
       expect(chat.export_model_options).to be nil
     end
   end
@@ -92,7 +92,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'mistral', profiles: [
           { profile: 'default', options: { temperature: 0.7 } } ]},
       ])
-      allow(chat).to receive(:choose_entry).and_return 'mistral'
+      expect(chat).to receive(:choose_entry).and_return 'mistral'
       expect(chat.import_model_options(filename)).to eq true
       expect(chat.get_stored_model_options('mistral', profile: 'default'))
         .to eq(temperature: 0.7)
@@ -107,7 +107,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'mistral', profiles: [
           { profile: 'default', options: { temperature: 0.7 } } ]},
       ])
-      allow(chat).to receive(:choose_entry).and_return '[ALL]'
+      expect(chat).to receive(:choose_entry).and_return '[ALL]'
       expect(chat.import_model_options(filename)).to eq true
       expect(chat.get_stored_model_options('llama3.1', profile: 'default'))
         .to eq(num_predict: 100)
@@ -131,7 +131,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'llama3.1', profiles: [
           { profile: 'default', options: { num_predict: 200 } } ]},
       ])
-      allow(chat).to receive(:confirm?).and_return false
+      expect(chat).to receive(:confirm?).and_return false
       expect(chat.import_model_options(filename)).to eq true
       expect(chat.get_stored_model_options('llama3.1', profile: 'default'))
         .to eq(num_predict: 99)
@@ -143,7 +143,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'llama3.1', profiles: [
           { profile: 'default', options: { num_predict: 200 } } ]},
       ])
-      allow(chat).to receive(:confirm?).and_return true
+      expect(chat).to receive(:confirm?).and_return true
       expect(chat.import_model_options(filename)).to eq true
       expect(chat.get_stored_model_options('llama3.1', profile: 'default'))
         .to eq(num_predict: 200)
@@ -159,7 +159,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'a', profiles: [{ profile: 'd', options: {} }] },
         { model_name: 'b', profiles: [{ profile: 'd', options: {} }] },
       ])
-      allow(chat).to receive(:choose_entry).and_return '[EXIT]'
+      expect(chat).to receive(:choose_entry).and_return '[EXIT]'
       expect(chat.import_model_options(filename)).to be nil
     end
   end

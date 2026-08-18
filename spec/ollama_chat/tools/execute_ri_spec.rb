@@ -21,7 +21,7 @@ describe OllamaChat::Tools::ExecuteRI do
     let(:topic) { 'Tins::Full#full?' }
 
     before do
-      allow(OllamaChat::Utils::Fetcher).to receive(:execute)
+      expect(OllamaChat::Utils::Fetcher).to receive(:execute)
         .with(["ri", topic])
         .and_return('Documentation text for Tins::Full#full?')
     end
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::ExecuteRI do
 
   context 'when fetcher raises an exception' do
     before do
-      allow(OllamaChat::Utils::Fetcher).to receive(:execute)
+      expect(OllamaChat::Utils::Fetcher).to receive(:execute)
         .and_raise('my error')
     end
 

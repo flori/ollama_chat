@@ -163,7 +163,7 @@ describe OllamaChat::SessionManagement do
 
   describe '#preferred_session' do
     it 'returns the last updated session for the current directory' do
-      allow(Dir).to receive(:pwd).and_return('/test_dir')
+      expect(Dir).to receive(:pwd).and_return('/test_dir').at_least(:once)
       _s1 = chat.new_session.tap { |s| s.name = "pref1_#{rand(1000)}"; s.working_directory = '/test_dir'; s.save }
       sleep(0.01)
       s2 = chat.new_session.tap { |s| s.name = "pref2_#{rand(1000)}"; s.working_directory = '/test_dir'; s.save }
@@ -171,7 +171,7 @@ describe OllamaChat::SessionManagement do
     end
 
     it 'returns a new session if none exist for the directory' do
-      allow(Dir).to receive(:pwd).and_return('/empty_dir')
+      expect(Dir).to receive(:pwd).and_return('/empty_dir').at_least(:once)
       expect(chat.preferred_session).to be_a(OllamaChat::Database::Models::Session)
     end
   end
@@ -188,7 +188,7 @@ describe OllamaChat::SessionManagement do
 
   describe '#session_apply' do
     it 'updates working directory and initializes history' do
-      allow(Dir).to receive(:pwd).and_return('/curr')
+      expect(Dir).to receive(:pwd).and_return('/curr')
       expect(chat.session).to receive(:update).with(working_directory: '/curr')
       expect(chat).to receive(:init_history)
       expect(chat.session_apply).to eq(chat.session)
@@ -285,7 +285,7 @@ describe OllamaChat::SessionManagement do
       chat.instance_variable_set(:@opts, {})
       expect(chat).to receive(:preferred_session).and_return(chat.session)
       expect(chat).to receive(:session_apply).and_return(chat.session)
-      allow(chat.session).to receive(:lock?).and_return(true)
+      expect(chat.session).to receive(:lock?).and_return(true)
       expect(chat.setup_session).to eq(chat.session)
     end
   end

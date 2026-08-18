@@ -44,8 +44,8 @@ describe OllamaChat::FavouritesManagement do
   describe '#add_favourite' do
     it 'adds a new favourite and then exits' do
       things = [ wrapper.('llama3.1'), wrapper.('mistral') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
-      allow(chat).to receive(:choose_entry).and_return(things[0], '[EXIT]')
+      expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_entry).and_return(things[0], '[EXIT]')
 
       expect { chat.add_favourite('model') }.to change { fav_model.count }.from(0).to(1)
 
@@ -58,7 +58,7 @@ describe OllamaChat::FavouritesManagement do
       fav_model.create(context: 'model', name: 'llama3.1')
 
       things = [ wrapper.('llama3.1') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:favourite_all_things).and_return(things)
 
       expect(STDOUT).to receive(:puts).with('All items are already favourited.')
       chat.add_favourite('model')
@@ -66,8 +66,8 @@ describe OllamaChat::FavouritesManagement do
 
     it 'exits without adding when user selects [EXIT]' do
       things = [ wrapper.('llama3.1') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
-      allow(chat).to receive(:choose_entry).and_return('[EXIT]')
+      expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
 
       expect(STDOUT).to receive(:puts).with('Cancelled.')
       expect { chat.add_favourite('model') }.not_to change { fav_model.count }
@@ -75,8 +75,8 @@ describe OllamaChat::FavouritesManagement do
 
     it 'exits without adding when user cancels (nil)' do
       things = [ wrapper.('llama3.1') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
-      allow(chat).to receive(:choose_entry).and_return(nil)
+      expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_entry).and_return(nil)
 
       expect(STDOUT).to receive(:puts).with('Cancelled.')
       expect { chat.add_favourite('model') }.not_to change { fav_model.count }
@@ -88,8 +88,8 @@ describe OllamaChat::FavouritesManagement do
       fav_model.create(context: 'model', name: 'llama3.1')
 
       things = [ wrapper.('llama3.1') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
-      allow(chat).to receive(:choose_entry).and_return(things[0], '[EXIT]')
+      expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_entry).and_return(things[0], '[EXIT]')
 
       expect { chat.delete_favourite('model') }.to change { fav_model.count }.from(1).to(0)
     end
@@ -98,8 +98,8 @@ describe OllamaChat::FavouritesManagement do
       fav_model.create(context: 'model', name: 'llama3.1')
 
       things = [ wrapper.('llama3.1') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
-      allow(chat).to receive(:choose_entry).and_return('[EXIT]')
+      expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
 
       expect(STDOUT).to receive(:puts).with('Cancelled.')
       expect { chat.delete_favourite('model') }.not_to change { fav_model.count }
@@ -109,8 +109,8 @@ describe OllamaChat::FavouritesManagement do
       fav_model.create(context: 'model', name: 'llama3.1')
 
       things = [ wrapper.('llama3.1') ]
-      allow(chat).to receive(:favourite_all_things).and_return(things)
-      allow(chat).to receive(:choose_entry).and_return(nil)
+      expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_entry).and_return(nil)
 
       expect(STDOUT).to receive(:puts).with('Cancelled.')
       expect { chat.delete_favourite('model') }.not_to change { fav_model.count }

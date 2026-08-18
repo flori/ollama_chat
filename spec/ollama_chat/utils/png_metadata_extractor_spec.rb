@@ -51,9 +51,9 @@ describe OllamaChat::Utils::PNGMetadataExtractor do
     context 'with problematic IO objects' do
       it 'returns nil if the IO object does not respond to binmode or binread' do
         bad_io = double('IO')
-        allow(bad_io).to receive(:ask_and_send).with(:rewind).and_return(nil)
-        allow(bad_io).to receive(:respond_to?).with(:binmode).and_return(false)
-        allow(bad_io).to receive(:respond_to?).with(:binread).and_return(false)
+        expect(bad_io).to receive(:ask_and_send).with(:rewind).and_return(nil)
+        expect(bad_io).to receive(:respond_to?).with(:binmode).and_return(false)
+        expect(bad_io).to receive(:respond_to?).with(:binread).and_return(false)
 
         expect(extractor.extract_character(bad_io)).to be_nil
       end

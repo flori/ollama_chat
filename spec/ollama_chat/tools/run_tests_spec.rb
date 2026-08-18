@@ -155,9 +155,9 @@ describe OllamaChat::Tools::RunTests do
     end
 
     it 'raises ArgumentError if no test directory is found' do
-      allow(File).to receive(:exist?).with('./spec').and_return(false)
-      allow(File).to receive(:exist?).with('./test').and_return(false)
-      allow(File).to receive(:exist?).with('./tests').and_return(false)
+      expect(File).to receive(:exist?).with('./spec').and_return(false)
+      expect(File).to receive(:exist?).with('./test').and_return(false)
+      expect(File).to receive(:exist?).with('./tests').and_return(false)
 
       result = described_class.new.execute(tool_call, chat:)
       expect(json_object(result).error).to eq 'ArgumentError'

@@ -10,7 +10,7 @@ module OllamaChat::PromptHandling
   # @return [OllamaChat::Database::Models::Prompt, nil] the prompt model
   #   instance or nil if not found
   def prompt(name, context: nil)
-    context ||= 'prompt'
+    context = (context || 'prompt').to_s
     models::Prompt.where(context:, name: name.to_s).first
   end
 
@@ -19,7 +19,7 @@ module OllamaChat::PromptHandling
   # @yield [prompt] yields each prompt model instance
   # @return [Enumerator] an enumerator if no block is given
   def each_prompt(context: nil, default: nil, &block)
-    context ||= 'prompt'
+    context = (context || 'prompt').to_s
     block or return enum_for(__method__, context:, default:)
     prompts = models::Prompt.where(context:)
     case default
@@ -39,7 +39,7 @@ module OllamaChat::PromptHandling
   # @param name [String, Symbol] the name of the prompt to delete
   # @return [Boolean] true if deleted, false otherwise
   def delete_prompt(name, context: nil)
-    context ||= 'prompt'
+    context = (context || 'prompt').to_s
     if found = prompt(name, context:) and !found.metadata['default']
       found.destroy
       return true
@@ -54,25 +54,25 @@ module OllamaChat::PromptHandling
   # @return [OllamaChat::Database::Models::Prompt] the saved prompt model
   #   instance
   def store_prompt(name, content, context: nil)
-    context ||= 'prompt'
+    context = (context || 'prompt').to_s
     write_prompt(name, content, context:)
   end
 
   # Creates or updates a prompt in the specified context.
   #
-  # @param context [String] the context (e.g., 'prompt' or 'system')
-  # @param name [String] the name of the prompt
+  # @param context [String, Symbol] the context (e.g., 'prompt' or 'system')
+  # @param name [String, Symbol] the name of the prompt
   # @param content [String] the content of the prompt
   # @return [OllamaChat::Database::Models::Prompt] the created or updated
   #   prompt model instance
   def write_prompt(name, content, context: nil)
-    context ||= 'prompt'
+    context = (context || 'prompt').to_s
     obj = nil
-    if found = models::Prompt.where(context:, name:).first
+    if found = models::Prompt.where(context:, name: name.to_s).first
       found.metadata['content'] = content
       obj = found
     else
-      obj = models::Prompt.create(name:, context:)
+      obj = models::Prompt.create(name: name.to_s, context:)
       obj.metadata = { default: false, content: }.stringify_keys_recursive
     end
     obj.tap(&:save)

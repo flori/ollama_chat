@@ -67,7 +67,7 @@ module OllamaChat::PromptManagement
 
   # Displays detailed information about a selected prompt template.
   #
-  # @return [self, nil] the current context on success, or nil if cancelled
+  # @return [self] the current context
   def info_prompt(context: nil)
     context ||= 'prompt'
     if selected_prompt = choose_prompt(context:, prompt: 'Which blueprint would you like to inspect? %s')

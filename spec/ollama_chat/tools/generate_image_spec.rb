@@ -45,7 +45,7 @@ describe OllamaChat::Tools::GenerateImage do
     let(:instance) { described_class.new }
 
     it 'can be executed successfully' do
-      allow(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
+      expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
         and_return(service_url)
       # Mock the API sequence: prompt -> poll -> success
       expect(instance).to receive(:post_url).and_return(
@@ -76,7 +76,7 @@ describe OllamaChat::Tools::GenerateImage do
 
     it 'returns an error when ComfyUI configuration is missing' do
       # Force a config error by simulating the OllamaChat::OllamaChatError
-      allow(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).and_return(nil)
+      expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).and_return(nil)
 
       result = instance.execute(tool_call, chat:)
 
@@ -86,7 +86,7 @@ describe OllamaChat::Tools::GenerateImage do
     end
 
     it 'returns a timeout error when polling fails' do
-      allow(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
+      expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
         and_return(service_url)
       expect(instance).to receive(:post_url).and_return(
         OpenStruct.new(prompt_id: '12345')
@@ -101,7 +101,7 @@ describe OllamaChat::Tools::GenerateImage do
     end
 
     it 'handles API failures gracefully' do
-      allow(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
+      expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
         and_return(service_url)
       expect(instance).to receive(:post_url).and_return(
         OpenStruct.new(prompt_id: nil)
@@ -115,9 +115,9 @@ describe OllamaChat::Tools::GenerateImage do
     end
 
     it 'rescues generic exceptions' do
-      allow(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
+      expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
         and_return(service_url)
-      allow(instance).to receive(:post_url).and_raise(StandardError, 'Network crash')
+      expect(instance).to receive(:post_url).and_raise(StandardError, 'Network crash')
 
       result = instance.execute(tool_call, chat:)
 

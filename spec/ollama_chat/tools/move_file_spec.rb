@@ -153,7 +153,7 @@ describe OllamaChat::Tools::MoveFile do
     )
 
     # Mock FileUtils.mv to raise error
-    allow(FileUtils).to receive(:mv).and_raise 'Unexpected system error'
+    expect(FileUtils).to receive(:mv).and_raise 'Unexpected system error'
 
     result = described_class.new.execute(tool_call, chat: )
 

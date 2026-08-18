@@ -57,13 +57,13 @@ describe OllamaChat::ThinkControl do
 
     it 'returns false when the think_loud switch is off' do
       chat.think_mode.selected = 'enabled'
-      allow(chat).to receive(:think_loud).and_return(double(on?: false))
+      expect(chat).to receive(:think_loud).and_return(double(on?: false))
       expect(chat.think_loud?).to be false
     end
 
     it 'returns true when both the think mode selector and think_loud switch are on' do
       chat.think_mode.selected = 'enabled'
-      allow(chat).to receive(:think_loud).and_return(double(on?: true))
+      expect(chat).to receive(:think_loud).and_return(double(on?: true))
       expect(chat.think_loud?).to be true
     end
   end

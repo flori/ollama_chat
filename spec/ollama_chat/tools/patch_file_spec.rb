@@ -137,8 +137,8 @@ describe OllamaChat::Tools::PatchFile do
 
     tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
     expect(chat).to receive(:edit_text_block).with(/Modified Line 2/, any_args).and_yield(tmp_double)
-    allow(tool).to receive(:system).and_return(true)
-    allow(tool).to receive(:digest).and_return 'old', 'new'
+    expect(tool).to receive(:system).and_return(true)
+    expect(tool).to receive(:digest).and_return 'old', 'new'
 
     result = tool.execute(tool_call, chat:)
     expect(json_object(result).success).to eq true
@@ -154,7 +154,7 @@ describe OllamaChat::Tools::PatchFile do
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
   end
 
-  it 'can handle execution errors gracefully when path is not allowed' do
+  it 'can handle execution errors gracefully when path is not expected' do
     args_double = double('Arguments', path: '/etc/passwd', edits: [])
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 

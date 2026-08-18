@@ -100,7 +100,7 @@ describe OllamaChat::Tools::GetURL do
     let(:source_io) { double('SourceIO', content_type: double(media_type: 'text'), read: 'raw content') }
 
     before do
-      allow(chat).to receive(:fetch_source).and_yield(source_io)
+      expect(chat).to receive(:fetch_source).and_yield(source_io)
     end
 
     it 'handles the "ignoring" policy' do
@@ -157,7 +157,7 @@ describe OllamaChat::Tools::GetURL do
 
     it 'handles image content types' do
       source_io = double('SourceIO', content_type: double(media_type: 'image'))
-      allow(chat).to receive(:fetch_source).and_yield(source_io)
+      expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:add_image).with(chat.images, source_io, URI.parse(url))
 
       args = double(url:, document_policy: 'ignoring')
@@ -170,7 +170,7 @@ describe OllamaChat::Tools::GetURL do
 
     it 'handles unsupported media types' do
       source_io = double('SourceIO', content_type: double(media_type: 'video'))
-      allow(chat).to receive(:fetch_source).and_yield(source_io)
+      expect(chat).to receive(:fetch_source).and_yield(source_io)
 
       args = double(url:, document_policy: 'ignoring')
       tool_call = double(function: double(arguments: args))

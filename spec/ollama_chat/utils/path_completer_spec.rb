@@ -20,7 +20,7 @@ describe OllamaChat::Utils::PathCompleter do
         input = '~/exam'
         completer = described_class.new(pre, input)
 
-        allow(completer).to receive(:expand_path) do |path|
+        expect(completer).to receive(:expand_path).at_least(:once) do |path|
           path.sub(?~, File.expand_path(asset))
         end
 

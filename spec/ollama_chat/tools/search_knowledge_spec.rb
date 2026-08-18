@@ -119,7 +119,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     )
 
     mock_docs = double('Documents')
-    allow(chat).to receive(:documents).and_return(mock_docs)
+    expect(chat).to receive(:documents).and_return(mock_docs).at_least(:once)
 
     expect(mock_docs).to receive(:collection).and_return('default_collection').
       at_least(:once)
@@ -223,8 +223,8 @@ describe OllamaChat::Tools::SearchKnowledge do
     tool = described_class.new
     expect(tool).to receive(:find_document_records).and_return(records)
 
-    allow(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
-    allow(chat).to receive(:generate).with(prompt: anything).and_return('1')
+    expect(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
+    expect(chat).to receive(:generate).with(prompt: anything).and_return('1')
 
     result = tool.execute(tool_call, chat:)
     json = json_object(result)
@@ -260,8 +260,8 @@ describe OllamaChat::Tools::SearchKnowledge do
     tool = described_class.new
     expect(tool).to receive(:find_document_records).and_return(records)
 
-    allow(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
-    allow(chat).to receive(:generate).with(prompt: anything).and_return('0')
+    expect(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
+    expect(chat).to receive(:generate).with(prompt: anything).and_return('0')
 
     result = tool.execute(tool_call, chat:)
     json = json_object(result)
