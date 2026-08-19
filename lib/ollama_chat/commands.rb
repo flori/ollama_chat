@@ -619,6 +619,7 @@ module OllamaChat::Commands
         )
       then
         messages.clean_messages!
+        session_close
         STDOUT.puts "Conversation cleaned."
       else
         STDOUT.puts 'Cancelled.'
