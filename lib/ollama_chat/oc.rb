@@ -1,5 +1,6 @@
 require 'const_conf'
 require 'pathname'
+require 'shellwords'
 
 # Environment configuration module for OllamaChat
 #
@@ -62,6 +63,14 @@ module OC
     default do
       %w[ open xdg-open ].find { `which #{_1}` }.full?(:chomp)
     end
+  end
+
+  DIFF_COMMAND = set do
+    description 'Command (string) to generate a unified diff with'
+
+    required true
+    default { 'diff -u --color=always' }
+    decode { Shellwords.split(_1) if _1.present? }
   end
 
   DIFF_TOOL = set do

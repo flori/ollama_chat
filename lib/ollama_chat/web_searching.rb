@@ -24,16 +24,17 @@ module OllamaChat::WebSearching
   def search_web(query, n = nil)
     n     = n.to_i.clamp(1..)
     query = URI.encode_uri_component(query)
-    search_command = :"search_web_with_#{search_engine}"
+    engine = search_engine
+    search_command = :"search_web_with_#{engine}"
     if respond_to?(search_command, true)
       send(search_command, query, n).tap do |results|
         log(:info, "Web search performed", data: {
-          search_engine:, query:, results: results.size
+          search_engine: engine, query:, results: results.size
         })
         results.each { |url| links.add(url) }
       end
     else
-      STDOUT.puts "Search engine #{bold{search_engine}} not implemented!"
+      STDOUT.puts "Search engine #{bold{engine}} not implemented!"
       nil
     end
   end

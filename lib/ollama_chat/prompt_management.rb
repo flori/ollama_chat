@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 # Provides administrative and interactive management for
 # prompt templates stored in the database.
 #
@@ -382,6 +384,74 @@ module OllamaChat::PromptManagement
     end
   end
 
+  # Synchronizes database prompts with their shipped defaults from the
+  # configuration.
+  #
+  # For each default prompt in the given context, compares the database copy
+  # against the shipped default. Drifted prompts are displayed as a unified
+  # diff (via `OC::DIFF_COMMAND`), and the user is offered an interactive
+  # resolution via `OC::DIFF_TOOL`.
+  #
+  # Orphaned default prompts (present in the database but no longer in the
+  # shipped config) are listed and offered for deletion.
+  #
+  # @param context [String, nil] the prompt context to sync (default: 'prompt')
+  # @return [self, nil] self on success, nil if no drift was found
+  def prompt_sync(context: nil)
+    context ||= 'prompt'
+    shipped    = config.prompts[context].to_h.stringify_keys_recursive
+    db_prompts = each_prompt(context:, default: true).to_a
+
+    drifted = db_prompts.select do |p|
+      shipped.key?(p.name) && shipped[p.name].to_s != p.to_s
+    end
+
+    orphans = db_prompts.select { |p| !shipped.key?(p.name) }
+
+    if drifted.empty? && orphans.empty?
+      STDOUT.puts "All prompts in context #{bold{context}} are in sync. ✨"
+      return self
+    end
+
+    if drifted.any?
+      STDOUT.puts "\n#{drifted.count} drifted prompt(s) found:\n"
+      drifted.each { |p| STDOUT.puts "  • #{bold{p.name}} in #{italic{p.context}}" }
+      STDOUT.puts
+    end
+
+    confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout: 5)
+
+    drifted.each do |p|
+      show_prompt_diff(p, shipped[p.name], context:)
+    end
+
+    if orphans.any?
+      STDOUT.puts "\n#{orphans.count} orphaned prompt(s) "\
+                 "(no longer in default config):\n"
+      orphans.each { |p| STDOUT.puts "  • #{bold{p.name}} in #{italic{p.context}}" }
+      STDOUT.puts
+    end
+
+    confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout: 5)
+
+    unless orphans.empty?
+      STDOUT.puts
+      if confirm?(
+        prompt: "🧹 Remove #{orphans.count} orphaned prompt(s)? (y/n) ",
+        yes: /\Ay/i
+      )
+      then
+        orphans.each do |p|
+          p.destroy
+          STDOUT.puts "  ✓ Removed #{bold{p.name}}"
+          log(:info, "Orphan prompt cleaned up", data: { name: p.name, context: })
+        end
+      end
+    end
+
+    self
+  end
+
   private
 
   # Helper to wrap a prompt name with its favourite status for the UI.
@@ -393,6 +463,60 @@ module OllamaChat::PromptManagement
   def prompt_with_favourite(name, favourited)
     display = prefix_favourite(name, favourited)
     SearchUI::Wrapper.new(name, display:)
+  end
+
+  # Writes the database copy and the shipped default to temp files and
+  # displays a unified diff via `OC::DIFF_COMMAND`.
+  #
+  # If the user opts in, launches `OC::DIFF_TOOL` for interactive
+  # resolution; the resolved content (file A) is then written back
+  # to the database.
+  #
+  # @param prompt [OllamaChat::Database::Models::Prompt] the DB prompt
+  # @param shipped [String] the shipped default content from config
+  # @param context [String] the prompt context
+  def show_prompt_diff(prompt, shipped, context:)
+    STDOUT.puts "\n#{'─' * 60}"
+    STDOUT.puts "📝 #{bold{prompt.name}}"
+    STDOUT.puts '─' * 60
+
+    Dir.mktmpdir('prompt_sync') do |dir|
+      file_a = File.join(dir, "#{prompt.name}.local")
+      file_b = File.join(dir, "#{prompt.name}.default")
+      File.write(file_a, prompt.to_s)
+      File.write(file_b, shipped.to_s)
+
+      cmd    = OC::DIFF_COMMAND.dup << file_a << file_b
+      output = IO.popen(cmd, &:read).chomp
+
+      if output.empty?
+        STDOUT.puts "  (no differences detected)"
+      else
+        STDOUT.puts output
+      end
+
+      STDOUT.puts
+      if confirm?(
+        prompt: "🔧 Resolve differences for #{bold{prompt.name}}? (y/n) ",
+        yes: /\Ay/i
+      )
+      then
+        unless diff_tool = OC::DIFF_TOOL?
+          STDERR.puts '  No DIFF_TOOL available.'
+          return
+        end
+        system(*[diff_tool, file_a, file_b].map(&:to_s))
+        resolved = File.read(file_a)
+        if resolved != prompt.to_s
+          write_prompt(prompt.name, resolved, context:)
+          STDOUT.puts "  ✓ Updated #{bold{prompt.name}}"
+          log(:info, "Prompt synced via diff tool",
+              data: { name: prompt.name, context: })
+        else
+          STDOUT.puts "  (no changes made)"
+        end
+      end
+    end
   end
 
   # Interactively determines a unique name for a new prompt, ensuring it

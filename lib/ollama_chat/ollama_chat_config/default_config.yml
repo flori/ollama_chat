@@ -240,7 +240,6 @@ prompts:
       How does this implementation handle malformed JSON or missing keys in the
       middle of a 2GB file without crashing the process?
 
-
       What is the time complexity of the current insert logic, and can we implement
       bulk inserts to reduce database round trips?
 

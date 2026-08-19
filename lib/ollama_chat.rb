@@ -20,9 +20,9 @@ module OllamaChat
   #
   # The error carries the offending `#path` as an attribute so that
   # callers can log or display the problematic location.
-  #
-  # @attr [String] path The path that caused the error.
   class InvalidPathError < OllamaChatError
+    # @!attribute [r] path
+    #   @return [String] The path that caused the error.
     attr_accessor :path
   end
 
@@ -74,6 +74,24 @@ module OllamaChat
   #
   # @return [Regexp] the pattern for validating collection identifiers
   COLLECTION_NAME_REGEXP = /[-\w\.]+/
+
+  class << self
+    # @!attribute [w] test_mode
+    #   @return [Boolean] test_mode Whether test mode is enabled.
+    #     Suppresses interactive prompts during seeding.
+    attr_writer :test_mode
+
+    # Checks whether test mode is enabled.
+    #
+    # When true, `AppState.seed` skips the interactive
+    # `confirm?` prompt and auto-accepts new prompt fingerprints.
+    #
+    # @return [Boolean] true if test mode is enabled
+    def test_mode?
+      !!@test_mode
+    end
+  end
+  self.test_mode = false
 end
 
 require 'ollama'

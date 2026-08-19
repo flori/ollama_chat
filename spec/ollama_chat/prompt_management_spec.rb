@@ -461,4 +461,114 @@ describe OllamaChat::PromptManagement do
       expect(chat.determine_valid_new_name_for_prompt('to add')).to be_nil
     end
   end
+
+  describe '#prompt_sync' do
+    it 'reports all in sync when no drift or orphans' do
+      expect(chat.config.prompts).to receive(:[]).with('prompt')
+        .and_return({})
+      expect(chat).to receive(:each_prompt)
+        .with(context: 'prompt', default: true).and_return([])
+
+      expect(STDOUT).to receive(:puts).with(/in sync/)
+      expect(chat.prompt_sync).to eq(chat)
+    end
+
+    it 'detects drifted prompts and calls show_prompt_diff' do
+      p = prompt_model.create(context: 'prompt', name: 'zz_drifted',
+                              metadata: { default: true, content: 'local' })
+      expect(chat.config.prompts).to receive(:[]).with('prompt')
+        .and_return('zz_drifted' => 'shipped')
+      expect(chat).to receive(:each_prompt)
+        .with(context: 'prompt', default: true).and_return([p])
+
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Press any key/)).twice.and_return(true)
+      expect(chat).to receive(:show_prompt_diff)
+        .with(p, 'shipped', context: 'prompt')
+      expect(chat.prompt_sync).to eq(chat)
+    end
+
+    it 'detects orphaned prompts and cleans up on confirm' do
+      p = prompt_model.create(context: 'prompt', name: 'zz_orphan',
+                              metadata: { default: true, content: 'x' })
+      expect(chat.config.prompts).to receive(:[]).with('prompt')
+        .and_return({})
+      expect(chat).to receive(:each_prompt)
+        .with(context: 'prompt', default: true).and_return([p])
+
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Press any key/)).twice.and_return(true)
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Remove/)).and_return(true)
+      expect { chat.prompt_sync }.to change { prompt_model.count }.by(-1)
+    end
+
+    it 'keeps orphans when user declines cleanup' do
+      p = prompt_model.create(context: 'prompt', name: 'zz_orphan',
+                              metadata: { default: true, content: 'x' })
+      expect(chat.config.prompts).to receive(:[]).with('prompt')
+        .and_return({})
+      expect(chat).to receive(:each_prompt)
+        .with(context: 'prompt', default: true).and_return([p])
+
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Press any key/)).twice.and_return(true)
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Remove/)).and_return(false)
+      expect { chat.prompt_sync }.not_to change { prompt_model.count }
+    end
+
+    it 'handles both drifted and orphaned prompts' do
+      drifted = prompt_model.create(context: 'prompt', name: 'zz_drifted',
+                                    metadata: { default: true, content: 'local' })
+      orphan  = prompt_model.create(context: 'prompt', name: 'zz_orphan',
+                                    metadata: { default: true, content: 'x' })
+      expect(chat.config.prompts).to receive(:[]).with('prompt')
+        .and_return('zz_drifted' => 'shipped')
+      expect(chat).to receive(:each_prompt)
+        .with(context: 'prompt', default: true).and_return([drifted, orphan])
+
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Press any key/)).twice.and_return(true)
+      expect(chat).to receive(:show_prompt_diff)
+        .with(drifted, 'shipped', context: 'prompt')
+      expect(chat).to receive(:confirm?)
+        .with(hash_including(prompt: /Remove/)).and_return(true)
+
+      expect { chat.prompt_sync }
+        .to change { prompt_model.where(name: 'zz_orphan').count }
+        .from(1).to(0)
+    end
+  end
+
+  describe '#show_prompt_diff' do
+    it 'displays diff and skips resolution when declined' do
+      p = prompt_model.create(context: 'prompt', name: 'zz_diff_me',
+                              metadata: { default: true, content: 'local' })
+
+      expect(chat).to receive(:confirm?).and_return(false)
+      expect { chat.show_prompt_diff(p, 'shipped', context: 'prompt') }
+        .not_to raise_error
+    end
+
+    it 'updates prompt when resolved content differs' do
+      p = prompt_model.create(context: 'prompt', name: 'zz_resolve',
+                              metadata: { default: true, content: 'before' })
+
+      expect(chat).to receive(:confirm?).and_return(true)
+      expect(OC).to receive(:DIFF_TOOL?).and_return(%w[vimdiff])
+      # Simulate vimdiff editing file_a by wrapping system to write to it
+      expect(chat).to receive(:system) do |*args|
+        file_a = args[-2]
+        File.write(file_a, 'after resolution')
+        true
+      end
+
+      expect(chat).to receive(:write_prompt)
+        .with('zz_resolve', 'after resolution', context: 'prompt')
+
+      expect { chat.show_prompt_diff(p, 'default', context: 'prompt') }
+        .not_to raise_error
+    end
+  end
 end

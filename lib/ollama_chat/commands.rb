@@ -484,14 +484,15 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|rename|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
-    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset rename ] ],
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|rename|sync|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
+    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset rename sync ] ],
     optional: true,
     options: '[-c CONTEXT|-e|-f]',
     help: <<~EOT,
       📝 Manage prompt templates:
-         Subcommands: edit, info, add, delete, list,
-         duplicate, import, export, reset, rename.
+          Subcommands: edit, info, add, delete, list,
+          duplicate, import, export, reset, rename,
+          sync.
          Options: -c [context]
                      (? for interactive in /prompt),
                   -e (edit next)
@@ -544,6 +545,8 @@ module OllamaChat::Commands
           STDOUT.puts "No default value found for prompt #{bold{prompt.name}}."
         end
       end
+    when 'sync'
+      prompt_sync(context:)
     when nil, '-e'
       if prompt = choose_prompt(
           prompt: 'Which template shall guide the next response? %s',
