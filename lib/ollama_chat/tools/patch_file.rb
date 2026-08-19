@@ -132,7 +132,7 @@ class OllamaChat::Tools::PatchFile
     if args.checksum != current_checksum
       raise OllamaChat::ToolFunctionArgumentError,
         "Stale context: File `#{path}` has been modified since your last read. " \
-        "Expected checksum `#{current_checksum}`, got `#{args.checksum}`."
+        "Unexpected checksum `#{args.checksum}`, I cannot patch!"
     end
 
     # We use the content we just read for the patch, as it's verified fresh
