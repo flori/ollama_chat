@@ -432,7 +432,7 @@ module OllamaChat::PromptManagement
     end
 
     if orphans.any?
-      STDOUT.puts "\n#{orphans.count} orphaned prompt(s) "\
+      STDOUT.puts "\n#{orphans.count} orphaned prompt(s) " \
                  "(no longer in default config):\n"
       orphans.each { |p| STDOUT.puts "  • #{bold{p.name}} in #{italic{p.context}}" }
       STDOUT.puts
