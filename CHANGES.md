@@ -1,5 +1,59 @@
 # Changes
 
+## 2026-08-20 v0.0.110
+
+### Added
+
+*   **App State Support**: Introduced `009_add_app_states_table.rb` migration
+    and `app_state.rb` model.
+*   **Prompt Synchronization**: Added `/prompt sync` subcommand with unified
+    diffs and boot check capabilities.
+    *   Implemented `AppState` model with `get`/`set` helpers and a `seed` boot
+        check using per-prompt `Digest::SHA256` hashes XOR-folded into a
+        fingerprint.
+    *   Boot check prints `~`/`+`/`-` detail report on drift and prompts user
+        to acknowledge; declining retains old fingerprint for repeated notice
+        on next boot.
+    *   Added `OC::DIFF_COMMAND` setting (`diff -u --color=always`) to `oc.rb`
+        for unified diff display, decoded via `Shellwords.split`.
+    *   Implemented `prompt_sync` and `show_prompt_diff` methods in
+        `prompt_management.rb` to compare DB prompts against shipped defaults,
+        show unified diff, offer `OC::DIFF_TOOL` resolution, and clean up
+        orphaned default prompts.
+    *   Wired `/prompt sync` subcommand into `commands.rb` (regexp, completion,
+        dispatch).
+*   **Test Mode**: Added `OllamaChat.test_mode` flag in `ollama_chat.rb` to
+    suppress interactive prompts during specs; set in `spec_helper.rb`.
+*   **Documentation**: Added YARD `@!attribute` docs for `test_mode` and
+    `test_mode?`.
+
+### Changed
+
+*   **Web Searching**: Updated `web_searching.rb` to store `search_engine` in
+    local `engine` to avoid double method call.
+*   **Session Management**: Added call to `session_close` after
+    `clean_messages!` succeeds in `lib/ollama_chat/commands.rb`.
+*   **Error Messages**: Simplified stale context error message in `PatchFile`
+    when a checksum mismatch occurs.
+
+### Fixed
+
+*   **Spec Expectations**: Updated `web_searching_spec.rb` to replace `allow`
+    with `expect` for message expectations.
+    *   Changed `log` expectations to `.at_least(:once)` since `links.add` also
+        triggers `log` internally.
+    *   Removed unused `before { allow(chat).to receive(:log) }` from the
+        `#web` describe block.
+    *   Added `.at_least(:once)` to `document_policy.selected` as it is called
+        in both `if` and `elsif` branches.
+    *   Changed `fetch_source`, `summarize`, and `import` expectations to
+        `.twice` since they are called once per URL (2 URLs in test data).
+
+### Tests
+
+*   Added 7 new spec examples for `prompt_sync` and `show_prompt_diff` in
+    `prompt_management_spec.rb`.
+
 ## 2026-08-18 v0.0.109
 
 ### Added
