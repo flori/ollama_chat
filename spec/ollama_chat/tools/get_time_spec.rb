@@ -36,6 +36,8 @@ describe OllamaChat::Tools::GetTime do
     )
     expect(json.weekday).to be_present
     expect(json.message).to eq 'Good morning! It is currently 11:11 on Friday.'
+    expect(described_class.summary_template(result:)).to eq \
+      'Good morning! It is currently 11:11 on Friday.'
   ensure
     Time.dummy = nil
   end

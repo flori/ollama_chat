@@ -44,6 +44,8 @@ describe OllamaChat::Tools::Browse do
       "Opened \"https://www.example.com\" in browser."
     )
     expect(json.url).to eq 'https://www.example.com'
+    expect(described_class.summary_template(result:)).to eq \
+      "Opened \"https://www.example.com\" in browser."
   end
 
   it 'can handle execution errors gracefully' do
@@ -71,6 +73,8 @@ describe OllamaChat::Tools::Browse do
     expect(json.message).to eq(
       "Could not open \"https://nonexistent-domain-12345.com\" in browser."
     )
+    expect(described_class.summary_template(result:)).to eq \
+      "Could not open \"https://nonexistent-domain-12345.com\" in browser."
   end
 
   it 'can handle execution exceptions gracefully' do
@@ -93,6 +97,7 @@ describe OllamaChat::Tools::Browse do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'some kind of exception'
+    expect(described_class.summary_template(result:)).to eq 'some kind of exception'
   end
 
   context 'when browser is configured' do
@@ -126,6 +131,8 @@ describe OllamaChat::Tools::Browse do
         "Opened \"https://www.example.com\" in browser."
       )
       expect(json.url).to eq 'https://www.example.com'
+      expect(described_class.summary_template(result:)).to eq \
+        "Opened \"https://www.example.com\" in browser."
     end
   end
 end

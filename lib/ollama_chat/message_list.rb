@@ -70,16 +70,210 @@ class OllamaChat::MessageList
     @messages.size
   end
 
-  # Estimates the total token count across all messages.
+  # Finds the message index at which compaction should cut.
   #
-  # Defaults to the chat's `think.strip` setting for the `strip_thinking`
-  # parameter.
+  # Walks non-system message groups (from +start+ onward) backward from
+  # the tail, accumulating per-group token estimates. Returns the index of
+  # the first message in the group whose addition causes the running total
+  # to meet or exceed +keep_recent_tokens+. Messages from +start+ up to
+  # that index are candidates for summarization; messages from that index
+  # onward are preserved.
   #
-  # @param strip_thinking [Boolean] whether to exclude thinking content.
-  #   Defaults to `@chat.think_strip.on?`.
-  # @return [Integer] the total estimated token count
-  def total_tokens(strip_thinking: @chat.think_strip.on?)
-    @messages.sum { |m| m.token_estimate(strip_thinking:).tokens }
+  # If every group together still fits under the budget, the index of the
+  # first group at or after +start+ is returned (signalling a no-op cut).
+  #
+  # @param start [Integer] the index at which to begin scanning (messages
+  #   before this index are excluded; typically the position just past an
+  #   existing summary message).
+  # @param keep_recent_tokens [Integer] the token budget for preserved
+  #   (recent) messages.
+  # @return [Integer, nil] the cut index into +@messages+, or +nil+ if
+  #   there are no non-system groups at or after +start+.
+  def find_cut_point(start:, keep_recent_tokens:)
+    groups = []
+    @messages.each_with_index do |msg, i|
+      next if msg.role == 'system'
+      next if i < start
+      tokens = msg.token_estimate(
+        strip_thinking: @chat.think_strip.on?
+      ).tokens
+      uuid = msg.group_uuid
+      if last = groups.last and last[:uuid] == uuid
+        last[:tokens] += tokens
+      else
+        groups << { uuid:, start: i, tokens: }
+      end
+    end
+    return nil if groups.empty?
+
+    accumulated = 0
+    groups.reverse_each do |group|
+      accumulated += group[:tokens]
+      return group[:start] if accumulated >= keep_recent_tokens
+    end
+    groups.first[:start]
+  end
+
+  # Finds the most recent summary message in the list.
+  #
+  # Scans backward from the tail for a message with
+  # `role == 'tool'` and `tool_name == 'summary'`.
+  #
+  # @return [OllamaChat::Message, nil] the summary message, or
+  #   `nil` if no summary has been inserted yet.
+  def find_summary
+    messages.reverse_each.find do |m|
+      m.role == 'tool' && m.tool_name == 'summary'
+    end
+  end
+
+  # Compacts the message list by summarizing old groups and inserting
+  # a single summary tool message at the cut point.
+  #
+  # Resolves the keep-recent token budget from the current model's context
+  # length, finds the cut point, summarizes all groups before it (passing
+  # any existing summary as +previous_summary+ for iterative re-compaction),
+  # then inserts the new summary at the cut point. Old groups remain in
+  # the list for retrieval via +lookup_group+; the LLM context builder
+  # skips them on the next call.
+  #
+  # @return [OllamaChat::Compaction::Result, nil] a +Result+ with
+  #   before/after context estimates on success, or +nil+ if there was
+  #   nothing to compact.
+  def compact!
+    ctx    = @chat.current_context_length
+    budget = @chat.compact_ratio_tokens(:keep_recent, ctx)
+
+    existing_summary = find_summary
+    start = @messages.each_with_index.find do |m, i|
+      m.role == 'tool' && m.tool_name == 'summary' and break i + 1
+    end
+    start ||= 0
+    start   = start.clamp(0..(@messages.size - 1))
+
+    # Cut among post-summary groups; the old summary is excluded
+    # from the budget window by +start+.
+    cut = find_cut_point(start:, keep_recent_tokens: budget)
+    return nil if cut.nil? || cut <= 1
+
+    candidates = @messages[start...cut]
+      .reject { |m| m.role == 'system' }
+      .reject { |m| m.role == 'tool' && m.tool_name == 'summary' }
+    return nil if candidates.empty?
+
+    cand_es = OllamaChat::TokenEstimator::Crude.new(
+      candidates.sum { |m| m.content.to_s.bytesize }
+    ).perform
+    context_before = @chat.context_usage
+
+    @chat.log(:info, 'Compaction: starting', data: {
+      context_length: ctx,
+      budget:         budget,
+      cut_index:      cut,
+      candidates:     candidates.size,
+      candidate_bytes: cand_es.bytes_formatted,
+      candidate_tokens: cand_es.tokens_formatted,
+      previous_summary: existing_summary ? 'yes' : 'no',
+    })
+
+    summary_text, all_tool_entries = @chat.summarize_for_compaction(
+      messages:         candidates,
+      previous_summary: existing_summary,
+    )
+
+    compact_es = OllamaChat::TokenEstimator.estimate(summary_text.bytesize)
+    @chat.log(:info, 'Compaction: summary generated', data: {
+      summary_bytes:   compact_es.bytes_formatted,
+      summary_tokens:  compact_es.tokens_formatted,
+    })
+
+    summary_msg = OllamaChat::Message.new(
+      role:       'tool',
+      tool_name:  'summary',
+      content:    summary_text,
+      tool_calls: all_tool_entries,
+    ).initialize_group_uuid
+
+    # Remove old summary (if any) and adjust cut for the shift.
+    if existing_summary
+      idx = @messages.index(existing_summary)
+      @messages.delete_at(idx)
+      cut -= 1 if idx < cut
+    end
+
+    @messages.insert(cut, summary_msg)
+    @chat.log(:info, 'Compaction: done', data: {
+      total_messages: @messages.size,
+      summary_at:     cut,
+    })
+    sync
+
+    OllamaChat::Compaction::Result.new(
+      context_before:,
+      context_after:  @chat.context_usage,
+      candidates:     candidates.size,
+      candidate_size: "#{cand_es.bytes_formatted} / " \
+                      "#{cand_es.tokens_formatted}",
+      summary_size:   "#{compact_es.bytes_formatted} / " \
+                      "#{compact_es.tokens_formatted}",
+      stored_total:   @chat.conversation_length,
+    )
+  end
+
+  # Returns the messages that will actually be sent to the LLM.
+  #
+  # If no summary message exists, returns all messages (identical to
+  # +to_ary+). If a summary is present, returns only the system prompt,
+  # the summary, and everything after it — groups before the summary
+  # are invisible to the model but remain in the list for
+  # +lookup_group+ retrieval.
+  #
+  # @return [Array<OllamaChat::Message>] the messages to send to the LLM
+  def compacted_messages
+    idx = @messages.rindex do |m|
+      m.role == 'tool' && m.tool_name == 'summary'
+    end
+    return to_ary if idx.nil?
+
+    system = @messages.take_while { |m| m.role == 'system' }
+    system + [@messages[idx]] + @messages[(idx + 1)..]
+  end
+
+  # Estimates the token and byte size of the messages that will actually
+  # be sent to the LLM (i.e. +compacted_messages+).
+  #
+  # When no summary message exists this is identical to the full list.
+  # When a summary is present, the pre-summary groups are excluded.
+  #
+  # Uses per-message +token_estimate+ which counts only text content
+  # (and thinking, unless +think_strip+ is enabled), excluding images
+  # and metadata scaffolding that would inflate a raw serialization.
+  #
+  # @return [OllamaChat::TokenEstimator::Estimate] the estimated token and
+  #   byte counts for the effective LLM payload.
+  def compacted_estimate_tokens
+    strip = @chat.think_strip.on?
+    bytes = compacted_messages.sum {
+      _1.token_estimate(strip_thinking: strip).bytes
+    }
+    OllamaChat::TokenEstimator.estimate(bytes)
+  end
+
+  # Estimates the token and byte size of the **full** stored message
+  # list (i.e. +@messages+), using per-message +token_estimate+.
+  #
+  # Unlike +Session#estimate_tokens+ which measures raw JSONL bytes
+  # (including base64 images and JSON scaffolding), this counts only
+  # text content and thinking (unless +think_strip+ is enabled).
+  #
+  # @return [OllamaChat::TokenEstimator::Estimate] the estimated token
+  #   and byte counts for the full conversation payload.
+  def full_estimate_tokens
+    strip = @chat.think_strip.on?
+    bytes = @messages.sum {
+      _1.token_estimate(strip_thinking: strip).bytes
+    }
+    OllamaChat::TokenEstimator.estimate(bytes)
   end
 
   # The clear method removes all non-system messages from the message list.
@@ -159,6 +353,8 @@ class OllamaChat::MessageList
   #   messages.
   def each_message(role: %w[ user assistant ], tool: false, &block)
     block or return enum_for(__method__, role:, tool:)
+
+    role = Array(role)
 
     @messages.each do |message|
       role.include?(message.role) or next
@@ -317,14 +513,21 @@ class OllamaChat::MessageList
     self
   end
 
-  # Groups user/assistant messages by their group_uuid, allowing for easy
-  # manipulation of whole exchanges (User -> Runtime Info -> Assistant -> Tools).
+  # Groups messages by their +group_uuid+, yielding an array of messages
+  # belonging to the same conversational turn (User -> Assistant -> Tools).
   #
-  # @yield [Array<OllamaChat::Message>] an array of messages belonging to the same group.
+  # @param role [Array<String>] the message roles to include when grouping.
+  #   Defaults to +%w[user assistant]+. Pass +%w[user assistant tool]+
+  #   to include tool-result messages as well.
+  # @param tool [Boolean] whether to include messages that carry a
+  #   +tool_name+ (tool calls / responses) among +user+ / +assistant+ roles.
+  #   Defaults to +false+.
+  # @yield [Array<OllamaChat::Message>] an array of messages sharing the
+  #   same +group_uuid+.
   # @return [Enumerator] if no block is given, returns an enumerator.
-  def each_group(&block)
-    block or return enum_for(__method__)
-    each_message.group_by(&:group_uuid).values.each(&block)
+  def each_group(role: %w[ user assistant ], tool: false, &block)
+    block or return enum_for(__method__, role:, tool:)
+    each_message(role:, tool:).group_by(&:group_uuid).values.each(&block)
   end
 
   # Removes the last `n` conversation exchanges from the message list.
@@ -423,8 +626,7 @@ class OllamaChat::MessageList
   # @return [self, NilClass] nil if the system prompt is empty, otherwise self.
   def show_system_prompt
     current_system = system.to_s
-    size_bytes     = current_system.size
-    es             = OllamaChat::TokenEstimator.estimate(size_bytes)
+    es             = OllamaChat::TokenEstimator.estimate(current_system)
     system_prompt  = @chat.kramdown_ansi_parse(current_system).
        gsub(/\n+\z/, '').full?
     if system_prompt.blank?

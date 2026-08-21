@@ -7,6 +7,7 @@ require 'open3'
 # It provides a safe way to test snippets and verify Ruby behavior.
 class OllamaChat::Tools::EvalRuby
   include OllamaChat::Tools::Concern
+  include Kramdown::ANSI::Width
 
   # @return [String] the registered name for this tool
   def self.register_name = 'eval_ruby'
@@ -79,18 +80,27 @@ class OllamaChat::Tools::EvalRuby
     result = stdout&.sub(/\ASwitch to inspect mode.\n/, '')
 
     if status.success?
+      result_truncated = truncate(result.to_s.strip, length: 80)
+      message          = "eval_ruby succeeded (#{version}): #{result_truncated.inspect}"
       {
         result:,
         version:,
-        status: 'success'
+        status: 'success',
+        message:  ,
       }.to_json
     else
+      message =
+        if stderr.empty?
+          "eval_ruby failed (#{version}): exit status #{status.exitstatus}"
+        else
+          "eval_ruby failed (#{version}): #{truncate(stderr.to_s.strip, length: 80).inspect}"
+        end
       {
-        error: 'ExecutionError',
-        message: stderr.empty? ? "Process exited with status #{status.exitstatus}" : stderr,
-        version:,
-        stdout:,
-        exit_status: status.exitstatus
+        error:       'ExecutionError',
+        message:     ,
+        version:     ,
+        stdout:      ,
+        exit_status: status.exitstatus,
       }.to_json
     end
   rescue => e

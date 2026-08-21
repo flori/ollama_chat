@@ -36,6 +36,7 @@ describe OllamaChat::Tools::CopyToClipboard do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(json.message).to eq 'no text given'
+    expect(described_class.summary_template(result:)).to eq 'no text given'
   end
 
   it 'can copy custom text to the clipboard' do
@@ -63,6 +64,8 @@ describe OllamaChat::Tools::CopyToClipboard do
     expect(json.error).to be_nil # No exception was raised
     expect(json.success).to be true
     expect(json.message).to eq 'The provided text has been successfully copied to the system clipboard.'
+    expect(described_class.summary_template(result:))\
+      .to eq 'The provided text has been successfully copied to the system clipboard.'
   end
 
   it 'can be executed with edit option' do
@@ -89,6 +92,8 @@ describe OllamaChat::Tools::CopyToClipboard do
     expect(json.error).to be_nil
     expect(json.success).to be true
     expect(json.message).to eq 'The provided text has been successfully copied to the system clipboard.'
+    expect(described_class.summary_template(result:))\
+      .to eq 'The provided text has been successfully copied to the system clipboard.'
   end
 
   it 'can handle execution errors gracefully' do
@@ -115,6 +120,8 @@ describe OllamaChat::Tools::CopyToClipboard do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::OllamaChatError'
     expect(json.message).to eq 'No response available to copy to the system clipboard.'
+    expect(described_class.summary_template(result:))\
+      .to eq 'No response available to copy to the system clipboard.'
   end
 
   it 'can handle execution exceptions gracefully' do
@@ -141,5 +148,6 @@ describe OllamaChat::Tools::CopyToClipboard do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'some kind of exception'
+    expect(described_class.summary_template(result:)).to eq 'some kind of exception'
   end
 end

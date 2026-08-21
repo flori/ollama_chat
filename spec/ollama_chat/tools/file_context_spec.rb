@@ -31,6 +31,8 @@ describe OllamaChat::Tools::FileContext do
     json = json_object(result)
     content_file = json.files[Pathname.pwd.join('spec/assets/example.rb').to_s].content
     expect(content_file).to include 'Hello World!'
+    expect(described_class.summary_template(result:))\
+      .to eq "was called."
   end
 
   it 'can handle execution errors gracefully' do
@@ -50,5 +52,8 @@ describe OllamaChat::Tools::FileContext do
 
     # Should still return a string (even if empty or minimal)
     expect(result).to be_a(String)
+    expect(described_class.summary_template(result:))\
+      .to eq "was called."
   end
+
 end

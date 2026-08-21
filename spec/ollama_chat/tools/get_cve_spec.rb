@@ -44,6 +44,8 @@ describe OllamaChat::Tools::GetCVE do
     json = json_object(result)
     expect(json.id).to eq 'CVE-2023-12345'
     expect(json.description).to include('Test vulnerability description')
+    expect(described_class.summary_template(result:)).to eq \
+      'was called.'
   end
 
   it 'can handle execution errors gracefully' do
@@ -67,5 +69,7 @@ describe OllamaChat::Tools::GetCVE do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::HTTPError'
     expect(json.message).to eq 'request failed with status 404'
+    expect(described_class.summary_template(result:)).to eq \
+      'request failed with status 404'
   end
 end

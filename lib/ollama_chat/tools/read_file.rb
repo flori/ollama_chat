@@ -91,7 +91,7 @@ class OllamaChat::Tools::ReadFile
     content, line_count = extract_range(full_content, start_line, end_line, line_numbers:)
     checksum            = '%08x' % Zlib.crc32(full_content) if line_numbers && !start_line && !end_line
     es                  = OllamaChat::TokenEstimator.estimate(content)
-    message             = "Read #{es.bytes_formatted} (#{es.tokens_formatted}) from #{path.to_s.inspect}."
+    message             = "Read #{es.tokens_formatted} (#{es.bytes_formatted}) from #{path.to_s.inspect}."
     chat.log(:info, "File read", data: {
       tool: name, path: path.to_s, bytes: es.bytes_formatted, tokens: es.tokens_formatted
     })

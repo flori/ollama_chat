@@ -54,6 +54,8 @@ describe OllamaChat::Tools::GetGHR do
     expect(json.repo).to eq repo
     expect(json.releases).to be_a Array
     expect(json.releases.first.version).to eq '1.0'
+    expect(described_class.summary_template(result:)).to eq \
+      'was called.'
   end
 
   it 'can be executed successfully for an overview' do
@@ -104,6 +106,8 @@ describe OllamaChat::Tools::GetGHR do
 
     expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(json.message).to include('Both user and repo must be provided')
+    expect(described_class.summary_template(result:)).to include \
+      'Both user and repo must be provided'
   end
 
   it 'can handle execution errors gracefully' do
@@ -132,6 +136,8 @@ describe OllamaChat::Tools::GetGHR do
 
     expect(json.error).to eq 'OllamaChat::HTTPError'
     expect(json.message).to eq 'request failed with status 404'
+    expect(described_class.summary_template(result:)).to eq \
+      'request failed with status 404'
   end
 
   it 'can be executed successfully for a specific repository with pagination' do

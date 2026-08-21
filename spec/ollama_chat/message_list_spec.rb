@@ -123,6 +123,235 @@ describe OllamaChat::MessageList do
       group = list.each_group.to_a.first
       expect(group.map(&:content)).to eq ['first', 'second', 'third']
     end
+
+    it 'filters messages correctly' do
+      list = described_class.new(chat)
+      uuid = 'filter-test'
+      list << OllamaChat::Message.new(role: 'user', content: 'first', group_uuid: uuid)
+      list << OllamaChat::Message.new(role: 'assistant', content: 'second', group_uuid: uuid)
+      list << OllamaChat::Message.new(role: 'user', content: 'third', group_uuid: uuid)
+
+      group = list.each_group(role: 'user').to_a.first
+      expect(group.map(&:content)).to eq ['first', 'third']
+    end
+  end
+
+  describe '#find_cut_point' do
+    before do
+      allow(chat).to receive(:think_strip).and_return double(on?: false)
+    end
+
+    def add_group(list, uuid, role, content)
+      list << OllamaChat::Message.new(
+        role:, content:, group_uuid: uuid
+      )
+    end
+
+    it 'returns nil when there are no non-system messages' do
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 100)).to be_nil
+    end
+
+    it 'returns the first non-system index when everything fits' do
+      add_group(list, 'g1', 'user', 'hello')       # idx 1, 2 tok
+      add_group(list, 'g1', 'assistant', 'world')  # idx 2, 2 tok
+      add_group(list, 'g2', 'user', 'hi')          # idx 3, 1 tok
+
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 10)).to eq 1
+    end
+
+    it 'cuts at the group whose addition reaches the budget' do
+      add_group(list, 'g1', 'user', 'hello')       # idx 1, 2 tok
+      add_group(list, 'g1', 'assistant', 'world')  # idx 2, 2 tok
+      add_group(list, 'g2', 'user', 'hi')          # idx 3, 1 tok
+
+      # budget 4: walking back → 1 < 4, 3 < 4, 5 >= 4 → cut at idx 1
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 4)).to eq 1
+
+      # budget 1: walking back → 1 >= 1 → cut at idx 3
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 1)).to eq 3
+    end
+
+    it 'treats multi-message groups as a single atomic unit' do
+      # Group A: 2 messages = 4 tokens
+      add_group(list, 'a', 'user', 'hello')
+      add_group(list, 'a', 'assistant', 'world')
+      # Group B: 1 message = 2 tokens
+      add_group(list, 'b', 'user', 'hi hi')
+
+      # budget 6: 4 + 2 = 6 >= 6 → cut at group A (idx 1)
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 6)).to eq 1
+
+      # budget 2: 2 >= 2 → cut at group B (idx 3)
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 2)).to eq 3
+
+      # budget 5: 2 < 5, 6 >= 5 → cut at group A (idx 1)
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 5)).to eq 1
+    end
+
+    it 'skips system messages when building groups' do
+      add_group(list, 's2', 'system', 'extra system')
+      add_group(list, 'g1', 'user', 'hello')
+
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 10)).to eq 2
+    end
+
+    it 'ignores messages before start' do
+      add_group(list, 'old', 'user', 'aaaaa')        # idx 1, 2 tok
+      add_group(list, 'old', 'assistant', 'bbbbb')   # idx 2, 2 tok
+      add_group(list, 'n1', 'user', 'hi')            # idx 3, 1 tok
+      add_group(list, 'n2', 'user', 'yo')            # idx 4, 1 tok
+
+      # start: 0 includes old group (4 tok):
+      #   budget 3: walk back → n2:1<3, n1:2<3, old:6>=3 → cut at 1
+      expect(list.find_cut_point(start: 0, keep_recent_tokens: 3)).to eq 1
+
+      # start: 3 excludes old group: only n1(1)+n2(1)=2 in window
+      #   budget 3: walk back → n2:1<3, n1:2<3 → no-op at 3
+      expect(list.find_cut_point(start: 3, keep_recent_tokens: 3)).to eq 3
+    end
+  end
+
+  describe '#find_summary' do
+    it 'returns nil when no summary exists' do
+      expect(list.find_summary).to be_nil
+    end
+
+    it 'returns the summary message when present' do
+      summary = OllamaChat::Message.new(
+        role: 'tool', tool_name: 'summary',
+        content: '<summary>test</summary>', group_uuid: 's1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hello', group_uuid: 'g1'
+      )
+      list << summary
+
+      expect(list.find_summary).to be summary
+    end
+  end
+
+  describe '#compact!' do
+    before do
+      allow(chat).to receive(:think_strip).and_return double(on?: false)
+      allow(chat).to receive(:current_context_length).and_return 100
+      allow(chat).to receive(:compact_ratio_tokens)
+        .with(:keep_recent, 100).and_return 5
+      allow(chat).to receive(:context_usage)
+        .and_return '10.0 T of 100 T (10.0%)'
+      allow(chat).to receive(:conversation_length)
+        .and_return '1.0 KB / 0.3 KT'
+    end
+
+    it 'returns nil when there are no non-system groups' do
+      expect(list.compact!).to be_nil
+      expect(list.size).to eq 1
+    end
+
+    it 'returns self unchanged when only one group exists' do
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hello', group_uuid: 'g1'
+      )
+      expect(list.compact!).to be_nil
+      expect(list.size).to eq 2
+    end
+
+    it 'inserts a summary message and preserves old messages' do
+      # g1: 1+1=2 tok, g2: 2+2=4 tok, g3: 1 tok → total 7
+      # budget 5: walk back → 1<5, 5>=5 → cut at g2.start=3
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'a', group_uuid: 'g1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'assistant', content: 'b', group_uuid: 'g1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hello', group_uuid: 'g2'
+      )
+      list << OllamaChat::Message.new(
+        role: 'assistant', content: 'world', group_uuid: 'g2'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hi', group_uuid: 'g3'
+      )
+
+      expect(chat).to receive(:log).with(:info, /Compaction:/, kind_of(Hash)).at_least(:once)
+
+      expect(chat).to receive(:summarize_for_compaction).with(
+        hash_including(previous_summary: nil)
+      ).and_return(['narrative', []])
+
+      before = list.size
+      list.compact!
+
+      expect(list.size).to eq before + 1
+      summary = list.messages.find { _1.tool_name == 'summary' }
+      expect(summary).not_to be_nil
+      expect(summary.role).to eq 'tool'
+      expect(summary.content).to eq 'narrative'
+    end
+
+    it 'passes existing summary as previous_summary on re-compaction' do
+      old_summary = OllamaChat::Message.new(
+        role: 'tool', tool_name: 'summary',
+        content:  'old',
+        group_uuid: 's1'
+      )
+      list << old_summary
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'a', group_uuid: 'g1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'assistant', content: 'b', group_uuid: 'g1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hello', group_uuid: 'g2'
+      )
+      list << OllamaChat::Message.new(
+        role: 'assistant', content: 'world', group_uuid: 'g2'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hi', group_uuid: 'g3'
+      )
+
+      expect(chat).to receive(:log).with(:info, /Compaction:/, kind_of(Hash)).at_least(:once)
+
+      expect(chat).to receive(:summarize_for_compaction).with(
+        hash_including(previous_summary: old_summary)
+      ).and_return(['new', []])
+
+      before = list.size
+      list.compact!
+
+      expect(list.size).to eq before
+      summaries = list.messages.select { _1.tool_name == 'summary' }
+      expect(summaries.size).to eq 1
+      expect(summaries.first.content).to eq 'new'
+    end
+
+    it 'calls sync' do
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'a', group_uuid: 'g1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'assistant', content: 'b', group_uuid: 'g1'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hello', group_uuid: 'g2'
+      )
+      list << OllamaChat::Message.new(
+        role: 'assistant', content: 'world', group_uuid: 'g2'
+      )
+      list << OllamaChat::Message.new(
+        role: 'user', content: 'hi', group_uuid: 'g3'
+      )
+      allow(chat).to receive(:summarize_for_compaction)
+        .and_return(['x', []])
+
+      expect(chat).to receive(:log).with(:info, /Compaction:/, kind_of(Hash)).at_least(:once)
+
+      expect(list).to receive(:sync)
+      list.compact!
+    end
   end
 
   describe '.load_conversation' do

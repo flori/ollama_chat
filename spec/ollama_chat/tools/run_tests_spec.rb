@@ -60,6 +60,9 @@ describe OllamaChat::Tools::RunTests do
     expect(json.success).to be true
     expect(json.path).to eq 'spec/ollama_chat/tools/my_spec.rb'
     expect(json.status).to eq 'passed'
+    expect(described_class.summary_template(result:)).to eq \
+      '✨ All tests passed successfully in ' \
+      '"spec/ollama_chat/tools/my_spec.rb"!'
   end
 
   it 'can be executed successfully with a path and coverage' do
@@ -108,6 +111,10 @@ describe OllamaChat::Tools::RunTests do
     json = json_object(result)
     expect(json.success).to be false
     expect(json.status).to eq 'failed'
+    expect(described_class.summary_template(result:)).to eq \
+      '❌ Some tests failed in ' \
+      '"spec/ollama_chat/tools/my_spec.rb". ' \
+      'Please check the error messages above.'
   end
 
   it 'can handle unexpected errors gracefully' do
@@ -129,6 +136,7 @@ describe OllamaChat::Tools::RunTests do
     json = json_object(result)
     expect(json.error).to eq 'StandardError'
     expect(json.message).to eq 'Unexpected boom'
+    expect(described_class.summary_template(result:)).to eq 'Unexpected boom'
   end
 
   context 'path auto-discovery' do

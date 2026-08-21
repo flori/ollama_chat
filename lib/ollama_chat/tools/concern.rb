@@ -29,6 +29,23 @@ module OllamaChat::Tools::Concern
     #
     # @return [ String ] the register name of the tool
     attr_accessor :register_name
+
+    # Generates a one-line summary of a tool execution result for inclusion
+    # in compaction narratives.
+    #
+    # The default implementation extracts the `message` field from the
+    # result JSON (most tools already produce one). Falls back to a
+    # generic sentence if the field is absent or parsing fails.
+    #
+    # @param result [String] the raw JSON result string returned by `execute`
+    # @return [String] a short natural-language description of the call
+    def summary_template(result:)
+      default_message = "was called."
+      data            = JSON.parse(result)
+      data.is_a?(Hash) && data['message'] || default_message
+    rescue JSON::ParserError
+      default_message
+    end
   end
 
   # The name method returns the registered name of the tool.

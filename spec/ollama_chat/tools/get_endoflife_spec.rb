@@ -45,6 +45,8 @@ describe OllamaChat::Tools::GetEndoflife do
     expect(json.cycle).to eq '3.1'
     expect(json.releaseDate).to eq '2023-05-01'
     expect(json.eol).to eq '2026-05-01'
+    expect(described_class.summary_template(result:)).to eq \
+      'was called.'
   end
 
   it 'can handle execution errors gracefully' do
@@ -68,5 +70,7 @@ describe OllamaChat::Tools::GetEndoflife do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::HTTPError'
     expect(json.message).to eq 'request failed with status 404'
+    expect(described_class.summary_template(result:)).to eq \
+      'request failed with status 404'
   end
 end

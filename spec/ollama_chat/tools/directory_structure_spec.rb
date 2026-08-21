@@ -32,6 +32,8 @@ describe OllamaChat::Tools::DirectoryStructure do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.size).to eq 24
+    expect(described_class.summary_template(result:)).to eq \
+      'was called.'
   end
 
   it 'can be executed successfully with no arguments (defaults)' do
@@ -76,6 +78,8 @@ describe OllamaChat::Tools::DirectoryStructure do
     json = json_object(result)
     expect(json.error).to eq 'Errno::ENOENT'
     expect(json.message).to eq 'No such file or directory @ dir_initialize - /nonexistent/path'
+    expect(described_class.summary_template(result:)).to eq \
+      'No such file or directory @ dir_initialize - /nonexistent/path'
   end
 
   it 'can be converted to hash' do

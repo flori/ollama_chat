@@ -312,7 +312,7 @@ class OllamaChat::Utils::Fetcher
         end
         body = response.body
         tmp.print body
-        infobar.update(message: message(body.size, body.size), force: true)
+        infobar.update(message: message(body.bytesize, body.bytesize), force: true)
         decorate_io(tmp, response)
         infobar.finish
         block.(tmp)

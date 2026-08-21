@@ -48,6 +48,9 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include('spec/assets')
     expect(json.result).to include('Hello World!')
     expect(json.message).to match(/Found some matches for "Hello World" in ".*spec\/assets"\./)
+    expect(described_class.summary_template(result:)).to match(
+      /Found some matches for "Hello World" in ".*spec\/assets"\./
+    )
   end
 
   it 'can be executed successfully with max_results parameter' do
@@ -80,6 +83,9 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include(' -m 5 ')
     expect(json.result).to match(/blub class blob/)
     expect(json.message).to match(/Found some matches for "class" in ".*spec\/assets"\./)
+    expect(described_class.summary_template(result:)).to match(
+      /Found some matches for "class" in ".*spec\/assets"\./
+    )
   end
 
   it 'can be executed successfully with max_results and ignore_case parameter' do
@@ -113,6 +119,9 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include(' -i ')
     expect(json.result).to match(/blub class blob/)
     expect(json.message).to match(/Found some matches for "class" in ".*spec\/assets"\./)
+    expect(described_class.summary_template(result:)).to match(
+      /Found some matches for "class" in ".*spec\/assets"\./
+    )
   end
 
   it 'can handle execution errors gracefully' do
@@ -145,6 +154,9 @@ describe OllamaChat::Tools::ExecuteGrep do
     expect(json.cmd).to include('grep')
     expect(json.result).to eq ''
     expect(json.message).to match(/No matches found for "nonexistent_pattern" in ".*spec\/assets"\./)
+    expect(described_class.summary_template(result:)).to match(
+      /No matches found for "nonexistent_pattern" in ".*spec\/assets"\./
+    )
   end
 
   it 'can handle non-existent paths gracefully' do
@@ -205,6 +217,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'my error'
+    expect(described_class.summary_template(result:)).to eq 'my error'
   end
 
   context 'when searching in spec/assets directory' do

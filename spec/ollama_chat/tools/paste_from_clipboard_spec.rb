@@ -40,6 +40,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(json.error).to be_nil # No exception was raised
     expect(json.success).to be true
     expect(json.message).to eq "Pasted 11.0 B of content."
+    expect(described_class.summary_template(result:)).to eq "Pasted 11.0 B of content."
   end
 
   it 'can be executed with edit option' do
@@ -65,6 +66,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(json.error).to be_nil
     expect(json.success).to be true
     expect(json.message).to eq "Pasted 18.0 B of content."
+    expect(described_class.summary_template(result:)).to eq "Pasted 18.0 B of content."
   end
 
   it 'can handle execution errors gracefully' do
@@ -89,6 +91,8 @@ describe OllamaChat::Tools::PasteFromClipboard do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::OllamaChatError'
     expect(json.message).to eq 'No content available to paste from the system clipboard.'
+    expect(described_class.summary_template(result:)).to eq \
+      'No content available to paste from the system clipboard.'
   end
 
   it 'can handle execution exceptions gracefully' do
@@ -113,5 +117,6 @@ describe OllamaChat::Tools::PasteFromClipboard do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'some kind of exception'
+    expect(described_class.summary_template(result:)).to eq 'some kind of exception'
   end
 end

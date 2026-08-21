@@ -46,6 +46,9 @@ describe OllamaChat::Tools::GeneratePassword do
     expect(json.message).to eq(
       'Successfully generated a 16-character secure password using the default alphabet.'
     )
+    expect(described_class.summary_template(result:)).to eq(
+      'Successfully generated a 16-character secure password using the default alphabet.'
+    )
   end
 
   it 'can be executed successfully with bits parameter' do
@@ -134,6 +137,8 @@ describe OllamaChat::Tools::GeneratePassword do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(json.message).to eq 'require either bits or length of password'
+    expect(described_class.summary_template(result:))\
+      .to eq 'require either bits or length of password'
   end
 
   it 'can be converted t)o hash' do

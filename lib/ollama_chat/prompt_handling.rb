@@ -90,7 +90,7 @@ module OllamaChat::PromptHandling
 
     content = filename.read if filename&.exist?
     log(:info, "Prompt loaded from file", data: {
-      file: filename&.to_s, bytes: content&.size
+      file: filename&.to_s, bytes: content&.bytesize
     })
     content
   end

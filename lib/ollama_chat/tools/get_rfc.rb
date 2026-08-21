@@ -60,7 +60,9 @@ class OllamaChat::Tools::GetRFC
       },
       &:read
     )
+    message = "RFC #{rfc_id} was fetched."
     {
+      message:,
       rfc_id: ,
       content:,
     }.to_json

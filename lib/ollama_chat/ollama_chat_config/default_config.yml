@@ -74,6 +74,7 @@ prompts:
           markdown tables.
       - **Session**: %{session_name}
         - Context usage is %{context_usage}.
+        - Full conversation length is %{conversation_length}.
         - Markdown output is %{markdown}. **Never** output markdown as your
           responses if it is disabled.
         - Voice output is %{voice}. Speak naturally and short if voice
@@ -341,6 +342,39 @@ prompts:
       
       Output only the 9 suggestions as plain text, each separated by one empty line.
       No other text.
+  compaction:
+    system: |
+      You are a context summarizer for a chat application.
+      Your sole task is to produce a concise, factual narrative
+      summary of the conversation provided. Be precise, omit
+      speculation, and follow the formatting instructions in the
+      user prompt exactly. Output only the summary text.
+    summarize: |
+      previous_summary:
+      %{previous}
+
+      conversation:
+      %{groups}
+
+      Summarize the conversation above. Your narrative MUST:
+      - Name every file created or significantly modified (with
+        path), and the key methods or classes they define.
+      - State the architectural or design decisions made (e.g.
+        data-model choices, API shape, error-handling strategy).
+      - Describe the current state: what works, what is pending,
+        and any open questions or follow-ups.
+      - Do NOT merely report test counts or coverage percentages;
+        those are outcomes, not accomplishments.
+      - Be factual; do not invent details not present in the groups
+        above. Keep it to 6–12 sentences.
+    assemble: |-
+      %{narrative}
+
+      tool_calls:
+      %{tool_section}
+
+      To see the full output of any tool call above, use lookup_group
+      with the group UUID in parentheses.
   system:
     default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
     persona: |
@@ -367,6 +401,14 @@ think:
   strip: false
 context:
   format: JSON
+compaction:
+  enabled: true
+  reserve:
+    ratio: 0.30
+    min_tokens: 4096
+  keep_recent:
+    ratio: 0.20
+    min_tokens: 2048
 embedding:
   enabled: true
   paused: false
@@ -494,6 +536,10 @@ tools:
     gem_path_lookup:
       result_display_timeout: 3
       default: true
+    lookup_group:
+      default: true
+      require_confirmation: false
+      result_display_timeout: 3
     open_file_in_editor:
       default: true
       require_confirmation: false

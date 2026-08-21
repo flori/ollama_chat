@@ -32,6 +32,8 @@ describe OllamaChat::Tools::OpenFileInEditor do
     expect(json.path).to eq asset('example.rb')
     expect(json.start_line).to eq 42
     expect(json.message).to match(%r(spec/assets/example.rb" at line 42))
+    expect(described_class.summary_template(result:)).
+      to match(%r(spec/assets/example.rb" at line 42))
   end
 
   it 'can be executed successfully with valid path, start_line, end_line' do
@@ -54,6 +56,8 @@ describe OllamaChat::Tools::OpenFileInEditor do
     expect(json.start_line).to eq 23
     expect(json.end_line).to eq 42
     expect(json.message).to match(%r(spec/assets/example.rb" and selected range 23-42))
+    expect(described_class.summary_template(result:)).
+      to match(%r(spec/assets/example.rb" and selected range 23-42))
   end
 
   it 'can handle invalid path gracefully' do
@@ -74,6 +78,8 @@ describe OllamaChat::Tools::OpenFileInEditor do
 
     expect(json.error).to eq 'Errno::ENOENT'
     expect(json.message).to include('No such file or directory')
+    expect(described_class.summary_template(result:)).
+      to include('No such file or directory')
   end
 
   it 'can be converted to hash' do

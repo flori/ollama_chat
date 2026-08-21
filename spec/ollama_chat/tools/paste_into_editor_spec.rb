@@ -41,6 +41,8 @@ describe OllamaChat::Tools::PasteIntoEditor do
       expect(json.message).to eq(
         'The provided text has been successfully pasted into the editor.'
       )
+      expect(described_class.summary_template(result:)).to eq \
+        'The provided text has been successfully pasted into the editor.'
     end
   end
 
@@ -64,6 +66,8 @@ describe OllamaChat::Tools::PasteIntoEditor do
 
       expect(json.error).to eq('OllamaChat::OllamaChatError')
       expect(json.message).to eq('Insert failed')
+      expect(described_class.summary_template(result:)).to eq \
+        'Insert failed'
     end
 
     it 'captures generic RuntimeError and returns JSON with the error details' do
@@ -75,6 +79,8 @@ describe OllamaChat::Tools::PasteIntoEditor do
 
       expect(json.error).to eq('RuntimeError')
       expect(json.message).to eq('Some exception')
+      expect(described_class.summary_template(result:)).to eq \
+        'Some exception'
     end
   end
 

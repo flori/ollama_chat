@@ -54,8 +54,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   #
   # @return [OllamaChat::TokenEstimator::Estimate] the estimated token and byte counts
   def estimate_tokens
-    size_bytes = messages.to_s.size
-    OllamaChat::TokenEstimator.estimate(size_bytes)
+    OllamaChat::TokenEstimator.estimate(messages.to_s)
   end
 
   # Counts the number of messages in the session's JSONL history.

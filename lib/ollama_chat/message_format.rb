@@ -108,8 +108,7 @@ module OllamaChat::MessageFormat
   # @return [ String, nil ] the annotated string with a thinking emoji if
   #   enabled, otherwise nil
   def think_annotate(think_loud: chat.think_loud?, &block)
-    string = block.()
-    string.to_s.size == 0 and return
+    string = block.().full?(:to_s) or return
     if think_loud
       "💭\n#{string}\n"
     end

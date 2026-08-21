@@ -638,9 +638,7 @@ module OllamaChat::Commands
           yes: /\Ay/i
         )
       then
-        messages.compact!
-        session_sync
-        STDOUT.puts "Conversation compacted."
+        compact_with_retry
       else
         STDOUT.puts 'Cancelled.'
       end

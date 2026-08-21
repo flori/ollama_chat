@@ -119,7 +119,7 @@ class OllamaChat::Tools::WriteFile
         (check[:status] == 'fail' || check[:output] != '')
     end
 
-    message = "Wrote #{es.bytes_formatted} (#{es.tokens_formatted}) to file #{path.to_s.inspect}."
+    message = "Wrote #{es.tokens_formatted} (#{es.bytes_formatted}) to file #{path.to_s.inspect}."
     if syntax_check
       case syntax_check[:status]
       when 'fail'

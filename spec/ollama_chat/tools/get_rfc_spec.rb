@@ -44,6 +44,7 @@ describe OllamaChat::Tools::GetRFC do
     json = json_object(result)
     expect(json.rfc_id).to eq rfc_id
     expect(json.content).to include('RFC 1234')
+    expect(described_class.summary_template(result:)).to eq 'RFC 1234 was fetched.'
   end
 
   it 'can handle execution errors gracefully' do
@@ -67,5 +68,6 @@ describe OllamaChat::Tools::GetRFC do
     json = json_object(result)
     expect(json.error).to be_a String
     expect(json.message).to be_a String
+    expect(described_class.summary_template(result:)).to eq 'request failed with status 404'
   end
 end

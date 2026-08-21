@@ -10,7 +10,7 @@ require 'ollama_chat/token_estimator/crude'
 module OllamaChat::TokenEstimator
   # Represents the result of a calculation including raw values
   # and their human-readable formatted strings.
-  class Estimate < Struct.new(:bytes, :tokens)
+  class Estimate < Data.define(:bytes, :tokens)
     include OllamaChat::Utils::ValueFormatter
 
     # Returns the byte count in a formatted string (e.g., "1.2 KB").

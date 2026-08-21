@@ -69,6 +69,7 @@ class OllamaChat::Chat
   include OllamaChat::PromptHandling
   include OllamaChat::SystemPromptManagement
   include OllamaChat::PromptManagement
+  include OllamaChat::Compaction
   include OllamaChat::Utils::Chooser
   include OllamaChat::Utils::ValueFormatter
   include OllamaChat::Utils::UTF8Converter
@@ -109,8 +110,8 @@ class OllamaChat::Chat
     truncate_logs
     @messages           = OllamaChat::MessageList.new(self)
     OllamaChat::Database.setup_models.each { _1.ask_and_send(:seed, self) }
-    setup_session
     setup_switches
+    setup_session
     setup_state_selectors(config)
     connect_ollama
     @documents = setup_documents
@@ -255,12 +256,14 @@ class OllamaChat::Chat
   # and a user message, executing it as a one-shot chat interaction.
   #
   # @param system [String] the system prompt to guide the model's behavior
-  # (defaults to current raw_system_prompt)
-  #
+  #   (defaults to current raw_system_prompt)
   # @param prompt [String] the user prompt to send to the model
+  # @param stream [Boolean] whether to stream the response (default: false)
+  # @param think [Boolean] enable thinking mode for hybrid-thinking models
+  #   (default: false)
   #
   # @return [String] the content of the resulting response message
-  def generate(system: raw_system_prompt, prompt:)
+  def generate(system: raw_system_prompt, prompt:, stream: false, think: false)
     messages = [
       OllamaChat::Message.new(
         role:        'system',
@@ -277,9 +280,8 @@ class OllamaChat::Chat
       model:    @model,
       messages: ,
       options:  model_options,
-      stream:   false,
-      think:    false,
-      tools:
+      stream:   ,
+      think:
     )&.message&.content.to_s
 
     if content.empty?
@@ -545,14 +547,15 @@ class OllamaChat::Chat
       )
       begin
         retried = false
-        sent_messages = messages.to_ary
-        if think_strip.on?
-          sent_messages = sent_messages.map {
-            _1.dup.tap { |message|
-              message.thinking = nil
-            }
+        sent_messages = messages.compacted_messages
+        sent_messages = sent_messages.map {
+          _1.dup.tap { |message|
+            message.sender_name = nil
+            message.group_uuid  = nil
+            message.tool_calls  = nil
+            message.thinking    = nil if think_strip.on?
           }
-        end
+        }
         prepare_model(@model)
         call_ollama_chat(
           model:    @model,

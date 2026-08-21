@@ -17,6 +17,7 @@ describe OllamaChat::Tools::GetURL do
     expect(described_class.new.to_hash).to be_a Hash
   end
 
+
   context "with a valid URL" do
     it "imports content from the URL" do
       tool_call = double(
@@ -39,6 +40,8 @@ describe OllamaChat::Tools::GetURL do
       json = json_object(result)
       expect(json.url).to eq('https://www.example.com/foo')
       expect(json.message).to eq('Received requested URL successfully.')
+      expect(described_class.summary_template(result:)).to eq \
+        'Received requested URL successfully.'
     end
   end
 
@@ -68,6 +71,8 @@ describe OllamaChat::Tools::GetURL do
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
       expect(json.message).to match(/scheme "file" not allowed/)
       expect(json.url).to eq url
+      expect(described_class.summary_template(result:)).
+        to match(/scheme "file" not allowed/)
     end
   end
 
@@ -93,6 +98,8 @@ describe OllamaChat::Tools::GetURL do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'it somehow failed'
+    expect(described_class.summary_template(result:)).to eq \
+      'it somehow failed'
   end
 
   context 'with different document policies' do

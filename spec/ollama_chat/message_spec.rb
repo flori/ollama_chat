@@ -121,6 +121,23 @@ describe OllamaChat::Message do
         expect(json).not_to have_key(:sender_name)
         expect(json).not_to have_key(:group_uuid)
       end
+
+      it 'includes tool_calls when set' do
+        entries = [{ 'type' => 'tool', 'name' => 'read_file',
+                     'summary' => 'Read /etc/hosts', 'uuid' => 'aaaa1234',
+                     'time' => '2026-08-30 14:32' }]
+        msg = described_class.new(
+          role: 'tool', content: 'summary', tool_name: 'summary',
+          tool_calls: entries,
+        )
+        json = msg.as_json
+        expect(json[:tool_calls]).to eq entries
+      end
+
+      it 'handles tool_calls as nil without crashing' do
+        json = message.as_json
+        expect(json[:tool_calls]).to be_nil
+      end
     end
   end
 end

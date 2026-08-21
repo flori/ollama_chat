@@ -17,6 +17,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(described_class.new.to_hash).to be_a Hash
   end
 
+
   it 'can be executed successfully' do
     tool_call = double(
       'ToolCall',
@@ -43,6 +44,8 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
     expect(json.checksum).not_to be_present
+    expect(described_class.summary_template(result:))\
+      .to include('Read 20.0 B (6.0 T) from')
   end
 
   it 'can extract range when start_line is provided and end_line is nil' do
@@ -198,6 +201,8 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
     expect(json.checksum).not_to be_present
+    expect(described_class.summary_template(result:))\
+      .to include('is not within allowed directories')
   end
 
   it 'can handle exceptions gracefully' do
@@ -222,5 +227,7 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.checksum).to be_nil
     expect(json.message).to match(/Failed to read file:.* does not exist/)
+    expect(described_class.summary_template(result:))\
+      .to match(/Failed to read file:.* does not exist/)
   end
 end

@@ -36,6 +36,9 @@ describe OllamaChat::Tools::ComputeBMI do
         expect(json.message).to match(
           /This BMI is 22\.8\d+, which falls into the Normal weight category\./
         )
+        expect(described_class.summary_template(result:)).to match(
+          /This BMI is 22\.8\d+/,
+        )
       end
 
       it 'calculates BMI correctly for Underweight' do
@@ -54,6 +57,9 @@ describe OllamaChat::Tools::ComputeBMI do
         expect(json.category).to eq 'Underweight'
         expect(json.message).to match(
           /This BMI is 17\.5\d+, which falls into the Underweight category\./
+        )
+        expect(described_class.summary_template(result:)).to match(
+          /This BMI is 17\.5\d+/,
         )
       end
     end
@@ -76,6 +82,9 @@ describe OllamaChat::Tools::ComputeBMI do
         expect(json.message).to match(
           /This BMI is 21\.5\d+, which falls into the Normal weight category\./
         )
+        expect(described_class.summary_template(result:)).to match(
+          /This BMI is 21\.5\d+/,
+        )
       end
     end
 
@@ -94,6 +103,9 @@ describe OllamaChat::Tools::ComputeBMI do
 
         expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
         expect(json.message).to include 'no weight given'
+        expect(described_class.summary_template(result:)).to include(
+          'no weight given',
+        )
       end
 
       it 'returns error when height is zero' do
@@ -110,6 +122,9 @@ describe OllamaChat::Tools::ComputeBMI do
 
         expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
         expect(json.message).to include 'Height must be greater than zero'
+        expect(described_class.summary_template(result:)).to include(
+          'Height must be greater than zero',
+        )
       end
     end
   end

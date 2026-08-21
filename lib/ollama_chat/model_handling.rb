@@ -23,7 +23,7 @@ module OllamaChat::ModelHandling
   # @attr_reader system [String] the system prompt associated with the model
   # @attr_reader capabilities [Array<String>] the capabilities supported by the model
   # @attr_reader families [Array<String>] the families of the model
-  class ModelMetadata < Struct.new(:name, :system, :capabilities, :families)
+  class ModelMetadata < Data.define(:name, :system, :capabilities, :families)
     # Checks if the given capability is included in the object's capabilities.
     #
     # @param capability [String] the capability to check for

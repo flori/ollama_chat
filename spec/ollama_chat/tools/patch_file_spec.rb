@@ -142,6 +142,8 @@ describe OllamaChat::Tools::PatchFile do
 
     result = tool.execute(tool_call, chat:)
     expect(json_object(result).success).to eq true
+    expect(described_class.summary_template(result:))\
+      .to match(/Successfully applied patch to/)
   ensure
     File.delete(test_file) if File.exist?(test_file)
   end
@@ -152,6 +154,8 @@ describe OllamaChat::Tools::PatchFile do
 
     result = tool.execute(tool_call, chat:)
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
+    expect(described_class.summary_template(result:))\
+      .to match(/Failed to apply patch to file/)
   end
 
   it 'can handle execution errors gracefully when path is not expected' do

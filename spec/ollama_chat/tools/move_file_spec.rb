@@ -49,6 +49,8 @@ describe OllamaChat::Tools::MoveFile do
     expect(File.exist?(source_path)).to be false
     expect(File.exist?(dest_path)).to be true
     expect(File.read(dest_path)).to eq content
+    expect(described_class.summary_template(result:))\
+      .to match(%r{File moved successfully from .*test_move_source.* to .*test_move_dest.*})
   ensure
     File.delete(source_path) if File.exist?(source_path)
     File.delete(dest_path) if File.exist?(dest_path)
@@ -80,6 +82,8 @@ describe OllamaChat::Tools::MoveFile do
     expect(json.success).to be_falsey
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.message).to include('does already exist')
+    expect(described_class.summary_template(result:))\
+      .to include('does already exist')
 
     # Verify files are still there (no move happened)
     expect(File.exist?(source_path)).to be true
@@ -112,6 +116,8 @@ describe OllamaChat::Tools::MoveFile do
     expect(json.success).to be_falsey
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.message).to include('does not exist')
+    expect(described_class.summary_template(result:))\
+      .to include('does not exist')
   ensure
     File.delete(dest_path) if File.exist?(dest_path)
   end
@@ -134,6 +140,8 @@ describe OllamaChat::Tools::MoveFile do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.message).to include('is not within allowed directories')
+    expect(described_class.summary_template(result:))\
+      .to include('is not within allowed directories')
   end
 
   it 'handles general exceptions gracefully' do
@@ -161,6 +169,8 @@ describe OllamaChat::Tools::MoveFile do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to include('Unexpected system error')
+    expect(described_class.summary_template(result:))\
+      .to include('Unexpected system error')
   ensure
     File.delete(source_path) if File.exist?(source_path)
     File.delete(dest_path) if File.exist?(dest_path)

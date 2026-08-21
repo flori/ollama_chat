@@ -41,6 +41,8 @@ describe OllamaChat::Tools::GetLocation do
     expect(json.latitude).to be_within(0.0001).of(40.7128)
     expect(json.longitude).to be_within(0.0001).of(-74.0060)
     expect(json.units).to eq 'metric'
+    expect(described_class.summary_template(result:))\
+      .to eq 'was called.'
   end
 
   it 'can handle execution errors gracefully' do
@@ -71,6 +73,8 @@ describe OllamaChat::Tools::GetLocation do
       result = described_class.new.execute(tool_call, chat:)
       # Should still be valid JSON even if location_data is nil
       expect { JSON.parse(result) }.to_not raise_error
+      expect(described_class.summary_template(result:))\
+        .to eq 'was called.'
     end
   end
 end

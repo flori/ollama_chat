@@ -35,7 +35,7 @@ class OllamaChat::Utils::TagResolver
   # A lightweight struct representing a single tag entry. It extends the base
   # `Struct` with convenience methods for generating human‑readable messages and
   # JSON representations.
-  class TagResult < Struct.new(*(HEADERS + %i[ linenumber ]))
+  class TagResult < Data.define(*(HEADERS + %i[ linenumber ]))
     # @return [String] Human readable description of this tag result.
     def message
       "#{symbol} of kind #{kind} (#{kind_type}) at #{filename}:#{linenumber}"

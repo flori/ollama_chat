@@ -56,6 +56,8 @@ describe OllamaChat::Tools::GemPathLookup do
       json = json_object(result)
       expect(json.error).to eq 'RuntimeError'
       expect(json.message).to eq 'an error has happened'
+      expect(described_class.summary_template(result:))\
+        .to eq 'an error has happened'
     end
   end
 end

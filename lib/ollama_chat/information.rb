@@ -133,11 +133,12 @@ module OllamaChat::Information
     end
     output.puts "🧠 Current chat model is #{bold{@model}}."
     context_usage = '%s of %s (%s)' % [
-      session.estimate_tokens.tokens_formatted,
+      messages.compacted_estimate_tokens.tokens_formatted,
       format_tokens(current_context_length),
       bold { '%.1f%%' % (100 * context_filled)},
     ]
-    output.puts  "  Context Length: #{context_usage}"
+    output.puts  "  Context Usage: #{context_usage}"
+    output.puts  "  Conversation Length: #{conversation_length}"
     output.print '  '; think_mode.show(output:)
     output.print '  '; think_loud.show(output:)
     output.print '  '; think_strip.show(output:)
@@ -345,6 +346,22 @@ module OllamaChat::Information
     prompt(:static_runtime_info).to_s % static_runtime_information_values
   end
 
+  # Returns a formatted string representing the estimated text length of
+  # the full stored conversation, excluding images and JSON scaffolding.
+  #
+  # Delegates to +MessageList#full_estimate_tokens+, which sums
+  # per-message +token_estimate+ (content + optional thinking) across
+  # all messages, respecting the +think_strip+ toggle. This differs from
+  # +Session#estimate_tokens+, which measures raw JSONL bytes including
+  # base64 images and metadata — the latter is the storage footprint,
+  # this is the model-facing text volume.
+  #
+  # @return [String] formatted as `"340.5 KT (1.2 MiB)"`
+  def conversation_length
+    es = messages.full_estimate_tokens
+    "%s (%s)" % [ es.tokens_formatted, es.bytes_formatted ]
+  end
+
   # The dynamic_runtime_information_values method compiles a set of
   # volatile runtime details that change frequently.
   #
@@ -368,6 +385,7 @@ module OllamaChat::Information
       voice:                voice.on? ? 'enabled' : 'disabled',
       weekday:              now.strftime('%A'),
       context_usage:        ,
+      conversation_length:  ,
     }
   end
 
@@ -403,7 +421,7 @@ module OllamaChat::Information
   #
   # @return [Float] the ratio of used context (e.g. `0.73` for 73%)
   def context_filled
-    es = session.estimate_tokens
+    es = messages.compacted_estimate_tokens
     (es.tokens.to_f / current_context_length).clamp(0..1).to_f
   end
 
@@ -418,7 +436,7 @@ module OllamaChat::Information
   def context_usage
     if cl = current_context_length
       '%s of %s (%s)' % [
-        session.estimate_tokens.tokens_formatted,
+        messages.compacted_estimate_tokens.tokens_formatted,
         format_tokens(current_context_length),
         '%.1f%%' % (100 * context_filled),
       ]

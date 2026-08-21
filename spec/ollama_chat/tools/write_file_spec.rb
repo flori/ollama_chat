@@ -42,6 +42,8 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.success).to eq true
     expect(json.path).to include(File.basename(test_write_file))
     expect(json.message).to include('Wrote 13.0 B (4.0 T) to file')
+    expect(described_class.summary_template(result:)).
+      to include('Wrote 13.0 B (4.0 T) to file')
 
     # Verify file was actually written
     expect(File.exist?(test_write_file)).to be true
@@ -74,6 +76,8 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.success).to eq true
     expect(File.read(test_write_file)).to eq 'New content'
+    expect(described_class.summary_template(result:)).
+      to include('Wrote 11.0 B (4.0 T) to file')
   ensure
     File.delete(test_write_file) if File.exist?(test_write_file)
   end
@@ -101,6 +105,8 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(json.message).to include('Write rejected')
+    expect(described_class.summary_template(result:)).
+      to include('Write rejected')
     expect(File.read(test_write_file)).to eq 'Old content'
   ensure
     File.delete(test_write_file) if File.exist?(test_write_file)
@@ -131,6 +137,8 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.success).to be true
     expect(json.path).to include(File.basename(test_write_file))
     expect(json.message).to include('Wrote 18.0 B (6.0 T) to file')
+    expect(described_class.summary_template(result:)).
+      to include('Wrote 18.0 B (6.0 T) to file')
 
     # Verify file was actually appended
     expect(File.exist?(test_write_file)).to be true
@@ -162,6 +170,8 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.success).to eq true
     expect(File.read(test_write_file)).to eq 'First content\n'
+    expect(described_class.summary_template(result:)).
+      to include('Wrote 15.0 B (5.0 T) to file')
   ensure
     File.delete(test_write_file) if File.exist?(test_write_file)
   end
@@ -186,6 +196,8 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(json.message).to include('Write rejected')
+    expect(described_class.summary_template(result:)).
+      to include('Write rejected')
     expect(File.exist?(test_write_file)).to be false
   end
 
@@ -210,6 +222,8 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
+    expect(described_class.summary_template(result:)).
+      to include('is not within allowed directories')
   end
 
   it 'can handle execution errors gracefully when mode is invalid' do
@@ -232,6 +246,8 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.error).to eq 'ArgumentError'
     expect(json.message).to include('Invalid mode')
+    expect(described_class.summary_template(result:)).
+      to include('Invalid mode')
   end
 
   it 'can handle exceptions gracefully' do
@@ -256,6 +272,8 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.error).to eq 'RuntimeError'
     expect(json.path).to be_nil
     expect(json.message).to eq 'Failed to write to file: some error'
+    expect(described_class.summary_template(result:)).to eq \
+      'Failed to write to file: some error'
   end
 
   describe 'syntax check integration' do

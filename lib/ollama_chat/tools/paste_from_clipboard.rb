@@ -50,7 +50,7 @@ class OllamaChat::Tools::PasteFromClipboard
 
     # Use the chat instance's clipboard paste functionality
     content = chat.perform_paste_from_clipboard(edit:)
-    message = "Pasted #{format_bytes(content.to_s.size)} of content."
+    message = "Pasted #{format_bytes(content.to_s.bytesize)} of content."
 
     {
       success:  true,

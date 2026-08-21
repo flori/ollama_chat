@@ -7,7 +7,7 @@ class OllamaChat::TokenEstimator::Crude
   # @raise [ArgumentError] if the input is not a string or an integer.
   def initialize(arg)
     if text = arg.ask_and_send(:to_str)
-      @bytes = text.size
+      @bytes = text.bytesize
     elsif bytes = arg.ask_and_send(:to_int)
       @bytes = bytes
     else

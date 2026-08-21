@@ -13,7 +13,7 @@ module OllamaChat::SessionManagement
     output = StringIO.new
     messages.write_conversation_jsonl(output)
     session.update(messages: output.string)
-    es = session.estimate_tokens
+    es = session.estimate_tokens # We just use the formatted bytecount
     log(:info, "Messages stored in session", data: {
       session_id:    session.id,
       size:          es.bytes_formatted,
@@ -135,9 +135,11 @@ module OllamaChat::SessionManagement
   #
   # @param output [IO] the output stream to write the information to (default: STDOUT)
   def show_session(output: STDOUT)
-    es             = session.estimate_tokens
+    es             = messages.full_estimate_tokens
     messages_count = session.count_messages
-    output.puts "#{bold{session.name}} (#{italic{session.id}}), #{es.bytes_formatted}/#{es.tokens_formatted}, #{messages_count} messages"
+    output.puts "#{bold{session.name}} (#{italic{session.id}}), "\
+      "#{es.tokens_formatted} (#{es.bytes_formatted}), "\
+      "#{messages_count} messages"
   end
 
   # Interactively prompts the user for a unique session name.

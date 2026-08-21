@@ -62,6 +62,8 @@ describe OllamaChat::Tools::GenerateImage do
       expect(json.status).to eq 'success'
       expect(json.url).to include('/api/view')
       expect(json.url).to include('filename=kitten_output.png')
+      expect(described_class.summary_template(result:)).to\
+        match(/Image successfully generated!/)
     end
 
     it 'returns an error when prompt is missing' do
@@ -72,6 +74,8 @@ describe OllamaChat::Tools::GenerateImage do
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
       expect(json.message).to include('require prompt argument')
+      expect(described_class.summary_template(result:)).to\
+        include('require prompt argument')
     end
 
     it 'returns an error when ComfyUI configuration is missing' do
@@ -83,6 +87,8 @@ describe OllamaChat::Tools::GenerateImage do
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ConfigMissingError'
       expect(json.message).to include('Require env var OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_URL configuration')
+      expect(described_class.summary_template(result:)).to\
+        include('Failed to generate image:')
     end
 
     it 'returns a timeout error when polling fails' do
@@ -98,6 +104,8 @@ describe OllamaChat::Tools::GenerateImage do
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::OllamaChatError'
       expect(json.message).to include('took too long or failed')
+      expect(described_class.summary_template(result:)).to\
+        include('took too long or failed')
     end
 
     it 'handles API failures gracefully' do
@@ -112,6 +120,8 @@ describe OllamaChat::Tools::GenerateImage do
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::OllamaChatError'
       expect(json.message).to include('Failed to generate image: failed to trigger ComfyUI')
+      expect(described_class.summary_template(result:)).to\
+        include('Failed to generate image:')
     end
 
     it 'rescues generic exceptions' do
@@ -124,6 +134,8 @@ describe OllamaChat::Tools::GenerateImage do
       json = json_object(result)
       expect(json.error).to eq 'StandardError'
       expect(json.message).to include('Network crash')
+      expect(described_class.summary_template(result:)).to\
+        include('Failed to generate image:')
     end
   end
 

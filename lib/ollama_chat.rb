@@ -66,6 +66,12 @@ module OllamaChat
   class OllamaChatQuitError < OllamaChatError
   end
 
+  # Raised when a compaction operation fails, e.g. the LLM returns an
+  # empty or unusable summary, or the context window is too small to
+  # accommodate the summarization prompt.
+  class CompactionError < OllamaChatError
+  end
+
   # Regular expression defining the allowed characters for collection names.
   #
   # Matches alphanumeric characters, underscores, hyphens, and dots.
@@ -146,6 +152,7 @@ require 'ollama_chat/favourites_management'
 require 'ollama_chat/prompt_handling'
 require 'ollama_chat/system_prompt_management'
 require 'ollama_chat/prompt_management'
+require 'ollama_chat/compaction'
 require 'ollama_chat/token_estimator'
 require 'ollama_chat/say'
 require 'ollama_chat/chat'

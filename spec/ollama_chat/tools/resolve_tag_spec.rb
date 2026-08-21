@@ -60,6 +60,8 @@ describe OllamaChat::Tools::ResolveTag do
       expect(json.results).to be_present
       expect(json.symbol).to  eq 'execute'
       expect(json.kind).to    eq ?f
+      expect(described_class.summary_template(result:)).to eq \
+        'Found 2 results of symbol "execute".'
     end
   end
 
@@ -85,6 +87,7 @@ describe OllamaChat::Tools::ResolveTag do
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')
       expect(json.message).to include('some error')
+      expect(described_class.summary_template(result:)).to include('some error')
     end
   end
 

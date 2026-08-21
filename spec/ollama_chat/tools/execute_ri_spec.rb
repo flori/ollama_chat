@@ -42,6 +42,8 @@ describe OllamaChat::Tools::ExecuteRI do
       expect(json.cmd).to include('ri')
       expect(json.cmd).to include(topic)
       expect(json.result).to eq 'Documentation text for Tins::Full#full?'
+      expect(described_class.summary_template(result:)).to eq \
+        'was called.'
     end
   end
 
@@ -59,6 +61,9 @@ describe OllamaChat::Tools::ExecuteRI do
 
       json = json_object(result)
       expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
+      expect(json.message).to eq 'require a topic of ri'
+      expect(described_class.summary_template(result:)).to eq \
+        'require a topic of ri'
     end
   end
 
@@ -82,6 +87,9 @@ describe OllamaChat::Tools::ExecuteRI do
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')
       expect(json.message).to include('my error')
+      expect(described_class.summary_template(result:)).to include(
+        'my error',
+      )
     end
   end
 end

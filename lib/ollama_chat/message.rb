@@ -16,6 +16,9 @@ module OllamaChat::MessageMixin
     if group_uuid = attributes[:group_uuid]
       self.group_uuid = group_uuid
     end
+    if tool_calls = attributes[:tool_calls]
+      self.tool_calls = tool_calls
+    end
   end
 
   # @!attribute content
@@ -39,6 +42,12 @@ module OllamaChat::MessageMixin
   #   @option getter [String] A UUIDv7 identifying the logical exchange (turn) this message belongs to.
   #   @option setter [String] The UUIDv7 for the logical exchange.
   attr_accessor :group_uuid
+
+  # @!attribute tool_calls
+  #   @option getter [Array<Hash>, nil] structured tool-call entries for
+  #     programmatic access (e.g., on summary messages).
+  #   @option setter [Array<Hash>, nil] the tool-call entries.
+  attr_accessor :tool_calls
 
   # Ensures that the message has a `group_uuid` by generating a UUIDv7 if
   # missing. Returns self to allow for method chaining.
@@ -82,7 +91,7 @@ module OllamaChat::MessageMixin
   # @param a [Array] optional arguments for JSON conversion.
   # @return [Hash] a hash representation of the message.
   def as_json(*a)
-    { sender_name:, group_uuid: }.compact | super
+    { sender_name:, group_uuid:, tool_calls:, }.compact | super
   end
 end
 

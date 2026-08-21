@@ -39,6 +39,8 @@ describe OllamaChat::Tools::DeleteFile do
     expect(json.success).to eq true
     expect(json.path).to eq Pathname.new(file_path).expand_path.to_s
     expect(json.backup).not_to be_nil
+    expect(described_class.summary_template(result:)).
+      to include('deleted successfully')
 
     # Verify file was actually deleted
     expect(File.exist?(file_path)).to be false
@@ -70,6 +72,8 @@ describe OllamaChat::Tools::DeleteFile do
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
     expect(json.path).to eq '/etc/passwd'
     expect(json.message).to include('is not within allowed directories')
+    expect(described_class.summary_template(result:)).
+      to include('is not within allowed directories')
   end
 
   it 'can handle execution errors gracefully when file does not exist' do
@@ -94,6 +98,8 @@ describe OllamaChat::Tools::DeleteFile do
     # Either InvalidPathError (because check: :file fails) or Errno::ENOENT
     expect(json.success).to be_falsey
     expect(json.message).to include('Failed to delete file')
+    expect(described_class.summary_template(result:)).
+      to include('Failed to delete file')
   end
 
   it 'can handle exceptions gracefully' do
@@ -120,6 +126,8 @@ describe OllamaChat::Tools::DeleteFile do
     json = json_object(result)
     expect(json.error).to eq 'RuntimeError'
     expect(json.message).to eq 'Failed to delete file, RuntimeError: Unexpected error'
+    expect(described_class.summary_template(result:)).to eq \
+      'Failed to delete file, RuntimeError: Unexpected error'
   ensure
     File.delete(file_path) if File.exist?(file_path)
   end
