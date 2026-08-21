@@ -95,14 +95,22 @@ module OllamaChat::InputContent
     format = @context_format.selected
     myself = self
     if patterns
-      ContextSpook::generate_context(verbose: true, format:) do |context|
+      count = 0
+      ctx = ContextSpook::generate_context(verbose: true, format:) do |context|
         context do
           myself.file_set_each(patterns, all:) do |filename|
             filename.file? or next
             file filename.to_path
+            count += 1
           end
         end
-      end.send("to_#{format.downcase}")
+      end
+      if count > 0
+        ctx.send("to_#{format.downcase}")
+        STDOUT.puts "✅ Ingesting context now."
+      else
+        STDERR.puts "❌ No files in context. ⇨ Cancelled."
+      end
     else
       if context_filename = choose_filename('.contexts/*.rb')
         ContextSpook.generate_context(context_filename, verbose: true, format:).
