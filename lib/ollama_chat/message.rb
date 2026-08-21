@@ -57,6 +57,18 @@ module OllamaChat::MessageMixin
     Time.at((group_uuid.delete(?-)[0, 16].to_i(16) >> 16) / 1000.0) if group_uuid
   end
 
+  # Estimates the token count for this message's text content.
+  #
+  # @param strip_thinking [Boolean] if true, exclude the thinking content
+  #   from the byte count.
+  # @return [OllamaChat::TokenEstimator::Estimate] the estimated bytes and
+  #   tokens.
+  def token_estimate(strip_thinking: false)
+    bytes  = content.to_s.bytesize
+    bytes += thinking.to_s.bytesize unless strip_thinking
+    OllamaChat::TokenEstimator.estimate(bytes)
+  end
+
   # Returns true if the message is a tool message.
   #
   # @return [Boolean] true if the message has a present tool name, false

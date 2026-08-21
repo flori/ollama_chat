@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 describe OllamaChat::SystemPromptManagement do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config).expose

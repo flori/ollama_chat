@@ -70,6 +70,18 @@ class OllamaChat::MessageList
     @messages.size
   end
 
+  # Estimates the total token count across all messages.
+  #
+  # Defaults to the chat's `think.strip` setting for the `strip_thinking`
+  # parameter.
+  #
+  # @param strip_thinking [Boolean] whether to exclude thinking content.
+  #   Defaults to `@chat.think_strip.on?`.
+  # @return [Integer] the total estimated token count
+  def total_tokens(strip_thinking: @chat.think_strip.on?)
+    @messages.sum { |m| m.token_estimate(strip_thinking:).tokens }
+  end
+
   # The clear method removes all non-system messages from the message list.
   #
   # @return [ OllamaChat::MessageList ] self
