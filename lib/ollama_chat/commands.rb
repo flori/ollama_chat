@@ -598,14 +598,15 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(clean|save|load)(\s+-c)?(?:\s+([^-].*\.jsonl?))?$),
-    complete: [ 'conversation', %w[ save load clean ] ],
+    regexp: %r(^/conversation\s+(clean|compact|save|load)(\s+-c)?(?:\s+([^-].*\.jsonl?))?$),
+    complete: [ 'conversation', %w[ save load clean compact ] ],
     options: '[-c] [FILENAME]',
     help: <<~EOT
       💾 Save/Load conversation state
          (-c to clean before saving)
          FILENAME ends with .json or .jsonl
          Or clean inplace (removes tool content, images, and thinking)
+         Or compact (summarize old messages, keep recent)
     EOT
   ) do |subcommand,opts,path|
     if %w[ save load ].include?(subcommand) && path.blank?
@@ -628,6 +629,18 @@ module OllamaChat::Commands
         messages.clean_messages!
         session_sync
         STDOUT.puts "Conversation cleaned."
+      else
+        STDOUT.puts 'Cancelled.'
+      end
+    when 'compact'
+      if confirm?(
+          prompt: '🔔 Compact conversation? Old messages will be summarized. (y/n) ',
+          yes: /\Ay/i
+        )
+      then
+        messages.compact!
+        session_sync
+        STDOUT.puts "Conversation compacted."
       else
         STDOUT.puts 'Cancelled.'
       end
