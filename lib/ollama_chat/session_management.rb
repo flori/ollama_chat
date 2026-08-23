@@ -197,6 +197,8 @@ module OllamaChat::SessionManagement
     }
     log(:info, "New session created", data: { session_id: session.id, name: session.name })
     nil
+  ensure
+    session.lock
   end
 
   # Duplicates the current session into a new one.
@@ -410,14 +412,27 @@ module OllamaChat::SessionManagement
     end
   end
 
-  # Closes the current session by persisting final messages and releasing
-  # the process lock. This should be called during application shutdown
-  # or when switching sessions to ensure the session is available for
-  # future instances.
-  def session_close
+  # Synchronizes the current session state to the database.
+  #
+  # Persists messages, links, and history, updates the working directory,
+  # and re-locks the session. Called before closing or switching sessions
+  # to ensure no unsaved state is lost.
+  #
+  # @return [OllamaChat::Database::Models::Session] the current session
+  def session_sync
     store_messages_in_session
     links.sync
     save_history
+    session.working_directory = Dir.pwd
+    session.lock
+    session
+  end
+
+  # Closes the current session synchronizing it first and releasing the process
+  # lock. This should be called during application shutdown or when switching
+  # sessions to ensure the session is available for future instances.
+  def session_close
+    session_sync
     session.unlock
   end
 
@@ -470,7 +485,7 @@ module OllamaChat::SessionManagement
     end
   ensure
     set_previous_session_on_change(previous_session_id)
-    session.update(working_directory: Dir.pwd)
+    session_sync
   end
 
   # Records the previous session ID after a session transition.

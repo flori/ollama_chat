@@ -177,12 +177,24 @@ describe OllamaChat::SessionManagement do
   end
 
   describe '#session_close' do
-    it 'stores messages, syncs links, saves history, and unlocks session' do
-      expect(chat).to receive(:store_messages_in_session)
-      expect(chat).to receive(:links).and_return(double(sync: nil))
-      expect(chat).to receive(:save_history)
+    it 'synchronizes and unlocks session' do
+      expect(chat).to receive(:session_sync)
       expect(chat.session).to receive(:unlock)
       chat.session_close
+    end
+  end
+
+  describe '#session_sync' do
+    it 'stores messages, syncs links, saves history, and locks' do
+      expect(Dir).to receive(:pwd).and_return('/sync_test')
+      expect(chat).to receive(:store_messages_in_session).ordered
+      expect(chat.links).to receive(:sync).ordered
+      expect(chat).to receive(:save_history).ordered
+      expect(chat.session).to receive(:lock).ordered
+
+      result = chat.session_sync
+      expect(result).to eq(chat.session)
+      expect(chat.session.working_directory).to eq('/sync_test')
     end
   end
 
