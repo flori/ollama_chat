@@ -132,6 +132,12 @@ module OllamaChat::Information
       output.puts "  No persona selected."
     end
     output.puts "🧠 Current chat model is #{bold{@model}}."
+    context_usage = '%s of %s (%s)' % [
+      session.estimate_tokens.tokens_formatted,
+      format_tokens(current_context_length),
+      bold { '%.1f%%' % (100 * context_filled)},
+    ]
+    output.puts  "  Context Length: #{context_usage}"
     output.print '  '; think_mode.show(output:)
     output.print '  '; think_loud.show(output:)
     output.print '  '; think_strip.show(output:)
@@ -346,6 +352,11 @@ module OllamaChat::Information
   #
   # @return [Hash] a hash containing dynamic runtime values.
   def dynamic_runtime_information_values
+    context_usage = '%s of %s (%s)' % [
+      session.estimate_tokens.tokens_formatted,
+      format_tokens(current_context_length),
+      '%.1f%%' % (100 * context_filled),
+    ]
     now = Time.now
     {
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
@@ -360,6 +371,7 @@ module OllamaChat::Information
       tools_support:        tools_support.on? ? 'enabled' : 'disabled',
       voice:                voice.on? ? 'enabled' : 'disabled',
       weekday:              now.strftime('%A'),
+      context_usage:        ,
     }
   end
 
@@ -372,5 +384,28 @@ module OllamaChat::Information
   # @return [String] the formatted dynamic runtime information string.
   def dynamic_runtime_information
     prompt(:dynamic_runtime_info).to_s % dynamic_runtime_information_values
+  end
+
+  # Resolves the effective context window size for the current model.
+  #
+  # Prefers the session-level `num_ctx` override (set via `/model_options`
+  # or the stored model options profile). Falls back to the model's native
+  # `context_length` as reported by the Ollama server if possible.
+  #
+  # @return [Integer, NilClass] the context length in tokens or nil
+  def current_context_length
+    get_session_model_options[:num_ctx] ||
+      ollama.ps.models.find { _1.name == @model }&.context_length
+  end
+
+  # Computes the fraction of the context window currently in use.
+  #
+  # Divides the estimated token count of the session's messages by the
+  # effective context length, clamped to the range 0.0–1.0.
+  #
+  # @return [Float] the ratio of used context (e.g. `0.73` for 73%)
+  def context_filled
+    es = session.estimate_tokens
+    (es.tokens.to_f / current_context_length).clamp(0..1).to_f
   end
 end

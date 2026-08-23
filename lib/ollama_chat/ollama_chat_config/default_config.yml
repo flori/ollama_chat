@@ -73,6 +73,7 @@ prompts:
           80%% of this width in your output of responses, especially when using
           markdown tables.
       - **Session**: %{session_name}
+        - Context usage is %{context_usage}.
         - Markdown output is %{markdown}. **Never** output markdown as your
           responses if it is disabled.
         - Voice output is %{voice}. Speak naturally and short if voice
