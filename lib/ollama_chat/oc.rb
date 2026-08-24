@@ -39,7 +39,7 @@ module OC
     description 'Pager command to use in case terminal lines are exceeded by output'
 
     default do
-      if fallback_pager = `which less`.full?(:chomp) || `which more`.full?(:chomp)
+      if fallback_pager = `which 2>/dev/null less`.full?(:chomp) || `which 2>/dev/null more`.full?(:chomp)
         fallback_pager << ' -r'
       end
     end
@@ -49,7 +49,7 @@ module OC
     description 'Editor to use'
 
     default do
-      if  editor = %w[ vim vi ].find { `which #{_1}`.full?(:chomp) }
+      if  editor = %w[ vim vi ].find { `which 2>/dev/null #{_1}`.full?(:chomp) }
         editor
       else
         warn 'Need an editor command configured via env var "EDITOR"'
@@ -61,7 +61,7 @@ module OC
     description 'Browser to use'
 
     default do
-      %w[ open xdg-open ].find { `which #{_1}` }.full?(:chomp)
+      %w[ open xdg-open ].find { `which 2>/dev/null #{_1}` }.full?(:chomp)
     end
   end
 
@@ -77,7 +77,7 @@ module OC
     description 'Diff tool to apply changes with'
 
     default do
-      if  diff = `which vimdiff`.full?(:chomp)
+      if  diff = `which 2>/dev/null vimdiff`.full?(:chomp)
         diff
       else
         warn 'Need a diff tool configured via env var "DIFF_TOOL"'
@@ -193,7 +193,7 @@ module OC
 
         CTAGS_TOOL = set do
           description 'Tools ctags path'
-          default { `which ctags`.full?(:chomp) }
+          default { `which 2>/dev/null ctags`.full?(:chomp) }
           check   { value.blank? || File.exist?(value) }
         end
 
@@ -239,6 +239,11 @@ module OC
             description 'API token for Jira authentication'
             sensitive   true
             required { OC::OLLAMA::CHAT::TOOLS::JIRA::URL? }
+          end
+
+          TWG = set do
+            description 'Path to the twg CLI binary'
+            default { `which 2>/dev/null twg`.full?(:chomp) }
           end
         end
 

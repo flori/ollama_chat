@@ -137,18 +137,25 @@ class OllamaChat::FollowChat
       end
       STDOUT.puts
       confirmed = :implicit
-      function = JSON.pretty_generate(tool_call.function)
+      resolve   = nil
+      function  = JSON.pretty_generate(tool_call.function)
       chat.log(:info, "Tool call received", data: { tool: name, function: })
       if chat.tool_function(name).require_confirmation?
-        prompt = "🔔 I want to execute tool %s\n%s\nConfirm? (y/n) " % [
-          bold { name },
-          italic { function },
+        STDOUT.puts "🔔 I want to execute tool %s\n%s\n" % [
+          bold { name }, italic { function },
         ]
-        prompt.gsub!('%', '%%')
-        if chat.confirm?(prompt:, yes: /\Ay/i)
+        prompt  = '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct? '
+        answer  = chat.confirm?(prompt:)&.to_s&.downcase
+        resolve = 'You **MUST** ask the user for instructions on how to proceed!!!'
+        case answer
+        when 'y'
           confirmed = :explicit
+        when 'n'
+          confirmed = :denied
         else
           confirmed = :denied
+          instr     = chat.ask?(prompt: '📝 Instructions: ')&.strip
+          resolve   = instr.full? ||  resolve
         end
       else
         STDOUT.puts "Executing tool %s\n%s" % [
@@ -160,10 +167,7 @@ class OllamaChat::FollowChat
       result = nil
       case confirmed
       when :denied
-        result = JSON(
-          message: 'User denied confirmation!',
-          resolve: 'You **MUST** ask the user for instructions on how to proceed!!!',
-        )
+        result = JSON(message: 'User denied confirmation!', resolve:)
         STDOUT.printf(
           "\n%s Execution of tool %s denied by user.\n\n", ?🚫, bold { name }
         )

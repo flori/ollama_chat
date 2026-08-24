@@ -508,6 +508,10 @@ tools:
       result_display_timeout: 3
       default: false
       require_confirmation: true
+    execute_jira_twg:
+      result_display_timeout: 3
+      default: false
+      require_confirmation: true
     get_rfc:
       url: "https://www.rfc-editor.org/rfc/rfc%{rfc_id}.txt"
       result_display_timeout: 3
