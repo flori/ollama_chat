@@ -352,11 +352,6 @@ module OllamaChat::Information
   #
   # @return [Hash] a hash containing dynamic runtime values.
   def dynamic_runtime_information_values
-    context_usage = '%s of %s (%s)' % [
-      session.estimate_tokens.tokens_formatted,
-      format_tokens(current_context_length),
-      '%.1f%%' % (100 * context_filled),
-    ]
     now = Time.now
     {
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
@@ -390,12 +385,14 @@ module OllamaChat::Information
   #
   # Prefers the session-level `num_ctx` override (set via `/model_options`
   # or the stored model options profile). Falls back to the model's native
-  # `context_length` as reported by the Ollama server if possible.
+  # `context_length` in the default profile or as reported by the Ollama server
+  # if possible.
   #
   # @return [Integer, NilClass] the context length in tokens or nil
   def current_context_length
     get_session_model_options[:num_ctx] ||
-      ollama.ps.models.find { _1.name == @model }&.context_length
+    get_stored_model_options(@model)[:num_ctx] ||
+      ollama.ps&.models&.find { _1.name == @model }&.context_length
   end
 
   # Computes the fraction of the context window currently in use.
@@ -407,5 +404,23 @@ module OllamaChat::Information
   def context_filled
     es = session.estimate_tokens
     (es.tokens.to_f / current_context_length).clamp(0..1).to_f
+  end
+
+  # Formats the current context usage as a human-readable string.
+  #
+  # Returns a string like `"167.7 KT of 262.1 KT (64.0%)"` combining
+  # the estimated tokens in use, the effective context length, and
+  # the percentage (via +context_filled+).
+  #
+  # @return [String, nil] the formatted usage string, or +nil+ if
+  #   the context length cannot be determined.
+  def context_usage
+    if cl = current_context_length
+      '%s of %s (%s)' % [
+        session.estimate_tokens.tokens_formatted,
+        format_tokens(current_context_length),
+        '%.1f%%' % (100 * context_filled),
+      ]
+    end
   end
 end

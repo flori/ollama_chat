@@ -15,10 +15,10 @@ module OllamaChat::SessionManagement
     session.update(messages: output.string)
     es = session.estimate_tokens
     log(:info, "Messages stored in session", data: {
-      session_id: session.id,
-      size:       es.bytes_formatted,
-      tokens:     es.tokens_formatted,
-      messages:   session.count_messages
+      session_id:    session.id,
+      size:          es.bytes_formatted,
+      context_usage: ,
+      messages:      session.count_messages
     })
     self
   end
