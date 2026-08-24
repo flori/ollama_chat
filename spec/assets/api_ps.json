@@ -1,0 +1,23 @@
+{
+  "models": [
+    {
+      "name": "qwen3.8:27b",
+      "model": "qwen3.8:27b",
+      "size": 20178387594,
+      "digest": "22130167c4c20e20c7b71454612966ca8e8171e9b3cc8ab6ce8aa6cbfec79643",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "27.3B",
+        "quantization_level": "Q4_K_M"
+      },
+      "expires_at": "2026-08-25T01:10:55.582506803Z",
+      "size_vram": 16231411218,
+      "context_length": 262144
+    }
+  ]
+}

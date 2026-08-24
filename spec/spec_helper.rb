@@ -166,6 +166,9 @@ module StubOllamaServer
         to_return(status: 200, body: asset_json('api_show.json'))
       stub_request(:get, %r(/api/version\z)).
         to_return(status: 200, body: asset_json('api_version.json'))
+      stub_request(:get, %r(/api/ps\z)).
+        to_return(status: 200, body: asset_json('api_ps.json'))
+
       allow_any_instance_of(OllamaChat::Chat).to receive(:connect_message)
       allow_any_instance_of(OllamaChat::Chat).to receive(:info_session)
       instantiate and chat
