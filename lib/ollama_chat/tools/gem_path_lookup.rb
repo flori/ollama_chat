@@ -7,9 +7,7 @@ class OllamaChat::Tools::GemPathLookup
   include OllamaChat::Tools::Concern
 
   # @return [String] the registered name for this tool
-  def self.register_name
-    'gem_path_lookup'
-  end
+  def self.register_name = 'gem_path_lookup'
 
   # Creates and returns a tool definition for gem path lookup.
   #
