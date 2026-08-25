@@ -76,6 +76,7 @@ module OllamaChat::Commands
       reload_config
     when 'diff'
       diff_config
+      reload_config
     else
       display_config
     end

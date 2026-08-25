@@ -568,6 +568,22 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:display_config)
       expect(chat.handle_input("/config")).to eq :next
     end
+
+    it 'returns :next when input is "/config edit"' do
+      expect(chat).to receive(:edit_config)
+      expect(chat.handle_input("/config edit")).to eq :next
+    end
+
+    it 'returns :next when input is "/config reload"' do
+      expect(chat).to receive(:reload_config)
+      expect(chat.handle_input("/config reload")).to eq :next
+    end
+
+    it 'returns :next when input is "/config diff"' do
+      expect(chat).to receive(:diff_config)
+      expect(chat).to receive(:reload_config)
+      expect(chat.handle_input("/config diff")).to eq :next
+    end
   end
 
   describe '/quit' do
