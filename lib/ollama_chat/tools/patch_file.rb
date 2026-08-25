@@ -170,7 +170,7 @@ class OllamaChat::Tools::PatchFile
 
     (result | {
       path:     path.to_s,
-      message:  message,
+      message:  ,
       mtime:    ,
       checksum: ,
     }).to_json
