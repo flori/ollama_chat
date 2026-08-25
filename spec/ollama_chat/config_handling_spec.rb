@@ -110,6 +110,36 @@ describe OllamaChat::ConfigHandling do
     end
   end
 
+  describe '#diff_config' do
+    context 'without a diff tool' do
+      before do
+        expect(OC).to receive(:DIFF_TOOL?).and_return(nil)
+      end
+
+      it 'prints an error to STDERR and returns nil' do
+        expect(STDERR).to receive(:puts).with(/No diff tool configured/)
+        expect(chat.diff_config).to be_nil
+      end
+    end
+
+    context 'with a diff tool' do
+      before { const_conf_as('OC::DIFF_TOOL' => 'vimdiff') }
+
+      it 'launches the diff tool with config and default paths' do
+        expect(chat.instance_variable_get(:@ollama_chat_config))
+          .to receive(:filename).and_return('/cfg.yml')
+          .ordered
+        expect(chat.instance_variable_get(:@ollama_chat_config))
+          .to receive(:default_config_path).and_return('/default.yml')
+          .ordered
+        expect(chat).to receive(:system)
+          .with('vimdiff', '/cfg.yml', '/default.yml')
+          .and_return(true)
+        expect(chat.diff_config).to be true
+      end
+    end
+  end
+
   describe '#edit_config' do
     it 'edits the config and restarts on confirmation' do
       expect(chat).to receive(:edit_file).and_return(true)

@@ -44,6 +44,22 @@ module OllamaChat::ConfigHandling
     end
   end
 
+  # Opens a diff tool to compare the current config file with the
+  # default config, allowing the user to visually inspect differences.
+  #
+  # @return [Boolean, nil] the result of +system+ if a diff tool was
+  #   found, or +nil+ if no diff tool is configured.
+  def diff_config
+    diff_tool = OC::DIFF_TOOL? or
+      return STDERR.puts 'No diff tool configured (OC::DIFF_TOOL).'
+    cmd = [
+      diff_tool,
+      @ollama_chat_config.filename,
+      @ollama_chat_config.default_config_path,
+    ].map(&:to_s)
+    system(*cmd)
+  end
+
   # The fix_config method handles configuration file errors by informing the
   # user about the exception and prompting them to fix it. It then executes a
   # diff tool to compare the current config file with the default one.
@@ -52,9 +68,9 @@ module OllamaChat::ConfigHandling
   # @param exception [Exception] the exception that occurred while reading
   #   the config file
   def fix_config(exception)
-    STDOUT.puts "When reading the config file, a #{exception.class} "\
+    STDOUT.puts "When reading the config file, a #{exception.class} " \
       "exception was caught: #{exception.message.inspect}"
-    unless diff_tool = OC::DIFF_TOOL?
+    unless OC::DIFF_TOOL?
       exit 1
     end
     if confirm?(
@@ -62,17 +78,13 @@ module OllamaChat::ConfigHandling
         yes: /\Ay/i
       )
     then
-      cmd = [
-        diff_tool,
-        @ollama_chat_config.filename,
-        @ollama_chat_config.default_config_path,
-      ].map(&:to_s)
-      system(*cmd)
+      diff_config
       exit 0
     else
       exit 1
     end
   end
+
 
   # Adjusts the command-line argument array to ensure the current session is
   # explicitly reloaded by injecting the `-l <session_id>` flag.
