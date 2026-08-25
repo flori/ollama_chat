@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-08-25 v0.0.113
+
+*   Simplified hash syntax by replacing `text: text` with `text:` etc.
+*   Removed the `/conversation compact` stub, including its regexp,
+    completion list, help text, handler logic, and associated specs.
+*   Added specs for `/config edit`, `/config reload`, and `/config diff` in
+    `commands_spec.rb`, verifying the ordered sequence of `diff_config`
+    followed by the new `reload_config` for the diff command.
+*   Removed the unused `collection_descriptions: {}` entry from the
+    `embedding:` section in `default_config.yml`.
+
 ## 2026-08-25 v0.0.112
 
 *   Added a `diff` subcommand to the `/config` command, including updated
