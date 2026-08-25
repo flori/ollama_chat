@@ -378,7 +378,6 @@ embedding:
   batch_size: 100
   database_filename: null # ':memory:'
   collection: <%= OC::OLLAMA::CHAT::COLLECTION %>
-  collection_descriptions: {}
   found_texts_size: 16384
   found_texts_count: 10
   splitter:
