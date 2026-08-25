@@ -1,5 +1,64 @@
 # Changes
 
+## 2026-08-25 v0.0.111
+
+### Added
+
+*   `OllamaChat::Tools::ExecuteJiraTwg` tool
+    (`lib/ollama_chat/tools/execute_jira_twg.rb`) as a `twg` CLI wrapper,
+    featuring `Shellwords.shellsplit` argument parsing,
+    `OllamaChat::ExecuteError` handling for non-zero exits, and
+    `Kramdown::ANSI::Width.truncate` for feedback messages.
+*   `OC::OLLAMA::CHAT::TOOLS::JIRA::TWG` configuration constant, defaulting to
+    `which 2>/dev/null twg`.
+*   `execute_jira_twg` entry in `default_config.yml` with `default: false` and
+    `require_confirmation: true`.
+*   Two-step tool approval workflow in `FollowChat#handle_tool_calls`,
+    replacing single `chat.ask?` with `chat.confirm?` followed by `chat.ask?`
+    to allow single-keypress confirmation or free-text instructions.
+*   `session_sync` method in `session_management.rb` to persist messages,
+    links, history, update `working_directory`, and re-lock the session.
+*   `context_usage` method in `lib/ollama_chat/information.rb` to calculate and
+    format context usage, including `current_context_length` and
+    `context_filled` helpers.
+*   Context usage gauge in `info_session` displaying tokens used, total, and
+    percentage.
+*   `api_ps.json` asset containing a **27.3B** `qwen3.8:27b` model entry with a
+    **262144** context length.
+*   `spec/ollama_chat/tools/execute_jira_twg_spec.rb` with 8 specs covering
+    identity, execution, quoted arguments, nil guards, exception rescue, and
+    non-zero exits.
+*   `#session_sync` spec verifying ordered calls to
+    `store_messages_in_session`, `links.sync`, `save_history`, and
+    `session.lock`.
+
+### Changed
+
+*   `session_close` now delegates to `session_sync` before calling
+    `session.unlock`.
+*   `change_session` `ensure` block now uses `session_sync` instead of inline
+    `session.update(working_directory:)`.
+*   `set_new_session` now includes `ensure session.lock` to guarantee locking
+    on early return.
+*   `context_usage` logic extracted from `dynamic_runtime_information_values`
+    for improved maintainability.
+*   `session_management.rb` now logs the formatted `context_usage` string
+    instead of raw token counts and byte sizes.
+*   `self.register_name` in `lib/ollama_chat/tools/gem_path_lookup.rb`
+    simplified to use endless method definition syntax.
+*   Context ingestion logic now guards against empty file sets, emitting a
+    `STDERR` message and canceling if no files match the given patterns.
+*   `parsing_spec.rb` and `directory_structure_spec.rb` expected file counts
+    updated from **23** to **24**.
+
+### Fixed
+
+*   `current_context_length` now uses safe navigation operators to guard
+    against missing `ollama.ps` or `models`.
+*   `context_usage` body wrapped in a guard to return `nil` when context length
+    is unavailable.
+*   `which` stderr silenced in all OC config defaults using `2>/dev/null`.
+
 ## 2026-08-20 v0.0.110
 
 ### Added
