@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-08-25 v0.0.112
+
+*   Added a `diff` subcommand to the `/config` command, including updated
+    regexp, completion, and help text.
+*   Extracted a `diff_config` method in `OllamaChat::ConfigHandling` that
+    resolves `OC::DIFF_TOOL` and launches a diff against
+    `@ollama_chat_config.filename` and
+    `@ollama_chat_config.default_config_path`.
+*   Simplified `fix_config` to delegate the diff invocation to `diff_config`.
+*   Added `#diff_config` specs covering both the missing-diff-tool path (STDERR
+    + `nil`) and the successful `system` invocation.
+
 ## 2026-08-25 v0.0.111
 
 ### Added
