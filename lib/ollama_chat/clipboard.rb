@@ -114,7 +114,7 @@ module OllamaChat::Clipboard
   # @return [TrueClass] if the copying has been performed successfully.
   def copy_to_clipboard(edit: false)
     text = last_message_content(content: false)
-    perform_copy_to_clipboard(text: text, edit:)
+    perform_copy_to_clipboard(text:, edit:)
     log(:info, "Copied to clipboard", data: { bytes: format_bytes(text.bytesize) }) if text
     STDOUT.puts "The last response has been successfully copied to the system clipboard."
     true

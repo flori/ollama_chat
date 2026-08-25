@@ -267,7 +267,7 @@ module OllamaChat::RAGHandling
         update_collection(name.to_s)
       end
       STDOUT.puts "✅ Created collection '#{name}'."
-      log(:info, "Collection created", data: { name: name, description:, patterns: })
+      log(:info, "Collection created", data: { name:, description:, patterns: })
     rescue Sequel::UniqueConstraintViolation
       STDERR.puts "❌ Collection #{name.inspect} already exists."
     rescue Sequel::Error => e
