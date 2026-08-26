@@ -28,10 +28,10 @@ class OllamaChat::Tools::DirectoryStructure
         description: <<~EOT,
           Tree viewer – Returns JSON describing files/folders under path up to
           max_depth (<= height of the tree), optionally only files ending with
-          suffix, e. g. rb for ruby files. Handy for locating resources or
-          presenting a project layout. Limit the required tokens by using the
-          max_depth parameter if possible, because the number of nodes in a
-          tree can grow exponentially with its height.
+          suffix / file extension, e. g. rb for ruby files. Handy for locating
+          resources or presenting a project layout. Limit the required tokens
+          by using the max_depth parameter if possible, because the number of
+          nodes in a tree can grow exponentially with its height.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -42,7 +42,10 @@ class OllamaChat::Tools::DirectoryStructure
             ),
             suffix: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'Only include files with this suffix, e. g. "rb" (defaults to all)'
+              description: <<~EOT
+                Only include files with this suffix / file extension, e. g.
+                "rb" (defaults to all)
+              EOT
             ),
             max_depth: Tool::Function::Parameters::Property.new(
               type: 'integer',
