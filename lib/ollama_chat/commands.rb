@@ -62,8 +62,8 @@ module OllamaChat::Commands
 
   command(
     name: :config,
-    regexp: %r(^/config(?:\s+(edit|reload|diff))?$),
-    complete: [ 'config', %w[ edit reload diff ] ],
+    regexp: %r(^/config(?:\s+(edit|diff|reload))?$),
+    complete: [ 'config', %w[ edit diff reload ] ],
     optional: true,
     help: <<~EOT
       \u2699\uFE0F View, edit, diff, or reload configuration
@@ -72,10 +72,10 @@ module OllamaChat::Commands
     case subcommand
     when 'edit'
       edit_config
-    when 'reload'
-      reload_config
     when 'diff'
       diff_config
+      reload_config
+    when 'reload'
       reload_config
     else
       display_config
