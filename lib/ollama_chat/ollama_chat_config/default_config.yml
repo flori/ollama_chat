@@ -170,10 +170,10 @@ prompts:
 
       %{message_content}
     session_title: |
-      Create a title with a length of **less than %{length}** characters for this
-      conversation. Output only the title and nothing else:
-
       %{content}
+
+      Create a title with a length of **less than %{length}** characters for
+      the conversation above. Output only the title and nothing else.
     context_template_suggest: |
       Conversation History:
       %{history}
