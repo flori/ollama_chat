@@ -62,17 +62,8 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
 
     stored_fingerprint = stored&.dig('fingerprint')
 
-    hashes = {}
-    chat.config.prompts.to_h.each do |context, prompts|
-      prompts.each do |name, content|
-        hashes["#{context}/#{name}"] =
-          Digest::SHA256.hexdigest(content.to_s)
-      end
-    end
-
-    fingerprint = hashes.values.reduce(0) do |sum, hex|
-      sum ^ hex.to_i(16)
-    end.to_s(16)
+    hashes    = compute_hashes(chat.config.prompts)
+    fingerprint = fingerprint_from(hashes)
 
     return true if fingerprint == stored_fingerprint
 
@@ -88,21 +79,30 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
       removed.each { |k| STDERR.puts "  - #{k} (removed)" }
     elsif !OllamaChat.test_mode?
       STDERR.puts '⚠️  First run — storing prompt fingerprints.'
-      set(:prompt_defaults_fingerprint,
-          { fingerprint:, hashes:, computed_at: Time.now.iso8601 })
+      store_fingerprint(fingerprint, hashes)
       return true
     end
 
     prompt = <<~EOT.chomp << ' '
       Keep local prompts (stop nagging)?
-      Consider adopting via /prompt sync or /prompt reset. (y/n) %s
+      Consider adopting via /prompt sync or just ignore? (y/n) %s
     EOT
     if OllamaChat.test_mode? || chat.confirm?(prompt:, yes: /\Ay/i, timeout: 5)
-      set(:prompt_defaults_fingerprint,
-          { fingerprint:, hashes:, computed_at: Time.now.iso8601 })
+      store_fingerprint(fingerprint, hashes)
     end
 
     true
+  end
+
+  # Acknowledges the current shipped-prompt state, suppressing the boot
+  # drift notification. Called after `/prompt sync` so the user is not
+  # nagged again on the next launch.
+  #
+  # @param chat [OllamaChat::Chat] the chat instance providing the config
+  def self.acknowledge(chat)
+    hashes      = compute_hashes(chat.config.prompts)
+    fingerprint = fingerprint_from(hashes)
+    store_fingerprint(fingerprint, hashes)
   end
 
   # @!attribute [v] id
@@ -119,4 +119,36 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
   #
   # @!attribute [v] updated_at
   #   @return [Time, nil] The timestamp of the last update to the state.
+
+  private
+
+  # Builds a per-prompt SHA256 hash map from a prompts config object.
+  #
+  # @param prompts_config [OllamaChatConfig::Prompts] the config prompts
+  # @return [Hash{String => String}] mapping "context/name" → SHA256 hex
+  def self.compute_hashes(prompts_config)
+    prompts_config.to_h.each_with_object({}) do |(context, prompts), hashes|
+      prompts.each do |name, content|
+        hashes["#{context}/#{name}"] =
+          Digest::SHA256.hexdigest(content.to_s)
+      end
+    end
+  end
+
+  # Computes an XOR fingerprint from a hash map.
+  #
+  # @param hashes [Hash{String => String}] the per-prompt SHA256 hex values
+  # @return [String] the XOR-combined fingerprint as a hex string
+  def self.fingerprint_from(hashes)
+    hashes.values.reduce(0) { |sum, hex| sum ^ hex.to_i(16) }.to_s(16)
+  end
+
+  # Stores the fingerprint and hash map under the standard state key.
+  #
+  # @param fingerprint [String] the XOR fingerprint
+  # @param hashes [Hash{String => String}] the per-prompt hash map
+  def self.store_fingerprint(fingerprint, hashes)
+    set(:prompt_defaults_fingerprint,
+        { fingerprint:, hashes:, computed_at: Time.now.iso8601 })
+  end
 end
