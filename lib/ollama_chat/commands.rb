@@ -836,22 +836,23 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apre]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[aprem]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: <<~EOT,
-      [
-        -w|-a|-p|-e|
-        -c <collection>|
-        -t <tags>
-      ]
+       [
+         -w|-a|-p|-e|-m|
+         -c <collection>|
+         -t <tags>
+       ]
       [arg…]
     EOT
     help: <<~EOT
       📥 Import content (read, summarize, embed, context)
          Subcommands: path, context, embedding, summary
-         Options: -p (pattern), -w [words], -a (all),
-                  -c [collection], -t [tags], -e (edit)
+          Options: -p (pattern), -w [words], -a (all),
+                   -c [collection], -t [tags], -e (edit),
+                   -m (monochrome, strip ANSI from file content)
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -907,19 +908,21 @@ module OllamaChat::Commands
         end
       end
     when 'path'
-      opts = go_command('pae', opts)
+      opts = go_command('paem', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
         patterns = extract_patterns(arg)
         read = -> pathname {
           STDOUT.puts "Reading #{pathname.to_s.inspect}."
-          pathname.read
+          content = pathname.read
+          opts[?m] ? Term::ANSIColor.uncolor(content) : content
         }
         next provide_file_set_content(patterns, all:, &read) || :next
       elsif arg
         filename = Pathname.new(arg).expand_path
         filename.file? or next :next
         content = filename.read
+        content = Term::ANSIColor.uncolor(content) if opts[?m]
         content = edit_text(content) if opts[?e]
         content
       else
@@ -927,14 +930,18 @@ module OllamaChat::Commands
         next :next
       end
     else
-      opts = go_command('pae', opts)
+      opts = go_command('paem', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
         patterns = extract_patterns(arg)
-        next provide_file_set_content(patterns, all:, skip_blank: true) { import(_1) } || :next
+        next provide_file_set_content(patterns, all:, skip_blank: true) do |src|
+          content = import(src)
+          opts[?m] ? Term::ANSIColor.uncolor(content) : content
+        end || :next
       elsif arg
         source = arg
         content = import(source) or next :next
+        content = Term::ANSIColor.uncolor(content) if opts[?m]
         content = edit_text(content) if opts[?e]
         content
       else

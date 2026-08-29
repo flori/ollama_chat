@@ -364,6 +364,14 @@ describe OllamaChat::Commands, protect_env: true do
       it 'returns :next when input is "/input"' do
         expect(chat.handle_input("/input")).to eq :next
       end
+
+      it 'strips ANSI codes with -m' do
+        colored = "\e[31mred text\e[0m"
+        expect(chat).to receive(:import).with(asset('example.rb')).
+          and_return colored
+        expect(chat.handle_input("/input -m #{asset('example.rb')}"))
+          .to eq 'red text'
+      end
     end
 
     context 'summary' do
@@ -428,6 +436,11 @@ describe OllamaChat::Commands, protect_env: true do
 
       it 'returns :next when input is "/input path"' do
         expect(chat.handle_input("/input path")).to eq :next
+      end
+
+      it 'accepts -m and returns file content' do
+        expect(chat.handle_input("/input path -m #{asset('example.rb')}"))
+          .to match(/puts "Hello World!/)
       end
     end
 
