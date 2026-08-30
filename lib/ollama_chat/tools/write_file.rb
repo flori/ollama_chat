@@ -112,17 +112,36 @@ class OllamaChat::Tools::WriteFile
       raise ArgumentError, 'Invalid mode %s' % args.mode.inspect
     end
 
+    syntax_check = nil
+    if checker = chat.syntax_checker_for(path)
+      check = chat.run_syntax_check(checker, path)
+      syntax_check = check if check &&
+        (check[:status] == 'fail' || check[:output] != '')
+    end
+
     message = "Wrote #{es.bytes_formatted} (#{es.tokens_formatted}) to file #{path.to_s.inspect}."
+    if syntax_check
+      case syntax_check[:status]
+      when 'fail'
+        message << " — ❌ Syntax error detected"
+      when 'pass'
+        if warning = syntax_check[:output].lines.first&.chomp
+          message << " — ⚠️ #{warning}"
+        end
+      end
+    end
+
     chat.log(:info, "File written", data: {
       tool: name, path: path.to_s, mode: args.mode || 'overwrite', bytes: es.bytes_formatted
     })
 
     {
-      success:  true,
-      path:     path.to_s,
-      backup:   backup_path.to_s,
-      message:  ,
-    }.to_json
+      success:      true,
+      path:         path.to_s,
+      backup:       backup_path.to_s,
+      message:      ,
+      syntax_check: syntax_check,
+    }.compact.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name, path: args.path })
     {

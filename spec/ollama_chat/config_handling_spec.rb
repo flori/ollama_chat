@@ -177,4 +177,64 @@ describe OllamaChat::ConfigHandling do
       chat.reload_config
     end
   end
+
+  describe '#syntax_checker_for' do
+    it 'returns the matching enabled checker for a .rb file' do
+      checker = chat.syntax_checker_for('./foo.rb')
+      expect(checker).to be_a(ComplexConfig::Settings)
+      expect(checker.suffixes).to include('rb')
+    end
+
+    it 'matches .rake and .gemspec extensions' do
+      expect(chat.syntax_checker_for('./Rakefile.rake'))
+        .to be_a(ComplexConfig::Settings)
+      expect(chat.syntax_checker_for('./x.gemspec'))
+        .to be_a(ComplexConfig::Settings)
+    end
+
+    it 'returns nil for an unmatched extension' do
+      expect(chat.syntax_checker_for('./foo.txt')).to be_nil
+    end
+
+    it 'returns nil when the file has no extension' do
+      expect(chat.syntax_checker_for('./Makefile')).to be_nil
+    end
+
+    it 'returns nil for a disabled checker' do
+      expect(chat.syntax_checker_for('./foo.py')).to be_nil
+    end
+  end
+
+  describe '#run_syntax_check' do
+    let :checker do
+      double('checker', cmd: %w[ruby -wc])
+    end
+
+    it 'returns a pass result for valid Ruby' do
+      require 'tmpdir'
+      Dir.mktmpdir do |dir|
+        file = File.join(dir, 'ok.rb')
+        File.write(file, "puts 'hi'\n")
+        result = chat.run_syntax_check(checker, file)
+        expect(result[:status]).to eq 'pass'
+        expect(result[:output]).to eq ''
+      end
+    end
+
+    it 'returns a fail result for broken Ruby' do
+      require 'tmpdir'
+      Dir.mktmpdir do |dir|
+        file = File.join(dir, 'bad.rb')
+        File.write(file, "def broken\n")
+        result = chat.run_syntax_check(checker, file)
+        expect(result[:status]).to eq 'fail'
+        expect(result[:output]).to include('syntax error')
+      end
+    end
+
+    it 'returns nil when the binary is missing' do
+      no_binary = double('checker', cmd: %w[nonexistent_checker_xyz -n])
+      expect(chat.run_syntax_check(no_binary, './foo')).to be_nil
+    end
+  end
 end

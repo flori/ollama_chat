@@ -1,3 +1,5 @@
+require 'open3'
+
 # Provides functionality for handling configuration files and settings for
 # OllamaChat. It loads configuration from YAML files, supports environment
 # variable overrides, and offers methods to read and write configuration data.
@@ -18,6 +20,36 @@ module OllamaChat::ConfigHandling
   # @return [ ComplexConfig::Settings ] the configuration instance
   def config
     self.class.config
+  end
+
+  # Returns the first enabled syntax checker whose suffixes match the
+  # given file's extension, or nil if no match.
+  #
+  # @param path [String, Pathname] the file path to check
+  # @return [ComplexConfig::Settings, nil] the matching checker config
+  def syntax_checker_for(path)
+    path = Pathname.new(path)
+    ext = path.extname.delete_prefix(?.).full? or return
+    config.syntax_checkers.attribute_values.each do |checker|
+      next unless checker.enabled
+      return checker if checker.suffixes.include?(ext)
+    end
+    nil
+  end
+
+  # Runs the syntax checker on the given file and returns a result hash.
+  #
+  # @param checker [ComplexConfig::Settings] the resolved checker config
+  # @param path [String, Pathname] the file to check
+  # @return [Hash, nil] { status:, output: } or nil if binary is missing
+  def run_syntax_check(checker, path)
+    _stdout, stderr, status = Open3.capture3(*checker.cmd, path.to_s)
+    {
+      status: status.success? ? 'pass' : 'fail',
+      output: stderr.strip
+    }
+  rescue Errno::ENOENT
+    nil
   end
 
   private

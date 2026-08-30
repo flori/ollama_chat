@@ -164,16 +164,34 @@ class OllamaChat::Tools::PatchFile
         "Failed to apply patch to file #{path.to_s.inspect}."
       end
 
+    syntax_check = nil
+    if result[:success] && (checker = chat.syntax_checker_for(path))
+      check = chat.run_syntax_check(checker, path)
+      syntax_check = check if check &&
+        (check[:status] == 'fail' || check[:output] != '')
+    end
+    if syntax_check
+      case syntax_check[:status]
+      when 'fail'
+        message = "#{message} — ❌ Syntax error detected"
+      when 'pass'
+        if warning = syntax_check[:output].lines.first&.chomp
+          message = "#{message} — ⚠️ #{warning}"
+        end
+      end
+    end
+
     mtime, checksum = File.open(path, 'rb') {
       [ _1.mtime.iso8601(0), '%08x' % Zlib.crc32(_1) ]
     }
 
     (result | {
-      path:     path.to_s,
-      message:  ,
-      mtime:    ,
-      checksum: ,
-    }).to_json
+      path:         path.to_s,
+      message:      ,
+      mtime:        ,
+      checksum:     ,
+      syntax_check: syntax_check,
+    }).compact.to_json
 
   rescue => e
     chat.log(:error, e, data: { tool: name, path: path.to_s })

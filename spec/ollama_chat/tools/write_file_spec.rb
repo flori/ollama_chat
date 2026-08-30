@@ -257,4 +257,82 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.path).to be_nil
     expect(json.message).to eq 'Failed to write to file: some error'
   end
+
+  describe 'syntax check integration' do
+    let :test_rb_file do
+      "./tmp/test_syntax_#{Tins::Token.new(bits: 128)}.rb"
+    end
+
+    after do
+      File.delete(test_rb_file) if File.exist?(test_rb_file)
+    end
+
+    it 'includes syntax_check on valid .rb file (omits clean pass)' do
+      expect(chat).to receive(:syntax_checker_for).and_return(nil)
+
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'write_file',
+          arguments: double(
+            path: test_rb_file,
+            content: "def foo\n  42\nend\n",
+            mode: 'overwrite'
+          )
+        )
+      )
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.success).to eq true
+      expect(json.syntax_check).to be_nil
+    end
+
+    it 'includes syntax_check fail on broken .rb file' do
+      checker = double('checker', cmd: ['ruby', '-wc'])
+      expect(chat).to receive(:syntax_checker_for).and_return(checker)
+      expect(chat).to receive(:run_syntax_check).with(checker, any_args)
+        .and_return({ status: 'fail',
+                      output: "test.rb:2: syntax error, unexpected 'end'" })
+
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'write_file',
+          arguments: double(
+            path: test_rb_file,
+            content: "def foo\nend\nend\n",
+            mode: 'overwrite'
+          )
+        )
+      )
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.success).to eq true
+      expect(json.message).to include('❌ Syntax error detected')
+      expect(json.syntax_check[:status]).to eq 'fail'
+    end
+
+    it 'omits syntax_check for non-matching extension' do
+      expect(chat).to receive(:syntax_checker_for).and_return(nil)
+
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'write_file',
+          arguments: double(
+            path: test_write_file,
+            content: 'plain text',
+            mode: 'overwrite'
+          )
+        )
+      )
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.success).to eq true
+      expect(json.syntax_check).to be_nil
+    end
+  end
 end

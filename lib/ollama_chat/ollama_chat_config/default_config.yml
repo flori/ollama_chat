@@ -561,3 +561,20 @@ tools:
     eval_ruby:
       default: false
       result_display_timeout: 3
+syntax_checkers:
+  ruby:
+    cmd: [ 'ruby', '-wc' ]
+    suffixes: [ 'rb', 'rake', 'gemspec' ]
+    enabled: true
+  javascript:
+    cmd: [ 'node', '--check' ]
+    suffixes: [ 'js', 'mjs' ]
+    enabled: false
+  python:
+    cmd: [ 'python3', '-m', 'py_compile' ]
+    suffixes: [ 'py' ]
+    enabled: false
+  shell:
+    cmd: [ 'bash', '-n' ]
+    suffixes: [ 'sh', 'bash' ]
+    enabled: true

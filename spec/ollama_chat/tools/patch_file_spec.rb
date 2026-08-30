@@ -188,4 +188,62 @@ describe OllamaChat::Tools::PatchFile do
   ensure
     File.delete(test_file) if File.exist?(test_file)
   end
+
+  describe 'syntax check integration' do
+    let :test_rb_file do
+      "./tmp/patch_syntax_#{Tins::Token.new(bits: 128)}.rb"
+    end
+
+    after do
+      File.delete(test_rb_file) if File.exist?(test_rb_file)
+    end
+
+    it 'includes syntax_check fail on broken .rb patch' do
+      const_conf_as('OC::DIFF_TOOL' => Pathname.new(`which true`.chomp))
+      File.write(test_rb_file, "def foo\n  42\nend\n")
+      content = File.read(test_rb_file)
+
+      edits = [{ start_line: 2, end_line: 2, text: 'end' }]
+      checksum = '%08x' % Zlib.crc32(content)
+      args_double = double('Arguments', path: test_rb_file, edits:, checksum:)
+      tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
+
+      tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
+      expect(chat).to receive(:edit_text_block).and_yield(tmp_double)
+      expect(tool).to receive(:system).and_return(true)
+      expect(tool).to receive(:digest).and_return 'old', 'new'
+
+      checker = double('checker', cmd: ['ruby', '-wc'])
+      expect(chat).to receive(:syntax_checker_for).and_return(checker)
+      expect(chat).to receive(:run_syntax_check).with(checker, any_args)
+        .and_return({ status: 'fail',
+                      output: "test.rb:2: syntax error" })
+
+      result = tool.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.message).to include('❌ Syntax error detected')
+      expect(json.syntax_check[:status]).to eq 'fail'
+    end
+
+    it 'omits syntax_check when no checker matches' do
+      const_conf_as('OC::DIFF_TOOL' => Pathname.new(`which true`.chomp))
+      File.write(test_file, "Line 1\nLine 2\n")
+      content = File.read(test_file)
+
+      edits = [{ start_line: 2, end_line: 2, text: 'Modified' }]
+      checksum = '%08x' % Zlib.crc32(content)
+      args_double = double('Arguments', path: test_file, edits:, checksum:)
+      tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
+
+      tmp_double = double('Tempfile', write: true, flush: true, path: '/tmp/test_patch')
+      expect(chat).to receive(:edit_text_block).and_yield(tmp_double)
+      expect(tool).to receive(:system).and_return(true)
+      expect(tool).to receive(:digest).and_return 'old', 'new'
+      expect(chat).to receive(:syntax_checker_for).and_return(nil)
+
+      result = tool.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.syntax_check).to be_nil
+    end
+  end
 end
