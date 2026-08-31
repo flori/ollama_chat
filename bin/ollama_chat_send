@@ -5,7 +5,7 @@ include OllamaChat::FileEditing
 require 'tins/go'
 include Tins::GO
 
-opts = go 'f:d:F:rteph', ARGV
+opts = go 'f:d:F:rtemph', ARGV
 
 # Displays the usage information for the ollama_chat_send command.
 #
@@ -25,6 +25,7 @@ def usage(rc = 0)
       -f CONFIG  file to read
       -d DIR     the working directory to derive the socket file from
       -e         Edit content in editor before sending
+      -m         Strip ANSI color codes from content before sending
       -F FORMAT  file extension for editor (e.g., rb, md)
       -h         Show this help message
 
@@ -42,6 +43,7 @@ begin
            opts[?r] ? :socket_input_with_response : :socket_input
          end
   content = STDIN.read
+  content = Term::ANSIColor.uncolor(content) if opts[?m]
   if opts[?e]
     basename = %w[ text ]
     basename << opts[?F]&.sub(/\A(?=[^.])/, ?.) || '.md'
