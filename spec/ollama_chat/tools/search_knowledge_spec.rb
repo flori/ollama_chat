@@ -120,6 +120,8 @@ describe OllamaChat::Tools::SearchKnowledge do
 
     mock_docs = double('Documents')
     expect(chat).to receive(:documents).and_return(mock_docs).at_least(:once)
+    expect(chat).to receive(:database_collection?).with('tolkien').
+      and_return(double('Col', enabled: true))
 
     expect(mock_docs).to receive(:collection).and_return('default_collection').
       at_least(:once)

@@ -309,7 +309,8 @@ module OllamaChat::Information
   # @return [Hash{String => String}] a hash mapping collection names to their
   #   descriptions
   def collection_descriptions
-    cols = models::Collection.select(:name, :description).order(:name)
+    cols = models::Collection.where(enabled: true)
+      .select(:name, :description).order(:name)
     cols.each_with_object({}) do |c, hash|
       hash[c.name] = c.description
     end

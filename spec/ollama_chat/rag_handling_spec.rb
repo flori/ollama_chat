@@ -402,6 +402,7 @@ describe OllamaChat::RAGHandling do
         'new desc',             # description
         'lib/**/*.rb spec/*',   # patterns
       )
+      expect(chat).to receive(:confirm?).and_return(false)
 
       chat.edit_collection
 
@@ -422,6 +423,7 @@ describe OllamaChat::RAGHandling do
         nil,  # blank description
         '',   # empty patterns
       )
+      expect(chat).to receive(:confirm?).and_return(false)
 
       chat.edit_collection
 
@@ -437,6 +439,7 @@ describe OllamaChat::RAGHandling do
         blk.call
       end
       expect(chat).to receive(:ask?).and_return('new d', '')
+      expect(chat).to receive(:confirm?).and_return(false)
       expect_any_instance_of(col_model).to receive(:save).
         and_raise(Sequel::Error, 'db error')
       expect(STDERR).to receive(:puts).

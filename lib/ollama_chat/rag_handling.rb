@@ -23,8 +23,6 @@ module OllamaChat::RAGHandling
     @documents.collection = old_collection
   end
 
-  private
-
   # Looks up a collection in the database by name.
   #
   # @param collection [String, Symbol, #to_s] the collection name to look up
@@ -33,6 +31,8 @@ module OllamaChat::RAGHandling
   def database_collection?(collection)
     models::Collection[name: collection.to_s]
   end
+
+  private
 
   # Returns the name of the currently active document collection.
   #
@@ -160,12 +160,13 @@ module OllamaChat::RAGHandling
   # highlighting the active one.
   def list_collections
     current_collection = collection.to_s
-    collections = all_collections.select(:name, :description)
+    collections = all_collections.select(:name, :description, :enabled)
     use_pager do |output|
       collections.each { |c|
         collection_name = current_collection == c.name ? bold { c.name } : c.name
         collection_description = c.description
-        output.puts '%s: %s' % [ collection_name, collection_description ]
+        suffix = c.enabled ? '' : ' [DISABLED]'
+        output.puts '%s: %s%s' % [ collection_name, collection_description, suffix ]
       }
     end
   end
@@ -306,13 +307,26 @@ module OllamaChat::RAGHandling
       extract_patterns(patterns_str)
     end
 
+    enabled_prompt = col.enabled ?
+      "🚫 Disable this collection? (hidden from the model) (y/n) " :
+      "✅ Enable this collection? (visible to the model) (y/n) "
+    toggle = case confirm?(prompt: enabled_prompt)
+             when /\Ay/i then true
+             when /\An/i then false
+             end
+
     col.description = new_description.full? ? new_description.to_s : col.description
     col.patterns    = patterns
+    col.enabled     = toggle ^ col.enabled unless toggle.nil?
 
     begin
       col.save
+      if toggle
+        status = col.enabled ? 'enabled' : 'disabled'
+        STDOUT.puts "🔄 Collection '#{col.name}' is now #{status}."
+      end
       STDOUT.puts "✅ Updated collection '#{col.name}'."
-      log(:info, "Collection updated", data: { name: col.name })
+      log(:info, "Collection updated", data: { name: col.name, enabled: col.enabled })
     rescue Sequel::Error => e
       STDERR.puts "❌ Database error: #{e.message}"
     end

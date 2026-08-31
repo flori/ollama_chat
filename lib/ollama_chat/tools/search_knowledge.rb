@@ -114,7 +114,13 @@ class OllamaChat::Tools::SearchKnowledge
 
     if collection = args.collection.full?
       unless collection.to_s.match?(/\A#{OllamaChat::COLLECTION_NAME_REGEXP.source}\z/)
-        raise OllamaChat::ToolFunctionArgumentError, "Invalid collection name: #{collection}"
+        raise OllamaChat::ToolFunctionArgumentError,
+          "Invalid collection name: #{collection}"
+      end
+      col = chat.database_collection?(collection)
+      if col&.enabled == false
+        raise OllamaChat::ToolFunctionArgumentError,
+          "Collection #{collection} is disabled."
       end
       old_collection            = chat.documents.collection
       chat.documents.collection = collection
