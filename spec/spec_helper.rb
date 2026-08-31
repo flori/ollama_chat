@@ -218,7 +218,8 @@ RSpec.configure do |config|
     OllamaChat.test_mode = true
     const_conf_as(
       'OC::OLLAMA::CHAT::HISTORY'          => Pathname.pwd.join('tmp', 'history.json'),
-      'OC::OLLAMA::CHAT::LOGFILE'          => Pathname.pwd.join('tmp', 'chat.log'),
+      'OC::OLLAMA::CHAT::LOG::CHAT'        => Pathname.pwd.join('tmp', 'chat.log'),
+      'OC::OLLAMA::CHAT::LOG::DATABASE'    => Pathname.pwd.join('tmp', 'database.log'),
     )
   end
 

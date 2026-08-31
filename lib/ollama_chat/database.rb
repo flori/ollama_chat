@@ -28,8 +28,10 @@ module OllamaChat::Database
     db_path = OC::XDG_STATE_HOME.join('settings.db').expand_path
 
     url = 'sqlite://' + db_path.to_path
-    OC::OLLAMA::CHAT::DATABASE_LOGFILE.dirname.mkpath
-    logger = Logger.new(OC::OLLAMA::CHAT::DATABASE_LOGFILE)
+    db_log = OC::OLLAMA::CHAT::LOG::DATABASE
+    db_log.dirname.mkpath
+    logger = Logger.new(db_log)
+    logger.level = Logger::WARN
     unless OllamaChat.const_defined?('DB')
       OllamaChat.const_set('DB', Sequel.connect(url, logger:))
     end

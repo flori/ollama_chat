@@ -8,8 +8,9 @@ module OllamaChat::Logging
   # @return [Logger] the active Logger instance
   def logger
     @logger ||= begin
-      OC::OLLAMA::CHAT::LOGFILE.dirname.mkpath
-      l = Logger.new(OC::OLLAMA::CHAT::LOGFILE)
+      path = OC::OLLAMA::CHAT::LOG::CHAT
+      path.dirname.mkpath
+      l = Logger.new(path)
       l.formatter = -> (severity, time, _progname, msg) do
         msg = msg.stringify_keys_recursive
         msg['level']    = severity

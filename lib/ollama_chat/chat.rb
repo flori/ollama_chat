@@ -106,6 +106,7 @@ class OllamaChat::Chat
     @opts[?V] and exit version
     @ollama_chat_config = OllamaChat::OllamaChatConfig.new(@opts[?f])
     self.config         = @ollama_chat_config.config
+    truncate_logs
     @messages           = OllamaChat::MessageList.new(self)
     OllamaChat::Database.setup_models.each { _1.ask_and_send(:seed, self) }
     setup_session
@@ -313,6 +314,18 @@ class OllamaChat::Chat
       log(:info, "Ollama chat request sent", data: clean_opts)
     end
     ollama.chat(**opts, &block)
+  end
+
+  # Truncates chat.log and database.log to the configured tail line count
+  # before any new logging begins for this session.
+  def truncate_logs
+    keep = OC::OLLAMA::CHAT::LOG::TAIL_LINES
+    OllamaChat::Utils::LogRotation.truncate_tail(
+      OC::OLLAMA::CHAT::LOG::CHAT, keep_lines: keep
+    )
+    OllamaChat::Utils::LogRotation.truncate_tail(
+      OC::OLLAMA::CHAT::LOG::DATABASE, keep_lines: keep
+    )
   end
 
   # @return [Module] The module containing the database models.

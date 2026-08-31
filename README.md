@@ -37,6 +37,9 @@ The following environment variables can be used to configure behavior:
 - `OLLAMA_CHAT_HISTORY` - Chat history filename
 - `OLLAMA_CHAT_USER` - Full name of the chat user
 - `OLLAMA_CHAT_DEBUG` - Debug mode toggle (1 = enabled)
+- `OLLAMA_CHAT_LOG_CHAT` - Chat log file path (default: `$XDG_STATE_HOME/chat.log`)
+- `OLLAMA_CHAT_LOG_DATABASE` - Database log file path (default: `$XDG_STATE_HOME/database.log`)
+- `OLLAMA_CHAT_LOG_TAIL_LINES` - Max lines to retain in log files (default: `10000`)
 
 #### Tool Configuration
 - `OLLAMA_CHAT_TOOLS_TEST_RUNNER` - Configured test runner for `run_tests` (default: `rspec`)
@@ -45,11 +48,14 @@ The following environment variables can be used to configure behavior:
 - `OLLAMA_CHAT_TOOLS_JIRA_URL` - Base URL for Jira instance
 - `OLLAMA_CHAT_TOOLS_JIRA_USER` - Username for Jira authentication
 - `OLLAMA_CHAT_TOOLS_JIRA_API_TOKEN` - API token for Jira authentication
+- `OLLAMA_CHAT_TOOLS_JIRA_TWG` - Path to the twg CLI binary
 - `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_URL` - Base URL for ComfyUI server
 - `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_WORKFLOW` - ComfyUI workflow as JSON string
 - `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_PROMPT_NODE_ID` - Prompt node ID
 - `OLLAMA_CHAT_TOOLS_IMAGE_GENERATOR_FILENAME_PREFIX_NODE_ID` - Filename prefix node ID
 - `OLLAMA_CHAT_TOOLS_PIRATEWEATHER_API_KEY` - Pirate Weather API key
+- `OLLAMA_CHAT_TOOLS_GHR_URL` - Base URL for GHR API server
+- `OLLAMA_CHAT_TOOLS_RUBY_EVAL_IMAGE_TEMPLATE` - Docker image template for `eval_ruby` (default: `ruby:%{version}-alpine`)
 
 #### System & Infrastructure
 - `XDG_CONFIG_HOME` - XDG Configuration home directory
@@ -59,6 +65,7 @@ The following environment variables can be used to configure behavior:
 - `EDITOR` - Default text editor
 - `BROWSER` - Default web browser
 - `DIFF_TOOL` - Tool for diff operations (default: `vimdiff`)
+- `DIFF_COMMAND` - Command to generate unified diffs (default: `diff -u --color=always`)
 - `KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES` - Custom ANSI styles for Markdown formatting
 - `KRAMDOWN_ANSI_STYLES` - Fallback ANSI styles configuration
 - `OLLAMA_REDIS_URL` - Redis connection URL for documents (documentrix)

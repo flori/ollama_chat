@@ -5,7 +5,7 @@ require 'file/tail'
 require 'tins/xt'
 
 opts     = Tins::GO.go 'fm:n:h:', defaults: { ?n => 10  }
-log_path = ARGV.shift || OC::OLLAMA::CHAT::LOGFILE
+log_path = ARGV.shift || OC::OLLAMA::CHAT::LOG::CHAT
 
 if opts[?h]
   puts <<~EOT

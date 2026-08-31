@@ -158,14 +158,24 @@ module OC
         default     XDG_STATE_HOME + 'history.jsonl'
       end
 
-      LOGFILE = set do
-        description 'File to output log messages to'
-        default     XDG_STATE_HOME + 'chat.log'
-      end
+      module LOG
+        description 'Logging configuration'
 
-      DATABASE_LOGFILE = set do
-        description 'File to output database log messages to'
-        default     XDG_STATE_HOME + 'database.log'
+        CHAT = set do
+          description 'Chat log file path'
+          default     XDG_STATE_HOME + 'chat.log'
+        end
+
+        DATABASE = set do
+          description 'Database log file path'
+          default     XDG_STATE_HOME + 'database.log'
+        end
+
+        TAIL_LINES = set do
+          description 'Max lines to keep in log files (truncate older)'
+          default     10_000
+          decode      { Integer(_1) }
+        end
       end
 
       USER = set do
