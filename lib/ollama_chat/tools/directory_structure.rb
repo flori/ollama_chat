@@ -50,8 +50,9 @@ class OllamaChat::Tools::DirectoryStructure
             max_depth: Tool::Function::Parameters::Property.new(
               type: 'integer',
               description: <<~EOT,
-                Maximum depth of directory structure to return upto the total
-                height of the directory structure (defaults to disabled)
+                How many levels of the tree to include. 1 = immediate
+                children only, 2 = children + grandchildren, nil =
+                unlimited (defaults to nil)
               EOT
             ),
           },

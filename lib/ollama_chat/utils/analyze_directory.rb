@@ -37,8 +37,9 @@ module OllamaChat::Utils::AnalyzeDirectory
   #   only files with this suffix are included in the result. Pass `nil` or an empty string
   #   to include all files.
   # @param max_depth [Integer, nil] Optional depth limit. If `nil`,
-  #   the entire tree is returned.  When an integer is supplied, all
-  #   entries deeper than that depth are pruned.
+  #   the entire tree is returned. When an integer is supplied, entries
+  #   at that level and deeper are pruned. Use **1** to show only
+  #   immediate children, **2** for children + grandchildren, etc.
   #
   # @return [Array<Hash>] An array of entry hashes.  Each hash contains:
   #   * `:type`   – "file" or "directory"
@@ -70,9 +71,9 @@ module OllamaChat::Utils::AnalyzeDirectory
 
     structure_each_entry(entries) { |e| e[:height] = height }
 
-    if max_depth && max_depth < height
+    if max_depth && max_depth <= height
       structure_each_entry(entries) do |e|
-        e[:children]&.reject! { |c| c[:depth] > max_depth }
+        e[:children]&.reject! { |c| c[:depth] >= max_depth }
       end
     end
 

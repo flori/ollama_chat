@@ -359,6 +359,8 @@ roles:
 markdown: true
 stream: true
 document_policy: importing
+parsing:
+  directory_structure_max_depth: 1
 think:
   mode: disabled
   loud: true

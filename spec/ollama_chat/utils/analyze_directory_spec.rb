@@ -35,16 +35,11 @@ describe OllamaChat::Utils::AnalyzeDirectory do
       expect(sub[:children].map { |e| e[:depth] }).to eq [ 1 ]
     end
 
-    it 'returns an array of entries with depth max_depth' do
-      result = generate.call(@tmp_dir, max_depth: 0)
+    it 'max_depth 1 prunes all children from directories' do
+      result = generate.call(@tmp_dir, max_depth: 1)
 
-      expect(result).to be_an(Array)
       expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'b.rb', 'sub')
-
       sub = result.find { |e| e[:name] == 'sub' }
-      expect(sub[:depth]).to eq 0
-      expect(sub[:type]).to eq('directory')
-      expect(sub[:children]).to be_an(Array)
       expect(sub[:children]).to be_empty
     end
 
@@ -54,6 +49,50 @@ describe OllamaChat::Utils::AnalyzeDirectory do
       names  = result.map { |e| e[:name] }
       expect(names).to include('example.rb')
       expect(names).not_to include('examplle.json', 'example.md')
+    end
+
+    context 'max_depth with nested directories' do
+      before do
+        @tmp_dir  = Dir.mktmpdir
+        @sub_dir  = File.join(@tmp_dir, 'sub')
+        @deep_dir = File.join(@sub_dir, 'deep')
+        Dir.mkdir(@sub_dir)
+        Dir.mkdir(@deep_dir)
+        @file_a   = File.join(@tmp_dir, 'a.txt')
+        @file_b   = File.join(@sub_dir, 'b.txt')
+        @file_c   = File.join(@deep_dir, 'c.txt')
+
+        File.write(@file_a, 'a')
+        File.write(@file_b, 'b')
+        File.write(@file_c, 'c')
+      end
+
+      it 'max_depth 1 shows only immediate children' do
+        result = generate.call(@tmp_dir, max_depth: 1)
+
+        expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'sub')
+        sub = result.find { |e| e[:name] == 'sub' }
+        expect(sub[:children]).to be_empty
+      end
+
+      it 'max_depth 2 shows children and grandchildren' do
+        result = generate.call(@tmp_dir, max_depth: 2)
+
+        expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'sub')
+        sub  = result.find { |e| e[:name] == 'sub' }
+        deep = sub[:children].find { |e| e[:name] == 'deep' }
+
+        expect(sub[:children].map { |e| e[:name] })
+          .to contain_exactly('b.txt', 'deep')
+        expect(deep[:children]).to be_empty
+      end
+
+      it 'max_depth exceeding height returns the full tree' do
+        full   = generate.call(@tmp_dir)
+        pruned = generate.call(@tmp_dir, max_depth: 99)
+
+        expect(pruned.to_json).to eq full.to_json
+      end
     end
   end
 
