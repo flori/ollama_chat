@@ -135,7 +135,7 @@ module OllamaChat::Information
     context_usage = '%s of %s (%s)' % [
       messages.compacted_estimate_tokens.tokens_formatted,
       format_tokens(current_context_length),
-      bold { '%.1f%%' % (100 * context_filled)},
+      context_gauge(format('%.1f%%', 100 * context_filled)),
     ]
     output.puts  "  Context Usage: #{context_usage}"
     output.puts  "  Conversation Length: #{conversation_length}"
@@ -440,6 +440,34 @@ module OllamaChat::Information
         format_tokens(current_context_length),
         '%.1f%%' % (100 * context_filled),
       ]
+    end
+  end
+  # Wraps a percentage string in an ANSI color based on context usage
+  # relative to compaction thresholds.
+  #
+  # Green:  below `keep_recent` budget — plenty of room.
+  # Yellow: between `keep_recent` and `reserve` — getting tight.
+  # Red:    above `reserve` — compaction imminent.
+  #
+  # Falls back to bold if context length is unknown.
+  #
+  # @param percent_string [String] the formatted percentage to colorize
+  # @return [String] the ANSI-colored percentage string
+  def context_gauge(percent_string)
+    tokens = messages.compacted_estimate_tokens.tokens
+    ctx    = current_context_length
+    return bold { percent_string } unless ctx
+
+    keep_recent = compact_ratio_tokens(:keep_recent, ctx)
+    reserve     = compact_ratio_tokens(:reserve, ctx)
+    bold do
+      if tokens < keep_recent
+        '🟢 ' + green { percent_string }
+      elsif tokens <= reserve
+        '🟡 ' + yellow { percent_string }
+      else
+        '🔴 ' + red { percent_string }
+      end
     end
   end
 end

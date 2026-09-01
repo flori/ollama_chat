@@ -404,7 +404,7 @@ context:
 compaction:
   enabled: true
   reserve:
-    ratio: 0.30
+    ratio: 0.60
     min_tokens: 4096
   keep_recent:
     ratio: 0.20
