@@ -1,5 +1,86 @@
 # Changes
 
+## 2026-09-01 v0.0.114
+
+### Added
+
+* Context compaction pipeline:
+  * `OllamaChat::Compaction` module with `summarize_for_compaction`,
+    `compact_with_retry`, `compact_ratio_tokens`, `tool_summary_line`, and
+    `Result` value object.
+  * `CompactionError` exception.
+  * `MessageList` methods: `compact!`, `find_cut_point`, `find_summary`,
+    `compacted_messages`, `compacted_estimate_tokens`, and
+    `full_estimate_tokens`.
+  * `lookup_group` tool for retrieving pre-summary group content by UUID
+    suffix.
+  * `summary_template` base method in `Tools::Concern` and `message` field in
+    `eval_ruby` and `get_rfc` results.
+  * `compaction:` configuration block (`enabled`, `reserve`, `keep_recent`) and
+    `prompts.compaction` templates in `default_config.yml`.
+  * `conversation_length` in `Information` and dynamic runtime values.
+* Per-message token estimation:
+  * `#token_estimate(strip_thinking:)` in `OllamaChat::MessageMixin`.
+  * `#total_tokens(strip_thinking:)` in `OllamaChat::MessageList`.
+* Color-coded context gauge:
+  * `context_gauge` method in `information.rb` displaying context usage with
+    ANSI colors and emoji indicators.
+* Configurable syntax checkers for file tools:
+  * `syntax_checkers:` block in `default_config.yml` for `ruby`, `javascript`,
+    `python`, and `shell`.
+  * `ConfigHandling#syntax_checker_for` and `ConfigHandling#run_syntax_check`
+    methods.
+  * Integration into `Tools::WriteFile#execute` and `Tools::PatchFile#execute`.
+* Log rotation and restructured log configuration:
+  * `LOG` module (`CHAT`, `DATABASE`, `TAIL_LINES`) in `oc.rb`.
+  * `OllamaChat::Utils::LogRotation.truncate_tail` for in-place log truncation.
+  * `truncate_logs` call in `OllamaChat::Chat#initialize`.
+  * Database `Logger` level set to `WARN`.
+* Enabled flag for RAG collections:
+  * Migration adding `enabled` boolean to `collections` table.
+  * Filtering of disabled collections in `information.rb` and
+    `search_knowledge`.
+  * Interactive toggle in `edit_collection` and `[DISABLED]` suffix in
+    `list_collections`.
+* Monochrome flags:
+  * `-m` flag for `bin/ollama_chat_send` to strip ANSI codes from stdin.
+  * `-m` flag for `/input` command to strip ANSI codes from file content and
+    import results.
+* Session synchronization:
+  * `session_sync` method extracted from `session_close` in
+    `session_management.rb`.
+  * `ensure session.lock` in `set_new_session`.
+
+### Changed
+
+* Increased `compaction.reserve.ratio` from **0.30** to **0.60** in
+  `default_config.yml`.
+* Switched `Struct.new` to `Data.define` in `ModelMetadata`, `Estimate`, and
+  `TagResult`.
+* Standardized user-facing output format to `tokens (bytes)` across
+  `read_file`, `write_file`, `session_management`, and `information`.
+* Replaced `.size` with `.bytesize` for multi-byte-safe byte counts in
+  `token_estimator/crude.rb`, `fetcher.rb`, `paste_from_clipboard.rb`, and
+  `prompt_handling.rb`.
+* Updated `/conversation compact` to delegate to `compact_with_retry`.
+* Threaded `chat` into `TagResolver` for logging, fixing `NoMethodError` in
+  rescue blocks.
+* Capped inline directory structure depth:
+  * Added `parsing.directory_structure_max_depth` (default **1**) to
+    `default_config.yml`.
+  * Shifted `max_depth` semantics: **1** = immediate children, **2** = children
+    + grandchildren, `nil` = unlimited.
+* Acknowledged prompt state after `/prompt sync` to suppress boot drift nag.
+* Reordered `session_title` prompt for reliability.
+* `/config diff` now calls `reload_config` after `diff_config`.
+* Reordered `/config` subcommand alternatives to `edit diff reload`.
+* Clarified `suffix` description in `directory_structure` as "file extension".
+
+### Fixed
+
+* `NoMethodError` in `TagResolver#resolve` rescue block.
+* Unbounded tree expansion in directory structure parsing.
+
 ## 2026-08-25 v0.0.113
 
 *   Simplified hash syntax by replacing `text: text` with `text:` etc.
