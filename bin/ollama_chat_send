@@ -43,7 +43,7 @@ begin
            opts[?r] ? :socket_input_with_response : :socket_input
          end
   content = STDIN.read
-  content = Term::ANSIColor.uncolor(content) if opts[?m]
+  content = OllamaChat::Utils::StripANSI.strip_ansi(content) if opts[?m]
   if opts[?e]
     basename = %w[ text ]
     basename << opts[?F]&.sub(/\A(?=[^.])/, ?.) || '.md'

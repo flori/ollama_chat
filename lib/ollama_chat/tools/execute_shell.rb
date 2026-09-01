@@ -8,6 +8,7 @@ require 'open3'
 class OllamaChat::Tools::ExecuteShell
   include OllamaChat::Tools::Concern
   include Term::ANSIColor
+  include OllamaChat::Utils::StripANSI
 
   # @return [String] the registered name for this tool
   def self.register_name = 'execute_shell'
@@ -103,9 +104,11 @@ class OllamaChat::Tools::ExecuteShell
     end
 
     stdout, stderr, status = Open3.capture3('sh', '-c', command)
-    stdout = Term::ANSIColor.uncolor(stdout) if monochrome
-    stderr = Term::ANSIColor.uncolor(stderr) if monochrome
     exit_code = status.exitstatus
+    if monochrome
+      stdout = strip_ansi(stdout)
+      stderr = strip_ansi(stderr)
+    end
 
     chat.log(:info, 'Shell executed', data: {
       tool: name, command:, exit_code:,

@@ -926,14 +926,14 @@ module OllamaChat::Commands
         read = -> pathname {
           STDOUT.puts "Reading #{pathname.to_s.inspect}."
           content = pathname.read
-          opts[?m] ? Term::ANSIColor.uncolor(content) : content
+          opts[?m] ? OllamaChat::Utils::StripANSI.strip_ansi(content) : content
         }
         next provide_file_set_content(patterns, all:, &read) || :next
       elsif arg
         filename = Pathname.new(arg).expand_path
         filename.file? or next :next
         content = filename.read
-        content = Term::ANSIColor.uncolor(content) if opts[?m]
+        content = OllamaChat::Utils::StripANSI.strip_ansi(content) if opts[?m]
         content = edit_text(content) if opts[?e]
         content
       else
@@ -947,12 +947,12 @@ module OllamaChat::Commands
         patterns = extract_patterns(arg)
         next provide_file_set_content(patterns, all:, skip_blank: true) do |src|
           content = import(src)
-          opts[?m] ? Term::ANSIColor.uncolor(content) : content
+          opts[?m] ? OllamaChat::Utils::StripANSI.strip_ansi(content) : content
         end || :next
       elsif arg
         source = arg
         content = import(source) or next :next
-        content = Term::ANSIColor.uncolor(content) if opts[?m]
+        content = OllamaChat::Utils::StripANSI.strip_ansi(content) if opts[?m]
         content = edit_text(content) if opts[?e]
         content
       else
