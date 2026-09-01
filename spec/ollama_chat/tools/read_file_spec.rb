@@ -40,12 +40,12 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.content).to eq <<~EOT
       puts "Hello World!"
     EOT
-    expect(json.message).to include('Read 20.0 B (6.0 T) from')
+    expect(json.message).to include('Read 6.0 T (20.0 B) from')
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
     expect(json.checksum).not_to be_present
     expect(described_class.summary_template(result:))\
-      .to include('Read 20.0 B (6.0 T) from')
+      .to include('Read 6.0 T (20.0 B) from')
   end
 
   it 'can extract range when start_line is provided and end_line is nil' do
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).to eq "puts \"Hello World!\"\n"
-    expect(json.message).to include('Read 20.0 B (6.0 T) from')
+    expect(json.message).to include('Read 6.0 T (20.0 B) from')
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
     expect(json.checksum).not_to be_present
@@ -86,7 +86,7 @@ describe OllamaChat::Tools::ReadFile do
     result = described_class.new.execute(tool_call, chat:)
     json = json_object(result)
     expect(json.content).to eq "puts \"Hello World!\"\n"
-    expect(json.message).to include('Read 20.0 B (6.0 T) from')
+    expect(json.message).to include('Read 6.0 T (20.0 B) from')
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
     expect(json.checksum).not_to be_present

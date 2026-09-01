@@ -41,9 +41,9 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.success).to eq true
     expect(json.path).to include(File.basename(test_write_file))
-    expect(json.message).to include('Wrote 13.0 B (4.0 T) to file')
+    expect(json.message).to include('Wrote 4.0 T (13.0 B) to file')
     expect(described_class.summary_template(result:)).
-      to include('Wrote 13.0 B (4.0 T) to file')
+      to include('Wrote 4.0 T (13.0 B) to file')
 
     # Verify file was actually written
     expect(File.exist?(test_write_file)).to be true
@@ -77,7 +77,7 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.success).to eq true
     expect(File.read(test_write_file)).to eq 'New content'
     expect(described_class.summary_template(result:)).
-      to include('Wrote 11.0 B (4.0 T) to file')
+      to include('Wrote 4.0 T (11.0 B) to file')
   ensure
     File.delete(test_write_file) if File.exist?(test_write_file)
   end
@@ -136,9 +136,9 @@ describe OllamaChat::Tools::WriteFile do
     json = json_object(result)
     expect(json.success).to be true
     expect(json.path).to include(File.basename(test_write_file))
-    expect(json.message).to include('Wrote 18.0 B (6.0 T) to file')
+    expect(json.message).to include('Wrote 6.0 T (18.0 B) to file')
     expect(described_class.summary_template(result:)).
-      to include('Wrote 18.0 B (6.0 T) to file')
+      to include('Wrote 6.0 T (18.0 B) to file')
 
     # Verify file was actually appended
     expect(File.exist?(test_write_file)).to be true
@@ -171,7 +171,7 @@ describe OllamaChat::Tools::WriteFile do
     expect(json.success).to eq true
     expect(File.read(test_write_file)).to eq 'First content\n'
     expect(described_class.summary_template(result:)).
-      to include('Wrote 15.0 B (5.0 T) to file')
+      to include('Wrote 5.0 T (15.0 B) to file')
   ensure
     File.delete(test_write_file) if File.exist?(test_write_file)
   end
