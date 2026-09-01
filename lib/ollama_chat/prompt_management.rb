@@ -333,7 +333,7 @@ module OllamaChat::PromptManagement
       # Let the user write a suggestion instruction on the fly
       instruction = edit_text('').full? or return
     else
-      # Let the user pick a prompt template (e.g., suggest_coding, suggest_roleplaying)
+      # Let the user pick a prompt template (e.g., suggest.coding, suggest.roleplaying)
       instruction = choose_prompt(
         prompt: 'Which suggestion strategy shall we employ? %s',
         context: 'suggest'
