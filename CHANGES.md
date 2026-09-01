@@ -1,5 +1,44 @@
 # Changes
 
+## 2026-09-01 v0.0.115
+
+*   Added `OllamaChat::Tools::ExecuteShell` in
+    `lib/ollama_chat/tools/execute_shell.rb`, which executes shell commands via
+    `sh -c` after a mandatory human review flow involving an `edit_text` editor
+    review and a `y/n/i` confirm prompt.
+*   Implemented a `y/n/i` gate in the `execute_shell` tool where `y` executes,
+    `n` cancels, and `i` captures user instructions for the LLM to revise the
+    command.
+*   Configured `require_confirmation: false` in `default_config.yml` to skip
+    the preflight confirm in `follow_chat`, relying on the in-tool `confirm?`
+    as the primary safety mechanism.
+*   Enabled output display via `use_pager` with bold `stdout:`/`stderr:` labels
+    and exit codes, with `monochrome: true` (default) stripping ANSI codes
+    before returning results to the LLM.
+*   Standardized error handling for `execute_shell` failure paths (blank
+    command, editor abandoned/cleared, user declined, instruct) to raise
+    `OllamaChat::ToolFunctionArgumentError`, which is rescued to log and return
+    structured JSON including the `command`.
+*   Added a `summary_template` class method to `execute_shell` for one-liner
+    output in `lookup_group` compaction.
+*   Registered `execute_shell` in `lib/ollama_chat/tools.rb` and configured it
+    in `default_config.yml` with `default: false` and `result_display_timeout:
+    10`.
+*   Added 18 spec examples in `spec/ollama_chat/tools/execute_shell_spec.rb`
+    covering identity, execution, editor cancel, instruct, monochrome, pager
+    display, and `summary_template`.
+*   Introduced `OllamaChat::Utils::StripANSI` module in
+    `lib/ollama_chat/utils/strip_ansi.rb` with a regex-based `strip_ansi`
+    method handling both SGR and OSC escape sequences.
+*   Replaced `Term::ANSIColor.uncolor` calls with `strip_ansi` in
+    `lib/ollama_chat/tools/execute_shell.rb`, `lib/ollama_chat/commands.rb`
+    (`/input` path and default subcommands), and `bin/ollama_chat_send`.
+*   Registered `lib/ollama_chat/utils/strip_ansi.rb` in `ollama_chat.gemspec`
+    file lists.
+*   Fixed `read_file` and `write_file` spec assertions in `read_file_spec.rb`
+    and `write_file_spec.rb` to match the token-first output format (`tokens
+    (bytes)`) shipped in **v0.0.114**.
+
 ## 2026-09-01 v0.0.114
 
 ### Added
