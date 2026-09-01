@@ -356,7 +356,10 @@ prompts:
       conversation:
       %{groups}
 
-      Summarize the conversation above. Your narrative MUST:
+      The previous summary (if present) is a draft. Rewrite it
+      to incorporate the new conversation above. The result must
+      read as one continuous account of the entire session, not a
+      concatenation of two separate summaries. Your narrative MUST:
       - Name every file created or significantly modified (with
         path), and the key methods or classes they define.
       - State the architectural or design decisions made (e.g.
@@ -366,8 +369,8 @@ prompts:
       - Do NOT merely report test counts or coverage percentages;
         those are outcomes, not accomplishments.
       - Be factual; do not invent details not present in the groups
-        above. Keep it to 6–12 sentences.
-    assemble: |-
+        or previous summary above. Be concise; skip filler and repetition.
+    assemble: |
       %{narrative}
 
       tool_calls:

@@ -226,9 +226,10 @@ describe OllamaChat::Compaction do
       )
       # last line is the directive's final sentence
       expect(captured)
-        .to match(/details\s+not\s+present\s+in\s+the\s+groups\s+above./m)
+        .to match(/details\s+not\s+present\s+in\s+the\s+groups\s+or\s+previous\s+summary\s+above./m)
       # directive comes after content
-      expect(captured.index('Summarize the conversation'))
+      expect(captured).to match(/is\s+a\s+draft/)
+      expect(captured.index(/is\s+a\s+draft/))
         .to be > captured.index('[user]')
     end
 
@@ -253,7 +254,7 @@ describe OllamaChat::Compaction do
       expect(content).to include 'tool_calls:'
       expect(content).to include '"uuid":"aaaa"'
       expect(content).to include '"uuid":"bbbb"'
-      expect(content).to end_with 'with the group UUID in parentheses.'
+      expect(content).to end_with "with the group UUID in parentheses.\n"
       expect(tools).to eq entries
     end
 
@@ -261,7 +262,7 @@ describe OllamaChat::Compaction do
       content, tools = chat.assemble_summary('Just narrative.', [])
       expect(content).to start_with 'Just narrative.'
       expect(content).to include 'tool_calls:'
-      expect(content).to end_with 'with the group UUID in parentheses.'
+      expect(content).to end_with "with the group UUID in parentheses.\n"
       expect(tools).to eq []
     end
 
