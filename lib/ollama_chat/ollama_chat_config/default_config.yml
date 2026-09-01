@@ -494,6 +494,10 @@ tools:
       result_display_timeout: 3
       cmd: |
         grep #{'-i' if ignore_case} -m #{max_results} -r #{before.full? { "-B %u " % it }}#{after.full? { "-A %u " % it }}#{context.full? { "-C %u " % it }}#{pattern} #{path}
+    execute_shell:
+      default: false
+      require_confirmation: false # Preflight confirm is skipped, but in-tool it's mandatory.
+      result_display_timeout: 0
     browse:
       result_display_timeout: 3
       default: true
