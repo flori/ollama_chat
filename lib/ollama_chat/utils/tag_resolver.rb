@@ -86,7 +86,7 @@ class OllamaChat::Utils::TagResolver
   #   with this string.
   # @return [Array<TagResult>] All matching results sorted by the order they
   #   appear in the tags file.
-  def resolve(symbol:, kind: nil, directory: nil)
+  def resolve(chat:, symbol:, kind: nil, directory: nil)
     directory and directory = Pathname.new(directory).expand_path.to_path
     @tags_file.rewind
     results       = []
@@ -117,7 +117,7 @@ class OllamaChat::Utils::TagResolver
       obj.linenumber = linenumber
       results << obj
     rescue => e
-      log(:error, e, data: { context: 'tag_resolver' }, warn: true)
+      chat.log(:error, e, data: { context: 'tag_resolver' }, warn: true)
     end
     results
   end

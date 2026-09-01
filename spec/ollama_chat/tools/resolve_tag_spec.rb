@@ -87,4 +87,47 @@ describe OllamaChat::Tools::ResolveTag do
       expect(json.message).to include('some error')
     end
   end
+
+  context 'when a tag line triggers the internal rescue path' do
+    let(:tags_path) { File.join(Dir.pwd, 'tmp', 'test_tags.ctags') }
+
+    before do
+      FileUtils.mkdir_p(File.dirname(tags_path))
+      # Valid ctags format: symbol\tfilename\t/^regexp$/;"\tkind rest
+      # 5 regex captures, but TagResult needs 6 (…+ :linenumber),
+      # so TagResult.new always raises ArgumentError → rescue fires.
+      File.write(tags_path, \
+        "execute\tlib/foo.rb\t/^  def execute\\($/;\"\tf method\n")
+      const_conf_as(
+        'OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL' => 'true',
+        'OC::OLLAMA::CHAT::TOOLS::TAGS_FILE'  => Pathname.new(tags_path),
+      )
+    end
+
+    after do
+      File.delete(tags_path) if File.exist?(tags_path)
+    end
+
+    it 'logs via chat.log and returns empty results' do
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'resolve_tag',
+          arguments: double(symbol: 'execute', kind: nil, directory: nil)
+        )
+      )
+
+      expect(chat).to receive(:log).
+        with(:error, kind_of(ArgumentError),
+           hash_including(data: { context: 'tag_resolver' })).
+        and_return(nil)
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+
+      expect(json.error).to be_nil
+      expect(json.results).to eq []
+      expect(json.message).to eq 'Found 0 results of symbol "execute".'
+    end
+  end
 end

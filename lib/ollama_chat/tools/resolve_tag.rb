@@ -66,7 +66,7 @@ class OllamaChat::Tools::ResolveTag
 
     tags    = OC::OLLAMA::CHAT::TOOLS::TAGS_FILE
     results = OllamaChat::Utils::TagResolver.new(tags).
-      resolve(symbol:, kind:, directory:)
+      resolve(chat:, symbol:, kind:, directory:)
 
     message = "Found %{results_count} results of symbol \"%{symbol}\"." % {
       results_count: results.size, symbol:
