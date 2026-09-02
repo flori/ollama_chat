@@ -99,8 +99,8 @@ describe OllamaChat::ToolCalling do
     it 'prints a formatted list of tools with their status' do
       chat.session.tools_default_enabled = { 'read_file' => true, 'write_file' => false }
 
-      # We expect to see ✓ for read_file and ☐ for write_file
-      expect { chat.list_tools }.to output(/✓ .*read_file.*☐ .*write_file/m).to_stdout
+      # We expect to see ✅ for read_file and ⛔ for write_file
+      expect { chat.list_tools }.to output(/✅ .*read_file.*⛔ .*write_file/m).to_stdout
     end
   end
 

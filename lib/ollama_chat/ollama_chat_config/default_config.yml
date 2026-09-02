@@ -318,25 +318,33 @@ prompts:
       
       ## Few-Shot Examples
       
-      Input: [Scene where a party is arguing in a rainy forest while being hunted]
-      Output:
-      Demand that everyone stop shouting and listen for the sound of footsteps in the brush.
+      Input: [Scene where a party is arguing in a rainy forest while being
+      hunted] Output: Demand that everyone stop shouting and listen for the
+      sound of footsteps in the brush.
       
-      Quietly admit to the party leader that you are terrified, leaning into their shoulder for support.
+      Quietly admit to the party leader that you are terrified, leaning into
+      their shoulder for support.
       
-      Examine the muddy tracks near the campfire to see if the hunters are human or something else. Roll 1d20.
+      Examine the muddy tracks near the campfire to see if the hunters are
+      human or something else. Roll 1d20.
       
-      Secretly slip the map out of the leader's pocket while they are distracted by the argument. Roll 1d20.
+      Secretly slip the map out of the leader's pocket while they are
+      distracted by the argument. Roll 1d20.
       
-      Raise your voice and challenge every single person present to state their true loyalty right now.
+      Raise your voice and challenge every single person present to state their
+      true loyalty right now.
       
-      Attempt to leap across the ravine to flank the hunters, risking a fall into the rapids. Roll 1d20.
+      Attempt to leap across the ravine to flank the hunters, risking a fall
+      into the rapids. Roll 1d20.
       
-      Obsessively polish your sword with a rag, ignoring the argument entirely until it is perfectly mirrored.
+      Obsessively polish your sword with a rag, ignoring the argument entirely
+      until it is perfectly mirrored.
       
-      Suddenly reveal that you were actually sent here by the enemy as a double agent.
+      Suddenly reveal that you were actually sent here by the enemy as a double
+      agent.
       
-      A sudden lightning strike hits a nearby tree, knocking everyone off balance and creating a deafening blast.
+      A sudden lightning strike hits a nearby tree, knocking everyone off
+      balance and creating a deafening blast.
       
       ## Output Format
       

@@ -105,8 +105,9 @@ module OllamaChat::ToolCalling
   def list_tools
     STDOUT.puts "Registered tools:"
     configured_tools.each do |tool|
-      enabled = tool_enabled?(tool) ? ?✓ : ?☐
-      require_confirmation = tool_function(tool).require_confirmation? ? ?? : ?☐
+      enabled = tool_enabled?(tool) ? '✅' : '⛔'
+      require_confirmation = tool_function(tool).require_confirmation? ? '❔' : '⭕'
+
       printf(
         "%s %s %s\n",
         enabled, require_confirmation, (enabled ? bold { tool } : tool)

@@ -163,10 +163,11 @@ module OllamaChat::RAGHandling
     collections = all_collections.select(:name, :description, :enabled)
     use_pager do |output|
       collections.each { |c|
-        collection_name = current_collection == c.name ? bold { c.name } : c.name
+        enabled                = c.enabled ? '✅' : '⛔'
+        collection_name        = current_collection == c.name ? bold { c.name } : c.name
         collection_description = c.description
-        suffix = c.enabled ? '' : ' [DISABLED]'
-        output.puts '%s: %s%s' % [ collection_name, collection_description, suffix ]
+
+        output.puts '%s %s: %s' % [ enabled, collection_name, collection_description ]
       }
     end
   end

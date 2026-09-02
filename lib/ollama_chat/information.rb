@@ -80,6 +80,7 @@ module OllamaChat::Information
     output.puts <<~EOT
       Current Collection
         Name: #{bold{collection}}
+        Status: #{col&.enabled ? '✅' : '⛔'}
         Patterns: #{italic{col&.patterns&.join(' ')}}
         #Embeddings: #{@documents.size}
         #Tags: #{@documents.tags.size}
