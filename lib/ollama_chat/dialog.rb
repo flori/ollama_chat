@@ -149,4 +149,38 @@ module OllamaChat::Dialog
   def go_command(s, opt, defaults: {})
     Tins::GO.go(s, opt.to_s.strip.split(/\s+/), defaults:)
   end
+
+  # Prompts the user for a filename with history support.
+  #
+  # @param action [String, nil] an optional action descriptor appended to the
+  #   prompt, e.g. "for summarization" ("❓ Enter filename for summarization…")
+  #
+  # @return [Pathname, nil] the user-supplied filename as a Pathname, or nil
+  #   if the user cancels (C-c) or provides empty input
+  def ask_for_filename?(action: nil)
+    action and action = " #{action}"
+    switch_history(:filename) {
+      ask?(prompt: "❓ Enter filename#{action}, C-c ⇒ cancel: ")
+    }.full? { Pathname.new(_1) }
+  end
+
+  # Checks whether a file can be written, prompting for overwrite
+  # confirmation if the file already exists.
+  #
+  # @param filename [Pathname] the target file to check
+  #
+  # @return [Boolean] `true` if the file does not exist or the user confirms
+  #   overwriting; `false` if the file exists and the user declines
+  def should_overwrite?(filename)
+    if filename.exist? && !confirm?(
+        prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
+        yes: /\Ay/i
+      )
+    then
+      STDERR.puts "File not written!"
+      false
+    else
+      true
+    end
+  end
 end

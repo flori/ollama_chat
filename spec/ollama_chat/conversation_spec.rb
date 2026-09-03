@@ -8,7 +8,7 @@ describe OllamaChat::Conversation do
   describe '#save_conversation' do
     it 'saves a new conversation (clean: false) and confirms' do
       expect(chat.messages).to receive(:save_conversation)
-        .with('./new_chat.jsonl', messages: chat.messages.messages)
+        .with(Pathname.new('./new_chat.jsonl'), messages: chat.messages.messages)
         .and_return(true)
       expect(STDOUT).to receive(:puts)
         .with('Saved conversation to "./new_chat.jsonl".')
@@ -17,7 +17,7 @@ describe OllamaChat::Conversation do
 
     it 'saves a new conversation (clean: true) using cleaned messages' do
       expect(chat.messages).to receive(:save_conversation)
-        .with('./new_chat.jsonl', messages: chat.messages.clean_messages)
+        .with(Pathname.new('./new_chat.jsonl'), messages: chat.messages.clean_messages)
         .and_return(true)
       expect(STDOUT).to receive(:puts)
         .with('Saved conversation to "./new_chat.jsonl".')
@@ -56,7 +56,7 @@ describe OllamaChat::Conversation do
         .and_return(false)
       expect(chat.messages).not_to receive(:save_conversation)
       expect(STDOUT).not_to receive(:puts)
-      expect(STDERR).not_to receive(:puts)
+      expect(STDERR).to receive(:puts).with('File not written!')
       chat.save_conversation(tmpfile, clean: false)
     ensure
       FileUtils.rm_f(tmpfile)

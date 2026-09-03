@@ -348,11 +348,10 @@ module OllamaChat::SessionManagement
 
   # Generates a summary of the current session's conversation.
   #
-  # @param pretty [Boolean] whether to format the summary in markdown (default: false)
   # @param sentence [Boolean] whether to summarize each message in one sentence (default: false)
   # @param block [Proc] a block to handle each summary fragment
   # @return [String, nil] the session summary or nil if empty
-  def summarize_session(pretty: false, sentence: false, &block)
+  def summarize_session(sentence: false, &block)
     unit                  = sentence ? 'sentence' : 'paragraph'
     contents              = []
     messages_to_summarize = messages.each_message
@@ -362,9 +361,8 @@ module OllamaChat::SessionManagement
       message: infobar_message,
     )
     messages_to_summarize.each do |message|
-      message_content  = message.content.full?
-      message_thinking = message.thinking.full?
-      unless message_content || message_thinking
+      message_content = message.content.full?
+      unless message_content
         -infobar
         next
       end
@@ -373,25 +371,113 @@ module OllamaChat::SessionManagement
       context            = contents * "\n\n"
       summary            = generate(
         prompt:  prompt(:session_summarize).to_s % {
-          sender_name:, unit:, message_content:, message_thinking:, context:
+          sender_name:, unit:, message_content:, context:
         }
       )
-      content = if pretty
-                  '**%s**: %s' % [ sender_name_output, summary ]
-                else
-                  '%s: %s' % [ sender_name_output, summary ]
-                end
+      content = '**%s**: %s' % [ sender_name_output, summary ]
       block&.(content)
       contents << content
       +infobar
     end
     contents.empty? and return
 
-    if pretty
-      contents.unshift(%{# Summary of session "#{session.name}"})
-      contents * "\n\n"
+    contents.unshift(%{# Summary of session "#{session.name}"})
+    contents * "\n\n"
+  end
+
+  # Summarizes the conversation and displays or saves the result.
+  #
+  # @param sentence [Boolean] summarize each message in one sentence (default: false)
+  # @param save [Boolean] save to file instead of pager (default: false)
+  def summarize_conversation(sentence: false, save: false)
+    if save
+      filename = ask_for_filename?(action: 'for summarization') or return
+      should_overwrite?(filename) or return
+      summary = summarize_session(sentence:) do |content|
+        infobar.puts kramdown_ansi_parse(content)
+      end
+      if summary.full?
+        filename.write(summary)
+        STDOUT.puts "File successfully written."
+      else
+        STDERR.puts "Nothing to summarize!"
+      end
     else
-      contents * ?\n
+      summary = summarize_session(sentence:) do |content|
+        infobar.puts kramdown_ansi_parse(content) << ?\n
+      end
+      if summary.full?
+        use_pager do |output|
+          output.puts kramdown_ansi_parse(summary)
+        end
+      else
+        STDERR.puts "Nothing to summarize!"
+      end
+    end
+  end
+
+  # Generates a report document for the current session's conversation.
+  #
+  # Uses a user-selected prompt template from the 'session' context
+  # (e.g. coding_brief, roleplay_report) to produce a single cohesive
+  # document describing the session. Uses `compacted_messages` (summary +
+  # recent tail) rather than `each_message` so the interpolated content
+  # stays bounded even after multiple compaction rounds.
+  #
+  # @param name [String, nil] specific template name (skips chooser)
+  # @param block [Proc] a block to handle the report content
+  # @return [String, nil] the report or nil if empty
+  def report_session(name: nil, &block)
+    content = messages.compacted_messages.inject('') do |c, message|
+      message.content.present? or next c
+      sender = sender_name_displayed(message)
+      c << "%s: %s\n\n" % [ sender, message.content ]
+    end
+    content.empty? and return
+
+    template = if name
+                 prompt(name, context: 'session')
+               else
+                 choose_prompt(
+                   context: 'session',
+                   prompt: 'Which report template? %s'
+                 )
+               end
+    template or return
+
+    result = generate(prompt: template.to_s % { content: })
+    block&.(result)
+    result
+  end
+
+  # Generates a report and displays or saves the result.
+  #
+  # @param name [String, nil] specific report template name (skips chooser)
+  # @param save [Boolean] save to file instead of pager (default: false)
+  def report_conversation(name: nil, save: false)
+    if save
+      filename = ask_for_filename?(action: 'for report') or return
+      should_overwrite?(filename) or return
+      result = report_session(name:) do |content|
+        infobar.puts kramdown_ansi_parse(content)
+      end
+      if result.full?
+        filename.write(result)
+        STDOUT.puts "File successfully written."
+      else
+        STDERR.puts "Nothing to report!"
+      end
+    else
+      result = report_session(name:) do |content|
+        infobar.puts kramdown_ansi_parse(content) << ?\n
+      end
+      if result.full?
+        use_pager do |output|
+          output.puts kramdown_ansi_parse(result)
+        end
+      else
+        STDERR.puts "Nothing to report!"
+      end
     end
   end
 
@@ -575,6 +661,21 @@ module OllamaChat::SessionManagement
     end
   end
 
+  # Repairs `group_uuid` assignments in the current message list.
+  #
+  # Walks the message array backwards looking for user messages (that are not
+  # tool calls) lacking a `group_uuid`. For each such anchor it:
+  #
+  # 1. Swaps a preceding `runtime_information` tool message so the user
+  #    message comes first (structural invariant).
+  # 2. Propagates the anchor's UUID forward to all subsequent messages until
+  #    the next user message or the end of the list.
+  #
+  # After the backward pass, any remaining orphaned messages (e.g. system
+  # messages not part of a user-led exchange) are assigned fresh UUIDs via
+  # `initialize_group_uuid`.
+  #
+  # Persists the repaired message list via `store_messages_in_session`.
   def repair_group_uuids
     msgs = messages.messages # Direct reference to the internal array
     msgs.empty? and return

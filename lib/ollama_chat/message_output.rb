@@ -89,17 +89,9 @@ module OllamaChat::MessageOutput
   #   error occurred
   def attempt_to_write_file(filename, content)
     path = Pathname.new(filename.to_s).expand_path
-    if !path.exist? ||
-        confirm?(
-          prompt: "🔔 File #{path.to_s.inspect} already exists, overwrite? (y/n) ",
-          yes: /\Ay/i
-        )
-    then
-      File.open(path, ?w) do |output|
-        output.write(content)
-      end
-    else
-      return
+    should_overwrite?(path) or return
+    File.open(path, ?w) do |output|
+      output.write(content)
     end
     true
   end

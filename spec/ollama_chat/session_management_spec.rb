@@ -316,6 +316,92 @@ describe OllamaChat::SessionManagement do
     end
   end
 
+  describe '#summarize_conversation' do
+    it 'displays summary in pager when not saving' do
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
+      expect(chat).to receive(:summarize_session).and_return('# Summary content')
+      expect(chat).to receive(:use_pager)
+      chat.summarize_conversation
+    end
+
+    it 'reports nothing when no messages' do
+      expect(chat).to receive(:summarize_session).and_return(nil)
+      expect(STDERR).to receive(:puts).with('Nothing to summarize!')
+      chat.summarize_conversation
+    end
+
+    it 'saves summary to file when save: true' do
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
+      tmpfile = Pathname.new(File.join(Dir.tmpdir, "summ_#{$$}_test.md"))
+      expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
+      expect(chat).to receive(:should_overwrite?).and_return(true)
+      expect(chat).to receive(:summarize_session).and_return('# Summary content')
+      expect(STDOUT).to receive(:puts).with('File successfully written.')
+      chat.summarize_conversation(save: true)
+      expect(tmpfile.exist?).to be_truthy
+      expect(tmpfile.read).to include('Summary content')
+    ensure
+      FileUtils.rm_f(tmpfile)
+    end
+  end
+
+  describe '#report_session' do
+    it 'generates a report from compacted messages' do
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello world')
+      expect(chat).to receive(:sender_name_displayed).and_return('User')
+      expect(chat).to receive(:choose_prompt).and_return(double(to_s: '%{content}'))
+      expect(chat).to receive(:generate).and_return('Generated report')
+
+      results = []
+      result = chat.report_session { |c| results << c }
+      expect(result).to eq('Generated report')
+      expect(results).to eq(['Generated report'])
+    end
+
+    it 'returns nil when no messages have content' do
+      expect(chat.messages).to receive(:compacted_messages).and_return([])
+      expect(chat.report_session).to be_nil
+    end
+
+    it 'uses named prompt when name is provided' do
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
+      expect(chat).to receive(:sender_name_displayed).and_return('User')
+      expect(chat).to receive(:prompt).with('coding_brief', context: 'session')
+        .and_return(double(to_s: '%{content}'))
+      expect(chat).to receive(:generate).and_return('Brief')
+      expect(chat.report_session(name: 'coding_brief')).to eq('Brief')
+    end
+  end
+
+  describe '#report_conversation' do
+    it 'displays report in pager when not saving' do
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
+      expect(chat).to receive(:report_session).and_return('# Report content')
+      expect(chat).to receive(:use_pager)
+      chat.report_conversation
+    end
+
+    it 'reports nothing when no content' do
+      expect(chat).to receive(:report_session).and_return(nil)
+      expect(STDERR).to receive(:puts).with('Nothing to report!')
+      chat.report_conversation
+    end
+
+    it 'saves report to file when save: true' do
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
+      tmpfile = Pathname.new(File.join(Dir.tmpdir, "report_#{$$}_test.md"))
+      expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
+      expect(chat).to receive(:should_overwrite?).and_return(true)
+      expect(chat).to receive(:report_session).and_return('# Report content')
+      expect(STDOUT).to receive(:puts).with('File successfully written.')
+      chat.report_conversation(save: true)
+      expect(tmpfile.exist?).to be_truthy
+      expect(tmpfile.read).to include('Report content')
+    ensure
+      FileUtils.rm_f(tmpfile)
+    end
+  end
+
   describe '#change_session' do
     it 'switches to a different session and updates state' do
       new_s = chat.new_session.tap { |s| s.name = 'change_to_me'; s.save }

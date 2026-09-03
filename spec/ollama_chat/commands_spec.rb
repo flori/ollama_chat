@@ -557,6 +557,36 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:confirm?).and_return false
       expect(chat.handle_input("/conversation compact")).to eq :next
     end
+
+    it 'returns :next when input is "/conversation summarize"' do
+      expect(chat).to receive(:summarize_conversation)
+        .with(save: false, sentence: false)
+      expect(chat.handle_input("/conversation summarize")).to eq :next
+    end
+
+    it 'returns :next when input is "/conversation summarize -s"' do
+      expect(chat).to receive(:summarize_conversation)
+        .with(save: false, sentence: 1)
+      expect(chat.handle_input("/conversation summarize -s")).to eq :next
+    end
+
+    it 'returns :next when input is "/conversation summarize -f"' do
+      expect(chat).to receive(:summarize_conversation)
+        .with(save: 1, sentence: false)
+      expect(chat.handle_input("/conversation summarize -f")).to eq :next
+    end
+
+    it 'returns :next when input is "/conversation report"' do
+      expect(chat).to receive(:report_conversation)
+        .with(save: false)
+      expect(chat.handle_input("/conversation report")).to eq :next
+    end
+
+    it 'returns :next when input is "/conversation report -f"' do
+      expect(chat).to receive(:report_conversation).
+        with(save: 1)
+      expect(chat.handle_input("/conversation report -f")).to eq :next
+    end
   end
 
   describe 'tools' do

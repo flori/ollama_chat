@@ -113,15 +113,12 @@ module OllamaChat::FileEditing
   def determine_valid_output_filename(action)
     switch_history(:filename) do
       loop do
-        filename_str = ask?(
-          prompt: "❓ Enter filename #{action}, C-c ⇒ cancel: "
-        )
-        if filename_str.nil?
+        filename = ask_for_filename?(action:)
+        unless filename
           STDOUT.puts "Cancelled."
           return nil
         end
 
-        filename = Pathname.new(filename_str)
         if filename.exist?
           STDERR.puts "File #{filename.to_path.inspect} already exists!"
         else

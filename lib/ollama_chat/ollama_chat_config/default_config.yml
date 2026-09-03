@@ -151,21 +151,22 @@ prompts:
       - **Format**: [Markdown, plain text, code blocks, etc.]
       - **Vocabulary**: [Technical terms, slang, formal language]
       - **Structure**: [How you organize your responses]
+    context_template_suggest: |
+      Conversation History:
+      %{history}
+
+      Create and output text following this instruction:
+      %{instruction}
     session_summarize: |
-      Context is
+      Narrative so far:
 
       %{context}
 
-      Summarize the %{sender_name} message below in one %{unit}.
-
-      NEVER add any information to this message summary that already was included
-      in the context above.
-
-      Message
-
-      Thinking content was
-
-      %{message_thinking}
+      Extend the narrative above with the key contribution of the
+      %{sender_name} message below in one %{unit}. Skip tool-call
+      plumbing; focus on decisions, findings, and state changes. Do
+      not repeat information already present in the narrative.
+      Output only the summary text, without any sender name or prefix.
 
       Response content was
 
@@ -175,12 +176,15 @@ prompts:
 
       Create a title with a length of **less than %{length}** characters for
       the conversation above. Output only the title and nothing else.
-    context_template_suggest: |
-      Conversation History:
-      %{history}
+  session:
+    coding_brief: |
+      %{content}
 
-      Create and output text following this instruction:
-      %{instruction}
+      Write a brief of the session above. Your brief MUST:
+      - Describe the goal and how it evolved.
+      - Name key decisions, files, and architectural choices.
+      - State the current state: what works, what is pending.
+      - Be factual. Be concise.
   suggest:
     coding: |
       ## Context

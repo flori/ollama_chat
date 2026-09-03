@@ -291,15 +291,14 @@ module OllamaChat::Commands
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|summarize|delete|model options change|model options))?((?:\s+-(?:[sf]|p\s*\w+))*)(?:\s+([^-].*))?$),
-    complete: [ 'session', %w[ change previous list new duplicate rename summarize delete model\ options\ change model\ options ] ],
+    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|delete|model options change|model options))?((?:\s+-(?:p\s*\w+))*)(?:\s+([^-].*))?$),
+    complete: [ 'session', %w[ change previous list new duplicate rename delete model\ options\ change model\ options ] ],
     optional: true,
-    options: "[-s|-f|-p profile]\n[name]",
+    options: "[-p profile]\n[name]",
     help: <<~EOT
       💬 Manage sessions:
          - list/new/delete/rename/duplicate
          - change [name]/previous
-         - summarize (-s sentence, -f save to file)
          - model options/change
     EOT
   ) do |subcommand, opts, name|
@@ -316,44 +315,6 @@ module OllamaChat::Commands
       delete_session
     when 'rename'
       rename_session
-    when 'summarize'
-      opts = go_command('fs', opts)
-      if opts[?f] and
-        filename = switch_history(:filename) {
-          ask?(prompt: "❓ Enter filename: ")
-        }.full? { Pathname.new(_1) }
-      then
-        if filename.exist? && !confirm?(
-            prompt: "🔔 File #{filename.to_s.inspect} already exists, overwrite? (y/n) ",
-            yes: /\Ay/i
-          )
-        then
-          STDERR.puts "File not written!"
-          next :next
-        end
-        summary = summarize_session(pretty: true, sentence: opts[?s]) do |content|
-          infobar.puts kramdown_ansi_parse(content)
-        end
-        if summary.full?
-          filename.write(summary)
-          STDOUT.puts "File successfully written."
-          next :next
-        else
-          STDERR.puts "Nothing to summarize!"
-          next :next
-        end
-      end
-      summary = summarize_session(pretty: true, sentence: opts[?s]) do |content|
-        infobar.puts kramdown_ansi_parse(content) << ?\n
-      end
-      if summary.full?
-        use_pager do |output|
-          output.puts kramdown_ansi_parse(summary)
-        end
-      else
-        STDERR.puts "Nothing to summarize!"
-        next :next
-      end
     when 'change'
       change_session(name)
     when 'model options'
@@ -598,15 +559,16 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(clean|compact|save|load)(\s+-c)?(?:\s+([^-].*\.jsonl?))?$),
-    complete: [ 'conversation', %w[ save load clean compact ] ],
-    options: '[-c] [FILENAME]',
+    regexp: %r(^/conversation\s+(clean|compact|save|load|summarize|report)((?:\s+-(?:[sf]|c))*)(?:\s+([^-].*\.jsonl?))?$),
+    complete: [ 'conversation', %w[ save load clean compact summarize report ] ],
+    options: '[-s|-f|-c] [FILENAME]',
     help: <<~EOT
-      💾 Save/Load conversation state
-         (-c to clean before saving)
-         FILENAME ends with .json or .jsonl
-         Or clean inplace (removes tool content, images, and thinking)
-         Or compact (summarize old messages, keep recent)
+      💾 Manage conversation content:
+         - save/load: Export/import as .json or .jsonl
+         - clean: Remove tool content, images, thinking
+         - compact: Summarize old messages, keep recent
+         - summarize: Per-message narrative (-s sentence, -f save)
+         - report: Generate a session report document
     EOT
   ) do |subcommand,opts,path|
     if %w[ save load ].include?(subcommand) && path.blank?
@@ -642,6 +604,12 @@ module OllamaChat::Commands
       else
         STDOUT.puts 'Cancelled.'
       end
+    when 'summarize'
+      opts = go_command('sf', opts)
+      summarize_conversation(save: opts[?f], sentence: opts[?s])
+    when 'report'
+      opts = go_command('f', opts)
+      report_conversation(save: opts[?f])
     end
     :next
   end
