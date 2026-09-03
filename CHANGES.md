@@ -1,5 +1,40 @@
 # Changes
 
+## 2026-09-03 v0.0.117
+
+*   Fixed `/favourite` subcommand completion rendering by replacing separate
+    `add`/`delete` and type arrays in `complete` with `.product`, ensuring each
+    subcommand renders as an explicit pair (e.g., `add model`, `delete
+    persona`) instead of being independently cross-multiplied by `arguments`.
+*   Added command categories to help output:
+    *   Added `category(name)` and `current_category` class methods to
+        `command_concern.rb` for tracking the active category during
+        registration.
+    *   Added `category:` keyword to `command` and `Command#initialize` with
+        `attr_reader :category`.
+    *   Reworked `help_message` to sort commands by `[category, name]` and
+        insert bold full-width category header rows via `colspan: 4`.
+    *   Added `extend Term::ANSIColor` to the `included` block for `bold{}`
+        access.
+    *   Replaced `## Section` comments in `commands.rb` with `category
+        :Section` calls.
+    *   Added two new categories: `Models` (`/model`, `/think`) and `Prompts`
+        (`/prompt`, `/system`, `/suggest`).
+    *   Moved session-persisted commands (`/toggle`, `/tools`, `/voice`,
+        `/document_policy`, `/context_format`) under `category :Session`.
+    *   Moved `/change_response` and `/conversation` under `category
+        :Conversation`.
+    *   Reduced `Settings` to app-level commands only (`/config`,
+        `/favourite`).
+*   Made `report_session` a pure generator:
+    *   Removed `&block` parameter and `block&.(result)` call from
+        `report_session`, eliminating the infobar side-effect that caused
+        double output.
+    *   Simplified `report_conversation` to call `report_session(name:)`
+        without a block; display logic (pager or file write) is the sole
+        consumer of the returned string.
+    *   Removed `@param block [Proc]` from `report_session` YARD docs.
+
 ## 2026-09-03 v0.0.116
 
 ### Added
