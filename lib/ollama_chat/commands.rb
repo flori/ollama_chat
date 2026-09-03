@@ -22,7 +22,7 @@ require 'ollama_chat/command_concern'
 module OllamaChat::Commands
   include OllamaChat::CommandConcern
 
-  ## Clipboard
+  category :Clipboard
 
   command(
     name: :copy,
@@ -58,7 +58,7 @@ module OllamaChat::Commands
     end
   end
 
-  ## Settings
+  category :Settings
 
   command(
     name: :config,
@@ -85,54 +85,6 @@ module OllamaChat::Commands
   end
 
   command(
-    name: :document_policy,
-    regexp: %r(^/document policy$),
-    complete: %w[ document policy ],
-    help: <<~EOT
-      📜 Select a scanning policy for documents
-    EOT
-  ) do
-    document_policy.choose
-    :next
-  end
-
-  command(
-    name: :toggle,
-    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding)(?:\s+(-[yn]))?)?$),
-    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
-    options: '[-y|-n]',
-    help: <<~EOT
-      🎛️ Toggle feature switches
-      (markdown, stream, location, runtime_info,
-      voice, think_loud, think_strip, embedding)
-      Options: -y (on), -n (off)
-    EOT
-  ) do |toggle_name, flag|
-    if toggle_name == 'embedding'
-      if flag == '-y'
-        embedding_paused.set(false)
-      elsif flag == '-n'
-        embedding_paused.set(true)
-      else
-        embedding_paused.toggle(show: false)
-      end
-      embedding.show
-    elsif toggle_name
-      switch = send(toggle_name)
-      if flag == '-y'
-        switch.set(true, show: true)
-      elsif flag == '-n'
-        switch.set(false, show: true)
-      else
-        switch.toggle
-      end
-    else
-      STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
-    end
-    :next
-  end
-
-  command(
     name: :favourite,
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
     complete: [ 'favourite', %w[ add delete ], %w[ model prompt system persona suggest ] ],
@@ -150,144 +102,7 @@ module OllamaChat::Commands
     :next
   end
 
-  command(
-    name: :model,
-    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m|-p\s+[\S]+))*)$),
-    complete: [ 'model', %w[ change options options\ copy options\ delete options\ export options\ import options\ from\ session options\ to\ session ] ],
-    options: '[-m|-p pattern]',
-    help: <<~EOT
-      🤖 Manage AI models & profiles:
-         - change: Switch active model
-         - options: Edit saved profile config
-         - options copy: Copy profile from another model
-         - options delete: Delete a saved profile
-         - options export: Export ALL model profiles to JSON
-         - options import: Selectively import profiles from JSON
-         - options from session: Save live → Saved
-         - options to session: Apply Saved → Live
-         -m interactively choose a model
-         -p PATTERN narrow file search for import
-    EOT
-  ) do |subcommand, opts|
-    if subcommand == 'change'
-      begin
-        model   = choose_model('', @model)
-        profile = choose_profile_for_model(model) || 'default'
-        use_model(model, profile:)
-      rescue OllamaChat::UnknownModelError => e
-        msg = "Caught #{e.class}: #{e}"
-        log(:error, msg, data: { command: 'model', profile: }, warn: true)
-      end
-      next :next
-    end
-    opts    = go_command('mp:', opts)
-    model   = opts[?m] ? choose_model('', @model) : @model
-    case subcommand
-    when 'options'
-      profile = choose_profile_for_model(model, allow_new: true) or next :next
-      edit_model_options(model, profile:)
-    when 'options copy'
-      copy_model_options_profile(model)
-    when 'options delete'
-      delete_model_options_profile(model)
-    when 'options from session'
-      profile = choose_profile_for_model(model) || 'default'
-      copy_model_options_from_session(model, profile:)
-    when 'options to session'
-      profile = choose_profile_for_model(model) || 'default'
-      copy_model_options_to_session(model, profile:)
-    when 'options export'
-      export_model_options
-    when 'options import'
-      pattern  = opts[?p] || '**/*.json'
-      filename = choose_filename(pattern) or next :next
-      import_model_options(filename)
-    end
-    :next
-  end
-
-  command(
-    name: :system,
-    regexp: %r(^/system(?:\s+(change))?$),
-    complete: [ 'system', %w[ change ] ],
-    optional: true,
-    help: <<~EOT,
-      🧬 Manage active system prompt (change)
-         Note: Use '/prompt -c system' for managing
-         (add, delete, edit, list, etc.) system templates.
-    EOT
-  ) do |subcommand, filename|
-    case subcommand
-    when 'change'
-      change_system_prompt(@messages.system_name)
-      @messages.show_system_prompt
-    when nil
-      @messages.show_system_prompt
-    end
-    :next
-  end
-
-  command(
-    name: :think,
-    regexp: %r(^/think$),
-    help: <<~EOT
-      🧠 Configure model thinking mode
-    EOT
-  ) do
-    think_mode.choose
-    :next
-  end
-
-  command(
-    name: :context_format,
-    regexp: %r(^/context_format$),
-    help: <<~EOT,
-      📐 Set context format (JSON|TOON)
-    EOT
-  ) do
-    context_format.choose
-    :next
-  end
-
-  command(
-    name: :tools,
-    regexp: %r(^/tools(?:\s+(on|off|enable|disable))?),
-    complete: [ 'tools', %w[ on off enable disable ] ],
-    optional: true,
-    help: <<~EOT
-      🛠 Manage tools:
-         - (no subcommand): List available tools
-         - on/off: Activate/Deactivate globally
-         - enable/disable: Interactively toggle specific
-    EOT
-  ) do |subcommand|
-    case subcommand
-    when nil
-      list_tools
-    when 'enable'
-      enable_tool
-    when 'disable'
-      disable_tool
-    when 'on'
-      tools_support.set(true, show: true)
-    when 'off'
-      tools_support.set(false, show: true)
-    end
-    :next
-  end
-
-  command(
-    name: :voice,
-    regexp: %r(^/voice$),
-    help: <<~EOT
-      🔊 Change voice output settings
-    EOT
-  ) do
-    change_voice
-    :next
-  end
-
-  ## Session
+  category :Session
 
   command(
     name: :session,
@@ -334,7 +149,105 @@ module OllamaChat::Commands
     :next
   end
 
-  ## Conversation
+  command(
+    name: :toggle,
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding)(?:\s+(-[yn]))?)?$),
+    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
+    options: '[-y|-n]',
+    help: <<~EOT
+      🎛️ Toggle feature switches
+      (markdown, stream, location, runtime_info,
+      voice, think_loud, think_strip, embedding)
+      Options: -y (on), -n (off)
+    EOT
+  ) do |toggle_name, flag|
+    if toggle_name == 'embedding'
+      if flag == '-y'
+        embedding_paused.set(false)
+      elsif flag == '-n'
+        embedding_paused.set(true)
+      else
+        embedding_paused.toggle(show: false)
+      end
+      embedding.show
+    elsif toggle_name
+      switch = send(toggle_name)
+      if flag == '-y'
+        switch.set(true, show: true)
+      elsif flag == '-n'
+        switch.set(false, show: true)
+      else
+        switch.toggle
+      end
+    else
+      STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
+    end
+    :next
+  end
+
+  command(
+    name: :tools,
+    regexp: %r(^/tools(?:\s+(on|off|enable|disable))?),
+    complete: [ 'tools', %w[ on off enable disable ] ],
+    optional: true,
+    help: <<~EOT
+      🛠 Manage tools:
+         - (no subcommand): List available tools
+         - on/off: Activate/Deactivate globally
+         - enable/disable: Interactively toggle specific
+    EOT
+  ) do |subcommand|
+    case subcommand
+    when nil
+      list_tools
+    when 'enable'
+      enable_tool
+    when 'disable'
+      disable_tool
+    when 'on'
+      tools_support.set(true, show: true)
+    when 'off'
+      tools_support.set(false, show: true)
+    end
+    :next
+  end
+
+  command(
+    name: :voice,
+    regexp: %r(^/voice$),
+    help: <<~EOT
+      🔊 Change voice output settings
+    EOT
+  ) do
+    change_voice
+    :next
+  end
+
+  command(
+    name: :document_policy,
+    regexp: %r(^/document policy$),
+    complete: %w[ document policy ],
+    help: <<~EOT
+      📜 Select a scanning policy for documents
+    EOT
+  ) do
+    document_policy.choose
+    :next
+  end
+
+  command(
+    name: :context_format,
+    regexp: %r(^/context_format$),
+    help: <<~EOT,
+      📐 Set context format (JSON|TOON)
+    EOT
+  ) do
+    context_format.choose
+    :next
+  end
+
+
+  category :Conversation
 
   command(
     name: :list,
@@ -448,6 +361,77 @@ module OllamaChat::Commands
   end
 
   command(
+    name: :change_response,
+    regexp: %r(^/change response$),
+    complete: %w[ change response ],
+    help: <<~EOT,
+      ✏️ Edit last AI response in editor
+    EOT
+  ) do
+    change_response
+    :next
+  end
+
+  command(
+    name: :conversation,
+    regexp: %r(^/conversation\s+(clean|compact|save|load|summarize|report)((?:\s+-(?:[sf]|c))*)(?:\s+([^-].*\.jsonl?))?$),
+    complete: [ 'conversation', %w[ save load clean compact summarize report ] ],
+    options: '[-s|-f|-c] [FILENAME]',
+    help: <<~EOT
+      💾 Manage conversation content:
+         - save/load: Export/import as .json or .jsonl
+         - clean: Remove tool content, images, thinking
+         - compact: Summarize old messages, keep recent
+         - summarize: Per-message narrative (-s sentence, -f save)
+         - report: Generate a session report document
+    EOT
+  ) do |subcommand,opts,path|
+    if %w[ save load ].include?(subcommand) && path.blank?
+      STDERR.puts "Require a path as argument to save/load!"
+      next :next
+    end
+    case subcommand
+    when 'save'
+      opts = go_command('c', opts.to_s)
+      save_conversation(path, clean: opts[?c])
+    when 'load'
+      load_conversation(path)
+      repair_group_uuids
+    when 'clean'
+      if confirm?(
+          prompt: '🔔 Clean tool content, images, and thinking from conversation? (y/n) ',
+          yes: /\Ay/i
+        )
+      then
+        messages.clean_messages!
+        session_sync
+        STDOUT.puts "Conversation cleaned."
+      else
+        STDOUT.puts 'Cancelled.'
+      end
+    when 'compact'
+      if confirm?(
+          prompt: '🔔 Compact conversation? Old messages will be summarized. (y/n) ',
+          yes: /\Ay/i
+        )
+      then
+        compact_with_retry
+      else
+        STDOUT.puts 'Cancelled.'
+      end
+    when 'summarize'
+      opts = go_command('sf', opts)
+      summarize_conversation(save: opts[?f], sentence: opts[?s])
+    when 'report'
+      opts = go_command('f', opts)
+      report_conversation(save: opts[?f])
+    end
+    :next
+  end
+
+  category :Prompts
+
+  command(
     name: :prompt,
     regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|rename|sync|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
     complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset rename sync ] ],
@@ -529,6 +513,27 @@ module OllamaChat::Commands
   end
 
   command(
+    name: :system,
+    regexp: %r(^/system(?:\s+(change))?$),
+    complete: [ 'system', %w[ change ] ],
+    optional: true,
+    help: <<~EOT,
+      🧬 Manage active system prompt (change)
+         Note: Use '/prompt -c system' for managing
+         (add, delete, edit, list, etc.) system templates.
+    EOT
+  ) do |subcommand, filename|
+    case subcommand
+    when 'change'
+      change_system_prompt(@messages.system_name)
+      @messages.show_system_prompt
+    when nil
+      @messages.show_system_prompt
+    end
+    :next
+  end
+
+  command(
     name: :suggest,
     regexp: %r(^/suggest(\s+(?:-e))?$),
     options: '[-e]',
@@ -545,76 +550,76 @@ module OllamaChat::Commands
     :next
   end
 
-  command(
-    name: :change_response,
-    regexp: %r(^/change response$),
-    complete: %w[ change response ],
-    help: <<~EOT,
-      ✏️ Edit last AI response in editor
-    EOT
-  ) do
-    change_response
-    :next
-  end
+  category :Models
 
   command(
-    name: :conversation,
-    regexp: %r(^/conversation\s+(clean|compact|save|load|summarize|report)((?:\s+-(?:[sf]|c))*)(?:\s+([^-].*\.jsonl?))?$),
-    complete: [ 'conversation', %w[ save load clean compact summarize report ] ],
-    options: '[-s|-f|-c] [FILENAME]',
+    name: :model,
+    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m|-p\s+[\S]+))*)$),
+    complete: [ 'model', %w[ change options options\ copy options\ delete options\ export options\ import options\ from\ session options\ to\ session ] ],
+    options: '[-m|-p pattern]',
     help: <<~EOT
-      💾 Manage conversation content:
-         - save/load: Export/import as .json or .jsonl
-         - clean: Remove tool content, images, thinking
-         - compact: Summarize old messages, keep recent
-         - summarize: Per-message narrative (-s sentence, -f save)
-         - report: Generate a session report document
+      🤖 Manage AI models & profiles:
+         - change: Switch active model
+         - options: Edit saved profile config
+         - options copy: Copy profile from another model
+         - options delete: Delete a saved profile
+         - options export: Export ALL model profiles to JSON
+         - options import: Selectively import profiles from JSON
+         - options from session: Save live → Saved
+         - options to session: Apply Saved → Live
+         -m interactively choose a model
+         -p PATTERN narrow file search for import
     EOT
-  ) do |subcommand,opts,path|
-    if %w[ save load ].include?(subcommand) && path.blank?
-      STDERR.puts "Require a path as argument to save/load!"
+  ) do |subcommand, opts|
+    if subcommand == 'change'
+      begin
+        model   = choose_model('', @model)
+        profile = choose_profile_for_model(model) || 'default'
+        use_model(model, profile:)
+      rescue OllamaChat::UnknownModelError => e
+        msg = "Caught #{e.class}: #{e}"
+        log(:error, msg, data: { command: 'model', profile: }, warn: true)
+      end
       next :next
     end
+    opts    = go_command('mp:', opts)
+    model   = opts[?m] ? choose_model('', @model) : @model
     case subcommand
-    when 'save'
-      opts = go_command('c', opts.to_s)
-      save_conversation(path, clean: opts[?c])
-    when 'load'
-      load_conversation(path)
-      repair_group_uuids
-    when 'clean'
-      if confirm?(
-          prompt: '🔔 Clean tool content, images, and thinking from conversation? (y/n) ',
-          yes: /\Ay/i
-        )
-      then
-        messages.clean_messages!
-        session_sync
-        STDOUT.puts "Conversation cleaned."
-      else
-        STDOUT.puts 'Cancelled.'
-      end
-    when 'compact'
-      if confirm?(
-          prompt: '🔔 Compact conversation? Old messages will be summarized. (y/n) ',
-          yes: /\Ay/i
-        )
-      then
-        compact_with_retry
-      else
-        STDOUT.puts 'Cancelled.'
-      end
-    when 'summarize'
-      opts = go_command('sf', opts)
-      summarize_conversation(save: opts[?f], sentence: opts[?s])
-    when 'report'
-      opts = go_command('f', opts)
-      report_conversation(save: opts[?f])
+    when 'options'
+      profile = choose_profile_for_model(model, allow_new: true) or next :next
+      edit_model_options(model, profile:)
+    when 'options copy'
+      copy_model_options_profile(model)
+    when 'options delete'
+      delete_model_options_profile(model)
+    when 'options from session'
+      profile = choose_profile_for_model(model) || 'default'
+      copy_model_options_from_session(model, profile:)
+    when 'options to session'
+      profile = choose_profile_for_model(model) || 'default'
+      copy_model_options_to_session(model, profile:)
+    when 'options export'
+      export_model_options
+    when 'options import'
+      pattern  = opts[?p] || '**/*.json'
+      filename = choose_filename(pattern) or next :next
+      import_model_options(filename)
     end
     :next
   end
 
-  ## Collection
+  command(
+    name: :think,
+    regexp: %r(^/think$),
+    help: <<~EOT
+      🧠 Configure model thinking mode
+    EOT
+  ) do
+    think_mode.choose
+    :next
+  end
+
+  category :Collection
 
   command(
     name: :collection,
@@ -666,7 +671,7 @@ module OllamaChat::Commands
     :next
   end
 
-  ## Persona
+  category :Persona
 
   command(
     name: :persona,
@@ -788,7 +793,7 @@ module OllamaChat::Commands
     end
   end
 
-  ## Input
+  category :Input
 
   command(
     name: :compose,
@@ -930,7 +935,7 @@ module OllamaChat::Commands
     end
   end
 
-  ## Output
+  category :Output
 
   command(
     name: :pipe,
@@ -977,7 +982,7 @@ module OllamaChat::Commands
     :next
   end
 
-  ## Actions
+  category :Actions
 
   command(
     name: :reconnect,
@@ -1003,7 +1008,7 @@ module OllamaChat::Commands
     quit_app
   end
 
-  ## Information
+  category :Information
 
   command(
     name: :info,
@@ -1072,5 +1077,4 @@ module OllamaChat::Commands
     STDOUT.puts "Type /quit to quit."
     :next
   end
-
 end

@@ -11,6 +11,20 @@ module OllamaChat::CommandConcern
     #   `Command` instances.
     attr_accessor :commands
 
+    # @return [Symbol] the category currently in effect for new commands
+    def current_category
+      (@category || :Misc).to_sym
+    end
+
+    # Set the category that subsequent `command` registrations will be
+    # assigned to. Commands registered without an explicit `category:`
+    # keyword inherit the current category (defaults to `:Misc`).
+    #
+    # @param name [String, Symbol] the category name
+    def category(name)
+      @category = name.to_sym
+    end
+
     # Register a new command.
     #
     # @param name [String, Symbol] The primary name of the command.
@@ -24,17 +38,19 @@ module OllamaChat::CommandConcern
     # @param options [String, nil] A string describing command options
     #   for help output.
     # @param help [String, nil] Short help text for the command.
+    # @param category [Symbol] Category for grouping in help output
+    #   (defaults to `current_category`).
     # @yield [context] Block that receives a binding context for
     #   execution.  The block must be provided.
     #
     # @raise [ArgumentError] if a command with the same name already
     #   exists or if no block is given.
-    def command(name:, regexp:, complete: nil, optional: false, options: nil, help: nil, &block)
+    def command(name:, regexp:, complete: nil, optional: false, options: nil, help: nil, category: current_category, &block)
       name = name.to_sym
       commands.key?(name) and
         raise ArgumentError, "command #{name} already registered!"
-      commands[name] =Command.new(
-        name:, regexp:, complete:, optional:, options:, help:, &block
+      commands[name] = Command.new(
+        name:, regexp:, complete:, optional:, options:, help:, category:, &block
       )
     end
 
@@ -52,15 +68,18 @@ module OllamaChat::CommandConcern
     #
     # @param pattern [String, Regexp, nil] An optional pattern to filter
     #   commands by their names.
-    # @return [Terminal::Table] A table with columns CMD, SUBCMD, OPTS, HELP.
+    # @return [Terminal::Table] A table with columns CMD, SUBCMD, OPTS, HELP,
+    #   with bold category header rows inserted between groups.
     def help_message(pattern = nil)
       table = Terminal::Table.new
       table.style = {
         all_separators: true,
         border:         :unicode_round,
       }
-      table.headings = %w[ CMD SUBCMD OPTS HELP ]
-      commands.each_value do |command|
+      table.headings  = %w[ CMD SUBCMD OPTS HELP ]
+      sorted_commands = self.commands.sort_by { [ _2.category, _2.name ] }.map(&:last)
+      cat             = nil
+      sorted_commands.each do |command|
         command.help or next
         if pattern
           command.command_names.any? { _1 =~ pattern } or next
@@ -72,6 +91,10 @@ module OllamaChat::CommandConcern
               [ _1, (?﹡ unless command.optional?) ].compact.join
             }.sort.join(?\n)
         }
+        if cat != command.category
+          cat = command.category
+          table << [ { value: bold{cat}, colspan: 4 } ]
+        end
         table << [
           "%s" % command.command_names.map { ?/ + _1 }.join(?\n),
           '%s' % subcommands,
@@ -91,6 +114,8 @@ module OllamaChat::CommandConcern
     delegate :command_completions, to: self
 
     delegate :help_message, to: self
+
+    extend Term::ANSIColor
   end
 
   # Represents a registered command in the OllamaChat command DSL.
@@ -117,13 +142,14 @@ module OllamaChat::CommandConcern
     # @param optional [Boolean] Whether the command is optional.
     # @param options [String, nil] Options description.
     # @param help [String] Help text.
+    # @param category [Symbol] Category for grouping in help output.
     # @yield [context] Execution block.
     #
     # @raise [ArgumentError] if no block is given.
-    def initialize(name:, regexp:, complete: nil, optional: false, options: nil, help:, &block)
+    def initialize(name:, regexp:, complete: nil, optional: false, options: nil, help:, category:, &block)
       block or raise ArgumentError, 'require &block'
-      @name, @regexp, @optional, @options, @help, @block =
-        name, regexp, optional, options, help, block
+      @name, @regexp, @optional, @options, @help, @category, @block =
+        name, regexp, optional, options, help, category, block
       @complete = Array(complete || name.to_s).map { Array(_1) }
     end
 
@@ -132,6 +158,9 @@ module OllamaChat::CommandConcern
 
     # @return [String] Help text for the command.
     attr_reader :help
+
+    # @return [Symbol] Category for grouping in help output.
+    attr_reader :category
 
     # @return [String, nil] Options description.
     attr_reader :options
