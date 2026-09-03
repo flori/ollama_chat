@@ -1,5 +1,72 @@
 # Changes
 
+## 2026-09-03 v0.0.116
+
+### Added
+
+* `session.roleplay_story` prompt in `default_config.yml` for narrative
+  retelling of roleplay sessions via `/conversation report`.
+* `session.coding_brief` prompt in `default_config.yml`.
+* `summarize` and `report` subcommands to `/conversation`.
+* `summarize_conversation(sentence:, save:)` and `report_conversation(name:,
+  save:)` methods in `session_management.rb` to handle filename prompts,
+  overwrite checks, and I/O.
+* `report_session(name:, &block)` method using `messages.compacted_messages` to
+  keep interpolated content bounded after compaction.
+* `Status:` line with `✅`/`⛔` indicators to `collection_stats` in
+  `information.rb`.
+* `✅`/`⛔` prefixes to `list_collections` in `rag_handling.rb` to replace
+  `[DISABLED]` text suffixes.
+* `✅`/`⛔` indicators for enabled/disabled states and `❔`/`⭕` for
+  confirmation requirements in `list_tools` in `tool_calling.rb`.
+* `ask_for_filename?(action:)` and `should_overwrite?(filename)` helpers in
+  `dialog.rb` with YARD documentation.
+* Specs for `summarize_conversation`, `report_session`, and
+  `report_conversation` in `session_management_spec.rb`.
+* Routing specs for `/conversation summarize` and `/conversation report` in
+  `commands_spec.rb`.
+* YARD documentation for `repair_group_uuids`.
+
+### Changed
+
+* Moved `summarize` subcommand from `/session` to `/conversation`.
+* Reworked compaction prompt to a draft-rewrite model, treating previous
+  summaries as drafts to be rewritten rather than ambient context.
+* Replaced "6-12 sentences" constraint in compaction prompt with "Be concise;
+  skip filler and repetition".
+* Changed `assemble: |-` to `assemble: |` in compaction prompt to preserve
+  trailing newlines.
+* Widened factuality scope in compaction prompt to include "groups or previous
+  summary above".
+* Wrapped `list_tools` body in `use_pager`, redirecting writes through the
+  yielded `output` IO.
+* Passed `output:` keyword argument to `tools_support.show(output:)`.
+* Replaced inline `File.exist?` and `confirm?` blocks in
+  `conversation.rb#save_conversation`,
+  `message_output.rb#attempt_to_write_file`, `session_management.rb`, and
+  `file_editing.rb#determine_valid_output_filename` with the shared
+  `should_overwrite?` helper.
+* Updated `chat_spec.rb` `collection_stats` regex to include the new `Status:
+  ✅` line.
+* Updated `tool_calling_spec.rb` `list_tools` regex to use `✅`/`⛔` instead of
+  `✓`/`☐`.
+* Updated `tool_calling_spec.rb` `#list_tools` example to stub `use_pager` with
+  a `StringIO` yield.
+* Updated `conversation_spec.rb` expectations for `Pathname` type and
+  `should_overwrite?` STDERR output.
+* Updated comment in `lib/ollama_chat/prompt_management.rb` to reflect new
+  naming convention for prompt templates (e.g., `suggest.coding`).
+* Rewrapped `prompts.suggest.roleplaying` few-shot examples to stay within 80
+  columns in `default_config.yml`.
+* Fixed stale YARD example in `session_management.rb#report_session`
+  (`roleplay_report` to `roleplay_story`).
+
+### Removed
+
+* `pretty:` keyword argument from `summarize_session` and
+  `summarize_conversation`; markdown formatting is now the only path.
+* `%{message_thinking}` from the `session_summarize` prompt.
+
 ## 2026-09-01 v0.0.115
 
 *   Added `OllamaChat::Tools::ExecuteShell` in
