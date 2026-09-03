@@ -346,10 +346,16 @@ module OllamaChat::PromptManagement
     full_prompt = template % { history:, instruction: }
 
     # Execute a silent chat oneshot call (doesn't add to history)
-    suggestions = generate(prompt: full_prompt).full? or return
+    suggestions = Infobar.busy(
+      label: 'Creating suggestions…',
+      frames: :braille7,
+      output: STDOUT,
+    ) do
+      generate(prompt: full_prompt)
+    end
 
     # Pass the AI's suggestions through the editor for final refinement
-    edit_text(suggestions)
+    edit_text(suggestions) if suggestions.present?
   end
 
   # Lists all prompt templates in the database, indicating which are defaults

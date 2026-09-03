@@ -444,7 +444,13 @@ module OllamaChat::SessionManagement
                end
     template or return
 
-    generate(prompt: template.to_s % { content: })
+    Infobar.busy(
+      label: 'Generating session report…',
+      frames: :braille7,
+      output: STDOUT,
+    ) do
+      generate(prompt: template.to_s % { content: })
+    end
   end
 
   # Generates a report and displays or saves the result.
@@ -485,11 +491,17 @@ module OllamaChat::SessionManagement
       c << "%s: %s\n\n" % [ sender_name, message.content ]
     end
     prompt = prompt(:session_title).to_s % { length:, content: }
-    generate(prompt:).full? do |name|
-      name = name.
-        gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
-        gsub(/\s+/, ' ')
-      Kramdown::ANSI::Width.truncate(name, length:)
+    Infobar.busy(
+      label: 'Naming session…',
+      frames: :braille7,
+      output: STDOUT,
+    ) do
+      generate(prompt:).full? do |name|
+        name = name.
+          gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
+          gsub(/\s+/, ' ')
+        Kramdown::ANSI::Width.truncate(name, length:)
+      end
     end
   end
 
