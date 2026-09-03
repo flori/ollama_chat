@@ -87,7 +87,7 @@ module OllamaChat::Commands
   command(
     name: :favourite,
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
-    complete: [ 'favourite', %w[ add delete ], %w[ model prompt system persona suggest ] ],
+    complete: [ 'favourite', %w[ add delete ].product(%w[ model prompt system persona suggest ]) ],
     help: <<~EOT
       \u2B50\uFE0F Manage favorites (add/delete models,
          prompts, personae)
