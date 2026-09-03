@@ -103,18 +103,20 @@ module OllamaChat::ToolCalling
   # This method outputs to standard output the alphabetically sorted list of
   # tool names that are currently enabled in the chat session.
   def list_tools
-    STDOUT.puts "Registered tools:"
-    configured_tools.each do |tool|
-      enabled = tool_enabled?(tool) ? '✅' : '⛔'
-      require_confirmation = tool_function(tool).require_confirmation? ? '❔' : '⭕'
+    use_pager do |output|
+      output.puts "Registered tools:"
+      configured_tools.each do |tool|
+        enabled = tool_enabled?(tool) ? '✅' : '⛔'
+        require_confirmation = tool_function(tool).require_confirmation? ? '❔' : '⭕'
 
-      printf(
-        "%s %s %s\n",
-        enabled, require_confirmation, (enabled ? bold { tool } : tool)
-      )
+        output.printf(
+          "%s %s %s\n",
+          enabled, require_confirmation, (enabled ? bold { tool } : tool)
+        )
+      end
+      output.puts ?┉ * Tins::Terminal.columns
+      tools_support.show(output:)
     end
-    STDOUT.puts ?┉ * Tins::Terminal.columns
-    tools_support.show
   end
 
   # The enable_tool method allows the user to select and enable a tool from a

@@ -97,10 +97,19 @@ describe OllamaChat::ToolCalling do
 
   describe '#list_tools' do
     it 'prints a formatted list of tools with their status' do
-      chat.session.tools_default_enabled = { 'read_file' => true, 'write_file' => false }
+      chat.session.tools_default_enabled = {
+        'read_file' => true, 'write_file' => false
+      }
+
+      output_io = StringIO.new
+      expect(chat).to receive(:use_pager).and_yield(output_io)
+      expect(chat).to receive(:tools_support).
+        and_return(double(show: true))
+
+      chat.list_tools
 
       # We expect to see ✅ for read_file and ⛔ for write_file
-      expect { chat.list_tools }.to output(/✅ .*read_file.*⛔ .*write_file/m).to_stdout
+      expect(output_io.string).to match(/✅ .*read_file.*⛔ .*write_file/m)
     end
   end
 
