@@ -419,7 +419,7 @@ module OllamaChat::SessionManagement
   # Generates a report document for the current session's conversation.
   #
   # Uses a user-selected prompt template from the 'session' context
-  # (e.g. coding_brief, roleplay_report) to produce a single cohesive
+  # (e.g. coding_brief, roleplay_story) to produce a single cohesive
   # document describing the session. Uses `compacted_messages` (summary +
   # recent tail) rather than `each_message` so the interpolated content
   # stays bounded even after multiple compaction rounds.

@@ -185,6 +185,17 @@ prompts:
       - Name key decisions, files, and architectural choices.
       - State the current state: what works, what is pending.
       - Be factual. Be concise.
+    roleplay_story: |
+      %{content}
+
+      Write a narrative retelling of the roleplay session
+      above. Your story MUST:
+      - Capture the emotional arc and key plot beats.
+      - Stay in the established setting and character voices.
+      - Use vivid, evocative prose; show, don't tell.
+      - Highlight turning points, revelations, and character
+        growth.
+      - Read it like a short story chapter, not a log.
   suggest:
     coding: |
       ## Context
