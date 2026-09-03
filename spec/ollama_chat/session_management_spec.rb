@@ -352,10 +352,8 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:choose_prompt).and_return(double(to_s: '%{content}'))
       expect(chat).to receive(:generate).and_return('Generated report')
 
-      results = []
-      result = chat.report_session { |c| results << c }
+      result = chat.report_session
       expect(result).to eq('Generated report')
-      expect(results).to eq(['Generated report'])
     end
 
     it 'returns nil when no messages have content' do

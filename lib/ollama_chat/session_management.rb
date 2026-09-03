@@ -425,9 +425,8 @@ module OllamaChat::SessionManagement
   # stays bounded even after multiple compaction rounds.
   #
   # @param name [String, nil] specific template name (skips chooser)
-  # @param block [Proc] a block to handle the report content
   # @return [String, nil] the report or nil if empty
-  def report_session(name: nil, &block)
+  def report_session(name: nil)
     content = messages.compacted_messages.inject('') do |c, message|
       message.content.present? or next c
       sender = sender_name_displayed(message)
@@ -445,9 +444,7 @@ module OllamaChat::SessionManagement
                end
     template or return
 
-    result = generate(prompt: template.to_s % { content: })
-    block&.(result)
-    result
+    generate(prompt: template.to_s % { content: })
   end
 
   # Generates a report and displays or saves the result.
@@ -458,9 +455,7 @@ module OllamaChat::SessionManagement
     if save
       filename = ask_for_filename?(action: 'for report') or return
       should_overwrite?(filename) or return
-      result = report_session(name:) do |content|
-        infobar.puts kramdown_ansi_parse(content)
-      end
+      result = report_session(name:)
       if result.full?
         filename.write(result)
         STDOUT.puts "File successfully written."
@@ -468,9 +463,7 @@ module OllamaChat::SessionManagement
         STDERR.puts "Nothing to report!"
       end
     else
-      result = report_session(name:) do |content|
-        infobar.puts kramdown_ansi_parse(content) << ?\n
-      end
+      result = report_session(name:)
       if result.full?
         use_pager do |output|
           output.puts kramdown_ansi_parse(result)
