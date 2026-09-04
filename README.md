@@ -19,6 +19,39 @@ gem install ollama_chat
 
 in your terminal.
 
+## Upgrading
+
+After `gem update ollama_chat`, the next launch will either
+start cleanly or prompt you to fix the config:
+
+1. **Open the config diff.** Run `/config diff`, or wait for
+   the automatic `fix_config` prompt if the new version
+   introduced required keys. Either way, your `$DIFF_TOOL`
+   (default: `vimdiff`) opens with your local `config.yml`
+   on one side and the shipped `default_config.yml` on the
+   other.
+2. **Pull in the changes.** In vimdiff, use `:diffget` to
+   copy new or updated keys from the default into your local
+   file. Ignore keys you've intentionally overridden.
+3. **Reload.** Close the diff tool and answer `y` to the
+   "restart?" prompt.
+4. **Prompt drift.** If the new version changed any shipped
+   prompts, a fingerprint notice lists modified, added, and
+   removed prompts. To reconcile your stored prompts with
+   the new defaults, run `/prompt sync`. It diffs each
+   prompt against the shipped version and lets you decide
+   per prompt: adopt the new default, keep your local edit,
+   or review the change. After syncing, the fingerprint is
+   updated and the nagging stops.
+
+   If you simply want to dismiss the notice without
+   syncing, answer `y` to the boot prompt. The fingerprint
+   is stored and you won't be asked again.
+
+Your local config is a partial override. Keys you don't
+have fall through to the shipped defaults. No migration
+script needed.
+
 ## Configuration
 
 ### Environment Variables
