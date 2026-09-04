@@ -1,5 +1,44 @@
 # Changes
 
+## 2026-09-05 v0.0.118
+
+*   Documented the upgrade workflow in the README, adding an "Upgrading"
+    section that covers the post-`gem update` flow: `/config diff` with
+    `:diffget`, reload, and `/prompt sync` for per-prompt drift resolution.
+*   Clarified that the local `config.yml` is a partial override requiring no
+    migration script.
+*   Improved the prompt drift nagging message in `app_state.rb#seed` by
+    replacing the previous prompt with a two-part message featuring a bold
+    `Tip:` line suggesting `/prompt sync` and a "Seen these changes?"
+    confirmation.
+*   Replaced literal `⚠️` emoji with `\u26A0\uFE0F` escapes for consistent
+    rendering and introduced `Term::ANSIColor` locally for the bold tip prefix.
+*   Added a `session.standup` template to `default_config.yml` defining a
+    six-section end-of-day document.
+*   Moved the compaction system prompt from `prompts.compaction.system` to
+    `prompts.system.compaction` and updated `compaction.rb` to call
+    `prompt(:compaction, context: 'system')`.
+*   Added `prompts.system.report`, a genre-neutral writer system prompt, and
+    updated `session_management.rb#report_session` to pass `system:` and
+    `think: true` to `generate` for report generation.
+*   Simplified `compaction_spec.rb` to resolve templates from
+    `chat.config.prompts.system.compaction` and added a `prompt(:report,
+    context: 'system')` expectation to `session_management_spec.rb`.
+*   Fixed the `get_url` summarizing policy by wrapping it in `Infobar.busy` and
+    `chat.generate` to ensure the LLM produces the summary.
+*   Added a `words` (integer) parameter to the `get_url` tool schema, forwarded
+    to `summarize_source` to control summary length.
+*   Changed `STDOUT.puts` to `infobar.puts` in `summarize_source` to prevent
+    garbling spinner output.
+*   Updated `get_url_spec.rb` to include `words: nil` in argument doubles,
+    reworked the summarizing test to expect `chat.generate`, and added a
+    `words: 50` forwarding test.
+*   Added `Infobar.busy` spinners with descriptive labels to LLM `generate`
+    calls in `personae_management.rb`, `prompt_management.rb`, and
+    `session_management.rb`.
+*   Modified `prompt_management.rb` to only call `edit_text(suggestions)` if
+    `suggestions.present?`.
+
 ## 2026-09-03 v0.0.117
 
 *   Fixed `/favourite` subcommand completion rendering by replacing separate
