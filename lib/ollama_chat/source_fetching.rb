@@ -144,7 +144,7 @@ module OllamaChat::SourceFetching
   # @param words [Integer, nil] The target number of words for the summary (defaults to 100)
   # @return [String, nil] The formatted summary message or nil if content is empty or cannot be processed
   def summarize_source(source_io, source, words: nil)
-    STDOUT.puts "Summarizing #{italic { source_io&.content_type }} document #{source.to_s.inspect} now."
+    infobar.puts "Summarizing #{italic { source_io&.content_type }} document #{source.to_s.inspect} now."
     log(:info, "Source summarized", data: { source: source.to_s, content_type: source_io&.content_type, words: })
     words = words.to_i
     words < 1 and words = 100

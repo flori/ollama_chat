@@ -52,6 +52,13 @@ class OllamaChat::Tools::GetURL
                 - 'summarizing': Returns a condensed summary of the content.
               EOT
             ),
+            words: Tool::Function::Parameters::Property.new(
+              type: 'integer',
+              description: <<~EOT,
+                Target word count for the summary (only applies when
+                document_policy is 'summarizing'). Defaults to 100.
+              EOT
+            ),
           },
           required: %w[url]
         )
@@ -75,6 +82,7 @@ class OllamaChat::Tools::GetURL
     args            = tool_call.function.arguments
     url             = args.url.to_s
     document_policy = args.document_policy.full? || 'ignoring'
+    words           = args.words.to_i
 
     allowed_schemes = Array(config.tools.functions.get_url.schemes?).map(&:to_s)
 
@@ -99,7 +107,13 @@ class OllamaChat::Tools::GetURL
         when 'embedding'
           content = chat.embed_source(source_io, source)
         when 'summarizing'
-          content = chat.summarize_source(source_io, source)
+          content = Infobar.busy(
+            label: 'Summarizing…',
+            frames: :braille7,
+            output: STDOUT,
+          ) do
+            chat.generate(prompt: chat.summarize_source(source_io, source, words:))
+          end
         else
           message = "Invalid document policy #{document_policy.inspect} used."
         end

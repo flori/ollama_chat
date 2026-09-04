@@ -26,7 +26,8 @@ describe OllamaChat::Tools::GetURL do
           name: 'get_url',
           arguments: double(
             url: 'https://www.example.com/foo',
-            document_policy: nil
+            document_policy: nil,
+            words: nil
           )
         )
       )
@@ -55,7 +56,8 @@ describe OllamaChat::Tools::GetURL do
           name: 'get_url',
           arguments: double(
             url:,
-            document_policy: nil
+            document_policy: nil,
+            words: nil
           )
         )
       )
@@ -81,10 +83,11 @@ describe OllamaChat::Tools::GetURL do
       'ToolCall',
       function: double(
         name: 'get_url',
-        arguments: double(
-          url: 'https://www.example.com/foo',
-          document_policy: nil,
-        )
+          arguments: double(
+            url: 'https://www.example.com/foo',
+            document_policy: nil,
+            words: nil,
+          )
       )
     )
 
@@ -111,7 +114,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "ignoring" policy' do
-      args = double(url:, document_policy: 'ignoring')
+      args = double(url:, document_policy: 'ignoring', words: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
@@ -120,7 +123,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "importing" policy' do
-      args = double(url:, document_policy: 'importing')
+      args = double(url:, document_policy: 'importing', words: nil)
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:import_source).with(source_io, URI.parse(url)).and_return('imported content')
 
@@ -130,7 +133,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "embedding" policy' do
-      args = double(url:, document_policy: 'embedding')
+      args = double(url:, document_policy: 'embedding', words: nil)
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:embed_source).with(source_io, URI.parse(url)).and_return('embedded content')
 
@@ -140,17 +143,29 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "summarizing" policy' do
-      args = double(url:, document_policy: 'summarizing')
+      args = double(url:, document_policy: 'summarizing', words: nil)
       tool_call = double(function: double(arguments: args))
-      expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url)).and_return('summarized content')
+      expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 0).and_return('summarize prompt')
+      expect(chat).to receive(:generate).with(prompt: 'summarize prompt').and_return('summarized content')
 
       result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
       expect(json.content).to eq('summarized content')
     end
 
+    it 'handles the "summarizing" policy with custom words' do
+      args = double(url:, document_policy: 'summarizing', words: 50)
+      tool_call = double(function: double(arguments: args))
+      expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 50).and_return('summarize prompt 50')
+      expect(chat).to receive(:generate).with(prompt: 'summarize prompt 50').and_return('short summary')
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.content).to eq('short summary')
+    end
+
     it 'handles an invalid policy' do
-      args = double(url:, document_policy: 'chaos_mode')
+      args = double(url:, document_policy: 'chaos_mode', words: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
@@ -167,7 +182,7 @@ describe OllamaChat::Tools::GetURL do
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:add_image).with(chat.images, source_io, URI.parse(url))
 
-      args = double(url:, document_policy: 'ignoring')
+      args = double(url:, document_policy: 'ignoring', words: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
@@ -179,7 +194,7 @@ describe OllamaChat::Tools::GetURL do
       source_io = double('SourceIO', content_type: double(media_type: 'video'))
       expect(chat).to receive(:fetch_source).and_yield(source_io)
 
-      args = double(url:, document_policy: 'ignoring')
+      args = double(url:, document_policy: 'ignoring', words: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
