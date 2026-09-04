@@ -73,19 +73,20 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
       removed = old.keys - hashes.keys
       changed = hashes.select { |k, v| old[k] && old[k] != v }.keys
 
-      STDERR.puts "⚠️  Shipped prompts changed since last boot:"
+      STDERR.puts "\u26A0\uFE0F Shipped prompts changed since last boot:"
       changed.each { |k| STDERR.puts "  ~ #{k} (modified)" }
       added.each   { |k| STDERR.puts "  + #{k} (new)" }
       removed.each { |k| STDERR.puts "  - #{k} (removed)" }
     elsif !OllamaChat.test_mode?
-      STDERR.puts '⚠️  First run — storing prompt fingerprints.'
+      STDERR.puts "\u26A0\uFE0F First run — storing prompt fingerprints."
       store_fingerprint(fingerprint, hashes)
       return true
     end
 
+    c = Term::ANSIColor
     prompt = <<~EOT.chomp << ' '
-      Keep local prompts (stop nagging)?
-      Consider adopting via /prompt sync or just ignore? (y/n) %s
+      #{c.bold{'Tip'}}: /prompt sync adopts shipped defaults into local config.
+      Seen these changes? (y = stop nagging, n = ask again next boot) %s
     EOT
     if OllamaChat.test_mode? || chat.confirm?(prompt:, yes: /\Ay/i, timeout: 5)
       store_fingerprint(fingerprint, hashes)
