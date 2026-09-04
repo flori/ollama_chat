@@ -444,12 +444,14 @@ module OllamaChat::SessionManagement
                end
     template or return
 
+    system = prompt(:report, context: 'system').to_s
+
     Infobar.busy(
       label: 'Generating session report…',
       frames: :braille7,
       output: STDOUT,
     ) do
-      generate(prompt: template.to_s % { content: })
+      generate(system:, prompt: template.to_s % { content: }, think: true)
     end
   end
 

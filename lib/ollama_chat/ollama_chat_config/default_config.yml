@@ -190,12 +190,40 @@ prompts:
 
       Write a narrative retelling of the roleplay session
       above. Your story MUST:
+
       - Capture the emotional arc and key plot beats.
       - Stay in the established setting and character voices.
       - Use vivid, evocative prose; show, don't tell.
       - Highlight turning points, revelations, and character
         growth.
       - Read it like a short story chapter, not a log.
+    standup: |
+      %{content}
+
+      Write a document for an end-of-session snapshot. It captures what was
+      accomplished, which decisions were made and why, and what happens next —
+      the same alignment a Scrum standup provides, but written down so no
+      context is lost between sessions.
+
+      Your document MUST contain these exact sections:
+
+      1. ## Progress Log — bulleted list of completed tasks with relative file
+      paths. 2. ## External References — all URLs, API docs, or GitHub links
+      discussed during the session. 3. ## Current Mental Model — current focus,
+      existing blockers, and the immediate next step. 4. ## Technical Decision
+      Log — rationale for chosen implementations vs. rejected alternatives
+      (table). 5. ## Pending Roadmap — Critical → Important → Future Polish. 6.
+      ## Quick-Start Pointers — 2–3 files or links the next session must read
+      #first.
+
+      Constraints:
+      - Use relative Markdown paths for file references.
+      - Document *why* decisions were made, not just *what*.
+      - Do not restate what the conversation records verbatim.
+      - Professional, precise, technical tone.
+
+      Output only the standup document. No preamble, no
+      postamble, no meta-commentary.
   suggest:
     coding: |
       ## Context
@@ -366,12 +394,6 @@ prompts:
       Output only the 9 suggestions as plain text, each separated by one empty line.
       No other text.
   compaction:
-    system: |
-      You are a context summarizer for a chat application.
-      Your sole task is to produce a concise, factual narrative
-      summary of the conversation provided. Be precise, omit
-      speculation, and follow the formatting instructions in the
-      user prompt exactly. Output only the summary text.
     summarize: |
       previous_summary:
       %{previous}
@@ -408,6 +430,20 @@ prompts:
 
       %{runtime_info}
     assistant: You are a helpful assistant.
+    compaction: |
+      You are a context summarizer for a chat application.
+      Your sole task is to produce a concise, factual narrative
+      summary of the conversation provided. Be precise, omit
+      speculation, and follow the formatting instructions in the
+      user prompt exactly. Output only the summary text.
+    report: |
+      You are a writer. The user prompt below
+      specifies the document to produce: its
+      structure, tone, and constraints. Follow
+      it exactly. Output only the final document
+      — no preamble, no postamble, no commentary,
+      no reference to yourself or the act of
+      writing.
 voice:
   handler: OllamaChat::Say
   enabled: false

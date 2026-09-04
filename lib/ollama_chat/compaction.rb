@@ -191,7 +191,7 @@ module OllamaChat::Compaction
     prompt = prompt(:summarize, context: 'compaction').to_s % {
       previous:, groups:
     }
-    system = prompt(:system, context: 'compaction').to_s
+    system = prompt(:compaction, context: 'system').to_s
 
     es = OllamaChat::TokenEstimator.estimate(prompt)
     log(:info, "Compaction: sending prompt " \

@@ -9,31 +9,11 @@ describe OllamaChat::Compaction do
 
   connect_to_ollama_server
 
-  let :summarize_template do
-    chat.config.prompts.compaction.summarize
-  end
-
   let :system_template do
-    chat.config.prompts.compaction.system
-  end
-
-  let :assemble_template do
-    chat.config.prompts.compaction.assemble
+    chat.config.prompts.system.compaction
   end
 
   before do
-    allow(chat).to receive(:prompt)
-      .with(:summarize, context: 'compaction')
-      .and_return(summarize_template)
-
-    allow(chat).to receive(:prompt)
-      .with(:system, context: 'compaction')
-      .and_return(system_template)
-
-    allow(chat).to receive(:prompt)
-      .with(:assemble, context: 'compaction')
-      .and_return(assemble_template)
-
     allow(chat).to receive(:log)
   end
 

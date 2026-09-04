@@ -366,6 +366,8 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:sender_name_displayed).and_return('User')
       expect(chat).to receive(:prompt).with('coding_brief', context: 'session')
         .and_return(double(to_s: '%{content}'))
+      expect(chat).to receive(:prompt).with(:report, context: 'system')
+        .and_return(double(to_s: '%{content}'))
       expect(chat).to receive(:generate).and_return('Brief')
       expect(chat.report_session(name: 'coding_brief')).to eq('Brief')
     end
