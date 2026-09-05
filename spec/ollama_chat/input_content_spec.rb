@@ -97,5 +97,15 @@ describe OllamaChat::InputContent do
         and_return(nil)
       expect(chat.context_spook(nil)).to be_nil
     end
+
+    it 'returns the serialized context instead of nil' do
+      patterns = ['spec/assets/example.rb']
+      expect(STDOUT).to receive(:puts).with(/Ingesting context now/)
+      result = chat.context_spook(patterns, all: true)
+      expect(result).to be_a(String)
+      json     = JSON.parse(result)
+      expected = Pathname.new('spec/assets/example.rb').expand_path.to_path
+      expect(json['files'].keys).to include(expected)
+    end
   end
 end

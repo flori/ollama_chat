@@ -106,8 +106,8 @@ module OllamaChat::InputContent
         end
       end
       if count > 0
-        ctx.send("to_#{format.downcase}")
         STDOUT.puts "✅ Ingesting context now."
+        ctx.send("to_#{format.downcase}")
       else
         STDERR.puts "❌ No files in context. ⇨ Cancelled."
       end
