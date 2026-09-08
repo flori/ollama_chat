@@ -478,10 +478,11 @@ embedding:
     name: snowflake-arctic-embed:137m
     embedding_length: 768
     context_length: 2048
-    options: {}
+    options:
+      num_batch: 2048
     # Retrieval prompt template:
     prompt: 'Represent this sentence for searching relevant passages: %s'
-  batch_size: 100
+  batch_size: 500
   database_filename: null # ':memory:'
   collection: <%= OC::OLLAMA::CHAT::COLLECTION %>
   found_texts_size: 16384
