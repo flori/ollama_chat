@@ -483,6 +483,7 @@ embedding:
     # Retrieval prompt template:
     prompt: 'Represent this sentence for searching relevant passages: %s'
   batch_size: 500
+  concurrency: 3
   database_filename: null # ':memory:'
   collection: <%= OC::OLLAMA::CHAT::COLLECTION %>
   found_texts_size: 16384

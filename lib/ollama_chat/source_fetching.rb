@@ -185,7 +185,7 @@ module OllamaChat::SourceFetching
   def embed_source(source_io, source, tags: [], count: nil)
     @embedding.on? or return parse_source(source_io)
     unless @documents.source_modified?(source)
-      STDOUT.puts "Source #{source.to_s.inspect} already up-to-date. => Skipping."
+      infobar.puts "Source #{source.to_s.inspect} already up-to-date. => Skipping."
       log(:info, "Source up-to-date", data: { source: source.to_s })
       return
     end
@@ -225,9 +225,9 @@ module OllamaChat::SourceFetching
       chunks: inputs.size
     })
     if count
-      STDOUT.puts '%u. %s' % [ count, m ]
+      infobar.puts '%u. %s' % [ count, m ]
     else
-      STDOUT.puts m
+      infobar.puts m
     end
     source  = source.to_s
     command = false
@@ -253,10 +253,14 @@ module OllamaChat::SourceFetching
   #
   # @param source [String] The source identifier which can be a command, URL,
   #   or file path
+  # @param tags [Array<String>] Tags to apply to the embedded source
+  # @param prompt [#to_s] The prompt template to format the result with
+  #   (defaults to `prompt(:embed)`)
   #
   # @return [String, nil] The formatted embedding result or summary message, or
   #   nil if the operation fails
-  def embed(source, tags: [])
+  def embed(source, tags: [], prompt: prompt(:embed))
+    prompt = prompt.to_s
     @embedding.on? or return
     fetch_source(source) do |source_io|
       content = parse_source(source_io)
@@ -264,7 +268,31 @@ module OllamaChat::SourceFetching
       source_io.rewind
       embed_source(source_io, source, tags:) or return
     end
-    prompt(:embed).to_s % { source:, collection: }
+    prompt.to_s % { source:, collection: }
+  end
+
+  # Embeds multiple sources concurrently using a bounded thread pool.
+  #
+  # @param sources_tags [Hash{String => Array}] mapping of source identifier
+  #   to the tags array to apply to that source
+  # @return [Array<String>] results from each successful embed call
+  def bulk_embed_sources(sources_tags)
+    return sources_tags.map { |s, tags| embed(s, tags:) }.compact if
+      sources_tags.size <= 1 or config.embedding.concurrency <= 1
+
+    results = []
+    mutex   = Mutex.new
+    prompt = prompt(:embed)
+    Tins::Limited.new(config.embedding.concurrency, name: 'embed').process do |l|
+      sources_tags.each do |s, tags|
+        l.execute do
+          r = embed(s, prompt:, tags:)
+          mutex.synchronize { results << r } if r
+        end
+      end
+      l.stop
+    end
+    results
   end
 
   private

@@ -883,7 +883,8 @@ module OllamaChat::Commands
         if opts[?p]
           all = opts.fetch(?a, false)
           patterns = extract_patterns(arg)
-          next provide_file_set_content(patterns, all:, skip_blank: true) { embed(_1, tags:) } || :next
+          sources = file_set_each(patterns, all:).map(&:to_s).to_h { [_1, tags] }
+          next bulk_embed_sources(sources) || :next
         elsif arg
           next embed(arg, tags:) || :next
         else

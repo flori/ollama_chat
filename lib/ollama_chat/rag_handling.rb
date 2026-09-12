@@ -184,12 +184,13 @@ module OllamaChat::RAGHandling
   #
   # @return [String] a newline-separated string of embedding result messages.
   def update_collection(collection)
+    results = []
     switch_collection(collection) do
       unless col = database_collection?(collection)
         STDERR.puts "❌ Collection #{collection.inspect} not found in database."
-        return
+        return ''
       end
-      results = []
+      sources = {}
       seen = {}
       @documents.each_record do |record|
         source = @documents.normalize_source(record.source) or next
@@ -199,24 +200,20 @@ module OllamaChat::RAGHandling
           infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
           next
         end
-        tags = record.tags_set
+        sources[source] = record.tags_set
         @documents.source_remove(source)
-        r = embed(source, tags:) or next
-        results << r
       end
 
       if patterns = col.patterns.full?
-        all_file_set(patterns).each do |file|
-          seen[file.to_s] and next
-          seen[file.to_s] = true
-          r = embed(file.to_s, tags: []) or next
-          results << r
-        end
+        new_sources = all_file_set(patterns).map(&:to_s).reject { seen.key?(_1) }
+        new_sources.each { seen[_1] = true }
+        new_sources.each { sources[_1] = [] }
       end
 
+      results.concat(bulk_embed_sources(sources))
       log(:info, "Collection updated", data: { collection:, sources_updated: results.size })
-      results * "\n"
     end
+    results * ?\n
   end
 
   # Extracts and normalizes file patterns from a shell-style string.
