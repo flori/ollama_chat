@@ -219,8 +219,7 @@ module OllamaChat::SessionManagement
     @session = session.duplicate
     set_previous_session_on_change(old_session.id)
     session.update(name:)
-    session.lock? or raise OllamaChat::OllamaChatError,
-      "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
+    session.lock
     confirm?(
       prompt: "🔔 Clear messages of duplicated session? (y/n) ",
       yes: /\Ay/i
@@ -537,9 +536,9 @@ module OllamaChat::SessionManagement
   # @param name [String] the name or ID of the session to switch to
   def change_session(name)
     name.full? or name = ??
-    previous_session_id = nil
+    previous_session = nil
     loop do
-      if chosen_session = choose_session(name, allow_new: true)
+      if chosen_session = choose_session(name, except_id: session.id, allow_new: true)
         if chosen_session.nil? || chosen_session == session
           confirm?(
             prompt: "\n⏎  Same session chosen, Press any key to continue (%s). ",
@@ -548,7 +547,7 @@ module OllamaChat::SessionManagement
           break
         end
         session_close
-        previous_session_id = session.id
+        previous_session = session
         @session = chosen_session
         if session.lock?
           messages.read_conversation_jsonl(session.messages.to_s)
@@ -563,10 +562,13 @@ module OllamaChat::SessionManagement
           set_default_persona_name(session.default_persona_name.full? || :none)
           set_current_system_prompt(session.current_system_prompt.full? || 'default')
           session_apply
-          log(:info, "Session changed", data: { session_id: session.id, name: session.name, previous_session_id: })
+          log(:info, "Session changed", data: { session_id: session.id, name: session.name, previous_session_id: previous_session&.id })
           info_session
           break
         else
+          @session = previous_session
+          @session.lock
+          name = ??
           confirm?(
             prompt: "\n⏎  Session locked: could not switch, Press any key to continue (%s). ",
             timeout: 3
@@ -579,7 +581,7 @@ module OllamaChat::SessionManagement
       end
     end
   ensure
-    set_previous_session_on_change(previous_session_id)
+    set_previous_session_on_change(previous_session&.id)
     session_sync
   end
 
