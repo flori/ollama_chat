@@ -51,7 +51,7 @@ module OllamaChat::Utils::Chooser
         matches = entries.map { |n|
           [
             n,
-            -matcher.similar(n.ask_and_send_or_self(:value).to_s.downcase)
+            -matcher.similar(n.ask_and_send_or_self(:value).to_s.downcase, /\b/)
           ]
         }.select { |_, s| s < 0 }.sort_by(&:last).map(&:first)
         matches.empty? and matches = entries
