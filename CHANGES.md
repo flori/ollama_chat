@@ -1,5 +1,63 @@
 # Changes
 
+## 2026-09-14 v0.0.119
+
+*   **Word-boundary fuzzy matching in chooser**
+    *   Pass `/\b/` as the word-boundary argument to `matcher.similar` in
+        `chooser.rb` to filter out partial-word hits, improving ranked results
+        for model names containing `/`, `-`, `:`, and `.` separators.
+
+*   **Parallel embedding via bounded thread pool**
+    *   Add `concurrency: 3` under `embedding:` in `default_config.yml`.
+    *   Add `bulk_embed_sources` to `source_fetching.rb` using a
+        `Tins::Limited` bounded thread pool with a `Mutex`-guarded results
+        array.
+    *   Change `embed` to accept a `prompt:` kwarg (defaults to
+        `prompt(:embed)`) so worker threads share a single resolved template
+        instead of each hitting Sequel/SQLite.
+    *   Replace `STDOUT.puts` with `infobar.puts` in `embed_source` to prevent
+        raw output from clobbering the progress bar in concurrent workers.
+    *   Rewrite the `-p` pattern path in `commands.rb` embedding to build a
+        `{source => tags}` Hash and call `bulk_embed_sources`.
+    *   Rewrite `update_collection` in `rag_handling.rb` to collect both
+        modified and new sources into a single Hash and issue one
+        `bulk_embed_sources` call instead of a sequential `embed` loop.
+    *   Update `commands_spec.rb` to stub `bulk_embed_sources` returning an
+        array.
+
+*   **Speed up embedding generation**
+    *   Implement batch processing in the ollama server.
+
+*   **Dependency updates**
+    *   Update `documentrix` minimum version to **0.7.0** in `Rakefile` and
+        `ollama_chat.gemspec` to support improved embedding speed.
+
+*   **Improve session switching and duplication robustness**
+    *   In `duplicate_session`, replaced defensive `session.lock?` check with a
+        direct `session.lock` call, since a freshly duplicated session is never
+        yet locked.
+    *   In `change_session`, added `except_id: session.id` to `choose_session`
+        to prevent re-selecting the current session from the chooser.
+    *   Track `previous_session` as a full object instead of just an ID,
+        enabling restoration on lock failure.
+    *   On lock failure, restore `@session` to the previous session, re-acquire
+        its lock, and reset `name` to `??` so the next iteration opens the
+        interactive picker instead of retrying the same locked session.
+    *   Log `previous_session_id` correctly in the "Session changed" info
+        message.
+
+*   **Formatting fix**
+    *   Add space before `\`.
+
+*   **Fix `context_spook` returning `nil` instead of context**
+    *   Reordered `STDOUT.puts` and `ctx.send("to_#{format.downcase}")` in
+        `context_spook` so the serialized context is the last expression in the
+        `if count > 0` branch, preventing `STDOUT.puts` from clobbering the
+        implicit return value.
+    *   Added a regression spec in `input_content_spec.rb` that exercises the
+        `count > 0` path with a real file and `all: true`, asserting the return
+        value is a non-blank `String` containing the ingested file path.
+
 ## 2026-09-05 v0.0.118
 
 *   Documented the upgrade workflow in the README, adding an "Upgrading"
