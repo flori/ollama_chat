@@ -21,7 +21,8 @@ describe OllamaChat::Tools::DirectoryStructure do
         arguments: double(
           path: 'spec/assets',
           max_depth: nil,
-          suffix: nil
+          suffix: nil,
+          include_hidden: nil
         )
       )
     )
@@ -44,7 +45,8 @@ describe OllamaChat::Tools::DirectoryStructure do
         arguments: double(
           path: nil,  # Should default to '.'
           max_depth: nil,
-          suffix: nil
+          suffix: nil,
+          include_hidden: nil
         )
       )
     )
@@ -57,6 +59,32 @@ describe OllamaChat::Tools::DirectoryStructure do
     expect(json.size).to be_an Integer
   end
 
+  it 'includes hidden files when include_hidden is true' do
+    hidden_dir = File.join(Dir.pwd, '.tool_hidden_test')
+    FileUtils.mkdir_p(hidden_dir)
+    File.write(File.join(hidden_dir, '.secret'), 's')
+    File.write(File.join(hidden_dir, 'visible.txt'), 'v')
+
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'directory_structure',
+        arguments: double(
+          path:         hidden_dir,
+          max_depth:    nil,
+          suffix:       nil,
+          include_hidden: true
+        )
+      )
+    )
+
+    result = described_class.new.execute(tool_call, chat:)
+    json   = json_object(result)
+    expect(json.map { _1['name'] }).to contain_exactly('.secret', 'visible.txt')
+  ensure
+    FileUtils.remove_entry(hidden_dir) if hidden_dir && File.directory?(hidden_dir)
+  end
+
   it 'can handle execution errors gracefully' do
     tool_call = double(
       'ToolCall',
@@ -65,7 +93,8 @@ describe OllamaChat::Tools::DirectoryStructure do
         arguments: double(
           path: '/nonexistent/path',
           max_depth: nil,
-          suffix: nil
+          suffix: nil,
+          include_hidden: nil
         )
       )
     )

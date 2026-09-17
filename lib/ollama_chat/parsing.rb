@@ -280,7 +280,7 @@ module OllamaChat::Parsing
     content.scan(CONTENT_REGEXP).each { |url, file_url, quoted_file, file|
       if file && Pathname.new(file).expand_path.directory?
         max_depth = config.parsing.directory_structure_max_depth
-        contents << generate_structure(file, max_depth:).to_json
+        contents << generate_structure(file, max_depth:, include_hidden: file.start_with?(?.)).to_json
         next
       end
       check_exist = false

@@ -55,6 +55,10 @@ class OllamaChat::Tools::DirectoryStructure
                 unlimited (defaults to nil)
               EOT
             ),
+            include_hidden: Tool::Function::Parameters::Property.new(
+              type: 'boolean',
+              description: 'Include hidden files and directories (dotfiles), (default: false)'
+            ),
           },
           required: []
         )
@@ -75,16 +79,18 @@ class OllamaChat::Tools::DirectoryStructure
   # @raise [StandardError] if there's an issue with directory traversal or JSON
   #   serialization
   def execute(tool_call, **opts)
-    chat      = opts[:chat]
-    config    = chat.config
-    path      = Pathname.new(tool_call.function.arguments.path || '.')
-    suffix    = tool_call.function.arguments.suffix.full?
-    max_depth = tool_call.function.arguments.max_depth.full?
+    chat           = opts[:chat]
+    config         = chat.config
+    path           = Pathname.new(tool_call.function.arguments.path || '.')
+    suffix         = tool_call.function.arguments.suffix.full?
+    max_depth      = tool_call.function.arguments.max_depth.full?
+    include_hidden = tool_call.function.arguments.include_hidden
 
     structure = generate_structure(
       path,
       max_depth:,
       suffix:,
+      include_hidden:,
       exclude: config.tools.functions.directory_structure.exclude?,
     )
     structure.to_json

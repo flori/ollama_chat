@@ -117,6 +117,14 @@ describe OllamaChat::Utils::AnalyzeDirectory do
       expect(names).not_to include('link')
       expect(names).to include('visible.txt')
     end
+
+    it 'includes hidden files when include_hidden is true' do
+      result = generate.call(@tmp_dir, include_hidden: true)
+      names  = result.map { |e| e[:name] }
+
+      expect(names).to include('.hidden', 'visible.txt')
+      expect(names).not_to include('link')
+    end
   end
 
   context 'exclusion handling' do

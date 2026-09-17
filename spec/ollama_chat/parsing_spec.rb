@@ -298,5 +298,31 @@ describe OllamaChat::Parsing do
         ].sort
       )
     end
+
+    it 'includes hidden files when the path starts with a dot' do
+      hidden_dir = File.join(Dir.pwd, '.hidden_test')
+      FileUtils.mkdir_p(hidden_dir)
+      File.write(File.join(hidden_dir, '.secret'), 's')
+      File.write(File.join(hidden_dir, 'visible.txt'), 'v')
+      content, = chat.parse_content('look at ./.hidden_test', [])
+      json_data = content.lines[2..-1].join('')
+      json = JSON(json_data)
+      expect(json.map { _1['name'] }).to contain_exactly('.secret', 'visible.txt')
+    ensure
+      FileUtils.remove_entry(hidden_dir) if hidden_dir && File.directory?(hidden_dir)
+    end
+
+    it 'excludes hidden files when the path does not start with a dot' do
+      hidden_dir = File.join(Dir.pwd, 'visible_parent', '.hidden_test')
+      FileUtils.mkdir_p(hidden_dir)
+      File.write(File.join(hidden_dir, '.secret'), 's')
+      File.write(File.join(hidden_dir, 'visible.txt'), 'v')
+      content, = chat.parse_content("look at #{hidden_dir}", [])
+      json_data = content.lines[2..-1].join('')
+      json = JSON(json_data)
+      expect(json.map { _1['name'] }).to eq(['visible.txt'])
+    ensure
+      FileUtils.remove_entry(File.dirname(hidden_dir)) if hidden_dir && File.directory?(hidden_dir)
+    end
   end
 end

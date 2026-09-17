@@ -40,6 +40,9 @@ module OllamaChat::Utils::AnalyzeDirectory
   #   the entire tree is returned. When an integer is supplied, entries
   #   at that level and deeper are pruned. Use **1** to show only
   #   immediate children, **2** for children + grandchildren, etc.
+  # @param include_hidden [Boolean] When `true`, dotfiles and dot
+  #   directories are included in the tree. Defaults to `false`, which
+  #   skips any entry whose base name starts with a dot.
   #
   # @return [Array<Hash>] An array of entry hashes.  Each hash contains:
   #   * `:type`   – "file" or "directory"
@@ -61,8 +64,8 @@ module OllamaChat::Utils::AnalyzeDirectory
   #   )
   #
   # @api public
-  def generate_structure(path = '.', exclude: [], suffix: nil, max_depth: nil)
-    entries = recurse_generate_structure(path, exclude:, suffix:)
+  def generate_structure(path = '.', exclude: [], suffix: nil, max_depth: nil, include_hidden: false)
+    entries = recurse_generate_structure(path, exclude:, suffix:, include_hidden:)
     height  = 0
 
     structure_each_entry(entries) do |e|
@@ -91,19 +94,22 @@ module OllamaChat::Utils::AnalyzeDirectory
   # @param suffix [String, nil] Optional file extension filter. If provided,
   #   only files with this suffix are included.
   # @param depth [Integer] Current depth (root = 0).
+  # @param include_hidden [Boolean] When `true`, dotfiles and dot
+  #   directories are included at this level and all deeper levels.
+  #   Defaults to `false`.
   #
   # @return [Array<Hash>] Array of entry hashes.
   #
   # @api private
-  def recurse_generate_structure(path = '.', exclude: [], suffix: nil, depth: 0)
+  def recurse_generate_structure(path = '.', exclude: [], suffix: nil, depth: 0, include_hidden: false)
     exclude = Array(exclude).map(&:to_s)
     extname = suffix&.sub(/\A(?<!.)/, ?.)
     path    = Pathname.new(path).expand_path
     entries = []
 
     path.children.sort.each do |child|
-      # Skip hidden files/directories
-      next if child.basename.to_s.start_with?('.')
+      # Skip hidden files/directories unless explicitly requested
+      next if !include_hidden && child.basename.to_s.start_with?('.')
       # Skip symlinks
       next if child.symlink?
       # Skip user‑excluded paths
@@ -114,7 +120,7 @@ module OllamaChat::Utils::AnalyzeDirectory
           type:     'directory',
           name:     child.basename.to_s,
           path:     child.expand_path.to_s,
-          children: recurse_generate_structure(child, exclude:, suffix:, depth: depth + 1),
+          children: recurse_generate_structure(child, exclude:, suffix:, depth: depth + 1, include_hidden:),
           depth:
         }
       elsif child.file?
