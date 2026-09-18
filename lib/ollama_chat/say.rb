@@ -14,7 +14,7 @@ class OllamaChat::Say < Ollama::Handlers::Say
   # avoid side effects during testing.
   #
   # @return [Array<String>] a sorted list of unique voice identifiers
-  def self.voices
+  def self.voices(**_kwargs)
     `say -v '?' 2>/dev/null`.lines.map { |l| l[/^(.+?)\s+[a-z]{2}_[a-zA-Z0-9]{2,}/, 1] }.uniq.sort
   end
 
