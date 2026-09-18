@@ -1,6 +1,10 @@
 describe OllamaChat::SessionManagement do
+  let :argv do
+    chat_default_config
+  end
+
   let :chat do
-    OllamaChat::Chat.new(argv: []).expose
+    OllamaChat::Chat.new(argv:).expose
   end
 
   connect_to_ollama_server

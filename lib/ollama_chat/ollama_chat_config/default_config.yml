@@ -462,6 +462,9 @@ roles:
 markdown: true
 stream: true
 document_policy: importing
+persona:
+  # Basename (without .md) of the default persona file in the personae directory.
+  default_name: personal_assistant
 parsing:
   directory_structure_max_depth: 1
 think:

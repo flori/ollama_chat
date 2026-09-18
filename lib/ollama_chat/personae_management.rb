@@ -9,7 +9,7 @@ module OllamaChat::PersonaeManagement
   #
   # @return [ String, nil ] the persona name or nil if not set
   def initial_persona_name
-    session&.default_persona_name
+    session&.default_persona_name || config.persona&.default_name
   end
 
   # Retrieves the formatted roleplay prompt for the current default persona.
