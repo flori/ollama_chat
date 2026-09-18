@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-18 v0.0.121
+
+* Added `**_kwargs` splat to `Say.voices` to prevent `ArgumentError` when the
+  TTS state selector forwards keyword arguments
+
 ## 2026-09-18 v0.0.120
 
 *   **TTS / audio.cpp integration**
