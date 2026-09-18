@@ -1,5 +1,50 @@
 # Changes
 
+## 2026-09-18 v0.0.120
+
+*   **TTS / audio.cpp integration**
+    *   Add `OllamaChat::TTS` with parallel block synthesis via worker threads,
+        ordered playback through `OrderedQueue`, RIFF-header stripping,
+        config-driven streaming, and `join_workers` for test teardown.
+    *   Add `OllamaChat::Utils::AudioPlayer` (PCM pipe to `ffplay` with silence
+        injection to prevent EOF hangs), `OllamaChat::Utils::OrderedQueue`
+        (thread-safe min-heap using `Mutex` + `ConditionVariable`), and
+        `OllamaChat::Utils::ExconLogger` (routes `Excon` log calls through
+        `chat.log(:debug)`).
+    *   Add `KramdownANSI#kramdown_markdown_remove` to strip markdown to plain
+        text for TTS playback.
+    *   Add `TTS_URL` (required, sensitive, URI-decoded) and
+        `AUDIO_PLAYER_CONFIG` (JSON: `command`, `frequency`, `bits`, `pause`)
+        to `OC`, enabling `ConstConf::JSONPlugin`.
+    *   Default `voice.handler` to `OllamaChat::TTS` in `default_config.yml`;
+        add `model: 'chatterbox'` and `stream: { enabled: false, format:
+        'audio' }`.
+    *   Simplify `state_selectors.rb` to a single
+        `ask_and_send(:voices, model:)` call with `Array()` guard.
+    *   Switch `generate_image.rb` to `Excon.new(url, logger:)` with
+        `ExconLogger`.
+    *   Add specs: `tts_spec.rb`, `audio_player_spec.rb`,
+        `excon_logger_spec.rb`, `ordered_queue_spec.rb`; migrate existing
+        specs from `chat.send` to `chat.expose`.
+
+*   **`include_hidden` in `directory_structure`**
+    *   Add `include_hidden:` keyword argument to `generate_structure` and
+        `recurse_generate_structure` in `analyze_directory.rb` with YARD docs;
+        fix the recursive call to forward the flag so dotfiles are honored at
+        all depths.
+    *   Add an `include_hidden` boolean parameter to the `directory_structure`
+        tool definition and pass-through in `execute`.
+    *   `parsing.rb` now passes `include_hidden: true` for all directory
+        references.
+    *   Add `include_hidden` tests to `analyze_directory_spec.rb`,
+        `directory_structure_spec.rb`, and `parsing_spec.rb`.
+
+*   **Housekeeping**
+    *   Bump `tins` to **~> 1.57** in `Rakefile` and gemspec (kwarg support for
+        `ask_and_send`).
+    *   Add an External Dependencies section to `README.md` with per-executable
+        tables, install instructions, and `TTS_URL` documentation.
+
 ## 2026-09-14 v0.0.119
 
 *   **Word-boundary fuzzy matching in chooser**
