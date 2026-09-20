@@ -1,4 +1,5 @@
 require 'base64'
+require 'ollama_chat/utils/utf8_converter'
 
 # Extracts embedded metadata from PNG image files, such as character profiles,
 # ComfyUI workflows, and prompts stored in 'tEXt' chunks.
