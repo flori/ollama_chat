@@ -376,7 +376,7 @@ describe OllamaChat::Commands, protect_env: true do
 
     context 'summary' do
       it 'returns "success" when input is "/input summary -w 23 ./some/file' do
-        expect(chat).to receive(:summarize).with(asset('example.rb'), words: '23').
+        expect(chat).to receive(:summarize).with(asset('example.rb'), words: '23', instruction: nil).
           and_return 'success'
         expect(chat.handle_input("/input summary -w 23 #{asset('example.rb')}")).
           to eq 'success'
@@ -384,7 +384,7 @@ describe OllamaChat::Commands, protect_env: true do
 
       it 'returns "success" when input is "/input summary -a -p (.+)"' do
         expect(chat).to receive(:summarize).
-          with(asset_pathname('example.rb'), words: nil).
+          with(asset_pathname('example.rb'), words: nil, instruction: nil).
           and_return 'success'
         expect(chat.handle_input("/input summary -a -p #{asset('*.rb')}")).to\
           match(/success/)
@@ -392,6 +392,24 @@ describe OllamaChat::Commands, protect_env: true do
 
       it 'returns :next when input is "/input summary"' do
         expect(chat.handle_input("/input summary")).to eq :next
+      end
+
+      it 'passes instruction from ask? when -i is used' do
+        expect(chat).to receive(:ask?).and_return('focus on breaking changes')
+        expect(chat).to receive(:summarize).
+          with(asset('example.rb'), words: nil, instruction: 'focus on breaking changes').
+          and_return 'success'
+        expect(chat.handle_input("/input summary -i #{asset('example.rb')}"))
+          .to eq 'success'
+      end
+
+      it 'passes nil instruction when -i ask? returns empty' do
+        expect(chat).to receive(:ask?).and_return('')
+        expect(chat).to receive(:summarize).
+          with(asset('example.rb'), words: nil, instruction: nil).
+          and_return 'success'
+        expect(chat.handle_input("/input summary -i #{asset('example.rb')}"))
+          .to eq 'success'
       end
     end
 

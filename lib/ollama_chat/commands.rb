@@ -820,12 +820,12 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[aprem]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apreim]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: <<~EOT,
        [
-         -w|-a|-p|-e|-m|
+          -w|-a|-p|-e|-m|-i|
          -c <collection>|
          -t <tags>
        ]
@@ -834,24 +834,27 @@ module OllamaChat::Commands
     help: <<~EOT
       📥 Import content (read, summarize, embed, context)
          Subcommands: path, context, embedding, summary
-          Options: -p (pattern), -w [words], -a (all),
-                   -c [collection], -t [tags], -e (edit),
-                   -m (monochrome, strip ANSI from file content)
+           Options: -p (pattern), -w [words], -a (all),
+                    -c [collection], -t [tags], -e (edit),
+                    -m (monochrome), -i (summary instruction)
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
     case input_mode
     when 'summary'
-      opts = go_command('paw:', opts)
+      opts = go_command('paw:i', opts)
+      instruction = if opts[?i]
+        ask?(prompt: 'Summary instruction (Enter to skip): ').full?(:strip)
+      end
       if opts[?p]
         words = opts.fetch(?w, 100)
         all   = opts.fetch(?a, false)
         patterns = extract_patterns(arg)
-        next provide_file_set_content(patterns, all:, skip_blank: true) { summarize(_1, words:) } || :next
+        next provide_file_set_content(patterns, all:, skip_blank: true) { summarize(_1, words:, instruction:) } || :next
       elsif arg
         words = opts.fetch(?w, 100)
         source = arg
-        next summarize(source, words:) || :next
+        next summarize(source, words:, instruction:) || :next
       else
         STDERR.puts "Need a source to summarize for input!"
         next :next
