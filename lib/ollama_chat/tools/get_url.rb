@@ -59,6 +59,14 @@ class OllamaChat::Tools::GetURL
                 document_policy is 'summarizing'). Defaults to 100.
               EOT
             ),
+            instruction: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: <<~EOT,
+                Optional instruction to focus the summary (only applies when
+                document_policy is 'summarizing'). E.g. "stress breaking
+                changes and deprecations".
+              EOT
+            ),
           },
           required: %w[url]
         )
@@ -83,6 +91,7 @@ class OllamaChat::Tools::GetURL
     url             = args.url.to_s
     document_policy = args.document_policy.full? || 'ignoring'
     words           = args.words.to_i
+    instruction     = args.instruction
 
     allowed_schemes = Array(config.tools.functions.get_url.schemes?).map(&:to_s)
 
@@ -112,7 +121,7 @@ class OllamaChat::Tools::GetURL
             frames: :braille7,
             output: STDOUT,
           ) do
-            chat.generate(prompt: chat.summarize_source(source_io, source, words:))
+            chat.generate(prompt: chat.summarize_source(source_io, source, words:, instruction:))
           end
         else
           message = "Invalid document policy #{document_policy.inspect} used."

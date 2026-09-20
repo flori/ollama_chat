@@ -142,15 +142,18 @@ module OllamaChat::SourceFetching
   # @param source_io [IO] The input stream containing the document content to summarize
   # @param source [String, #to_s] The identifier or path for the source of the content
   # @param words [Integer, nil] The target number of words for the summary (defaults to 100)
+  # @param instruction [String, nil] An optional instruction to focus the summary
+  #   (e.g. "stress breaking changes and deprecations")
   # @return [String, nil] The formatted summary message or nil if content is empty or cannot be processed
-  def summarize_source(source_io, source, words: nil)
+  def summarize_source(source_io, source, words: nil, instruction: nil)
     infobar.puts "Summarizing #{italic { source_io&.content_type }} document #{source.to_s.inspect} now."
     log(:info, "Source summarized", data: { source: source.to_s, content_type: source_io&.content_type, words: })
     words = words.to_i
     words < 1 and words = 100
+    instruction    = instruction.full? { ", focusing specifically on: #{_1}" }
     source_content = parse_source(source_io)
     source_content.present? or return
-    prompt(:summarize).to_s % { source_content:, words: }
+    prompt(:summarize).to_s % { source_content:, words:, instruction: }
   end
 
 
@@ -161,10 +164,11 @@ module OllamaChat::SourceFetching
   #
   # @param source [String] The source identifier which can be a command, URL, or file path
   # @param words [Integer, nil] The target number of words for the summary (defaults to 100)
+  # @param instruction [String, nil] An optional instruction to focus the summary
   # @return [String, nil] The formatted summary message or nil if the operation fails
-  def summarize(source, words: nil)
+  def summarize(source, words: nil, instruction: nil)
     fetch_source(source) do |source_io|
-      content = summarize_source(source_io, source, words:) or return
+      content = summarize_source(source_io, source, words:, instruction:) or return
       source_io.rewind
       content
     end

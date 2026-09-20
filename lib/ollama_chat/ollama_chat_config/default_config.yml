@@ -36,7 +36,7 @@ prompts:
       list (e.g., '0,2').
     summarize: |
       Generate an abstract summary of the content in this document using
-      %{words} words:
+      %{words} words%{instruction}:
 
       %{source_content}
     web_embed: |
