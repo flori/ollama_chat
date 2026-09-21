@@ -35,9 +35,14 @@ module OllamaChat
           cmd = OC::OLLAMA::CHAT::ASR::CONVERT_COMMAND % {
             input: input.path, output: wav.path
           }
-          system(cmd, out: File::NULL, err: File::NULL)
+          executable = Shellwords.split(cmd).first
+          result     = system(cmd, out: File::NULL, err: File::NULL)
+          if result.nil?
+            STDERR.puts "ASR: #{executable} not found in PATH."
+            return
+          end
           unless File.size(wav.path) > 0
-            STDERR.puts 'ASR: ffmpeg produced no output.'
+            STDERR.puts "ASR: #{executable} produced no output."
             return
           end
 
