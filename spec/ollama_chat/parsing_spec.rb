@@ -137,6 +137,65 @@ describe OllamaChat::Parsing do
         expect(chat.parse_source(io)).to eq(%{puts "Hello World!"\n})
       end
     end
+
+    context 'audio/video dispatch' do
+      it 'routes audio/* to parse_audio' do
+        asset_io('linux.oga') do |io|
+          def io.content_type
+            'audio/ogg'
+          end
+          expect(OllamaChat::ASR).to receive(:transcribe)
+            .with(io, chat: chat, language: nil)
+            .and_return('transcribed text')
+          expect(chat.parse_source(io)).to eq('transcribed text')
+        end
+      end
+
+      it 'routes video/* to parse_audio' do
+        io = StringIO.new('fake')
+        io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
+        io.content_type = 'video/mp4'
+        expect(OllamaChat::ASR).to receive(:transcribe)
+          .with(io, chat: chat, language: 'de')
+          .and_return('video text')
+        expect(chat.parse_source(io, language: 'de')).to eq('video text')
+      end
+
+      it 'routes application/mp4 to parse_audio' do
+        io = StringIO.new('fake')
+        io.extend(OllamaChat::Utils::Fetcher::ResponseMetadata)
+        io.content_type = 'application/mp4'
+        expect(OllamaChat::ASR).to receive(:transcribe)
+          .with(io, chat: chat, language: nil)
+          .and_return('mp4 text')
+        expect(chat.parse_source(io)).to eq('mp4 text')
+      end
+    end
+  end
+
+  describe '#parse_audio' do
+    it 'delegates to ASR.transcribe with chat and language' do
+      io = StringIO.new('audio data')
+      expect(OllamaChat::ASR).to receive(:transcribe)
+        .with(io, chat: chat, language: 'en')
+        .and_return('hello world')
+      expect(chat.parse_audio(io, language: 'en')).to eq('hello world')
+    end
+
+    it 'passes nil language by default' do
+      io = StringIO.new('audio data')
+      expect(OllamaChat::ASR).to receive(:transcribe)
+        .with(io, chat: chat, language: nil)
+        .and_return('result')
+      expect(chat.parse_audio(io)).to eq('result')
+    end
+
+    it 'returns nil when ASR.transcribe fails' do
+      io = StringIO.new('audio data')
+      expect(OllamaChat::ASR).to receive(:transcribe)
+        .and_return(nil)
+      expect(chat.parse_audio(io)).to be_nil
+    end
   end
 
   describe '#parse_content' do

@@ -363,14 +363,31 @@ class OllamaChat::Utils::Fetcher
     }
   end
 
-  # The middlewares method returns the combined array of default Excon
-  # middlewares and the RedirectFollower middleware, ensuring there are no
-  # duplicates.
+  # Returns the default Excon middleware stack augmented with
+  # `Excon::Middleware::RedirectFollower`, deduplicated.
   #
-  # @return [ Array ] an array of middleware classes including RedirectFollower
-  #                   deduplicated from the default Excon middlewares.
-  def middlewares
+  # Use this array when building a *bare* `Excon.new` client (as done in
+  # `OllamaChat::HTTPHandling#request_url_response`) so that 30x redirects
+  # are followed automatically.  The streaming `#get` path already merges
+  # this in via the instance method, so callers going through `Fetcher#get`
+  # do not need to pass `:middlewares` explicitly.
+  #
+  # @return [Array<Class>] Excon middleware classes, ending with
+  #   `Excon::Middleware::RedirectFollower`
+  def self.middlewares
     (Excon.defaults[:middlewares] + [ Excon::Middleware::RedirectFollower ]).uniq
+  end
+
+  # Instance-level delegate to {self.middlewares}.
+  #
+  # Called by `#get` to build the middleware list before merging any
+  # per-request `:middlewares` option.  Keeping it as a separate method
+  # allows subclasses to override the default stack without touching
+  # the class-level factory.
+  #
+  # @return [Array<Class>] see {self.middlewares}
+  def middlewares
+    self.class.middlewares
   end
 
   private

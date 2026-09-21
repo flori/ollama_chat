@@ -49,21 +49,21 @@ describe OllamaChat::TTS do
       stub_request(:get, 'http://localhost:8880/v1/voices')
         .to_return(body: { voices: [{ id: 'b' }, { id: 'a' }] }.to_json)
 
-      expect(described_class.voices).to eq %w[a b]
+      expect(described_class.voices(chat:)).to eq %w[a b]
     end
 
     it 'queries the per-model endpoint for a string array' do
       stub_request(:get, 'http://localhost:8880/v1/audio/voices?model=chatterbox')
         .to_return(body: { voices: %w[zeta alpha] }.to_json)
 
-      expect(described_class.voices(model: 'chatterbox')).to eq %w[alpha zeta]
+      expect(described_class.voices(model: 'chatterbox', chat:)).to eq %w[alpha zeta]
     end
 
     it 'returns an empty array when the server errors' do
       stub_request(:get, 'http://localhost:8880/v1/voices')
         .to_return(status: 500)
 
-      expect(described_class.voices).to eq []
+      expect(described_class.voices(chat:)).to eq []
     end
   end
 
@@ -211,14 +211,12 @@ describe OllamaChat::TTS do
   end
 
   describe '#fetch_tts' do
-    let(:excon_double) { double('Excon') }
-
-    before { allow(Excon).to receive(:new).and_return(excon_double) }
+    before { allow(chat).to receive(:request_url_response) }
 
     it 'strips the 44-byte RIFF header from the first chunk' do
       received = []
-      allow(excon_double).to receive(:post) do |**kw|
-        rb = kw[:response_block]
+      allow(chat).to receive(:request_url_response) do |_m, _url, **opts|
+        rb = opts[:response_block]
         rb.call("RIFF#{'A' * 40}REALAUDIO", 100, 100)
         rb.call('SECOND', 10, 100)
       end
@@ -230,8 +228,8 @@ describe OllamaChat::TTS do
 
     it 'skips empty chunks' do
       received = []
-      allow(excon_double).to receive(:post) do |**kw|
-        rb = kw[:response_block]
+      allow(chat).to receive(:request_url_response) do |_m, _url, **opts|
+        rb = opts[:response_block]
         rb.call('A', 1, 100)
         rb.call('', 0, 100)
         rb.call('B', 1, 100)
@@ -246,7 +244,7 @@ describe OllamaChat::TTS do
       resp = double(body: { error: 'boom' }.to_json, status: 500)
       err  = StandardError.new('upstream')
       allow(err).to receive(:response).and_return(resp)
-      allow(excon_double).to receive(:post).and_raise(err)
+      allow(chat).to receive(:request_url_response).and_raise(err)
       allow(tts).to receive(:format_bytes)
 
       expect {

@@ -270,7 +270,7 @@ module OllamaChat::StateSelectors
       off:       OllamaChat::ThinkControl::THINK_MODE_STATES[0, 1],
     )
     list = Array(
-      voice_handler.ask_and_send(:voices, model: config.voice.model?)
+      voice_handler.ask_and_send(:voices, chat: self, model: config.voice.model?)
     )
     @voices = DatabaseStateSelector.new(
       chat:        self,

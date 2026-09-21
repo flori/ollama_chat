@@ -204,7 +204,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles audio content types via ASR transcription' do
-      source_io = double('SourceIO', content_type: double(media_type: 'audio'))
+      source_io = double('SourceIO', content_type: double(media_type: 'audio', to_s: 'audio/mp3'))
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:parse_audio).with(source_io, language: 'de').and_return('transcribed text')
 
@@ -217,7 +217,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles video content types via ASR transcription' do
-      source_io = double('SourceIO', content_type: double(media_type: 'video'))
+      source_io = double('SourceIO', content_type: double(media_type: 'video', to_s: 'video/mp4'))
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:parse_audio).with(source_io, language: nil).and_return('video text')
 

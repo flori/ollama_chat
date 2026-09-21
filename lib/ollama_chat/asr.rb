@@ -7,10 +7,10 @@ require 'securerandom'
 # Video sources are first converted to 16 kHz mono WAV via ffmpeg.
 #
 # @example Transcribing a WAV source
-#   text = OllamaChat::ASR.transcribe(source_io)
+#   text = OllamaChat::ASR.transcribe(source_io, chat:)
 #
 # @example Transcribing an MP4 video (ffmpeg extraction)
-#   text = OllamaChat::ASR.transcribe(source_io)
+#   text = OllamaChat::ASR.transcribe(source_io, chat:)
 module OllamaChat
   class ASR
     class << self
@@ -20,12 +20,12 @@ module OllamaChat
       #   (must respond to #content_type and be seekable)
       # @param language [String, nil] optional language hint
       #   (e.g. "en", "de") passed as the `language` form field
+      # @param chat [OllamaChat::Chat] the chat instance (for HTTP middleware)
       #
       # @return [String, nil] the transcribed text, or nil on failure
-      def transcribe(source_io, language: nil, **excon_opts)
+      def transcribe(source_io, chat:, language: nil)
         asr_url   = OC::OLLAMA::CHAT::ASR::URL
         asr_model = OC::OLLAMA::CHAT::ASR::MODEL
-
         input = Tempfile.new(['asr_in'])
         wav   = Tempfile.new(['asr', '.wav'])
         begin
@@ -47,21 +47,39 @@ module OllamaChat
           end
 
           url       = "#{asr_url}/v1/audio/transcriptions"
-          excon     = Excon.new(url, **excon_opts)
           form_data = multipart_form_data(wav.path, model: asr_model, language:)
-          response  = excon.post(form_data)
-          JSON.parse(response.body)['text']
+          chat.request_url_response(:post, url, **form_data) do |response|
+            return JSON.parse(response.body)['text']
+          end
         ensure
           input.close!
           wav&.close!
         end
-      rescue => e
+      rescue JSON::ParserError, Excon::Error => e
+        if response = e.ask_and_send(:response)
+          status = response.status
+          result = JSON.parse(response.body) rescue nil
+        end
+        chat.log(:error, e, data: { status:, result: })
         STDERR.puts "ASR transcription failed: #{e.message}"
         nil
       end
 
       private
 
+      # Builds a multipart/form-data request body for the ASR endpoint.
+      #
+      # Constructs the wire format manually (boundary, text field parts,
+      # file part) so the result can be splatted directly into
+      # {HTTPHandling#request_url_response}.
+      #
+      # @param file_path [String] path to the WAV file to upload
+      # @param rest [Hash] additional form fields (e.g. `model:`,
+      #   `language:`); `nil` values are omitted via `compact`
+      #
+      # @return [Hash] Excon-compatible options with `:headers`
+      #   (Content-Type including the generated boundary), `:expects`
+      #   (200), and `:body` (the assembled multipart string)
       def multipart_form_data(file_path, **rest)
         path     = Pathname.new(file_path)
         body     = ''
@@ -82,8 +100,9 @@ module OllamaChat
         body << "--#{boundary}--" << Excon::CR_NL
 
         rest.symbolize_keys_recursive.compact | {
-          :headers => { 'Content-Type' => %{multipart/form-data; boundary="#{boundary}"} },
-          :body    => body
+          headers: { 'Content-Type' => %{multipart/form-data; boundary="#{boundary}"} },
+          expects: 200,
+          body:,
         }
       end
     end

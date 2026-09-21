@@ -25,6 +25,11 @@ module OllamaChat::Parsing
   # * `summarizing`: Document references are summarized for reference.
   DOCUMENT_POLICY_STATES = %w[ ignoring embedding importing summarizing ]
 
+  # Matches MIME types for audio and video content, including common
+  # container formats. Used by {#parse_source} and the `get_url` tool
+  # to route media streams to {#parse_audio} for transcription.
+  HAS_AUDIO = %r{\A(audio/|video/|application/(mp4|ogg|opus|webm|x-matroska)\z)}
+
   # The parse_source method processes different types of input sources and
   # converts them into a standardized text representation.
   #
@@ -53,7 +58,7 @@ module OllamaChat::Parsing
       pdf_read(source_io)
     when 'application/epub+zip'
       epub_read(source_io)
-    when %r(\A(audio|video)/), %r(\Aapplication/(mp4|ogg|opus|webm|x-matroska)\z)
+    when HAS_AUDIO
       parse_audio(source_io, language:)
     when 'image/png'
       results = parse_png(source_io) and return results.join("\n\n---\n\n")
@@ -115,7 +120,7 @@ module OllamaChat::Parsing
   # @param language [String, nil] optional language hint (e.g. "en")
   # @return [String, nil] the transcribed text, or nil on failure.
   def parse_audio(source_io, language: nil)
-    OllamaChat::ASR.transcribe(source_io, language:, **config.timeouts.to_h)
+    OllamaChat::ASR.transcribe(source_io, chat: self, language:)
   end
 
   # The parse_rss method processes an RSS feed source and converts it into a
@@ -342,6 +347,23 @@ module OllamaChat::Parsing
     contents.select { _1.present? rescue nil }.compact * "\n\n"
   end
 
+  # Dispatches a parsed source to the handler matching the active
+  # {#document_policy}. This is the shared terminal step for both the
+  # audio/video and the text branches of {#parse_content}, so every
+  # policy is applied uniformly regardless of the source media type.
+  #
+  # Behaviour per policy:
+  # * `ignoring` — no-op, the source is dropped.
+  # * `importing` — the source text is appended to `contents`.
+  # * `embedding` — the source is embedded into the RAG context; nothing
+  #   is appended to `contents`.
+  # * `summarizing` — the source summary is appended to `contents`.
+  #
+  # @param source_io [IO] the parsed/streamable source to process
+  # @param source [String] the original source (URL or path), used for
+  #   reference and logging by the underlying handlers
+  # @param contents [Array<String>] mutable accumulator that receives
+  #   the imported or summarized text (mutated in place)
   def process_document(source_io, source, contents)
     case document_policy.selected
     when 'ignoring'

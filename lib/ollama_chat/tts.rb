@@ -28,14 +28,19 @@ class OllamaChat::TTS
   # returned.
   #
   # @param model [String, nil] the TTS model ID for per-model queries
+  # @param chat [OllamaChat::Chat] the chat instance (for HTTP middleware)
   # @return [Array<String>] a sorted list of unique voice identifiers
-  def self.voices(model: nil)
-    url = model ? OC::OLLAMA::CHAT::TTS_URL +
-                    "/v1/audio/voices?model=#{model}"
+  def self.voices(model: nil, chat:)
+    url = model ? OC::OLLAMA::CHAT::TTS_URL + "/v1/audio/voices?model=#{model}"
                 : OC::OLLAMA::CHAT::TTS_URL + '/v1/voices'
-    voices = JSON.parse(Excon.get(url, expects: 200).body)["voices"]
-    (model ? voices : voices.map { |v| v["id"] }).sort
-  rescue
+    result = nil
+    chat.request_url_response(:get, url) do |response|
+      data   = JSON.parse(response.body)
+      result = data['voices']
+      result = result.map { |v| v['id'] } unless model
+    end
+    result&.sort || []
+  rescue Excon::Error, JSON::ParserError
     []
   end
 
@@ -53,9 +58,9 @@ class OllamaChat::TTS
   def initialize(chat:, voice: nil)
     if voice
       if model = @voice_model = chat.config.voice.model?
-        self.class.voices(model:).member?(voice) or voice = nil
+        self.class.voices(model:, chat:).member?(voice) or voice = nil
       else
-        self.class.voices.member?(voice) or voice = nil
+        self.class.voices(chat:).member?(voice) or voice = nil
         @voice_model = 'tts-1'
       end
     end
@@ -290,13 +295,6 @@ class OllamaChat::TTS
     @chat.log(:info, 'TTS: Requesting audio synthesis', data:)
     body = JSON.dump(data)
     url = OC::OLLAMA::CHAT::TTS_URL + '/v1/audio/speech'
-    excon = Excon.new(
-      url,
-      connect_timeout: @chat.config.timeouts.connect_timeout,
-      read_timeout:    @chat.config.timeouts.read_timeout,
-      write_timeout:   @chat.config.timeouts.write_timeout,
-      logger: @chat.debug ? OllamaChat::Utils::ExconLogger.new(@chat) : nil,
-    )
     first_chunk = true
     response_block = -> chunk, _remaining, _total do
       if first_chunk
@@ -308,15 +306,17 @@ class OllamaChat::TTS
       end
       block.call(chunk) unless chunk.empty?
     end
-    excon.post(
-      body:           ,
-      headers:        { 'Content-Type' => 'application/json' },
-      expects:        200,
-      response_block: ,
+    response = @chat.request_url_response(
+      :post, url,
+      body:            ,
+      headers:         { 'Content-Type' => 'application/json' },
+      expects:         200,
+      response_block:  ,
+      logger:          @chat.debug ? OllamaChat::Utils::ExconLogger.new(@chat) : nil,
     )
   rescue => e
     data = {}
-    if response = e.ask_and_send(:response)
+    if response
       result = JSON.parse(response.body) rescue nil
       data[:response] = {
         status: response.status,

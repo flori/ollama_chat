@@ -121,11 +121,11 @@ class OllamaChat::Tools::GenerateImage
   #
   # @param url [URI] the target URL
   # @param payload [Hash] the data to be sent as JSON
+  # @param chat [OllamaChat::Chat] the chat instance (for HTTP middleware)
   # @return [JSON::GenericObject] the parsed JSON response
   def post_url(url, payload, chat)
-    logger = OllamaChat::Utils::ExconLogger.new(chat)
-    response = Excon.new(url, logger:).post(
-      body: JSON.dump(payload),
+    response = chat.request_url_response(:post, url,
+      body:    JSON.dump(payload),
       headers: { 'Content-Type' => 'application/json' },
       expects: 200
     )
@@ -135,10 +135,10 @@ class OllamaChat::Tools::GenerateImage
   # Sends a GET request to the specified URL.
   #
   # @param url [URI] the target URL
+  # @param chat [OllamaChat::Chat] the chat instance (for HTTP middleware)
   # @return [JSON::GenericObject] the parsed JSON response
   def get_url(url, chat)
-    logger = OllamaChat::Utils::ExconLogger.new(chat)
-    response = Excon.new(url, logger:).get(
+    response = chat.request_url_response(:get, url,
       headers: { 'Accept' => 'application/json' },
       expects: 200
     )

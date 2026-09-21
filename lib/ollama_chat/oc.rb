@@ -256,6 +256,30 @@ module OC
         end
       end
 
+      module INVIDIOUS
+        description 'Invidious instance (YouTube proxy) configuration'
+
+        URL = set do
+          description 'Base URL for the Invidious instance'
+          sensitive   true
+          decode      { URI.parse(_1) if _1.present? }
+          check       { value.blank? || value.scheme =~ /\Ahttps?\z/ }
+        end
+
+        COMPANION_KEY = set do
+          description 'Bearer token for the Invidious companion player API'
+          sensitive   true
+          required    { OC::OLLAMA::CHAT::INVIDIOUS::URL? }
+        end
+
+        CAPTION_LANGUAGES = set do
+          description 'Priority list of language-code regexes for caption selection'
+          default     %q{ [ "\\\\Aen\\\\z", "\\\\Aen-", "\\\\Ade\\\\z", "\\\\Ade-" ] }
+          required    true
+          decode      { json.(_1).map { |s| Regexp.new(s) } }
+        end
+      end
+
       module TOOLS
         description 'Tool specific configuration settings'
 

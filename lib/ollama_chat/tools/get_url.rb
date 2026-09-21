@@ -85,13 +85,16 @@ class OllamaChat::Tools::GetURL
   # Executes the URL fetching operation.
   #
   # This method fetches content from the specified URL using the configured
-  # fetcher. It handles the HTTP request and returns the content.
+  # fetcher. If the response content type matches
+  # {OllamaChat::Parsing::HAS_AUDIO}, the source is transcribed via
+  # {OllamaChat::Parsing#parse_audio} before the document-policy dispatch.
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
   # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the fetched content as a JSON string
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
+  # @see OllamaChat::Parsing::HAS_AUDIO
   def execute(tool_call, **opts)
     chat            = opts[:chat]
     config          = chat.config
@@ -113,7 +116,7 @@ class OllamaChat::Tools::GetURL
 
     source, message, content = url, nil, ''
     chat.fetch_source(source, check_exist: false) do |source_io|
-      if %w[audio video].include?(source_io&.content_type&.media_type)
+      if source_io&.content_type&.to_s&.match?(OllamaChat::Parsing::HAS_AUDIO)
         text = chat.parse_audio(source_io, language:)
         source_io = OllamaChat::Utils::Fetcher::ResponseMetadata.as_text(text)
       end

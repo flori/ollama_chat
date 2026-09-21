@@ -137,6 +137,38 @@ describe OllamaChat::SourceFetching do
         expect(chat).to receive(:get_url).with(source, cache: anything)
         chat.fetch_source(source)
       end
+
+      context 'with a YouTube URL' do
+        before do
+          const_conf_as(
+            'OC::OLLAMA::CHAT::INVIDIOUS::URL' => 'https://invidious.gate.ping.de'
+          )
+        end
+
+        it 'yields the caption transcript and skips get_url' do
+          source   = 'https://www.youtube.com/watch?v=Fypm8CDHwc8'
+          transcript = StringIO.new('Hello world').extend(
+            OllamaChat::Utils::Fetcher::ResponseMetadata
+          )
+          transcript.content_type = MIME::Types['text/plain'].first
+
+          expect(OllamaChat::Invidious).to receive(:fetch_video_info)
+            .with(source, chat: chat).and_return(transcript)
+          expect(chat).not_to receive(:get_url)
+
+          result = nil
+          chat.fetch_source(source) { |io| result = io }
+          expect(result.read).to eq('Hello world')
+        end
+
+        it 'falls back to get_url when no captions are available' do
+          source = 'https://www.youtube.com/watch?v=Fypm8CDHwc8'
+          expect(OllamaChat::Invidious).to receive(:fetch_video_info)
+            .with(source, chat: chat).and_return(nil)
+          expect(chat).to receive(:get_url).with(source, cache: anything)
+          chat.fetch_source(source)
+        end
+      end
     end
 
     context 'with existence check' do

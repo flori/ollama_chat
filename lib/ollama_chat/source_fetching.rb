@@ -42,9 +42,14 @@ module OllamaChat::SourceFetching
         block.(tmp)
       end
     when %r{\Ahttps?://\S+}
-      get_url(source, cache:) do |tmp|
-        log(:info, "URL fetched", data: { url: source, bytes: format_bytes(tmp.size) })
-        block.(tmp)
+      url = $&
+      if captions = OllamaChat::Invidious.fetch_video_info(url, chat: self)
+        block.(captions)
+      else
+        get_url(url, cache:) do |tmp|
+          log(:info, "URL fetched", data: { url:, bytes: format_bytes(tmp.size) })
+          block.(tmp)
+        end
       end
     when %r{\Afile://([^\s#]+)}
       filename = $1
