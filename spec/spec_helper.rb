@@ -78,7 +78,7 @@ module AssetHelpers
   # @return [ File, nil ] returns the IO object for the asset file, or nil if a
   #   block is provided and the block does not return a value
   def asset_io(name, &block)
-    io = File.new(File.join(__dir__, 'assets', name))
+    io = File.new(File.join(__dir__, 'assets', name), 'rb')
     if block
       begin
         block.call(io)

@@ -103,12 +103,12 @@ module OllamaChat::SourceFetching
   #
   # @return [ String ] a formatted message indicating the import result and the
   #   parsed content
-  def import_source(source_io, source)
+  def import_source(source_io, source, language: nil)
     source        = source.to_s
     document_type = source_io&.content_type.full? { |ct| italic { ct } + ' ' }
     STDOUT.puts "Importing #{document_type}document #{source.to_s.inspect} now."
     log(:info, "Source imported", data: { source:, content_type: source_io&.content_type })
-    source_content = parse_source(source_io)
+    source_content = parse_source(source_io, language:)
     <<~EOT
       Imported #{source.inspect}:
 
@@ -126,9 +126,9 @@ module OllamaChat::SourceFetching
   #
   # @return [String, nil] A formatted message indicating the import result and
   #                       parsed content, #   or nil if the operation fails
-  def import(source)
+  def import(source, language: nil)
     fetch_source(source) do |source_io|
-      content = import_source(source_io, source) or return
+      content = import_source(source_io, source, language:) or return
       source_io.rewind
       content
     end

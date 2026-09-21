@@ -32,7 +32,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.size).to eq 24
+    expect(json.size).to eq 25
     expect(described_class.summary_template(result:)).to eq \
       'was called.'
   end

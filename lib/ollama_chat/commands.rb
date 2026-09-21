@@ -820,14 +820,15 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apreim]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*))*)(?:\s+([^-].*))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apreim]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*|l\s*[-\w]+))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: <<~EOT,
        [
           -w|-a|-p|-e|-m|-i|
          -c <collection>|
-         -t <tags>
+         -t <tags>|
+         -l <language>
        ]
       [arg…]
     EOT
@@ -836,7 +837,8 @@ module OllamaChat::Commands
          Subcommands: path, context, embedding, summary
            Options: -p (pattern), -w [words], -a (all),
                     -c [collection], -t [tags], -e (edit),
-                    -m (monochrome), -i (summary instruction)
+                    -m (monochrome), -i (summary instruction),
+                    -l [language]
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -918,17 +920,17 @@ module OllamaChat::Commands
         next :next
       end
     else
-      opts = go_command('paem', opts)
+      opts = go_command('paeml:', opts)
       if opts[?p]
         all = opts.fetch(?a, false)
         patterns = extract_patterns(arg)
         next provide_file_set_content(patterns, all:, skip_blank: true) do |src|
-          content = import(src)
+          content = import(src, language: opts[?l])
           opts[?m] ? OllamaChat::Utils::StripANSI.strip_ansi(content) : content
         end || :next
       elsif arg
         source = arg
-        content = import(source) or next :next
+        content = import(source, language: opts[?l]) or next :next
         content = OllamaChat::Utils::StripANSI.strip_ansi(content) if opts[?m]
         content = edit_text(content) if opts[?e]
         content

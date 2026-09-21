@@ -71,9 +71,22 @@ class OllamaChat::Utils::Fetcher
     # @param msg [ String ] the error message to write into the response object.
     # @return [ StringIO ] a StringIO object with text/plain content type
     def self.failed(msg)
-      object = StringIO.new.extend(self)
-      object.write msg
-      object.rewind
+      as_text(msg)
+    end
+
+    # Wraps a string in a `StringIO` decorated with `ResponseMetadata`
+    # and a `text/plain` content type.
+    #
+    # Used as the shared factory for synthetic text responses (e.g.
+    # {failed}) and for converting plain-text tool output into an IO
+    # that the rest of the pipeline (parse_source, document_policy,
+    # etc.) can consume uniformly.
+    #
+    # @param text [String] the content to wrap
+    # @return [StringIO] a seekable IO with `text/plain` content type,
+    #   extended with {ResponseMetadata}
+    def self.as_text(text)
+      object = StringIO.new(text).extend(self)
       object.content_type = MIME::Types['text/plain'].first
       object
     end

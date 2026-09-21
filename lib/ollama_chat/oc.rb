@@ -227,6 +227,35 @@ module OC
         check   { value.command && value.frequency && value.bits && value.pause if value.present? }
       end
 
+      module ASR
+        description 'ASR (Speech-to-Text) service configuration'
+
+        URL = set do
+          description 'Base URL for the ASR (Speech-to-Text) service'
+          default     'http://localhost:8880'
+          required    true
+          sensitive   true
+          decode      { URI.parse(_1) if _1.present? }
+          check       { value.scheme =~ /\Ahttps?\z/ }
+        end
+
+        CONVERT_COMMAND = set do
+          description <<~EOT
+            Shell command template to convert video sources to 16 kHz mono
+            PCM WAV. Use %{input} for the source path and %{output} for the
+            target WAV path.
+          EOT
+          default     'ffmpeg -y -i %{input} -vn -acodec pcm_s16le -ar 16000 -ac 1 %{output}'
+          required    true
+        end
+
+        MODEL = set do
+          description 'ASR model identifier (e. g. qwen3-asr-1.7b)'
+          default     'qwen3-asr-1.7b'
+          required    true
+        end
+      end
+
       module TOOLS
         description 'Tool specific configuration settings'
 

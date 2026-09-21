@@ -349,13 +349,13 @@ describe OllamaChat::Commands, protect_env: true do
   describe '/input' do
     context 'import' do
       it 'returns "success" when input is "/input (.+)"' do
-        expect(chat).to receive(:import).with(asset('example.rb')).
+        expect(chat).to receive(:import).with(asset('example.rb'), language: nil).
           and_return 'success'
         expect(chat.handle_input("/input #{asset('example.rb')}")).to eq 'success'
       end
 
       it 'returns "success" when input is "/input -a -p (.+)"' do
-        expect(chat).to receive(:import).with(Pathname.new(asset('example.rb'))).
+        expect(chat).to receive(:import).with(Pathname.new(asset('example.rb')), language: nil).
           and_return 'success'
         expect(chat.handle_input("/input -a -p #{asset('*.rb')}")).to\
           match(/success/)
@@ -367,7 +367,7 @@ describe OllamaChat::Commands, protect_env: true do
 
       it 'strips ANSI codes with -m' do
         colored = "\e[31mred text\e[0m"
-        expect(chat).to receive(:import).with(asset('example.rb')).
+        expect(chat).to receive(:import).with(asset('example.rb'), language: nil).
           and_return colored
         expect(chat.handle_input("/input -m #{asset('example.rb')}"))
           .to eq 'red text'

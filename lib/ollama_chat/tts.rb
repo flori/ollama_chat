@@ -289,9 +289,9 @@ class OllamaChat::TTS
     url = OC::OLLAMA::CHAT::TTS_URL + '/v1/audio/speech'
     excon = Excon.new(
       url,
-      connect_timeout:  60,
-      read_timeout:    360,
-      write_timeout:   360,
+      connect_timeout: @chat.config.timeouts.connect_timeout,
+      read_timeout:    @chat.config.timeouts.read_timeout,
+      write_timeout:   @chat.config.timeouts.write_timeout,
       logger: @chat.debug ? OllamaChat::Utils::ExconLogger.new(@chat) : nil,
     )
     first_chunk = true

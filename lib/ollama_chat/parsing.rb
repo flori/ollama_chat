@@ -32,7 +32,7 @@ module OllamaChat::Parsing
   #
   # @return [ String, nil ] the parsed content as a string or nil if the
   #   content type is not supported
-  def parse_source(source_io)
+  def parse_source(source_io, language: nil)
     case source_io&.content_type
     when 'text/html'
       reverse_markdown(source_io.read)
@@ -53,6 +53,8 @@ module OllamaChat::Parsing
       pdf_read(source_io)
     when 'application/epub+zip'
       epub_read(source_io)
+    when %r(\A(audio|video)/), %r(\Aapplication/(mp4|ogg|opus|webm|x-matroska)\z)
+      parse_audio(source_io, language:)
     when 'image/png'
       results = parse_png(source_io) and return results.join("\n\n---\n\n")
       STDERR.puts "Could not parse metadata from #{source_io&.content_type} document."
@@ -103,6 +105,17 @@ module OllamaChat::Parsing
     end
 
     results.full?
+  end
+
+  # Transcribes audio or video content via the ASR service. Delegates to
+  # {OllamaChat::ASR.transcribe} which handles format conversion (e.g.
+  # video → WAV via ffmpeg) and the multipart upload to the server.
+  #
+  # @param source_io [IO] the input stream containing audio/video data.
+  # @param language [String, nil] optional language hint (e.g. "en")
+  # @return [String, nil] the transcribed text, or nil on failure.
+  def parse_audio(source_io, language: nil)
+    OllamaChat::ASR.transcribe(source_io, language:, **config.timeouts.to_h)
   end
 
   # The parse_rss method processes an RSS feed source and converts it into a
@@ -311,17 +324,13 @@ module OllamaChat::Parsing
               contents.concat results
             end
           end
+        when 'audio', 'video'
+          document_policy.selected == 'ignoring' and next
+          text = parse_audio(source_io)
+          text_io = OllamaChat::Utils::Fetcher::ResponseMetadata.as_text(text)
+          process_document(text_io, source, contents)
         when 'text', 'application', nil
-          case document_policy.selected
-          when 'ignoring'
-            nil
-          when 'importing'
-            contents << import_source(source_io, source)
-          when 'embedding'
-            embed_source(source_io, source)
-          when 'summarizing'
-            contents << summarize_source(source_io, source)
-          end
+          process_document(source_io, source, contents)
         else
           STDERR.puts(
             "Cannot fetch #{source.to_s.inspect} with content type "\
@@ -331,5 +340,17 @@ module OllamaChat::Parsing
       end
     }
     contents.select { _1.present? rescue nil }.compact * "\n\n"
+  end
+
+  def process_document(source_io, source, contents)
+    case document_policy.selected
+    when 'ignoring'
+    when 'importing'
+      contents << import_source(source_io, source)
+    when 'embedding'
+      embed_source(source_io, source)
+    when 'summarizing'
+      contents << summarize_source(source_io, source)
+    end
   end
 end
