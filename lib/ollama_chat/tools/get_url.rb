@@ -66,8 +66,16 @@ class OllamaChat::Tools::GetURL
                 document_policy is 'summarizing'). E.g. "stress breaking
                 changes and deprecations".
               EOT
-            ),
-          },
+             ),
+             language: Tool::Function::Parameters::Property.new(
+               type: 'string',
+               description: <<~EOT,
+                 Optional language hint for audio/video transcription
+                 (e.g. "en", "de"). Only applies when the URL points to
+                 an audio or video resource.
+               EOT
+             ),
+           },
           required: %w[url]
         )
       )
@@ -92,6 +100,7 @@ class OllamaChat::Tools::GetURL
     document_policy = args.document_policy.full? || 'ignoring'
     words           = args.words.to_i
     instruction     = args.instruction
+    language        = args.language
 
     allowed_schemes = Array(config.tools.functions.get_url.schemes?).map(&:to_s)
 
@@ -104,6 +113,10 @@ class OllamaChat::Tools::GetURL
 
     source, message, content = url, nil, ''
     chat.fetch_source(source, check_exist: false) do |source_io|
+      if %w[audio video].include?(source_io&.content_type&.media_type)
+        text = chat.parse_audio(source_io, language:)
+        source_io = OllamaChat::Utils::Fetcher::ResponseMetadata.as_text(text)
+      end
       case source_io&.content_type&.media_type
       when 'image'
         chat.add_image(chat.images, source_io, source)
@@ -112,7 +125,7 @@ class OllamaChat::Tools::GetURL
         when 'ignoring'
           content = source_io.read
         when 'importing'
-          content = chat.import_source(source_io, source)
+          content = chat.import_source(source_io, source, language:)
         when 'embedding'
           content = chat.embed_source(source_io, source)
         when 'summarizing'

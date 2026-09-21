@@ -27,8 +27,8 @@ describe OllamaChat::Tools::GetURL do
           arguments: double(
             url: 'https://www.example.com/foo',
             document_policy: nil,
-             words: nil,
-             instruction: nil
+            words: nil,
+            instruction: nil, language: nil
           )
         )
       )
@@ -58,8 +58,7 @@ describe OllamaChat::Tools::GetURL do
           arguments: double(
             url:,
             document_policy: nil,
-             words: nil,
-             instruction: nil
+            words: nil, instruction: nil, language: nil
           )
         )
       )
@@ -85,12 +84,12 @@ describe OllamaChat::Tools::GetURL do
       'ToolCall',
       function: double(
         name: 'get_url',
-          arguments: double(
-            url: 'https://www.example.com/foo',
-            document_policy: nil,
-             words: nil,
-             instruction: nil,
-          )
+        arguments: double(
+          url: 'https://www.example.com/foo',
+          document_policy: nil,
+          words: nil,
+          instruction: nil, language: nil,
+        )
       )
     )
 
@@ -117,7 +116,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "ignoring" policy' do
-      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
@@ -126,9 +125,9 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "importing" policy' do
-      args = double(url:, document_policy: 'importing', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'importing', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
-      expect(chat).to receive(:import_source).with(source_io, URI.parse(url)).and_return('imported content')
+      expect(chat).to receive(:import_source).with(source_io, URI.parse(url), language: nil).and_return('imported content')
 
       result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)
@@ -136,7 +135,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "embedding" policy' do
-      args = double(url:, document_policy: 'embedding', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'embedding', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:embed_source).with(source_io, URI.parse(url)).and_return('embedded content')
 
@@ -146,7 +145,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "summarizing" policy' do
-      args = double(url:, document_policy: 'summarizing', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'summarizing', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 0, instruction: nil).and_return('summarize prompt')
       expect(chat).to receive(:generate).with(prompt: 'summarize prompt').and_return('summarized content')
@@ -157,7 +156,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "summarizing" policy with custom words' do
-      args = double(url:, document_policy: 'summarizing', words: 50, instruction: nil)
+      args = double(url:, document_policy: 'summarizing', words: 50, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 50, instruction: nil).and_return('summarize prompt 50')
       expect(chat).to receive(:generate).with(prompt: 'summarize prompt 50').and_return('short summary')
@@ -168,7 +167,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles the "summarizing" policy with an instruction' do
-      args = double(url:, document_policy: 'summarizing', words: nil, instruction: 'stress breaking changes')
+      args = double(url:, document_policy: 'summarizing', words: nil, instruction: 'stress breaking changes', language: nil)
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 0, instruction: 'stress breaking changes').and_return('summarize prompt with instruction')
       expect(chat).to receive(:generate).with(prompt: 'summarize prompt with instruction').and_return('focused summary')
@@ -179,7 +178,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles an invalid policy' do
-      args = double(url:, document_policy: 'chaos_mode', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'chaos_mode', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
@@ -196,7 +195,7 @@ describe OllamaChat::Tools::GetURL do
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:add_image).with(chat.images, source_io, URI.parse(url))
 
-      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
@@ -204,11 +203,37 @@ describe OllamaChat::Tools::GetURL do
       expect(json.message).to eq('Received requested URL successfully.')
     end
 
-    it 'handles unsupported media types' do
+    it 'handles audio content types via ASR transcription' do
+      source_io = double('SourceIO', content_type: double(media_type: 'audio'))
+      expect(chat).to receive(:fetch_source).and_yield(source_io)
+      expect(chat).to receive(:parse_audio).with(source_io, language: 'de').and_return('transcribed text')
+
+      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: 'de')
+      tool_call = double(function: double(arguments: args))
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.content).to eq('transcribed text')
+    end
+
+    it 'handles video content types via ASR transcription' do
       source_io = double('SourceIO', content_type: double(media_type: 'video'))
       expect(chat).to receive(:fetch_source).and_yield(source_io)
+      expect(chat).to receive(:parse_audio).with(source_io, language: nil).and_return('video text')
 
-      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil)
+      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
+      tool_call = double(function: double(arguments: args))
+
+      result = described_class.new.execute(tool_call, chat:)
+      json = json_object(result)
+      expect(json.content).to eq('video text')
+    end
+
+    it 'handles unsupported media types' do
+      source_io = double('SourceIO', content_type: double(media_type: 'font'))
+      expect(chat).to receive(:fetch_source).and_yield(source_io)
+
+      args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
       result = described_class.new.execute(tool_call, chat:)
