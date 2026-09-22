@@ -513,11 +513,10 @@ describe OllamaChat::MessageList do
   context 'with pager' do
     before do
       expect(list).to receive(:determine_pager_command).and_return 'true'
-      expect(Tins::Terminal).to receive(:lines).and_return 1
+      allow(Tins::Terminal).to receive(:lines).and_return 1
     end
 
     it 'can list conversations' do
-      skip 'no tty' unless STDOUT.tty?
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think_loud).and_return(double(on?: false)).at_least(:once)
