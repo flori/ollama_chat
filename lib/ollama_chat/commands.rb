@@ -498,8 +498,9 @@ module OllamaChat::Commands
       prompt_sync(context:)
     when nil, '-e'
       if prompt = choose_prompt(
-          prompt: 'Which template shall guide the next response? %s',
-          context:
+          prompt:  'Which template shall guide the next response? %s',
+          context: ,
+          count:   true
         ).full?(&:to_s)
         if subcommand
           prompt = edit_text(prompt)

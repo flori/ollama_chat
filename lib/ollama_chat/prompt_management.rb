@@ -18,7 +18,9 @@ module OllamaChat::PromptManagement
   def all_prompts(default: nil, context: nil)
     context ||= 'prompt'
     favs = all_favourited(context)
-    each_prompt(context:, default:).sort_by(&:name).map do |p|
+    each_prompt(context:, default:).sort_by do |p|
+      [ -p.metadata['use_count'].to_i, p.name ]
+    end.map do |p|
       prompt_with_favourite(p.name, favs[p.name])
     end
   end
@@ -50,11 +52,14 @@ module OllamaChat::PromptManagement
   #
   # @param default [Boolean, nil] filter for default prompts (true: only
   #   defaults, false: only non-defaults)
+  # @param count [Boolean] when true, increment the selected prompt's
+  #   `metadata['use_count']` and persist it, so that frequently used
+  #   prompts float to the top of the chooser
   # @param prompt [String] the prompt message to display when asking for input
   #
   # @return [OllamaChat::Database::Models::Prompt, nil] the selected prompt
   #   model, or nil if the user chooses '[EXIT]' or cancels the selection.
-  def choose_prompt(default: nil, context: nil, prompt: "Select a #{context || 'prompt'} template: %s")
+  def choose_prompt(default: nil, context: nil, count: false, prompt: "Select a #{context || 'prompt'} template: %s")
     context ||= 'prompt'
     prompts = all_prompts(default:, context:)
     prompts.unshift('[EXIT]')
@@ -63,6 +68,12 @@ module OllamaChat::PromptManagement
       STDOUT.puts "Exiting chooser."
       return
     when SearchUI::Wrapper
+      if record = models::Prompt.where(context:, name: chosen.value).first
+        if count
+          record.metadata['use_count'] = 1 + record.metadata['use_count'].to_i
+          record.save
+        end
+      end
       prompt(chosen.value, context:)
     end
   end
