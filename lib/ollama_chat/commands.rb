@@ -433,27 +433,30 @@ module OllamaChat::Commands
 
   command(
     name: :prompt,
-    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset|rename|sync|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
-    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset rename sync ] ],
+    regexp: %r(^/prompt(?:\s+(edit|info|add|delete|list|duplicate|import|export|reset count|reset|rename|sync|-e))?(\s+(?:-[ef]|-c\s+(?:\w+|\?)))?(?:\s+([^-].*))?$),
+    complete: [ 'prompt', %w[ edit info add delete list duplicate import export reset\ count reset rename sync ] ],
     optional: true,
     options: '[-c CONTEXT|-e|-f]',
     help: <<~EOT,
       📝 Manage prompt templates:
           Subcommands: edit, info, add, delete, list,
-          duplicate, import, export, reset, rename,
-          sync.
+          duplicate, import, export, reset count, reset,
+          rename, sync.
          Options: -c [context]
                      (? for interactive in /prompt),
                   -e (edit next)
     EOT
   ) do |subcommand, opts, filename|
     opts = go_command('fc:', opts)
-    context = if subcommand.nil? || subcommand == '-e'
+    context = case subcommand
+              when nil, '-e'
                 if opts[?c] == ??
                   choose_prompt_context
                 else
                   opts[?c] || 'prompt'
                 end
+              when 'reset count'
+                'prompt'
               else
                 opts[?c] || choose_prompt_context
               end
@@ -481,6 +484,8 @@ module OllamaChat::Commands
       export_prompt(context:)
     when 'info'
       info_prompt(context:)
+    when 'reset count'
+      choose_and_reset_count(context:)
     when 'reset'
       if prompt = choose_prompt(
           default: true,

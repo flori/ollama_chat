@@ -401,6 +401,59 @@ module OllamaChat::PromptManagement
     end
   end
 
+  # Resets the usage counter (`metadata['use_count']`) for a prompt to zero,
+  # removing its position boost in the {#all_prompts} sort.
+  #
+  # @param name [String] the name of the prompt to reset
+  # @param context [String, nil] the prompt context
+  # @return [Boolean, nil] true if the prompt was found and reset,
+  #   nil if no matching record exists
+  def reset_prompt_count(name, context: nil)
+    context ||= 'prompt'
+    if record = models::Prompt.where(context:, name:).first
+      record.metadata['use_count'] = 0
+      record.save
+      true
+    end
+  end
+
+  # Interactively selects prompts and resets their usage counters.
+  #
+  # Presents a looping chooser (similar to {#disable_tool}) that displays
+  # each prompt's current `use_count` so the user can see which prompts
+  # have been inflated by frequent selection.
+  #
+  # @param context [String, nil] the prompt context
+  def choose_and_reset_count(context: nil)
+    context ||= 'prompt'
+    choose_with_state do
+      loop do
+        entries = each_prompt(context:).sort_by do |p|
+          [ -p.metadata['use_count'].to_i, p.name ]
+        end.map do |p|
+          count   = p.metadata['use_count'].to_i
+          display = count > 0 ?
+            "#{p.name}  #{italic { "(#{count})" }}" : p.name
+          SearchUI::Wrapper.new(p.name, display:)
+        end
+        entries.unshift('[EXIT]')
+        chosen = choose_entry(
+          entries,
+          prompt: 'Which prompt count shall be reset? %s'
+        )
+        case chosen
+        when '[EXIT]', nil
+          STDOUT.puts "Exiting chooser."
+          return
+        when SearchUI::Wrapper
+          if reset_prompt_count(chosen.value, context:)
+            STDOUT.puts "Reset count for #{bold { chosen.value }}."
+          end
+        end
+      end
+    end
+  end
+
   # Synchronizes database prompts with their shipped defaults from the
   # configuration.
   #

@@ -488,6 +488,103 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
+  describe '/prompt' do
+    context 'delegation subcommands' do
+      before do
+        allow(chat).to receive(:choose_prompt_context).and_return 'prompt'
+      end
+
+      it 'routes each subcommand to its PromptManagement method' do
+        expect(chat).to receive(:list_prompts).with(context: 'prompt')
+        expect(chat.handle_input('/prompt list')).to eq :next
+        expect(chat).to receive(:info_prompt).with(context: 'prompt')
+        expect(chat.handle_input('/prompt info')).to eq :next
+        expect(chat).to receive(:add_new_prompt).with(context: 'prompt')
+        expect(chat.handle_input('/prompt add')).to eq :next
+        expect(chat).to receive(:choose_and_edit_prompt).with(context: 'prompt')
+        expect(chat.handle_input('/prompt edit')).to eq :next
+        expect(chat).to receive(:duplicate_prompt).with(context: 'prompt')
+        expect(chat.handle_input('/prompt duplicate')).to eq :next
+        expect(chat).to receive(:rename_prompt).with(context: 'prompt')
+        expect(chat.handle_input('/prompt rename')).to eq :next
+        expect(chat).to receive(:export_prompt).with(context: 'prompt')
+        expect(chat.handle_input('/prompt export')).to eq :next
+        expect(chat).to receive(:prompt_sync).with(context: 'prompt')
+        expect(chat.handle_input('/prompt sync')).to eq :next
+      end
+
+      it 'honours the -c flag without opening the context chooser' do
+        expect(chat).not_to receive(:choose_prompt_context)
+        expect(chat).to receive(:list_prompts).with(context: 'system')
+        expect(chat.handle_input('/prompt list -c system')).to eq :next
+      end
+    end
+
+    context 'bare /prompt (response template)' do
+      it 'prefills the template and increments the use count' do
+        expect(chat).to receive(:choose_prompt)
+          .with(
+            prompt: 'Which template shall guide the next response? %s',
+            context: 'prompt',
+            count:   true
+          ).and_return 'my template'
+        expect(chat.handle_input('/prompt')).to eq :next
+      end
+
+      it 'feeds the edited template back with -e' do
+        expect(chat).to receive(:choose_prompt)
+          .with(
+            prompt: 'Which template shall guide the next response? %s',
+            context: 'prompt',
+            count:   true
+          ).and_return 'raw'
+        expect(chat).to receive(:edit_text).with('raw').and_return 'edited'
+        expect(chat.handle_input('/prompt -e')).to eq 'edited'
+      end
+    end
+
+    context 'reset (restore to shipped default)' do
+      it 'resets the chosen prompt to its default' do
+        expect(chat).to receive(:choose_prompt_context).and_return 'prompt'
+        prompt = double('Prompt', name: 'my_prompt')
+        expect(chat).to receive(:choose_prompt)
+          .with(
+            default: true,
+            context: 'prompt',
+            prompt:  'Which prompt needs to be restored to its origin? %s'
+          ).and_return prompt
+        expect(chat).to receive(:reset_prompt_to_default)
+          .with('my_prompt', context: 'prompt').and_return true
+        expect(chat.handle_input('/prompt reset')).to eq :next
+      end
+    end
+
+    context 'reset count' do
+      it 'resets counters in the prompt context only, no chooser' do
+        expect(chat).not_to receive(:choose_prompt_context)
+        expect(chat).to receive(:choose_and_reset_count)
+          .with(context: 'prompt')
+        expect(chat.handle_input('/prompt reset count')).to eq :next
+      end
+
+      it 'ignores -c (counters only exist in the prompt context)' do
+        expect(chat).not_to receive(:choose_prompt_context)
+        expect(chat).to receive(:choose_and_reset_count)
+          .with(context: 'prompt')
+        expect(chat.handle_input('/prompt reset count -c system')).to eq :next
+      end
+    end
+
+    context 'import' do
+      it 'imports a prompt from a file' do
+        expect(chat).to receive(:choose_prompt_context).and_return 'prompt'
+        expect(chat).to receive(:import_prompt)
+          .with('./some_file.md', context: 'prompt')
+        expect(chat.handle_input('/prompt import ./some_file.md')).to eq :next
+      end
+    end
+  end
+
   describe '/output' do
     it 'can output last response with "/output foo.md"' do
       expect(chat).to receive(:output).with('foo.md', edit: false)
