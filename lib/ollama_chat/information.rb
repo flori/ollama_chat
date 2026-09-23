@@ -97,8 +97,14 @@ module OllamaChat::Information
   #   (defaults to STDOUT).
   def info_model(output: STDOUT)
     output.puts "🧠 Current chat model is #{bold{@model}}."
-    output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
     output.puts   "  Families: #{Array(@model_metadata&.families) * ', '}"
+    output.puts   "  Capabilities: #{Array(@model_metadata&.capabilities) * ', '}"
+    if @model_metadata&.thinking
+      thinking = @model_metadata.thinking
+      levels   = Array(thinking.values).map { normalize_think_state(_1) }
+      default  = normalize_think_state(thinking.default)
+      output.puts "  Thinking: #{levels * ', '} (default: #{bold{default}})"
+    end
 
     profiles = models::ModelOptions.where(model_name: @model).order(:profile).all
     if profiles.full?

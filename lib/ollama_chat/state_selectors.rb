@@ -23,7 +23,7 @@ module OllamaChat::StateSelectors
 
     # The states reader returns the set of valid states for this selector.
     #
-    # @return [Set<String>] the set of valid states
+    # @return [Array<String>] the set of valid states
     attr_reader :states
 
     # The default reader returns the default state for this selector.
@@ -185,18 +185,41 @@ module OllamaChat::StateSelectors
     # @param chat [OllamaChat::Chat] the chat instance to interact with
     # @param attribute [Symbol] the attribute name in the session to manage
     # @param name [String] the name of the state selector for display purposes
-    # @param states [Array<String>] the list of valid states this selector can have
+    # @param states [Array<String>, Proc] the list of valid states or a
+    #   lambda `->(chat) { [...] }` that resolves them lazily
     # @param default [String, nil] the default state (retrieved from the session)
-    # @param off [Array<String>, nil] the list of states that should be considered "off"
+    # @param off [Array<String>, Proc, nil] the list of "off" states or a
+    #   lambda `->(chat) { [...] }` that resolves them lazily
     # @param allow_empty [Boolean] whether the selector is allowed to be empty
     def initialize(chat:, attribute:, name:, states:, default: nil, off: nil, allow_empty: false)
       @chat        = chat
       @attribute   = attribute
       @name        = name
       @states      = states
-      @default     = @chat.session.send(@attribute)
       @off         = off
-      @allow_empty = allow_empty
+      @default      = @chat.session.send(@attribute)
+      @allow_empty  = allow_empty
+    end
+
+    # The states reader returns the valid states for this selector.
+    #
+    # If the initial states were provided as a lambda, it is re-evaluated
+    # on every access, so the returned set always reflects the current
+    # model's capabilities without explicit invalidation.
+    #
+    # @return [Array<String>] the list of valid states
+    def states
+      @states.ask_and_send_or_self(:call, @chat)
+    end
+
+    # The off reader returns the "off" states for this selector.
+    #
+    # If the initial off-states were provided as a lambda, it is re-evaluated
+    # on every access, mirroring the {#states} behavior.
+    #
+    # @return [Array<String>, nil] the list of "off" states
+    def off
+      @off.ask_and_send_or_self(:call, @chat)
     end
 
     # The selected reader returns the current value of the attribute from the chat session.
@@ -266,17 +289,18 @@ module OllamaChat::StateSelectors
       chat:      self,
       attribute: :think_mode,
       name:      'Think mode',
-      states:    OllamaChat::ThinkControl::THINK_MODE_STATES,
-      off:       OllamaChat::ThinkControl::THINK_MODE_STATES[0, 1],
-    )
-    list = Array(
-      voice_handler.ask_and_send(:voices, chat: self, model: config.voice.model?)
+      states:    -> chat { chat.think_mode_states },
+      off:       -> chat { chat.think_mode_states[0, 1] },
     )
     @voices = DatabaseStateSelector.new(
       chat:        self,
       attribute:   :current_voice,
       name:        'Voice',
-      states:      list,
+      states:      -> chat {
+                    Array(voice_handler.ask_and_send(
+                      :voices, chat:, model: chat.config.voice.model?
+                    ))
+                  },
       allow_empty: true
     )
     @context_format = DatabaseStateSelector.new(

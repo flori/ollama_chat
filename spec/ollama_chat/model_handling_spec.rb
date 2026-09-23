@@ -25,6 +25,48 @@ describe OllamaChat::ModelHandling do
     expect(chat.pull_model_unless_present('llama3.1')).to eq true
   end
 
+  describe '#use_model think-mode clamping' do
+    before do
+      expect(chat).to receive(:choose_model).and_return 'target'
+      expect(chat).to receive(:reconfigure_model_options)
+    end
+
+    it 'disables think mode when switching to a non-thinking model' do
+      chat.session.update(think_mode: 'high')
+      metadata = OllamaChat::ModelHandling::ModelMetadata.new(
+        name: 'target', system: '', capabilities: %w[ completion ],
+        families: %w[ mistral ], thinking: nil
+      )
+      expect(chat).to receive(:model_present?).with('target').and_return metadata
+      chat.use_model('target')
+      expect(chat.session.think_mode).to eq 'disabled'
+    end
+
+    it 'clamps to the model default when the current level is unavailable' do
+      chat.session.update(think_mode: 'max')
+      metadata = OllamaChat::ModelHandling::ModelMetadata.new(
+        name: 'target', system: '', capabilities: %w[ thinking ],
+        families: %w[ llama ],
+        thinking: double(values: %w[ low high ], default: 'high')
+      )
+      expect(chat).to receive(:model_present?).with('target').and_return metadata
+      chat.use_model('target')
+      expect(chat.session.think_mode).to eq 'high'
+    end
+
+    it 'keeps the current level when it is still available' do
+      chat.session.update(think_mode: 'high')
+      metadata = OllamaChat::ModelHandling::ModelMetadata.new(
+        name: 'target', system: '', capabilities: %w[ thinking ],
+        families: %w[ llama ],
+        thinking: double(values: %w[ low high max ], default: 'low')
+      )
+      expect(chat).to receive(:model_present?).with('target').and_return metadata
+      chat.use_model('target')
+      expect(chat.session.think_mode).to eq 'high'
+    end
+  end
+
   describe '#export_model_options' do
     before do
       chat.store_model_options('llama3.1', { num_predict: 100 }, profile: 'default')

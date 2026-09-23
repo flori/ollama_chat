@@ -23,7 +23,12 @@ module OllamaChat::ModelHandling
   # @attr_reader system [String] the system prompt associated with the model
   # @attr_reader capabilities [Array<String>] the capabilities supported by the model
   # @attr_reader families [Array<String>] the families of the model
-  class ModelMetadata < Data.define(:name, :system, :capabilities, :families)
+  # @attr_reader thinking [Hash, nil] the thinking payload (`values` and
+  #   `default`) from Ollama ≥ 0.34.3, or `nil` when the server or model does
+  #   not expose it
+  class ModelMetadata < Data.define(
+    :name, :system, :capabilities, :families, :thinking
+  )
     # Checks if the given capability is included in the object's capabilities.
     #
     # @param capability [String] the capability to check for
@@ -398,6 +403,7 @@ module OllamaChat::ModelHandling
         system:       md.system,
         capabilities: md.capabilities,
         families:     md.details.families,
+        thinking:     md.thinking,
       )
     end
   rescue Ollama::Errors::NotFoundError
@@ -558,7 +564,22 @@ module OllamaChat::ModelHandling
       session.update(current_model: nil)
     end
 
-    old_model != @model and reconfigure_model_options(profile:, keep_options:)
+    if old_model != @model
+      reconfigure_model_options(profile:, keep_options:)
+      if @model_metadata.can?('thinking')
+        unless think_mode_states.include?(session.think_mode)
+          default_think_mode = @model_metadata&.thinking&.default
+          if default_think_mode
+            default_think_mode = normalize_think_state(default_think_mode)
+          else
+            default_think_mode = 'disabled'
+          end
+          think_mode.selected = default_think_mode
+        end
+      else
+        think_mode.selected = 'disabled'
+      end
+    end
 
     log(:info, "Model switched", data: { old_model:, new_model: @model, profile: })
     @model_metadata

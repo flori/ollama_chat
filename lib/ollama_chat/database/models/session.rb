@@ -89,7 +89,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   #   @return [String, nil] A JSON-serialized string containing default settings for tools.
   #
   # @!attribute [v] think_mode
-  #   @return [String] The current thinking mode (must be one of `THINK_MODE_STATES`).
+  #   @return [String] The current thinking mode (must be one of `Chat#think_mode_states`).
   #
   # @!attribute [v] think_loud_enabled
   #   @return [Boolean] Whether thinking annotations are displayed in the output.
