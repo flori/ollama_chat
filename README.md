@@ -2,8 +2,8 @@
 
 ## Description
 
-**ollama_chat** is a chat client, that can be used to connect to an ollama
-server and enter chat conversations with the LLMs provided by it.
+**ollama_chat** is a terminal chat client that connects to an Ollama
+server and lets you converse with the LLMs it provides.
 
 ## Documentation
 
