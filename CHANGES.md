@@ -1,5 +1,122 @@
 # Changes
 
+## 2026-09-25 v0.0.122
+
+## Features
+
+*   **Per-model thinking-state support**: Added support for per-model thinking
+    states via the `/api/show` endpoint.
+    *   Replaced the `THINK_MODE_STATES` constant with a `think_mode_states`
+        method that reads `@model_metadata&.thinking&.full?(:values)` to return
+        a per-model subset, falling back to the full superset for
+        pre-**0.34.3** Ollama or non-thinking models.
+    *   Added `normalize_think_state` helper to canonicalize boolean
+        (`true`/`false`) and string (`"low"`/`"high"`/`"max"`) thinking values.
+    *   Added `:thinking` field to `ModelMetadata` data class.
+    *   Implemented think-mode clamping in `use_model` to disable thinking for
+        non-thinking models or clamp to the model's default when the current
+        level is unavailable.
+    *   Converted `DatabaseStateSelector` `states`/`off` to support `Proc` via
+        `ask_and_send_or_self(:call, @chat)`.
+    *   Converted `think_mode` and `voices` selectors in
+        `setup_state_selectors` to lambda-based `states:`.
+    *   Added `Thinking` display line to `info_model`.
+*   **Invidious YouTube captions**: Added `OllamaChat::Invidious` to fetch
+    video metadata and transcripts from an Invidious companion instance.
+    *   Uses `POST /companion/youtubei/v1/player` for `videoDetails` and
+        `captionTracks`.
+    *   Selects the best caption track by priority-ordered language regexes.
+    *   Fetches timedtext XML and extracts `<text>` elements via `Nokogiri`,
+        decoding double-encoded HTML entities.
+    *   Returns a formatted markdown header + transcript as a text IO.
+*   **Unified HTTP handling**: Added `HTTPHandling#request_url_response` to
+    consolidate `Excon.new` call sites, merging `http_options` (SSL, proxy)
+    with caller-supplied options.
+    *   Updated `ASR.transcribe`, `TTS.voices`, `TTS#fetch_tts`,
+        `GenerateImage#post_url`, `GenerateImage#get_url`, `GetURL#execute`,
+        `Invidious.fetch_video_info`, and `SourceFetching#fetch_source` to
+        route through this method.
+    *   Extracted audio/video MIME regex into `HAS_AUDIO` constant shared by
+        `parse_source` and the `get_url` tool.
+    *   Split `Fetcher` `middlewares` into class-level `self.middlewares` and
+        instance delegate; added `RedirectFollower` to the default stack.
+    *   Added `middlewares:` to streaming `excon` requests in `fetcher.rb`.
+*   **One-shot voice notification**: Added `OllamaChat::Speaker` concern
+    providing `speak(text, background:)` and `cancel_speaking`.
+    *   `OllamaChat::TTS` and `OllamaChat::Say` now include
+        `OllamaChat::Speaker`.
+    *   Added `Chat#speak` facade to resolve the configured voice handler.
+    *   `Dialog#readline_prompt` and `Dialog#confirm?` now speak the prompt
+        with a 10-second delay.
+    *   `Tools::PatchFile` announces "You can review the patch for the file …
+        now!" before opening `vimdiff`.
+    *   `AudioPlayer#start` redirects `ffplay` stdout/stderr to `/dev/null`.
+*   **ASR transcription pipeline**: Added `OllamaChat::ASR` client for
+    audio/video transcription.
+    *   Uploads audio/video as multipart form-data to the audio.cpp
+        `/v1/audio/transcriptions` endpoint.
+    *   Converts video sources to 16 kHz mono PCM WAV via a configurable
+        `ffmpeg` command (`CONVERT_COMMAND`).
+    *   Added `OC::OLLAMA::CHAT::ASR` config module with `URL`,
+        `CONVERT_COMMAND`, and `MODEL` settings.
+    *   Extended `/input` command with `-l <language>` option.
+    *   Routed `audio/*`, `video/*`, and specific `application/` MIME types
+        into `parse_audio`.
+    *   Added `Fetcher::ResponseMetadata.as_text(text)` factory for synthetic
+        `text/plain` IO responses.
+    *   Replaced hardcoded timeouts in `lib/ollama_chat/tts.rb` with values
+        from `config.timeouts`.
+*   **Audio/Video support in `get_url`**: Added `language` parameter to the
+    `get_url` tool definition for optional transcription hints.
+    *   Pre-transcribes `audio/*` and `video/*` sources via `chat.parse_audio`
+        before content-type dispatch.
+    *   Threads `language:` kwarg into `chat.import_source`.
+*   **Prompt management enhancements**:
+    *   Added `reset_prompt_count` and `choose_and_reset_count` to
+        `lib/ollama_chat/prompt_management.rb`.
+    *   Added `/prompt reset count` command.
+    *   Added `count:` keyword argument to `choose_prompt` to increment
+        `metadata['use_count']`.
+    *   Changed `all_prompts` sort to `use_count` descending, falling back to
+        name for tie-breaking.
+    *   Added `-i` summary instruction flag to `/input` command to prompt for
+        an optional instruction.
+    *   Added `instruction` parameter to `get_url` summarizing, threading it
+        through `summarize_source` and `summarize`.
+*   **Config-driven default persona**: Added `persona.default_name` to
+    `default_config.yml`.
+    *   Updated `initial_persona_name` in `personae_management.rb` to fall back
+        to `config.persona&.default_name`.
+
+## Improvements
+
+*   **CI and Dependencies**:
+    *   Added `ffmpeg` to the CI Docker image.
+    *   Added `nokogiri ~> 1.0` dependency.
+    *   Bumped `tins ~> 1.58`.
+    *   Added `require 'ollama_chat/utils/utf8_converter'` in
+        `png_metadata_extractor.rb`.
+    *   Reorganized `require` statements in `lib/ollama_chat/utils.rb`
+        alphabetically.
+*   **Error Handling**:
+    *   In `lib/ollama_chat/asr.rb`, capture the return value of `system` to
+        detect missing executables and print a clear "not found in PATH"
+        message.
+    *   Extract executable name via `Shellwords.split(cmd).first` for error
+        messages.
+*   **Documentation**:
+    *   Updated `ollama_chat` description in README to be more concise and
+        user-focused.
+    *   Updated YARD in `session.rb`, `state_selectors.rb`, and
+        `think_control.rb` to reference `Chat#think_mode_states`.
+
+## Bug Fixes
+
+*   **Pager Spec**: Changed `expect(Tins::Terminal).to receive(:lines)` to
+    `allow(Tins::Terminal).to receive(:lines)` in
+    `spec/ollama_chat/message_list_spec.rb` and removed the `skip 'no tty'`
+    guard.
+
 ## 2026-09-18 v0.0.121
 
 * Added `**_kwargs` splat to `Say.voices` to prevent `ArgumentError` when the
