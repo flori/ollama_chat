@@ -309,7 +309,7 @@ class OllamaChat::Utils::Fetcher
     Tempfile.create do |tmp|
       infobar.label = 'Getting'
       if @streaming
-        response = excon(url, headers:, response_block: callback(tmp), **opts).request(method: :get)
+        response = excon(url, headers:, middlewares:, response_block: callback(tmp), **opts).request(method: :get)
         response.status != 200 || !@started and raise RetryWithoutStreaming
         decorate_io(tmp, response)
         infobar.finish
