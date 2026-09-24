@@ -19,10 +19,13 @@ module OllamaChat::Dialog
       old_pre_input_hook = Reline.pre_input_hook
       Reline.pre_input_hook = -> { Reline.insert_text prefill.to_s }
     end
+    speaker = speak(prompt, background: 10)
     Reline.readline(prompt, true)&.chomp
+
   rescue Interrupt
     return nil
   ensure
+    speaker&.cancel_speaking
     prefill and Reline.pre_input_hook = old_pre_input_hook
   end
 
@@ -46,6 +49,7 @@ module OllamaChat::Dialog
     if prompt.include?('%s')
       prompt = prompt % (timeout ? ('timeout in %us' % timeout) : 'no timeout')
     end
+    speaker = speak(prompt, background: 10) if timeout.nil?
     output.print prompt
     min    = 1
     time   = 0
@@ -86,6 +90,8 @@ module OllamaChat::Dialog
       end
       nil
     end
+  ensure
+    speaker&.cancel_speaking
   end
 
   private

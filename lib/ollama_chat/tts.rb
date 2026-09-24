@@ -1,3 +1,5 @@
+require 'ollama_chat/speaker'
+
 # Text-to-Speech handler for streaming audio playback.
 #
 # This class handles converting streamed text responses into spoken audio
@@ -13,6 +15,7 @@ class OllamaChat::TTS
   include OllamaChat::Utils::UTF8Converter
   include OllamaChat::Utils::ValueFormatter
   include OllamaChat::KramdownANSI
+  include OllamaChat::Speaker
   include Ollama::Handlers::Concern
 
   # Returns a sorted list of available TTS voice IDs.

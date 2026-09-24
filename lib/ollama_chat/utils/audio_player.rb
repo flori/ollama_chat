@@ -47,7 +47,7 @@ class OllamaChat::Utils::AudioPlayer
     @playing and return self
     @playing = true
     @thread = Thread.new do
-      IO.popen(@command, "w") do |io|
+      IO.popen("#@command >/dev/null 2>&1", "w") do |io|
         io.binmode
         io.sync = true
 

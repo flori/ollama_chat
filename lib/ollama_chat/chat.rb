@@ -162,15 +162,14 @@ class OllamaChat::Chat
   # @return [OllamaChat::RedisCache, nil] the cache instance
   attr_reader :cache
 
-
   # Returns the voice handler class based on the configuration.
   #
   # This method resolves the voice handler class specified in the config.
-  # If running within RSpec, it returns an empty array to avoid side effects.
+  # If running within RSpec, it returns nil to avoid side effects.
   #
-  # @return [Class, Array] the voice handler class or an empty array if in test mode
+  # @return [Class, NilClass] the voice handler class or nil if in test mode
   def voice_handler
-    defined?(RSpec) and return []
+    defined?(RSpec) and return nil
     case config.voice.handler
     when 'OllamaChat::TTS'
       OllamaChat::TTS
@@ -293,6 +292,30 @@ class OllamaChat::Chat
     end
 
     content
+  end
+
+  # Synthesizes and plays a short voice notification using the session's
+  # current voice.
+  #
+  # This is the chat-level facade for one-shot speech: it resolves the
+  # active voice, instantiates the configured voice handler, and delegates
+  # to its `#speak` method. It is a no-op when the voice switch is off,
+  # no voice is selected, or the handler lacks `#speak`.
+  #
+  # @param text [String] the text to speak
+  # @param background [Boolean, Integer] pass `true` for an immediate
+  #   background thread, `false` for inline, or a numeric delay in
+  #   seconds (e.g. `10`) to spawn a background thread that sleeps
+  #   before speaking
+  #
+  # @return [OllamaChat::TTS, OllamaChat::Say, nil] the voice handler
+  #   instance when a background thread was spawned (so callers can call
+  #   `cancel_speaking`), or `nil` for inline playback or when voice is off
+  def speak(text, background: true)
+    voice.on? or return
+    voice = session.current_voice.full? or return
+    voice_handler.method_defined?(:speak) or return
+    voice_handler.new(chat: self, voice:).speak(text, background:)
   end
 
   # Returns a human-readable string representation of the Chat object,

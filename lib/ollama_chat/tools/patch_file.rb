@@ -137,7 +137,7 @@ class OllamaChat::Tools::PatchFile
 
     # We use the content we just read for the patch, as it's verified fresh
     patched_content = apply_edits(content, edits)
-    result  = apply_patch(chat, path, patched_content)
+    result          = apply_patch(chat, path, patched_content)
 
     chat.log(:info, "File patched", data: {
       tool: name, path: path.to_s, success: result[:success], edits_count: edits.size
@@ -284,6 +284,10 @@ class OllamaChat::Tools::PatchFile
     result      = { success: false }
     basename    = [ path.basename.sub_ext(''), path.extname.full? ].compact.map(&:to_s)
     backup_path = nil
+    chat.speak(
+      "You can review the patch for the file #{path.basename} now!",
+      background: true
+    )
     chat.edit_text_block(content, basename:) do |patched|
       cmd = [ diff_tool, path, patched.path ].map(&:to_s)
       backup_path = perform_backup path

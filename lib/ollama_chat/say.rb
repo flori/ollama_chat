@@ -1,3 +1,5 @@
+require 'ollama_chat/speaker'
+
 # A handler that uses the system's say command to speak response content.
 #
 # This class extends Ollama::Handlers::Say to provide voice validation
@@ -7,6 +9,8 @@
 # @example Using the Say handler
 #   OllamaChat::Say.new(chat: chat, voice: 'Samantha')
 class OllamaChat::Say < Ollama::Handlers::Say
+  include OllamaChat::Speaker
+
   # Returns a list of available system voices.
   #
   # This method queries the system's `say` command to retrieve the list of

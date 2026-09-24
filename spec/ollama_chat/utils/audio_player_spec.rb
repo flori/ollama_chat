@@ -7,7 +7,7 @@ describe OllamaChat::Utils::AudioPlayer do
     const_conf_as(
       "OC::OLLAMA::CHAT::AUDIO_PLAYER_CONFIG" =>
         double(
-          command:   %w[ true ],
+          command:   'true',
           frequency: 24_000,
           bits:      16,
           pause:     0.01
@@ -21,7 +21,7 @@ describe OllamaChat::Utils::AudioPlayer do
 
   describe '#initialize' do
     it 'uses config defaults when no args provided' do
-      expect(player.instance_variable_get(:@command)).to eq(%w[true])
+      expect(player.instance_variable_get(:@command)).to eq('true')
     end
 
     it 'accepts custom parameters' do
@@ -79,7 +79,7 @@ describe OllamaChat::Utils::AudioPlayer do
     end
 
     it 'opens a pipe to the command' do
-      expect(IO).to receive(:popen).with(%w[true], 'w')
+      expect(IO).to receive(:popen).with('true >/dev/null 2>&1', 'w')
       player.start
     end
   end
@@ -87,7 +87,7 @@ describe OllamaChat::Utils::AudioPlayer do
   describe '#stop' do
     it 'sets playing flag to false' do
       player.start
-      expect(IO).to receive(:popen).with(%w[true], 'w')
+      expect(IO).to receive(:popen).with('true >/dev/null 2>&1', 'w')
       player.stop
       expect(player.instance_variable_get(:@playing)).to be false
     end
