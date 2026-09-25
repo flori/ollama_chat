@@ -20,7 +20,7 @@ describe OllamaChat::Conversation do
         .with(Pathname.new('./new_chat.jsonl'), messages: chat.messages.clean_messages)
         .and_return(true)
       expect(STDOUT).to receive(:puts)
-        .with('Saved conversation to "./new_chat.jsonl".')
+        .with('Saved cleaned conversation to "./new_chat.jsonl".')
       chat.save_conversation('./new_chat.jsonl', clean: true)
     end
 
