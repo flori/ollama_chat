@@ -1,5 +1,99 @@
 # Changes
 
+## 2026-09-25 v0.0.123
+
+### Added
+
+*   README section 5 documenting `/conversation compact`: token-aware
+    keep-recent budget, safe & retryable behavior, visible before/after
+    metrics, and iterative re-compaction.
+*   Three-step context escalation ladder in the README: `/conversation
+    compact` first, then `/conversation report` + `/clear` + `/input path`
+    as the preferred second step, and `/conversation clean` as the emergency
+    exit.
+*   `execute_shell` tool to the Filesystem row in the README, noted as running
+    shell commands as a last resort.
+*   `execute_jira_twg` tool to the Web/External row in the README for running
+    Jira CLI queries via `twg`.
+*   `lookup_group` tool to the Knowledge row in the README for retrieving prior
+    conversation groups by UUID.
+*   Speech Services (ASR) section documenting `OLLAMA_CHAT_ASR_URL`,
+    `OLLAMA_CHAT_ASR_CONVERT_COMMAND`, and `OLLAMA_CHAT_ASR_MODEL`.
+*   Audio Playback section documenting `OLLAMA_CHAT_AUDIO_PLAYER_CONFIG`.
+*   Invidious (YouTube Proxy) section documenting `OLLAMA_CHAT_INVIDIOUS_URL`,
+    `OLLAMA_CHAT_INVIDIOUS_COMPANION_KEY`, and
+    `OLLAMA_CHAT_INVIDIOUS_CAPTION_LANGUAGES`.
+*   `markdown:` keyword argument (default `true`) to
+    `kramdown_markdown_remove`; when `false`, skips the `kramdown_ansi_parse`
+    step while still removing emoji, ANSI, and box-drawing characters.
+*   Explanatory comment block to `eval_template` in
+    `lib/ollama_chat/tools/execute_grep.rb` clarifying that the `cmd` config
+    value is a Ruby string template whose `#{...}` interpolations are resolved
+    against the method's local parameters via `eval`.
+*   `cleaned` string prefix in `save_conversation` so the `STDOUT`/`STDERR`
+    confirmation messages read "Saved cleaned conversation to…" when `clean:
+    true` is passed.
+*   "Cancelled." message when the user skips saving in conversation report and
+    summarize flows.
+
+### Changed
+
+*   Renamed `report_session` to `generate_conversation_report` to clarify it
+    only builds the report text.
+*   Reworked `report_conversation` to always display in the pager first, then
+    optionally save to a file; removed the `save:` keyword argument.
+*   Reworked `summarize_conversation` in `session_management.rb` to always
+    render via `use_pager` first, then optionally save via `ask_for_filename?`
+    and `should_overwrite?`.
+*   Removed the `save:` keyword argument from `summarize_conversation` and the
+    `-f` flag from the `/conversation` command dispatch in `commands.rb`.
+*   Tightened the `/conversation` regex from `(?:[sf]|c)` to `[sc]` and updated
+    the `options:` help text to drop `-f save`.
+*   Changed "Nothing to summarize!" and "Nothing to report!" output from
+    `STDERR` to `STDOUT`.
+*   `kramdown_markdown_remove` now strips `\p{Extended_Pictographic}` emoji
+    before any further processing, preventing TTS engines from vocalizing them.
+*   `kramdown_markdown_remove` in `lib/ollama_chat/kramdown_ansi.rb` now strips
+    Unicode box-drawing characters (`U+2500`..`U+257F`) that kramdown renders
+    as table borders, preventing TTS engines from stammering on them.
+*   Collapses resulting multi-space runs and strips leading/trailing whitespace
+    in `kramdown_markdown_remove`.
+*   Moved the `kramdown_markdown_remove` call from `flush_buffer` into
+    `enqueue_tts` in `lib/ollama_chat/tts.rb` so all enqueue paths are covered,
+    passing `markdown: @chat.markdown.on?`.
+*   `multipart_form_data` in `lib/ollama_chat/asr.rb` now returns a hash
+    containing only `headers:`, `expects:`, and `body:`, which are the actual
+    Excon request options, instead of merging `rest` (`model:`, `language:`)
+    into the returned options hash.
+*   Updated YARD documentation to reflect the new parameter and emoji stripping
+    behavior.
+*   Updated `spec/ollama_chat/asr_spec.rb` expectations from
+    `hash_including(model: ...)` / `hash_including(language: ...)` to
+    `hash_including(body: kind_of(String))` to match the new option shape.
+*   Updated `commands_spec.rb` to remove the obsolete `/conversation summarize
+    -f` and `/conversation report -f` specs and drop `save:` from expectations.
+*   Updated `session_management_spec.rb` for the new show-then-save flow,
+    `STDOUT` stream, and `Cancelled.` expectation.
+*   Updated the corresponding expectation in `conversation_spec.rb` to match
+    the new message text.
+*   Renamed former section 5 "Session Reports" to section 6 "Conversation
+    Reports" to match the actual command name.
+*   Updated Conversation Archiving section from `/session summarize` to
+    `/conversation summarize`, removed obsolete `-f` flag reference, and
+    described the show-then-save flow.
+
+### Fixed
+*   Fixed `TTS_URL` to `OLLAMA_CHAT_TTS_URL` to match the actual env var name
+    in `oc.rb`.
+*   Wrapped `@prefix` with `Regexp.quote()` in `RedisCache#unpre` to ensure the
+    prefix is always matched as a literal string.
+*   Fixed typos in height validation error message.
+
+### Removed
+*   `context_spook` from development dependencies in `Rakefile` and
+    `ollama_chat.gemspec`.
+*   The `-f` flag from the `/report` command in `commands.rb`.
+
 ## 2026-09-25 v0.0.122
 
 ## Features
