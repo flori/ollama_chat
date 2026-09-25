@@ -123,7 +123,7 @@ describe OllamaChat::TTS do
 
       tts.expose(:process_pending_blocks)
 
-      expect(enqueued).to eq ["first paragraph\n", "second paragraph\n"]
+      expect(enqueued).to eq ["first paragraph", "second paragraph"]
       expect(tts.instance_variable_get(:@buffer)).to eq 'incomplete'
     end
 
@@ -134,7 +134,7 @@ describe OllamaChat::TTS do
 
       tts.expose(:process_pending_blocks)
 
-      expect(enqueued).to eq ["real text\n", "more\n"]
+      expect(enqueued).to eq ["real text", "more"]
       expect(tts.instance_variable_get(:@buffer)).to eq ''
     end
   end

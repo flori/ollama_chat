@@ -82,5 +82,22 @@ describe OllamaChat::KramdownANSI do
       result = chat.kramdown_markdown_remove(input)
       expect(result).to eq 'hello world'
     end
+
+    it 'removes emoji before processing' do
+      input = 'what is this? 🍓'
+      result = chat.kramdown_markdown_remove(input)
+      expect(result).to eq 'what is this?'
+    end
+
+    it 'returns empty string when only emoji are present' do
+      expect(chat.kramdown_markdown_remove('🍓✨')).to eq ''
+    end
+
+    it 'skips kramdown parse when markdown: false' do
+      input = '**bold** text'
+      expect(chat).not_to receive(:kramdown_ansi_parse)
+      result = chat.kramdown_markdown_remove(input, markdown: false)
+      expect(result).to include('**bold**')
+    end
   end
 end

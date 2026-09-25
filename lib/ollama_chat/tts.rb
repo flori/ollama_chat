@@ -132,7 +132,6 @@ class OllamaChat::TTS
       size = match[0].size
 
       chunk = @buffer.slice!(0, size).full?(:strip) or next
-      chunk = kramdown_markdown_remove(chunk) if @chat.markdown.on?
       enqueue_tts(chunk)
     end
   end
@@ -147,6 +146,7 @@ class OllamaChat::TTS
   #
   # @return [Thread] the spawned TTS fetch thread
   def enqueue_tts(block)
+    block = kramdown_markdown_remove(block, markdown: @chat.markdown.on?)
     thread_id = @id_mutex.synchronize { @next_id += 1 }
     @chat.log(:info, "TTS: Enqueueing block for synthesis", data: { thread_id:, block: })
     @id_mutex.synchronize { @enqueued_count += 1 }

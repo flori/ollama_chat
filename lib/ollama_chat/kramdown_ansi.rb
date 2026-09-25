@@ -49,18 +49,24 @@ module OllamaChat::KramdownANSI
     retry
   end
 
-  # The kramdown_markdown_remove method strips all markdown formatting from
-  # content by first rendering it to ANSI and then removing escape sequences
-  # and box-drawing characters, yielding plain text suitable for TTS.
+  # The kramdown_markdown_remove method strips markdown formatting, emoji,
+  # ANSI escape sequences, and box-drawing characters from content, yielding
+  # plain text suitable for TTS playback.
   #
-  # @param content [ String, nil ] the markdown content to strip.
-  #   If nil, returns an empty string.
+  # @param content [ String, nil ] the content to strip.
+  #   If nil or empty, returns an empty string.
+  # @param markdown [ Boolean] if true (default), runs the full kramdown
+  #   ANSI parse before stripping; if false, only removes emoji, ANSI,
+  #   and box-drawing characters without markdown rendering.
   #
-  # @return [ String ] the content with all markdown, ANSI, and box-drawing
-  #   formatting removed, suitable for TTS playback
-  def kramdown_markdown_remove(content)
+  # @return [ String ] the content with all markdown, ANSI, emoji, and
+  #   box-drawing formatting removed, suitable for TTS playback
+  def kramdown_markdown_remove(content, markdown: true)
     content.full? or return ''
-    content = kramdown_ansi_parse(content).full? or return ''
+    content = content.gsub(/\p{Extended_Pictographic}/, '').full? or return ''
+    if markdown
+      content = kramdown_ansi_parse(content).full? or return ''
+    end
     content = OllamaChat::Utils::StripANSI.strip_ansi(content)
     # Remove box-drawing characters (U+2500..U+257F) that kramdown uses
     # for table borders/separators — TTS engines stammer on these.
