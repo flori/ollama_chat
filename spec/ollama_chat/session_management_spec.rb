@@ -322,27 +322,30 @@ describe OllamaChat::SessionManagement do
   end
 
   describe '#summarize_conversation' do
-    it 'displays summary in pager when not saving' do
+    it 'displays summary in pager and offers save' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
       expect(chat).to receive(:summarize_session).and_return('# Summary content')
       expect(chat).to receive(:use_pager)
+      expect(chat).to receive(:ask_for_filename?).and_return(nil)
+      expect(STDOUT).to receive(:puts).with('Cancelled.')
       chat.summarize_conversation
     end
 
     it 'reports nothing when no messages' do
       expect(chat).to receive(:summarize_session).and_return(nil)
-      expect(STDERR).to receive(:puts).with('Nothing to summarize!')
+      expect(STDOUT).to receive(:puts).with('Nothing to summarize!')
       chat.summarize_conversation
     end
 
-    it 'saves summary to file when save: true' do
+    it 'saves summary to file when user provides a filename' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
       tmpfile = Pathname.new(File.join(Dir.tmpdir, "summ_#{$$}_test.md"))
+      expect(chat).to receive(:summarize_session).and_return('# Summary content')
+      expect(chat).to receive(:use_pager)
       expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
       expect(chat).to receive(:should_overwrite?).and_return(true)
-      expect(chat).to receive(:summarize_session).and_return('# Summary content')
       expect(STDOUT).to receive(:puts).with('File successfully written.')
-      chat.summarize_conversation(save: true)
+      chat.summarize_conversation
       expect(tmpfile.exist?).to be_truthy
       expect(tmpfile.read).to include('Summary content')
     ensure

@@ -384,34 +384,27 @@ module OllamaChat::SessionManagement
     contents * "\n\n"
   end
 
-  # Summarizes the conversation and displays or saves the result.
+  # Summarizes the conversation and displays / saves the result.
   #
   # @param sentence [Boolean] summarize each message in one sentence (default: false)
-  # @param save [Boolean] save to file instead of pager (default: false)
-  def summarize_conversation(sentence: false, save: false)
-    if save
-      filename = ask_for_filename?(action: 'for summarization') or return
-      should_overwrite?(filename) or return
-      summary = summarize_session(sentence:) do |content|
-        infobar.puts kramdown_ansi_parse(content)
+  def summarize_conversation(sentence: false)
+    summary = summarize_session(sentence:) do |content|
+      infobar.puts kramdown_ansi_parse(content) << ?\n
+    end
+    if summary.full?
+      use_pager do |output|
+        output.puts kramdown_ansi_parse(summary)
       end
-      if summary.full?
+      if filename = ask_for_filename?(action: 'for summarization') and
+          should_overwrite?(filename)
+      then
         filename.write(summary)
         STDOUT.puts "File successfully written."
       else
-        STDERR.puts "Nothing to summarize!"
+        STDOUT.puts "Cancelled."
       end
     else
-      summary = summarize_session(sentence:) do |content|
-        infobar.puts kramdown_ansi_parse(content) << ?\n
-      end
-      if summary.full?
-        use_pager do |output|
-          output.puts kramdown_ansi_parse(summary)
-        end
-      else
-        STDERR.puts "Nothing to summarize!"
-      end
+      STDOUT.puts "Nothing to summarize!"
     end
   end
 

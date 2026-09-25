@@ -374,15 +374,15 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(clean|compact|save|load|summarize|report)((?:\s+-(?:[sf]|c))*)(?:\s+([^-].*\.jsonl?))?$),
+    regexp: %r(^/conversation\s+(clean|compact|save|load|summarize|report)((?:\s+-[sc])*)(?:\s+([^-].*\.jsonl?))?$),
     complete: [ 'conversation', %w[ save load clean compact summarize report ] ],
-    options: '[-s|-f|-c] [FILENAME]',
+    options: '[-s|-c] [FILENAME]',
     help: <<~EOT
       💾 Manage conversation content:
          - save/load: Export/import as .json or .jsonl
          - clean: Remove tool content, images, thinking
          - compact: Summarize old messages, keep recent
-         - summarize: Per-message narrative (-s sentence, -f save)
+         - summarize: Per-message narrative (-s sentence)
          - report: Generate a session report document
     EOT
   ) do |subcommand,opts,path|
@@ -420,8 +420,8 @@ module OllamaChat::Commands
         STDOUT.puts 'Cancelled.'
       end
     when 'summarize'
-      opts = go_command('sf', opts)
-      summarize_conversation(save: opts[?f], sentence: opts[?s])
+      opts = go_command('s', opts)
+      summarize_conversation(sentence: opts[?s])
     when 'report'
       report_conversation
     end
