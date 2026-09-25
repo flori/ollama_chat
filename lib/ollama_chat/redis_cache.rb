@@ -151,6 +151,6 @@ class OllamaChat::RedisCache
   # @param key [String] The prefixed key
   # @return [String] The key without prefix
   def unpre(key)
-    key.sub(/\A#@prefix/, '')
+    key.sub(/\A#{Regexp.quote(@prefix)}/, '')
   end
 end
