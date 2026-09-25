@@ -125,6 +125,10 @@ class OllamaChat::Tools::ExecuteGrep
   # Evaluates a template string using the provided configuration and
   # parameters.
   #
+  # The `cmd` config value is a Ruby string template — its `#{...}`
+  # interpolations are resolved against the local parameters via `eval`,
+  # so all arguments below serve as the interpolation context.
+  #
   # @param config [Object] the configuration object containing tool settings
   # @param pattern [String] the regex pattern to search for
   # @param path [String] the file or directory path to search in
