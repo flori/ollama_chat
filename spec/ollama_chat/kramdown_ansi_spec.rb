@@ -40,4 +40,47 @@ describe OllamaChat::KramdownANSI do
       expect(chat.kramdown_ansi_parse(nil)).to eq ''
     end
   end
+
+  describe '#kramdown_markdown_remove' do
+    it 'returns empty string for nil' do
+      expect(chat.kramdown_markdown_remove(nil)).to eq ''
+    end
+
+    it 'returns empty string for empty string' do
+      expect(chat.kramdown_markdown_remove('')).to eq ''
+    end
+
+    it 'removes table separator rows' do
+      input = "Name | Age\n------|-----\nFoo | 42"
+      result = chat.kramdown_markdown_remove(input)
+      expect(result).not_to include('-')
+    end
+
+    it 'replaces box-drawing characters from rendered tables' do
+      input = "| Name | Age |\n|------|-----|\n| Foo  | 42   |"
+      result = chat.kramdown_markdown_remove(input)
+      expect(result).not_to include("│")
+      expect(result).not_to include("╭")
+      expect(result).to include('Name')
+      expect(result).to include('Foo')
+    end
+
+    it 'preserves ASCII pipes in non-table lines (code, formulas)' do
+      input = 'look at this shell command `ls | grep foo`'
+      result = chat.kramdown_markdown_remove(input)
+      expect(result).to include('|')
+    end
+
+    it 'collapses multiple spaces in table rows' do
+      input = '|  Name  |  Age  |'
+      result = chat.kramdown_markdown_remove(input)
+      expect(result).not_to match(/ {2,}/)
+    end
+
+    it 'strips bold and other markdown formatting' do
+      input = '**hello** world'
+      result = chat.kramdown_markdown_remove(input)
+      expect(result).to eq 'hello world'
+    end
+  end
 end
