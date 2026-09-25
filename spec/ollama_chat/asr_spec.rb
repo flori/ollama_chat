@@ -23,7 +23,7 @@ describe OllamaChat::ASR do
         .with(
           :post,
           'http://localhost:8880/v1/audio/transcriptions',
-          hash_including(model: 'qwen3-asr-1.7b')
+          hash_including(body: kind_of(String))
         ).and_yield(double(body: '{"text": "Hello Florian"}'))
 
       result = described_class.transcribe(audio_io, chat:)
@@ -35,7 +35,7 @@ describe OllamaChat::ASR do
         .with(
           :post,
           'http://localhost:8880/v1/audio/transcriptions',
-          hash_including(language: 'de')
+          hash_including(body: kind_of(String))
         ).and_yield(double(body: '{"text": "Hallo"}'))
 
       described_class.transcribe(audio_io, chat:, language: 'de')

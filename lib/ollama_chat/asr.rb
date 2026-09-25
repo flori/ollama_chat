@@ -99,10 +99,10 @@ module OllamaChat
         body << Excon::CR_NL
         body << "--#{boundary}--" << Excon::CR_NL
 
-        rest.symbolize_keys_recursive.compact | {
+        {
           headers: { 'Content-Type' => %{multipart/form-data; boundary="#{boundary}"} },
           expects: 200,
-          body:,
+          body:    ,
         }
       end
     end
