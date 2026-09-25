@@ -82,8 +82,8 @@ class OllamaChat::Tools::ComputeBMI
       units = 'SI'
     end
 
-    raise OllamaChat::ToolFunctionArgumentError, 'Height must be greater than zero and in kg/lbs' if height <= 0
-    raise OllamaChat::ToolFunctionArgumentError, 'Weight must be less than 3m and in meter/feet' if height > 3
+    raise OllamaChat::ToolFunctionArgumentError, 'Height must be greater than zero and in meter/feet' if height <= 0
+    raise OllamaChat::ToolFunctionArgumentError, 'Height must be less than 3m and in meter/feet' if height > 3
 
     bmi      = ( weight / height**2 ).round(2)
     category = calculate_category(bmi)
