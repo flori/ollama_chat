@@ -425,7 +425,7 @@ module OllamaChat::SessionManagement
   #
   # @param name [String, nil] specific template name (skips chooser)
   # @return [String, nil] the report or nil if empty
-  def report_session(name: nil)
+  def generate_conversation_report(name: nil)
     content = messages.compacted_messages.inject('') do |c, message|
       message.content.present? or next c
       sender = sender_name_displayed(message)
@@ -446,7 +446,7 @@ module OllamaChat::SessionManagement
     system = prompt(:report, context: 'system').to_s
 
     Infobar.busy(
-      label: 'Generating session report…',
+      label: 'Generating conversation report…',
       frames: :braille7,
       output: STDOUT,
     ) do
@@ -454,30 +454,26 @@ module OllamaChat::SessionManagement
     end
   end
 
-  # Generates a report and displays or saves the result.
+  # Generates a report and displays / saves the result.
   #
   # @param name [String, nil] specific report template name (skips chooser)
-  # @param save [Boolean] save to file instead of pager (default: false)
-  def report_conversation(name: nil, save: false)
-    if save
-      filename = ask_for_filename?(action: 'for report') or return
-      should_overwrite?(filename) or return
-      result = report_session(name:)
-      if result.full?
+  def report_conversation(name: nil)
+    result = generate_conversation_report(name:)
+    if result.full?
+      use_pager do |output|
+        output.puts kramdown_ansi_parse(result)
+      end
+      if filename = ask_for_filename?(action: 'for report') and
+          should_overwrite?(filename)
+      then
         filename.write(result)
         STDOUT.puts "File successfully written."
       else
-        STDERR.puts "Nothing to report!"
+        STDOUT.puts "Cancelled."
       end
     else
-      result = report_session(name:)
-      if result.full?
-        use_pager do |output|
-          output.puts kramdown_ansi_parse(result)
-        end
-      else
-        STDERR.puts "Nothing to report!"
-      end
+      STDOUT.puts "Nothing to report!"
+      return
     end
   end
 

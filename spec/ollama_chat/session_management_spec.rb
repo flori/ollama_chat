@@ -278,6 +278,7 @@ describe OllamaChat::SessionManagement do
 
     it 'returns nil if the user provides an empty string (cancel)' do
       expect(chat).to receive(:ask?).and_return('')
+      expect(STDOUT).to receive(:puts).with('Cancelled.')
       expect(chat.determine_valid_new_name_for_session('to create')).to be_nil
     end
   end
@@ -349,20 +350,20 @@ describe OllamaChat::SessionManagement do
     end
   end
 
-  describe '#report_session' do
+  describe '#generate_conversation_report' do
     it 'generates a report from compacted messages' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello world')
       expect(chat).to receive(:sender_name_displayed).and_return('User')
       expect(chat).to receive(:choose_prompt).and_return(double(to_s: '%{content}'))
       expect(chat).to receive(:generate).and_return('Generated report')
 
-      result = chat.report_session
+      result = chat.generate_conversation_report
       expect(result).to eq('Generated report')
     end
 
     it 'returns nil when no messages have content' do
       expect(chat.messages).to receive(:compacted_messages).and_return([])
-      expect(chat.report_session).to be_nil
+      expect(chat.generate_conversation_report).to be_nil
     end
 
     it 'uses named prompt when name is provided' do
@@ -373,21 +374,23 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:prompt).with(:report, context: 'system')
         .and_return(double(to_s: '%{content}'))
       expect(chat).to receive(:generate).and_return('Brief')
-      expect(chat.report_session(name: 'coding_brief')).to eq('Brief')
+      expect(chat.generate_conversation_report(name: 'coding_brief')).to eq('Brief')
     end
   end
 
   describe '#report_conversation' do
     it 'displays report in pager when not saving' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
-      expect(chat).to receive(:report_session).and_return('# Report content')
+      expect(chat).to receive(:generate_conversation_report).and_return('# Report content')
       expect(chat).to receive(:use_pager)
+      expect(chat).to receive(:ask_for_filename?).and_return(nil)
+      expect(STDOUT).to receive(:puts).with('Cancelled.')
       chat.report_conversation
     end
 
     it 'reports nothing when no content' do
-      expect(chat).to receive(:report_session).and_return(nil)
-      expect(STDERR).to receive(:puts).with('Nothing to report!')
+      expect(chat).to receive(:generate_conversation_report).and_return(nil)
+      expect(STDOUT).to receive(:puts).with('Nothing to report!')
       chat.report_conversation
     end
 
@@ -396,9 +399,10 @@ describe OllamaChat::SessionManagement do
       tmpfile = Pathname.new(File.join(Dir.tmpdir, "report_#{$$}_test.md"))
       expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
       expect(chat).to receive(:should_overwrite?).and_return(true)
-      expect(chat).to receive(:report_session).and_return('# Report content')
+      expect(chat).to receive(:generate_conversation_report).and_return('# Report content')
+      expect(STDOUT).to receive(:puts).with(/Report content/)
       expect(STDOUT).to receive(:puts).with('File successfully written.')
-      chat.report_conversation(save: true)
+      chat.report_conversation
       expect(tmpfile.exist?).to be_truthy
       expect(tmpfile.read).to include('Report content')
     ensure

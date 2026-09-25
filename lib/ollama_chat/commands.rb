@@ -423,8 +423,7 @@ module OllamaChat::Commands
       opts = go_command('sf', opts)
       summarize_conversation(save: opts[?f], sentence: opts[?s])
     when 'report'
-      opts = go_command('f', opts)
-      report_conversation(save: opts[?f])
+      report_conversation
     end
     :next
   end
