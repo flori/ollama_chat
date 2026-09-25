@@ -266,7 +266,42 @@ concise summary, displayed in the pager first, then optionally saved.
     filename to save it as a Markdown file, creating an automatic journal
     of your project's evolution.
 
-#### 5. Session Reports (`/conversation report`)
+#### 5. Context Compaction (`/conversation compact`)
+
+Long sessions inevitably fill up the model's context window. The
+`/conversation compact` command summarizes older messages into a single
+compact summary while preserving recent exchanges, freeing up space for
+continued work.
+
+*   **Token-aware**: The keep-recent budget is derived from the active
+    model's context length, so it adapts automatically.
+*   **Safe & retryable**: If the LLM summarization fails, the message list
+    is left untouched and you can simply retry.
+*   **Visible metrics**: After compaction, a report shows summarized
+    message count, summary size, and context usage before/after.
+*   **Iterative**: Repeated compactions merge into the existing summary
+    rather than stacking multiple summary messages.
+
+Run it whenever context usage climbs into the red zone (visible in the
+runtime info gauge) — the model stays sharp and the conversation keeps
+flowing.
+
+If compaction alone isn't enough, a practical escalation ladder:
+
+1. **`/conversation compact`** — summarize old messages, keep recent tail.
+   Try this first; it's the least destructive.
+2. **`/conversation report`** → **`/clear`** → **`/input path
+    standup.md`** — generate a standup-style report, save it, clear
+    the messages, then feed the report back as context. Do this
+    before `clean`, because `clean` strips the tool output and
+    thinking that make a good report.
+3. **`/conversation clean`** — strips tool results, images, and
+    thinking content from all messages. More radical, but the
+    conversation structure and text remain intact. The emergency
+    exit: if context is so stuffed that even a report can't fit,
+    `clean` carves out enough room for anything to work again.
+
+#### 6. Conversation Reports (`/conversation report`)
 
 Generate a structured report from your conversation using configurable
 prompt templates. The report is displayed in the pager first, then
