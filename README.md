@@ -523,12 +523,12 @@ context, manipulate files, and retrieve external information.
 
 | Category | Tools | Description |
 | :--- | :--- | :--- |
-| **Filesystem** | `read_file`, `write_file`, `patch_file`, `delete_file`, `move_file`, `directory_structure`, `execute_grep` | Read, write, and search files within allowed directories. |
+| **Filesystem** | `read_file`, `write_file`, `patch_file`, `delete_file`, `move_file`, `directory_structure`, `execute_grep`, `execute_shell` | Read, write, and search files within allowed directories; run shell commands as a last resort. |
 | **Ruby/Dev** | `resolve_tag`, `execute_ri`, `gem_path_lookup`, `run_tests`, `eval_ruby` | Introspect Ruby code, check documentation, and run test suites. |
-| **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife`, `get_ghr`, `get_jira_issue` | Access the internet, fetch specific URLs, and look up technical standards. |
+| **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife`, `get_ghr`, `get_jira_issue`, `execute_jira_twg` | Access the internet, fetch specific URLs, and look up technical standards; run Jira CLI queries via `twg`. |
 | **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi`, `roll_dice` | General utility functions for time, location, and simple calculations. |
 | **Editor/Clip** | `copy_to_clipboard`, `paste_from_clipboard`, `paste_into_editor`, `open_file_in_editor` | Bridge the gap between the chat and the system clipboard or editor. |
-| **Knowledge** | `search_knowledge`, `file_context` | Semantic search for specific snippets vs. broad retrieval of structured project context. |
+| **Knowledge** | `search_knowledge`, `file_context`, `lookup_group` | Semantic search for specific snippets, broad retrieval of structured project context, or retrieving prior message groups by UUID. |
 | **Multimodal** | `generate_image` | Generate images via a local ComfyUI server. |
 
 ***Note on Knowledge Tools**: Use `search_knowledge` for precise,
