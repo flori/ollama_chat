@@ -62,7 +62,7 @@ The following environment variables can be used to configure behavior:
 - `OLLAMA_URL` - Base URL for Ollama server (default: `http://localhost:11434`)
 - `OLLAMA_HOST` - Base hostname for Ollama server (default: `localhost:11434`)
 - `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL
-- `TTS_URL` - Base URL for the [audio.cpp](https://github.com/0xshug0/audio.cpp) TTS server (default: `http://localhost:8880`)
+- `OLLAMA_CHAT_TTS_URL` - Base URL for the [audio.cpp](https://github.com/0xshug0/audio.cpp) TTS server (default: `http://localhost:8880`)
 
 #### Chat Settings
 - `OLLAMA_CHAT_MODEL` - Default model to use (e.g., `llama3.1`)
@@ -74,6 +74,19 @@ The following environment variables can be used to configure behavior:
 - `OLLAMA_CHAT_LOG_CHAT` - Chat log file path (default: `$XDG_STATE_HOME/chat.log`)
 - `OLLAMA_CHAT_LOG_DATABASE` - Database log file path (default: `$XDG_STATE_HOME/database.log`)
 - `OLLAMA_CHAT_LOG_TAIL_LINES` - Max lines to retain in log files (default: `10000`)
+
+#### Speech Services (ASR)
+- `OLLAMA_CHAT_ASR_URL` - Base URL for the ASR (Speech-to-Text) service (default: `http://localhost:8880`)
+- `OLLAMA_CHAT_ASR_CONVERT_COMMAND` - Shell command template to convert video to 16 kHz mono PCM WAV; use `%{input}` / `%{output}` as placeholders (default: `ffmpeg -y -i %{input} -vn -acodec pcm_s16le -ar 16000 -ac 1 %{output}`)
+- `OLLAMA_CHAT_ASR_MODEL` - ASR model identifier (default: `qwen3-asr-1.7b`)
+
+#### Audio Playback
+- `OLLAMA_CHAT_AUDIO_PLAYER_CONFIG` - JSON object with `command`, `frequency`, `bits`, `pause` keys controlling the ffplay-based TTS audio player
+
+#### Invidious (YouTube Proxy)
+- `OLLAMA_CHAT_INVIDIOUS_URL` - Base URL for an Invidious instance
+- `OLLAMA_CHAT_INVIDIOUS_COMPANION_KEY` - Bearer token for the Invidious companion player API (required when `URL` is set)
+- `OLLAMA_CHAT_INVIDIOUS_CAPTION_LANGUAGES` - JSON array of language-code regexes for caption selection priority (default: `["\\Aen\\z","\\Aen-","\\Ade\\z","\\Ade-"]`)
 
 #### Tool Configuration
 - `OLLAMA_CHAT_TOOLS_TEST_RUNNER` - Configured test runner for `run_tests` (default: `rspec`)
@@ -243,14 +256,22 @@ switch. The profile system allows you to manage "Live" vs "Saved" settings:
     "bake" those live settings into a permanent profile using `options from
     session`.
 
-#### 4. Conversation Archiving (`/session summarize`)
+#### 4. Conversation Archiving (`/conversation summarize`)
 
 Turn your long-form brainstorming sessions into structured documents. The
-`/session summarize` command can distill an entire conversation into a concise
-summary.
+`/conversation summarize` command distills an entire conversation into a
+concise summary, displayed in the pager first, then optionally saved.
 *   **Quick View**: Use `-s` for a one-sentence executive summary.
-*   **Archiving**: Use `-f <filename>` to dump the full summary directly into a
-    Markdown file, creating an automatic journal of your project's evolution.
+*   **Archiving**: After the summary is displayed, you are prompted for a
+    filename to save it as a Markdown file, creating an automatic journal
+    of your project's evolution.
+
+#### 5. Session Reports (`/conversation report`)
+
+Generate a structured report from your conversation using configurable
+prompt templates. The report is displayed in the pager first, then
+optionally saved to a file. Particularly useful for daily standup summaries
+— run it at the end of the day and save the output for your team sync.
 
 ### Using a Persona
 
