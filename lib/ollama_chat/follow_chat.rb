@@ -414,7 +414,8 @@ class OllamaChat::FollowChat
     response.done or return
     stats = stats_hash(response)
     chat.log(:info, 'Ollama chat response received', data: { stats: })
-    @output.puts "", eval_stats(stats)
+    @output.puts "\n🧠 #{bold { 'Context Usage' }}: #{chat.context_usage_colored}",
+      eval_stats(stats)
   end
 
   # The debug_output method conditionally outputs the response object using jj

@@ -124,6 +124,20 @@ module OllamaChat::Information
     end
   end
 
+  # The context_usage_colored method computes a summary string of the current
+  # context window's token usage. It formats the compacted message
+  # estimate, the maximum context length, and a visual gauge indicating
+  # the percentage of the context that is currently filled.
+  #
+  # @return [ String ] the formatted string representing context usage
+  def context_usage_colored
+    '%s of %s (%s)' % [
+      messages.compacted_estimate_tokens.tokens_formatted,
+      format_tokens(current_context_length),
+      context_gauge(context_percentage),
+    ]
+  end
+
   # Displays a detailed view of the current chat session state, including the
   # system prompt, persona, active model, thinking modes, tools, and audio settings.
   #
@@ -139,12 +153,7 @@ module OllamaChat::Information
       output.puts "  No persona selected."
     end
     output.puts "🧠 Current chat model is #{bold{@model}}."
-    context_usage = '%s of %s (%s)' % [
-      messages.compacted_estimate_tokens.tokens_formatted,
-      format_tokens(current_context_length),
-      context_gauge(format('%.1f%%', 100 * context_filled)),
-    ]
-    output.puts  "  Context Usage: #{context_usage}"
+    output.puts  "  Context Usage: #{context_usage_colored}"
     output.puts  "  Conversation Length: #{conversation_length}"
     output.print '  '; think_mode.show(output:)
     output.print '  '; think_loud.show(output:)
@@ -432,6 +441,13 @@ module OllamaChat::Information
     (es.tokens.to_f / current_context_length).clamp(0..1).to_f
   end
 
+  # Formats the current context fill ratio as a percentage string.
+  #
+  # @return [String] the formatted percentage (e.g. `"64.0%"`)
+  def context_percentage
+    format('%.1f%%', 100 * context_filled)
+  end
+
   # Formats the current context usage as a human-readable string.
   #
   # Returns a string like `"167.7 KT of 262.1 KT (64.0%)"` combining
@@ -445,10 +461,11 @@ module OllamaChat::Information
       '%s of %s (%s)' % [
         messages.compacted_estimate_tokens.tokens_formatted,
         format_tokens(current_context_length),
-        '%.1f%%' % (100 * context_filled),
+        context_percentage,
       ]
     end
   end
+
   # Wraps a percentage string in an ANSI color based on context usage
   # relative to compaction thresholds.
   #
