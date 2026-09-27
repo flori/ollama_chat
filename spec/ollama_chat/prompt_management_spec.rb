@@ -26,7 +26,7 @@ describe OllamaChat::PromptManagement do
       chat::models::Favourite.create(context: 'prompt', name: 'zz_my_prompt')
 
       entry = chat.all_prompts.find { |p| p.value == 'zz_my_prompt' }
-      expect(entry.to_s).to include("\u2764\uFE0F")
+      expect(entry.to_s).to include("\u2764")
     end
 
     it 'filters by default: true' do
@@ -59,13 +59,13 @@ describe OllamaChat::PromptManagement do
 
     it 'returns nil when user selects [EXIT]' do
       expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       expect(chat.choose_prompt_context).to be_nil
     end
 
     it 'returns nil when user cancels' do
       expect(chat).to receive(:choose_entry).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       expect(chat.choose_prompt_context).to be_nil
     end
   end
@@ -85,14 +85,14 @@ describe OllamaChat::PromptManagement do
     it 'returns nil when user selects [EXIT]' do
       expect(chat).to receive(:all_prompts).and_return([wrapper.('x')])
       expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       expect(chat.choose_prompt).to be_nil
     end
 
     it 'returns nil when user cancels' do
       expect(chat).to receive(:all_prompts).and_return([wrapper.('x')])
       expect(chat).to receive(:choose_entry).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       expect(chat.choose_prompt).to be_nil
     end
   end
@@ -281,7 +281,7 @@ describe OllamaChat::PromptManagement do
 
     it 'cancels when no file selected' do
       expect(chat).to receive(:choose_filename).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect(chat.import_prompt(nil)).to be_nil
     end
 
@@ -385,8 +385,7 @@ describe OllamaChat::PromptManagement do
       prompt_model.create(context: 'prompt', name: 'user_p',
                           metadata: { default: false, content: 'User content' })
 
-      expect(STDOUT).to receive(:print).at_least(:once)
-      expect(STDOUT).to receive(:puts).at_least(:once)
+      expect(chat).to receive(:feedback).at_least(:once)
       expect { chat.list_prompts }.not_to raise_error
     end
 
@@ -394,8 +393,7 @@ describe OllamaChat::PromptManagement do
       prompt_model.create(context: 'prompt', name: 'a', metadata: { default: false, content: 'A' })
       prompt_model.create(context: 'system', name: 'b', metadata: { default: false, content: 'B' })
 
-      expect(STDOUT).to receive(:print).at_least(:once)
-      expect(STDOUT).to receive(:puts).at_least(:once)
+      expect(chat).to receive(:feedback).at_least(:once)
       expect { chat.list_prompts(context: 'system') }.not_to raise_error
     end
   end
@@ -421,13 +419,13 @@ describe OllamaChat::PromptManagement do
     it 'wraps name with favourite heart when favourited' do
       result = chat.prompt_with_favourite('my_prompt', true)
       expect(result.value).to eq('my_prompt')
-      expect(result.to_s).to include("\u2764\uFE0F")
+      expect(result.to_s).to include("\u2764")
     end
 
     it 'wraps name without heart when not favourited' do
       result = chat.prompt_with_favourite('my_prompt', false)
       expect(result.value).to eq('my_prompt')
-      expect(result.to_s).not_to include("\u2764\uFE0F")
+      expect(result.to_s).not_to include("\u2764")
     end
   end
 
@@ -456,7 +454,7 @@ describe OllamaChat::PromptManagement do
     it 'returns nil when user cancels' do
       expect(chat).to receive(:switch_history).with(:prompt).and_yield
       expect(chat).to receive(:ask?).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
 
       expect(chat.determine_valid_new_name_for_prompt('to add')).to be_nil
     end
@@ -469,7 +467,7 @@ describe OllamaChat::PromptManagement do
       expect(chat).to receive(:each_prompt)
         .with(context: 'prompt', default: true).and_return([])
 
-      expect(STDOUT).to receive(:puts).with(/in sync/)
+      expect(chat).to receive(:feedback).with(a_string_including('in sync'), type: :success)
       expect(chat.prompt_sync).to eq(chat)
     end
 

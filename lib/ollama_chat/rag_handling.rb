@@ -57,19 +57,19 @@ module OllamaChat::RAGHandling
         )
         case tag
         when nil, '[EXIT]'
-          STDOUT.puts "Exiting chooser."
+          feedback("Exiting chooser.")
           break
         when '[ALL]'
           if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
             @documents.clear
             log(:info, "Collection cleared", data: { collection: })
-            STDOUT.puts "Cleared collection #{bold{collection}}."
+            feedback("Cleared collection #{bold{collection}}.", type: :info)
             break
           end
         when /./
           @documents.clear(tags: [ tag ])
           log(:info, "Tag cleared from collection", data: { collection:, tag: })
-          STDOUT.puts "Cleared tag #{tag} from collection #{bold{collection}}."
+          feedback("Cleared tag #{tag} from collection #{bold{collection}}.", type: :info)
         end
       end
     end
@@ -104,7 +104,7 @@ module OllamaChat::RAGHandling
         @documents.collection = name
       end
     when nil, '[EXIT]'
-      STDOUT.puts "Exiting chooser."
+      feedback("Exiting chooser.")
     when /./
       @documents.collection = collection
     end
@@ -112,7 +112,7 @@ module OllamaChat::RAGHandling
     if collection
       @session.update(current_collection: collection)
       log(:info, "Collection switched", data: { collection: })
-      STDOUT.puts "Using collection #{bold{collection}}."
+      feedback("Using collection #{bold{collection}}.", type: :info)
     end
     info
   end
@@ -135,14 +135,14 @@ module OllamaChat::RAGHandling
         col = database_collection?(current_collection)
         col&.update(name: new_collection.to_s)
         log(:info, "Collection renamed", data: { old_name: current_collection, new_name: new_collection })
-        STDOUT.puts "Renamed current collection #{current_collection} to #{new_collection}."
+        feedback("Renamed current collection #{current_collection} to #{new_collection}.", type: :info)
       rescue Sequel::UniqueConstraintViolation
-        STDERR.puts "❌ Renaming to #{new_collection} failed, it already exists in database."
+        feedback("Renaming to #{new_collection} failed, it already exists in database.", type: :warn)
       rescue => e
-        STDERR.puts "❌ Renaming to #{new_collection} failed: #{e.message}"
+        feedback("Renaming to #{new_collection} failed: #{e.message}", type: :warn)
       end
     else
-      STDOUT.puts "Renaming cancelled."
+      feedback("Renaming cancelled.", type: :cancel)
     end
   end
 
@@ -187,7 +187,7 @@ module OllamaChat::RAGHandling
     results = []
     switch_collection(collection) do
       unless col = database_collection?(collection)
-        STDERR.puts "❌ Collection #{collection.inspect} not found in database."
+        feedback("Collection #{collection.inspect} not found in database.", type: :warn)
         return ''
       end
       sources = {}
@@ -235,12 +235,12 @@ module OllamaChat::RAGHandling
       ask?(prompt: "📚 Name of the new collection: ")
     end
     unless name.full?
-      STDERR.puts "❌ Cancelled creation of collection."
+      feedback("Cancelled creation of collection.", type: :cancel)
       return
     end
 
     if database_collection?(name)
-      STDERR.puts "❌ Collection #{name.inspect} already exists."
+      feedback("Collection #{name.inspect} already exists.", type: :warn)
       return
     end
 
@@ -248,7 +248,7 @@ module OllamaChat::RAGHandling
       ask?(prompt: "📝 Description: ")
     end
     unless description.full?
-      STDERR.puts "❌ Cancelled creation of collection #{name.inspect}."
+      feedback("Cancelled creation of collection #{name.inspect}.", type: :cancel)
       return
     end
     patterns_str = switch_history(:patterns) do
@@ -265,12 +265,12 @@ module OllamaChat::RAGHandling
       if patterns.full?
         update_collection(name.to_s)
       end
-      STDOUT.puts "✅ Created collection '#{name}'."
+      feedback("Created collection '#{name}'.", type: :success)
       log(:info, "Collection created", data: { name:, description:, patterns: })
     rescue Sequel::UniqueConstraintViolation
-      STDERR.puts "❌ Collection #{name.inspect} already exists."
+      feedback("Collection #{name.inspect} already exists.", type: :warn)
     rescue Sequel::Error => e
-      STDERR.puts "❌ Database error: #{e.message}"
+      feedback("Database error: #{e.message}", type: :warn)
     end
     name.to_s
   end
@@ -287,7 +287,7 @@ module OllamaChat::RAGHandling
 
     col = database_collection?(target_name)
     unless col
-      STDERR.puts "❌ Collection #{target_name.inspect} not found in database."
+      feedback("Collection #{target_name.inspect} not found in database.", type: :warn)
       return
     end
 
@@ -321,12 +321,12 @@ module OllamaChat::RAGHandling
       col.save
       if toggle
         status = col.enabled ? 'enabled' : 'disabled'
-        STDOUT.puts "🔄 Collection '#{col.name}' is now #{status}."
+        feedback("Collection '#{col.name}' is now #{status}.", type: :info)
       end
-      STDOUT.puts "✅ Updated collection '#{col.name}'."
+      feedback("Updated collection '#{col.name}'.", type: :success)
       log(:info, "Collection updated", data: { name: col.name, enabled: col.enabled })
     rescue Sequel::Error => e
-      STDERR.puts "❌ Database error: #{e.message}"
+      feedback("Database error: #{e.message}", type: :warn)
     end
   end
 
@@ -344,7 +344,7 @@ module OllamaChat::RAGHandling
 
         col = database_collection?(target_name)
         unless col
-          STDERR.puts "❌ Collection #{target_name.inspect} not found in database."
+          feedback("Collection #{target_name.inspect} not found in database.", type: :warn)
           next
         end
 
@@ -352,15 +352,15 @@ module OllamaChat::RAGHandling
           begin
             col.chat = self
             col.destroy
-            STDOUT.puts "✅ Deleted collection #{target_name.inspect}."
+            feedback("Deleted collection #{target_name.inspect}.", type: :success)
             log(:info, "Collection deleted", data: { name: target_name })
           rescue Sequel::Error => e
-            STDERR.puts "❌ Database error: #{e.message}"
+            feedback("Database error: #{e.message}", type: :warn)
           rescue => e
-            STDERR.puts "❌ Error removing from Documentrix: #{e.message}"
+            feedback("Error removing from Documentrix: #{e.message}", type: :warn)
           end
         else
-          STDOUT.puts "🚫 Deletion cancelled."
+          feedback("Deletion denied.", type: :denied)
         end
       end
     end

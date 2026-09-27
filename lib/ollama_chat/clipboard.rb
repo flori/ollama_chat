@@ -116,11 +116,11 @@ module OllamaChat::Clipboard
     text = last_message_content(content: false)
     perform_copy_to_clipboard(text:, edit:)
     log(:info, "Copied to clipboard", data: { bytes: format_bytes(text.bytesize) }) if text
-    STDOUT.puts "The last response has been successfully copied to the system clipboard."
+    feedback("The last response has been successfully copied to the system clipboard.", type: :info)
     true
   rescue OllamaChat::OllamaChatError => e
     log(:error, e, data: { method: __method__ })
-    STDERR.puts e.message
+    feedback(e.message, type: :warn)
   end
 
   # Pastes content from the system clipboard into the chat.
@@ -137,11 +137,11 @@ module OllamaChat::Clipboard
   def paste_from_clipboard(edit: false)
     result = perform_paste_from_clipboard(edit:)
     log(:info, "Pasted from clipboard", data: { bytes: format_bytes(result.bytesize) }) if result
-    STDOUT.puts "The clipboard content has been successfully copied to the chat."
+    feedback("The clipboard content has been successfully copied to the chat.", type: :info)
     result
   rescue OllamaChat::OllamaChatError => e
     log(:error, e, data: { method: __method__ })
-    STDERR.puts e.message
+    feedback(e.message, type: :warn)
   end
 
   # Read the full text from STDIN and return it.

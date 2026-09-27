@@ -73,7 +73,7 @@ module OllamaChat::ToolCalling
       if tool_registered?(n)
         result << n.to_s if v.default
       else
-        STDERR.puts "Skipping configuration for unregistered tool %s" % bold { n }
+        feedback("Skipping configuration for unregistered tool %s" % bold { n }, type: :warn)
       end
     }
     result
@@ -137,12 +137,12 @@ module OllamaChat::ToolCalling
         )
         case chosen
         when '[EXIT]', nil
-          STDOUT.puts "Exiting chooser."
+          feedback("Exiting chooser.")
           return
         when *select_tools
           session.tools_default_enabled[chosen] = true
           unless session.save
-            STDOUT.puts "Could not enable tool %s" % bold { chosen }
+            feedback("Could not enable tool %s" % bold { chosen }, type: :warn)
             confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
           end
         end
@@ -168,12 +168,12 @@ module OllamaChat::ToolCalling
         )
         case chosen
         when '[EXIT]', nil
-          STDOUT.puts "Exiting chooser."
+          feedback("Exiting chooser.")
           return
         when *select_tools
           session.tools_default_enabled[chosen] = false
           unless session.save
-            STDOUT.puts "Could not disable tool %s" % bold { chosen }
+            feedback("Could not disable tool %s" % bold { chosen }, type: :warn)
             confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
           end
         end

@@ -18,7 +18,7 @@ describe OllamaChat::MessageList do
   end
 
   let :chat do
-    double('Chat', config:, store_messages_in_session: true, infobar_message: '')
+    double('Chat', config:, store_messages_in_session: true, infobar_message: '', feedback: nil)
   end
 
   before do

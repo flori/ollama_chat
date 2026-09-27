@@ -29,6 +29,7 @@ describe OllamaChat::FollowChat do
 
   it 'can follow without markdown' do
     expect(chat).to receive(:assistant).and_return nil
+    expect(chat).to receive(:context_usage_colored).and_return nil
     expect(chat).to receive(:log).with(
       :info,
       'Ollama chat response received',
@@ -50,7 +51,8 @@ describe OllamaChat::FollowChat do
       prompt_eval_count:    7,
       load_duration:        33.45,
     )
-    expect(output).to receive(:puts).with("", /eval_duration/)
+    expect(follow_chat).to receive(:feedback).
+      with(a_string_including('Context Usage', 'eval_duration'))
     follow_chat.call(response)
   end
 

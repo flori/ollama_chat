@@ -8,6 +8,8 @@ require 'digest'
 # XOR-SHA256 fingerprint of the shipped default prompts used for boot
 # drift detection.
 class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
+  include OllamaChat::Feedback
+
   plugin :timestamps, update_on_create: true
   plugin :serialization, :json, :value
   plugin :validation_helpers
@@ -73,12 +75,12 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
       removed = old.keys - hashes.keys
       changed = hashes.select { |k, v| old[k] && old[k] != v }.keys
 
-      STDERR.puts "\u26A0\uFE0F Shipped prompts changed since last boot:"
-      changed.each { |k| STDERR.puts "  ~ #{k} (modified)" }
-      added.each   { |k| STDERR.puts "  + #{k} (new)" }
-      removed.each { |k| STDERR.puts "  - #{k} (removed)" }
+      feedback("Shipped prompts changed since last boot:", type: :warn)
+      changed.each { |k| feedback "  ~ #{k} (modified)" }
+      added.each   { |k| feedback "  + #{k} (new)" }
+      removed.each { |k| feedback "  - #{k} (removed)" }
     elsif !OllamaChat.test_mode?
-      STDERR.puts "\u26A0\uFE0F First run — storing prompt fingerprints."
+      feedback("First run — storing prompt fingerprints.", type: :warn)
       store_fingerprint(fingerprint, hashes)
       return true
     end

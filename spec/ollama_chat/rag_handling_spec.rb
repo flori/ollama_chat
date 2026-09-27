@@ -100,13 +100,13 @@ describe OllamaChat::RAGHandling do
 
     it 'exits on [EXIT]' do
       expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.clear_collection
     end
 
     it 'exits on nil' do
       expect(chat).to receive(:choose_entry).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.clear_collection
     end
 
@@ -121,9 +121,9 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:choose_entry).
         and_return('t1', '[EXIT]')
       expect(docs).to receive(:clear).with(tags: [ 't1' ])
-      expect(STDOUT).to receive(:puts).
-        with(a_string_including('Cleared tag t1'))
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).
+        with(a_string_including('Cleared tag t1'), type: :info)
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.clear_collection
     end
   end
@@ -156,8 +156,7 @@ describe OllamaChat::RAGHandling do
       expect(docs).to receive(:collection=).with('nc')
       expect(session).to receive(:update).
         with(current_collection: '[NEW]')
-      expect(STDOUT).to receive(:puts).
-        with(a_string_including('Using collection'))
+      expect(chat).to receive(:feedback).with(a_string_including('Using collection'), type: :info)
       chat.choose_collection('default')
     end
 
@@ -165,11 +164,11 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:all_collections).
         and_return(double('DS', pluck: []))
       expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-      expect(STDOUT).to receive(:puts).with('Exiting chooser.')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       expect(session).to receive(:update).
         with(current_collection: '[EXIT]')
-      expect(STDOUT).to receive(:puts).
-        with(a_string_including('Using collection'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('Using collection'), type: :info)
       chat.choose_collection('default')
     end
   end
@@ -193,7 +192,7 @@ describe OllamaChat::RAGHandling do
     it 'cancels when input is blank' do
       mock_history
       expect(chat).to receive(:ask?).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Renaming cancelled.')
+      expect(chat).to receive(:feedback).with('Renaming cancelled.', type: :cancel)
       chat.rename_collection(:cur)
     end
 
@@ -203,8 +202,8 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:ask?).and_return('taken')
       expect(docs).to receive(:rename_collection).
         and_raise(Sequel::UniqueConstraintViolation)
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('already exists in database'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('already exists in database'), type: :warn)
       chat.rename_collection(:old)
     end
 
@@ -213,8 +212,8 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:ask?).and_return('bad')
       expect(docs).to receive(:rename_collection).
         and_raise(StandardError, 'oops')
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('oops'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('oops'), type: :warn)
       chat.rename_collection(:old)
     end
   end
@@ -239,8 +238,8 @@ describe OllamaChat::RAGHandling do
     it 'reports when the collection is not in the database' do
       expect(chat).to receive(:switch_collection).with('nope').and_yield
       expect(chat).to receive(:database_collection?).and_return(nil)
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('not found in database'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('not found in database'), type: :warn)
       chat.update_collection('nope')
     end
 
@@ -319,8 +318,8 @@ describe OllamaChat::RAGHandling do
     it 'cancels when name is blank' do
       expect(chat).to receive(:switch_history).and_yield
       expect(chat).to receive(:ask?).and_return(nil)
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('Cancelled creation'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('Cancelled creation'), type: :cancel)
       expect(chat.create_collection).to be_nil
     end
 
@@ -328,8 +327,8 @@ describe OllamaChat::RAGHandling do
       col_model.create(name: 'dup', description: 'd')
       expect(chat).to receive(:switch_history).and_yield
       expect(chat).to receive(:ask?).and_return('dup')
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('already exists'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('already exists'), type: :warn)
       chat.create_collection
     end
 
@@ -341,8 +340,8 @@ describe OllamaChat::RAGHandling do
         'mycol',  # name
         nil,      # description (blank)
       )
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('Cancelled creation of collection'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('Cancelled creation of collection'), type: :cancel)
       chat.create_collection
     end
 
@@ -366,8 +365,8 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:ask?).and_return('errcol', 'd', '')
       expect(col_model).to receive(:create).
         and_raise(Sequel::Error, 'db down')
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('Database error'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('Database error'), type: :warn)
       chat.create_collection
     end
   end
@@ -385,8 +384,8 @@ describe OllamaChat::RAGHandling do
 
     it 'reports when collection is not in the database' do
       expect(chat).to receive(:choose_entry).and_return('ghost')
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('not found in database'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('not found in database'), type: :warn)
       chat.edit_collection
     end
 
@@ -442,8 +441,8 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:confirm?).and_return(false)
       expect_any_instance_of(col_model).to receive(:save).
         and_raise(Sequel::Error, 'db error')
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('Database error'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('Database error'), type: :warn)
 
       chat.edit_collection
     end
@@ -467,8 +466,8 @@ describe OllamaChat::RAGHandling do
     it 'reports when collection is not in the database' do
       expect(chat).to receive(:choose_entry).
         and_return('ghost', '[CANCEL]')
-      expect(STDERR).to receive(:puts).
-        with(a_string_including('not found in database'))
+      expect(chat).to receive(:feedback).
+        with(a_string_including('not found in database'), type: :warn)
       chat.delete_collection
     end
 
@@ -492,7 +491,7 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:choose_entry).
         and_return('stay', '[CANCEL]')
       expect(chat).to receive(:confirm?).and_return(false)
-      expect(STDOUT).to receive(:puts).with('🚫 Deletion cancelled.')
+      expect(chat).to receive(:feedback).with('Deletion denied.', type: :denied)
 
       expect { chat.delete_collection }
         .not_to change { col_model.count }

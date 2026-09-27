@@ -12,6 +12,7 @@ class OllamaChat::FollowChat
   include Term::ANSIColor
   include OllamaChat::MessageFormat
   include OllamaChat::Utils::ValueFormatter
+  include OllamaChat::Feedback
 
   # Initializes a new instance of OllamaChat::FollowChat.
   #
@@ -27,16 +28,16 @@ class OllamaChat::FollowChat
   # @return [OllamaChat::FollowChat] A new instance of OllamaChat::FollowChat.
   def initialize(chat:, messages:, group_uuid: nil, voice: nil, output: STDOUT)
     super(output:)
-    @chat        = chat
-    @output.sync = true
-    @messages    = messages
-    @group_uuid  = group_uuid
-    @sender      = nil
-    @say         = if voice && @chat.voice_handler.respond_to?(:new)
-                     @chat.voice_handler.new(chat:, voice:)
-                   else
-                     NOP
-                   end
+    @chat       = chat
+    output.sync = true
+    @messages   = messages
+    @group_uuid = group_uuid
+    @sender     = nil
+    @say        = if voice && @chat.voice_handler.respond_to?(:new)
+                    @chat.voice_handler.new(chat:, voice:)
+                  else
+                    NOP
+                  end
   end
 
   # Returns the chat object representing the conversation context.
@@ -135,15 +136,16 @@ class OllamaChat::FollowChat
         chat.log(:error, msg, data: { tool: name, reason: :disabled })
         next
       end
-      STDOUT.puts
+      feedback(?\n, output:)
       confirmed = :implicit
       resolve   = nil
       function  = JSON.pretty_generate(tool_call.function)
       chat.log(:info, "Tool call received", data: { tool: name, function: })
       if chat.tool_function(name).require_confirmation?
-        STDOUT.puts "🔔 I want to execute tool %s\n%s\n" % [
-          bold { name }, italic { function },
-        ]
+        feedback(
+          ("I want to execute tool %s\n%s\n" % [ bold { name }, italic { function }, ]),
+          type: :alarm
+        )
         prompt  = '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct? '
         answer  = chat.confirm?(prompt:)&.to_s&.downcase
         resolve = 'You **MUST** ask the user for instructions on how to proceed!!!'
@@ -158,24 +160,25 @@ class OllamaChat::FollowChat
           resolve   = instr.full? ||  resolve
         end
       else
-        STDOUT.puts "Executing tool %s\n%s" % [
-          bold { name },
-          italic { function },
-        ]
+        feedback(
+          "Executing tool %s\n%s" % [ bold { name }, italic { function }, ]
+        )
       end
       start  = Time.now
       result = nil
       case confirmed
       when :denied
         result = JSON(message: 'User denied confirmation!', resolve:)
-        STDOUT.printf(
-          "\n%s Execution of tool %s denied by user.\n\n", ?🚫, bold { name }
+        feedback(?\n)
+        feedback(
+          ("Execution of tool %s denied by user.\n\n" % [ bold { name } ]),
+          type: :denied
         )
         chat.log(:warn, "Tool execution denied", data: { tool: name, reason: :denied })
       else
         symbol = confirmed == :implicit ? '☑️ ' : '✅'
-        STDOUT.printf(
-          "\n%s Execution of tool %s confirmed.\n\n", symbol, bold { name }
+        feedback(
+          ("\n%s Execution of tool %s confirmed.\n\n" % [ symbol, bold { name } ])
         )
         result = OllamaChat::Tools.registered[name].execute(tool_call, chat:)
         chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmed: })
@@ -216,10 +219,11 @@ class OllamaChat::FollowChat
           if info[:message]
             "\n%s %s\n\n" % [ info[:warn] ? '⚠️' : '💡', info[:message] ]
           end
-        STDOUT.puts <<~EOT.strip, ""
+        feedback(<<~EOT.strip)
           🔧 Tool functions #{name} returned result (#{info[:size]}/#{info[:tokens]} in #{info[:duration]}).
           #{feedback_message}
         EOT
+        feedback(?\n)
         timeout = chat.tool_function(name).result_display_timeout?
         chat.confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout:)
       end
@@ -339,12 +343,9 @@ class OllamaChat::FollowChat
   # thinking modes are enabled to determine how to process and display the
   # content.
   #
-  # @param output [IO, nil] the output stream to print to. Defaults to
-  #   `@output`.
   # @param height [Integer] the maximum number of lines to truncate the output
   #   to. Defaults to 0 (no truncation).
-  def display_formatted_terminal_output(output = nil, height: 0)
-    output ||= @output
+  def display_formatted_terminal_output(height: 0)
     output.print(
       move_home, erase_in_display(nil),
       last_message_with_user(height:)
@@ -414,8 +415,11 @@ class OllamaChat::FollowChat
     response.done or return
     stats = stats_hash(response)
     chat.log(:info, 'Ollama chat response received', data: { stats: })
-    @output.puts "\n🧠 #{bold { 'Context Usage' }}: #{chat.context_usage_colored}",
-      eval_stats(stats)
+    feedback(<<~EOT)
+
+      \u{1F9E0} #{bold { 'Context Usage' }}: #{chat.context_usage_colored}
+      #{eval_stats(stats)}
+    EOT
   end
 
   # The debug_output method conditionally outputs the response object using jj

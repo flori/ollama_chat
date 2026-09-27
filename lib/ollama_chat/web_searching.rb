@@ -34,7 +34,7 @@ module OllamaChat::WebSearching
         results.each { |url| links.add(url) }
       end
     else
-      STDOUT.puts "Search engine #{bold{engine}} not implemented!"
+      feedback("Search engine #{bold{engine}} not implemented!", type: :warn)
       nil
     end
   end
@@ -118,15 +118,15 @@ module OllamaChat::WebSearching
           )
           case link
           when nil, '[EXIT]'
-            STDOUT.puts "Exiting chooser."
+            feedback("Exiting chooser.")
             break
           when '[ALL]'
             if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
               links.clear
-              STDOUT.puts "Cleared all links in list."
+              feedback("Cleared all links in list.", type: :info)
               break
             else
-              STDOUT.puts 'Cancelled.'
+              feedback('Denied.', type: :denied)
               confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
             end
           when /./
@@ -136,7 +136,7 @@ module OllamaChat::WebSearching
       end
     when nil
       if links.empty?
-        STDOUT.puts "List is empty."
+        feedback("List is empty.", type: :info)
       else
         use_pager do |output|
           w       = Math.log10(links.size + 1).ceil

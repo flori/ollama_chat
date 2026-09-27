@@ -34,6 +34,7 @@ require 'zlib'
 class OllamaChat::Chat
   include Tins::GO
   include Term::ANSIColor
+  include OllamaChat::Feedback
   include OllamaChat::TokenEstimator
   include OllamaChat::HTTPHandling
   include OllamaChat::Commands
@@ -195,7 +196,7 @@ class OllamaChat::Chat
       abort "Failed to use to model: #{e}"
     end
 
-    STDOUT.puts
+    feedback ?\n
 
     setup_persona_from_session
     setup_system_prompt
@@ -203,7 +204,7 @@ class OllamaChat::Chat
     print_welcome
     info_session
 
-    STDOUT.puts "\nType /help to display the chat help."
+    feedback("\nType /help to display the chat help.")
 
     interact_with_user
   end
@@ -434,19 +435,19 @@ class OllamaChat::Chat
     case what
     when 'messages', nil
       messages.clear
-      STDOUT.puts "Cleared messages."
+      feedback("Cleared messages.", type: :info)
     when 'links'
       links.clear
-      STDOUT.puts "Cleared links."
+      feedback("Cleared links.", type: :info)
     when 'history'
       clear_history
-      STDOUT.puts "Cleared history."
+      feedback("Cleared history.", type: :info)
     when 'tags'
       @documents.clear
-      STDOUT.puts "Cleared all tags."
+      feedback("Cleared all tags.", type: :info)
     when 'images'
       messages.clear_images
-      STDOUT.puts "Cleared all images."
+      feedback("Cleared all images.", type: :info)
     when 'all'
       if confirm?(
           prompt: '🔔 Are you sure to clear messages and collection? (y/n) ',
@@ -457,9 +458,9 @@ class OllamaChat::Chat
         @documents.clear
         links.clear
         clear_history
-        STDOUT.puts "Cleared messages and collection #{bold{collection}}."
+        feedback("Cleared messages and collection #{bold{collection}}.", type: :info)
       else
-        STDOUT.puts 'Cancelled.'
+        feedback("Denied.", type: :denied)
       end
     end
     persona_profile
@@ -517,7 +518,7 @@ class OllamaChat::Chat
           type           = message.type.full?(:to_sym) || :socket_input
           content        = message.content
           @parse_content = message.parse
-          STDOUT.puts color(112) { "Received a server socket message. Processing now…" }
+          feedback color(112) { "Received a server socket message. Processing now…" }, type: :info
         else
           raise
         end
@@ -619,13 +620,13 @@ class OllamaChat::Chat
       msg = "Currently lost connection to ollama server and cannot send command."
       log(:warn, msg, warn: true)
     rescue Interrupt
-      STDOUT.puts "Type /quit to quit."
+      feedback("Type /quit to quit.")
     ensure
       self.server_socket_message = nil
     end
     0
   rescue OllamaChat::OllamaChatQuitError
-    STDOUT.puts "Goodbye."
+    feedback("Goodbye.")
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
     log(:error, e)
     fix_config(e)
@@ -718,7 +719,7 @@ class OllamaChat::Chat
   # @note Progress is reported to STDOUT during processing
   def add_documents_from_argv(document_list)
     if document_list.any?(&:empty?)
-      STDOUT.puts "Clearing collection #{bold{documents.collection}}."
+      feedback("Clearing collection #{bold{documents.collection}}.", type: :info)
       documents.clear
       document_list.reject!(&:empty?)
     end
@@ -730,7 +731,7 @@ class OllamaChat::Chat
           File.expand_path(doc)
         end
       end
-      STDOUT.puts "Collection #{bold{documents.collection}}: Adding #{document_list.size} documents…"
+      feedback("Collection #{bold{documents.collection}}: Adding #{document_list.size} documents…", type: :info)
       count = 1
       document_list.each_slice(25) do |docs|
         docs.each do |doc|

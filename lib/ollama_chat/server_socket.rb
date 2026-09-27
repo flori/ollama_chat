@@ -111,7 +111,7 @@ module OllamaChat::ServerSocket
     end
   rescue Errno::EEXIST
     socket_path = server.server_socket_path
-    STDERR.puts <<~EOT
+    feedback(<<~EOT, type: :warn)
       Warning! Socket file exists at: #{socket_path}
       This may indicate that another #{File.basename($0)} process is already
       running using the same directory or that a previous process left a stale

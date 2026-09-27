@@ -63,30 +63,30 @@ module OllamaChat::Dialog
         io.getc
       end
     rescue *exceptions
-      output.puts "\u274C\uFE0F"
+      output.puts "\u274C"
       return
     end
     answer = keypress || default
     case
     when yes.nil?
       if keypress
-        output.puts "\u2328\uFE0F #{answer}"
+        output.puts "\u2328 #{answer}"
       else
-        output.puts "\u231B\uFE0F #{answer}"
+        output.puts "\u231B #{answer}"
       end
       answer
     when answer =~ yes
       if keypress
-        output.puts "\u2705\uFE0F #{answer}"
+        output.puts "\u2705 #{answer}"
       else
-        output.puts "\u2611\uFE0F #{answer}"
+        output.puts "\u2611 #{answer}"
       end
       answer
     else
       if keypress
         output.puts "\u{1F6AB} #{answer}"
       else
-        output.puts "\u231B\uFE0F #{answer}"
+        output.puts "\u231B #{answer}"
       end
       nil
     end
@@ -125,7 +125,7 @@ module OllamaChat::Dialog
   def connect_message(model, base_url)
     msg = "Connecting to #{model}@#{base_url} now…"
     log(:info, msg, data: { model:, base_url: })
-    STDOUT.puts green { msg }
+    feedback green { msg }, type: :info
   end
 
   # The change_voice method allows the user to select a voice from a list of
@@ -183,7 +183,7 @@ module OllamaChat::Dialog
         yes: /\Ay/i
       )
     then
-      STDERR.puts "File not written!"
+      feedback("File not written!", type: :warn)
       false
     else
       true

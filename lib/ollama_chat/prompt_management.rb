@@ -39,7 +39,7 @@ module OllamaChat::PromptManagement
       prompt: '📝 Which prompt context shall we work in? %s'
     )
     when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
+      feedback("Exiting chooser.")
       return
     else
       chosen
@@ -65,7 +65,7 @@ module OllamaChat::PromptManagement
     prompts.unshift('[EXIT]')
     case chosen = choose_entry(prompts, prompt:)
     when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
+      feedback("Exiting chooser.")
       return
     when SearchUI::Wrapper
       if record = models::Prompt.where(context:, name: chosen.value).first
@@ -143,9 +143,9 @@ module OllamaChat::PromptManagement
       context:,
       prompt:  'Which template has outlived its usefulness? %s'
     ) or return
-    STDOUT.puts kramdown_ansi_parse(
-      selected_prompt.to_s + "\n---"
-    )
+    use_pager do |output|
+      feedback(kramdown_ansi_parse(selected_prompt.to_s + "\n---"), output:)
+    end
     confirm?(
       prompt: "🔔 Really delete the prompt #{bold{selected_prompt.name}}? (y/n) ",
       yes: /\Ay/i
@@ -182,20 +182,20 @@ module OllamaChat::PromptManagement
     context ||= 'prompt'
     switch_history(:prompt) do
       selected_prompt = choose_prompt(context:, prompt: 'Which prompt shall be the basis for a new one? %s') or return
-      STDOUT.puts kramdown_ansi_parse(
-        selected_prompt.to_s + "\n---"
-      )
+      use_pager do |output|
+        feedback(kramdown_ansi_parse(selected_prompt.to_s + "\n---"), output:)
+      end
       name = nil
       loop do
         name = ask?(
           prompt: "❓ Enter new prompt name to duplicate as, C-c ⇒ cancel: "
         )
         if name.nil?
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return nil
         end
         if prompt(name, context:)
-          STDOUT.puts "Prompt named #{bold{name}} already exists."
+          feedback("Prompt named #{bold{name}} already exists.", type: :warn)
         else
           break
         end
@@ -221,9 +221,9 @@ module OllamaChat::PromptManagement
         context:
       ) or return
 
-      STDOUT.puts kramdown_ansi_parse(
-        selected_prompt.to_s + "\n---"
-      )
+      use_pager do |output|
+        feedback(kramdown_ansi_parse(selected_prompt.to_s + "\n---"), output:)
+      end
 
       name = nil
       loop do
@@ -231,13 +231,13 @@ module OllamaChat::PromptManagement
           prompt: "❓ Enter new prompt name, C-c ⇒ cancel: "
         )
         if name.nil?
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return nil
         end
         if name == selected_prompt.name
-          STDOUT.puts "That is the current name."
+          feedback("That is the current name.", type: :info)
         elsif prompt(name, context:)
-          STDOUT.puts "Prompt named #{bold{name}} already exists."
+          feedback("Prompt named #{bold{name}} already exists.", type: :warn)
         else
           break
         end
@@ -275,14 +275,14 @@ module OllamaChat::PromptManagement
       filename = choose_filename('**/*.md')
     end
     unless filename
-      STDOUT.puts "Cancelled."
+      feedback("Cancelled.", type: :cancel)
       return
     end
     prompt_name = determine_valid_new_name_for_prompt('to import', context:) or return
     prompt_content = filename.read
     store_prompt(prompt_name, prompt_content, context:)
     log(:info, "Prompt imported", data: { name: prompt_name, source: filename.to_s, context: })
-    STDOUT.puts "Imported prompt as #{prompt_name.inspect}."
+    feedback("Imported prompt as #{prompt_name.inspect}.", type: :info)
     self
   end
 
@@ -300,13 +300,13 @@ module OllamaChat::PromptManagement
   def export_prompt(context: nil)
     context ||= 'prompt'
     selected_prompt = choose_prompt(context:, prompt: 'Which template are you exporting to disk? %s') or return
-    STDOUT.puts kramdown_ansi_parse(
-      selected_prompt.to_s + "\n---"
-    )
+    use_pager do |output|
+      feedback(kramdown_ansi_parse(selected_prompt.to_s + "\n---"), output:)
+    end
     filename = determine_valid_output_filename('to write to') or return
     filename.write(selected_prompt.to_s)
     log(:info, "Prompt exported", data: { name: selected_prompt.name, dest: filename.to_s, context: })
-    STDOUT.puts "Prompt #{selected_prompt.name.inspect} was exported as #{filename.to_path.inspect}?"
+    feedback("Prompt #{selected_prompt.name.inspect} was exported as #{filename.to_path.inspect}?", type: :info)
     self
   end
 
@@ -384,8 +384,7 @@ module OllamaChat::PromptManagement
       content = Kramdown::ANSI::Width.truncate(
         content, length: 0.9 * (Tins::Terminal.columns - start.size)
       )
-      STDOUT.print start
-      STDOUT.puts ' %s' % italic { content }
+      feedback '%s %s' % [ start, italic { content } ]
     end
   end
 
@@ -443,11 +442,11 @@ module OllamaChat::PromptManagement
         )
         case chosen
         when '[EXIT]', nil
-          STDOUT.puts "Exiting chooser."
+          feedback("Exiting chooser.")
           return
         when SearchUI::Wrapper
           if reset_prompt_count(chosen.value, context:)
-            STDOUT.puts "Reset count for #{bold { chosen.value }}."
+            feedback("Reset count for #{bold { chosen.value }}.", type: :info)
           end
         end
       end
@@ -479,14 +478,15 @@ module OllamaChat::PromptManagement
     orphans = db_prompts.select { |p| !shipped.key?(p.name) }
 
     if drifted.empty? && orphans.empty?
-      STDOUT.puts "All prompts in context #{bold{context}} are in sync. ✨"
+      feedback("All prompts in context #{bold{context}} are in sync. ✨", type: :success)
       return self
     end
 
     if drifted.any?
-      STDOUT.puts "\n#{drifted.count} drifted prompt(s) found:\n"
-      drifted.each { |p| STDOUT.puts "  • #{bold{p.name}} in #{italic{p.context}}" }
-      STDOUT.puts
+      feedback(<<~EOT, type: :warn)
+        #{drifted.count} drifted prompt(s) found:
+        #{drifted.map { |p| "  • #{bold{p.name}} in #{italic{p.context}}" }.join("\n")}
+      EOT
     end
 
     confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout: 5)
@@ -496,16 +496,16 @@ module OllamaChat::PromptManagement
     end
 
     if orphans.any?
-      STDOUT.puts "\n#{orphans.count} orphaned prompt(s) " \
-                 "(no longer in default config):\n"
-      orphans.each { |p| STDOUT.puts "  • #{bold{p.name}} in #{italic{p.context}}" }
-      STDOUT.puts
+      feedback(<<~EOT, type: :warn)
+        #{orphans.count} orphaned prompt(s) (no longer in default config):
+        #{orphans.map { |p| "  • #{bold{p.name}} in #{italic{p.context}}" }.join("\n")}
+      EOT
     end
 
     confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout: 5)
 
     unless orphans.empty?
-      STDOUT.puts
+      feedback(?\n)
       if confirm?(
         prompt: "🧹 Remove #{orphans.count} orphaned prompt(s)? (y/n) ",
         yes: /\Ay/i
@@ -513,7 +513,7 @@ module OllamaChat::PromptManagement
       then
         orphans.each do |p|
           p.destroy
-          STDOUT.puts "  ✓ Removed #{bold{p.name}}"
+          feedback("Removed #{bold{p.name}}", type: :success)
           log(:info, "Orphan prompt cleaned up", data: { name: p.name, context: })
         end
       end
@@ -547,9 +547,11 @@ module OllamaChat::PromptManagement
   # @param shipped [String] the shipped default content from config
   # @param context [String] the prompt context
   def show_prompt_diff(prompt, shipped, context:)
-    STDOUT.puts "\n#{'─' * 60}"
-    STDOUT.puts "📝 #{bold{prompt.name}}"
-    STDOUT.puts '─' * 60
+    feedback(<<~EOT)
+      #{'─' * 60}
+      📝 #{bold{prompt.name}}
+      #{'─' * 60}
+    EOT
 
     Dir.mktmpdir('prompt_sync') do |dir|
       file_a = File.join(dir, "#{prompt.name}.local")
@@ -558,33 +560,35 @@ module OllamaChat::PromptManagement
       File.write(file_b, shipped.to_s)
 
       cmd    = OC::DIFF_COMMAND.dup << file_a << file_b
-      output = IO.popen(cmd, &:read).chomp
+      diff_output = IO.popen(cmd, &:read).chomp
 
-      if output.empty?
-        STDOUT.puts "  (no differences detected)"
+      if diff_output.empty?
+        use_pager do |output|
+          feedback("  (no differences detected)", output:)
+        end
       else
-        STDOUT.puts output
+        feedback(diff_output)
       end
 
-      STDOUT.puts
+      feedback(?\n)
       if confirm?(
         prompt: "🔧 Resolve differences for #{bold{prompt.name}}? (y/n) ",
         yes: /\Ay/i
       )
       then
         unless diff_tool = OC::DIFF_TOOL?
-          STDERR.puts '  No DIFF_TOOL available.'
+          feedback('No DIFF_TOOL available.', type: :warn)
           return
         end
         system(*[diff_tool, file_a, file_b].map(&:to_s))
         resolved = File.read(file_a)
         if resolved != prompt.to_s
           write_prompt(prompt.name, resolved, context:)
-          STDOUT.puts "  ✓ Updated #{bold{prompt.name}}"
+          feedback("  \u2713 Updated #{bold{prompt.name}}")
           log(:info, "Prompt synced via diff tool",
               data: { name: prompt.name, context: })
         else
-          STDOUT.puts "  (no changes made)"
+          feedback("  (no changes made)")
         end
       end
     end
@@ -609,11 +613,11 @@ module OllamaChat::PromptManagement
           prompt: "❓ Enter new prompt name #{action}, C-c ⇒ cancel: "
         )
         if prompt_name.nil?
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return nil
         end
         if prompt(prompt_name, context:)
-          STDOUT.puts "Prompt named #{bold{prompt_name}} already exists."
+          feedback("Prompt named #{bold{prompt_name}} already exists.", type: :warn)
         else
           break
         end

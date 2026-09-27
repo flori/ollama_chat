@@ -299,12 +299,12 @@ describe OllamaChat::Commands, protect_env: true do
 
   describe '/regenerate' do
     it 'returns :next when input is "/regenerate"' do
-      expect(STDOUT).to receive(:puts).with(/Not enough messages/)
+      expect(chat).to receive(:feedback).with(a_string_including('Not enough messages'), type: :warn)
       expect(chat.handle_input("/regenerate")).to eq :redo
     end
 
     it 'returns :next when input is "/regenerate -e"' do
-      expect(STDOUT).to receive(:puts).with(/Not enough messages/)
+      expect(chat).to receive(:feedback).with(a_string_including('Not enough messages'), type: :warn)
       expect(chat.handle_input("/regenerate -e")).to eq :redo
     end
   end
@@ -318,11 +318,11 @@ describe OllamaChat::Commands, protect_env: true do
   describe '/collection' do
     it 'returns :next when input is "/collection(clear|change)"' do
       expect(chat).to receive(:choose_entry)
-      expect(STDOUT).to receive(:puts).with(/Exiting/)
+      expect(chat).to receive(:feedback).with(a_string_including('Exiting'))
       expect(chat.handle_input("/collection clear")).to eq :next
       expect(chat).to receive(:choose_entry)
       expect(chat).to receive(:info)
-      expect(STDOUT).to receive(:puts).with(/Using collection/)
+      expect(chat).to receive(:feedback).with(a_string_including('Using collection'), type: :info)
       expect(chat.handle_input("/collection change")).to eq :next
       expect(STDOUT).to receive(:puts).with(/default/)
       expect(chat.handle_input("/collection list")).to eq :next

@@ -84,7 +84,7 @@ class OllamaChat::Tools::ExecuteShell
             "Shell command cancelled by user: #{command}" unless reviewed
       command = reviewed
 
-      STDOUT.puts "\n$ #{command}\n"
+      feedback "\n$ #{command}\n"
       answer = chat.confirm?(
         prompt: '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct? '
       )&.to_s&.downcase

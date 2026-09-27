@@ -72,7 +72,7 @@ class OllamaChat::Tools::RollDice
       rolls, total, message = perform_roll(dice, count, sides, modifier, min, max)
 
       if reroll
-        puts message
+        feedback(message, type: :info)
         chat.confirm?(prompt: '🛎️ Accept the roll? (y/n) ', yes: /\Ay/i) and break
       else
         break

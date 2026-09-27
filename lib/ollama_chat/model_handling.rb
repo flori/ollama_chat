@@ -161,8 +161,11 @@ module OllamaChat::ModelHandling
     model_name      ||= @model
     model_options   = get_session_model_options
     store_model_options(model_name, model_options, profile:)
-    STDOUT.puts "Model options #{italic{profile}} for #{bold{model_name}} "\
-      "were copied from session model options."
+    feedback(
+      "Model options #{italic{profile}} for #{bold{model_name}} "\
+      "were copied from session model options.",
+      type: :info
+    )
   end
 
   # Resets the session's model options to match the stored defaults for the
@@ -175,8 +178,11 @@ module OllamaChat::ModelHandling
     model_name             ||= @model
     stored_model_options   = get_stored_model_options(model_name, profile:)
     session.update(model_options: stored_model_options)
-    STDOUT.puts "Model options #{italic{profile}} of #{bold{model_name}} "\
-      "were copied to session model options."
+    feedback(
+      "Model options #{italic{profile}} of #{bold{model_name}} "\
+      "were copied to session model options.",
+      type: :info
+    )
   end
 
   # Interactively copies model options from a source model/profile to the
@@ -194,21 +200,26 @@ module OllamaChat::ModelHandling
 
     dst_opts = get_stored_model_options(dst_model, profile: dst_profile)
     if dst_opts.present?
-      STDOUT.puts "Profile #{italic{dst_profile}} already exists for #{bold{dst_model}}."
-      STDOUT.puts "\n📥 Source (#{src_model}/#{src_profile}):"
-      STDOUT.puts JSON.pretty_generate(src_opts)
-      STDOUT.puts "\n📤 Destination (#{dst_model}/#{dst_profile}):"
-      STDOUT.puts JSON.pretty_generate(dst_opts)
+      feedback(<<~EOT, type: :info)
+        Profile #{italic{dst_profile}} already exists for #{bold{dst_model}}.
 
-      unless confirm?(prompt: "⚠️ Override existing profile? (y/n) ", yes: /\Ay/i)
-        STDOUT.puts "Cancelled."
+        📥 Source (#{src_model}/#{src_profile}):
+        #{JSON.pretty_generate(src_opts)}
+
+        📤 Destination (#{dst_model}/#{dst_profile}):
+        #{JSON.pretty_generate(dst_opts)}
+
+      EOT
+
+      unless confirm?(prompt: "Override existing profile? (y/n) ", yes: /\Ay/i)
+        feedback("Denied.", type: :denied)
         return
       end
     end
 
     store_model_options(dst_model, src_opts, profile: dst_profile)
-    STDOUT.puts "✅ Copied options from #{italic{src_model}}/#{italic{src_profile}} "\
-      "to #{bold{dst_model}}/#{italic{dst_profile}}."
+    feedback("Copied options from #{italic{src_model}}/#{italic{src_profile}} " \
+      "to #{bold{dst_model}}/#{italic{dst_profile}}.", type: :success)
   end
 
   # Interactively deletes a stored model options profile.
@@ -223,14 +234,14 @@ module OllamaChat::ModelHandling
     if confirm?(prompt: "🔔 Really delete profile #{bold{profile}} for #{bold{model}}? (y/n) ", yes: /\Ay/i)
       if profile == 'default'
         store_model_options(model, {}, profile:)
-        STDOUT.puts "Default profile #{italic{profile}} for #{bold{model}} has been reset to empty options."
+        feedback("Default profile #{italic{profile}} for #{bold{model}} has been reset to empty options.", type: :info)
       else
         models::ModelOptions.where(model_name: model, profile:).destroy
-        STDOUT.puts "Profile #{italic{profile}} for #{bold{model}} deleted."
+        feedback("Profile #{italic{profile}} for #{bold{model}} deleted.", type: :info)
       end
       log(:info, "Model options profile deleted", data: { model:, profile: })
     else
-      STDOUT.puts "Cancelled."
+      feedback("Denied.", type: :denied)
     end
   end
 
@@ -257,14 +268,14 @@ module OllamaChat::ModelHandling
 
     case chosen = choose_entry(profiles, prompt: "Choose profile for #{bold{model_name}}: %s")
     when '[EXIT]', nil
-      STDOUT.puts "Cancelled."
+      feedback("Cancelled.", type: :cancel)
       return
     when '[NEW]'
       name = switch_history(:profile_name) do
         ask?(prompt: 'Enter new profile name: ')
       end or return
       if models::ModelOptions.where(model_name:, profile: name).present?
-        STDERR.puts "Profile #{name.inspect} already exists!"
+        feedback("Profile #{name.inspect} already exists!", type: :warn)
         return
       end
       name
@@ -285,7 +296,7 @@ module OllamaChat::ModelHandling
   def export_model_options
     model_names = models::ModelOptions.distinct.map(&:model_name).sort
     unless model_names.any?
-      STDERR.puts "❌ No model options stored yet!"
+      feedback("No model options stored yet!", type: :warn)
       return
     end
 
@@ -304,8 +315,8 @@ module OllamaChat::ModelHandling
     }
     log(:info, "Model options exported",
         data: { models: model_names, dest: filename.to_s })
-    STDOUT.puts "✅ #{model_names.size} model(s), #{total} profile(s) "\
-      "exported to #{filename.to_path.inspect}."
+    feedback("#{model_names.size} model(s), #{total} profile(s) " \
+      "exported to #{filename.to_path.inspect}.", type: :success)
     filename
   end
 
@@ -324,7 +335,7 @@ module OllamaChat::ModelHandling
     filename = Pathname.new(filename)
     data     = JSON.parse(filename.read)
     unless data.is_a?(Array) && data.all? { |d| d['model_name'] }
-      STDERR.puts "❌ Invalid format: expected array of { 'model_name', 'profiles' }!"
+      feedback("Invalid format: expected array of { 'model_name', 'profiles' }!", type: :warn)
       return
     end
 
@@ -334,7 +345,7 @@ module OllamaChat::ModelHandling
       chosen  = choose_entry(options, prompt: 'Which model(s) to import? %s')
       case chosen
       when '[EXIT]', nil
-        STDOUT.puts "Cancelled."
+        feedback("Cancelled.", type: :cancel)
         return
       when '[ALL]'
         selected = data
@@ -349,7 +360,7 @@ module OllamaChat::ModelHandling
     selected.each do |entry|
       model_name = entry['model_name']
       profiles   = Array(entry['profiles'])
-      STDOUT.puts "\n📦 #{bold{model_name}} (#{profiles.size} profile(s))"
+      feedback "\n📦 #{bold{model_name}} (#{profiles.size} profile(s))"
 
       profiles.each do |profile_data|
         profile = profile_data['profile'] || 'default'
@@ -357,34 +368,41 @@ module OllamaChat::ModelHandling
 
         existing = stored_model_options_exist?(model_name, profile:)
         if existing
-          current = existing.options.to_h.symbolize_keys_recursive
+          current  = existing.options.to_h.symbolize_keys_recursive
           incoming = options.to_h.symbolize_keys_recursive
           if current == incoming
-            STDOUT.puts "   • #{italic{profile}}: identical, skipping."
+            feedback "   • #{italic{profile}}: identical, skipping."
             next
           end
-          STDOUT.puts "   • #{italic{profile}}: differs!"
-          STDOUT.puts "     📤 Current:"
-          STDOUT.puts "       " + JSON.pretty_generate(current).sub(/^/m, '     ')
-          STDOUT.puts "     📥 Incoming:"
-          STDOUT.puts "       " + JSON.pretty_generate(incoming).sub(/^/m, '     ')
-          unless confirm?(prompt: "     ⚠️ Overwrite? (y/n) ", yes: /\Ay/i)
-            STDOUT.puts "     Skipped."
+          cur = JSON.pretty_generate(current).gsub(/^/m, '     ')
+          inc = JSON.pretty_generate(incoming).gsub(/^/m, '     ')
+          feedback <<~EOT
+             • #{italic{profile}}: differs!
+
+               📤 Current:
+             #{cur}
+
+               📥 Incoming:
+             #{inc}
+
+          EOT
+          unless confirm?(prompt: "\u26A0 Overwrite? (y/n) ", yes: /\Ay/i)
+            feedback "  Skipped."
             next
           end
         end
 
         store_model_options(model_name, options, profile:)
         imported += 1
-        STDOUT.puts "   • #{italic{profile}}: ✅"
+        feedback "   • #{italic{profile}}: ✅"
       end
     end
 
     log(:info, "Model options imported",
         data: { models: selected.map { |e| e['model_name'] },
                 imported:, source: filename.to_s })
-    STDOUT.puts "\n✅ Imported #{imported} profile(s) "\
-      "from #{filename.to_path.inspect}."
+    feedback("\nImported #{imported} profile(s) " \
+      "from #{filename.to_path.inspect}.", type: :success)
     true
   end
 
@@ -415,7 +433,7 @@ module OllamaChat::ModelHandling
   #
   # @param model [ String ] the name of the model to be pulled
   def pull_model_from_remote(model)
-    STDOUT.puts "Model #{bold{model}} not found locally, attempting to pull it from remote now…"
+    feedback("Model #{bold{model}} not found locally, attempting to pull it from remote now…", type: :info)
     ollama.pull(model:)
   end
 
@@ -512,12 +530,20 @@ module OllamaChat::ModelHandling
 
       unless matching
         use_pager do |output|
-          output.puts "⚠️ Session model options differ from current profile (#{italic{profile}}) and don't match any saved profile!"
-          output.puts "\n📋 Available profiles for #{bold{@model}}:"
-          all_profiles.each do |mo|
-            output.puts "\n📄 #{italic{mo.profile}}:"
-            output.puts JSON.pretty_generate(mo.options.ask_and_send(:symbolize_keys_recursive))
-          end
+          dump = all_profiles.map do |mo|
+            <<~EOT
+
+              📄 #{italic{mo.profile}}:
+              #{JSON.pretty_generate(mo.options.ask_and_send(:symbolize_keys_recursive))}
+            EOT
+          end.join
+          feedback <<~EOT, output:, type: :warn
+            Session model options differ from current profile
+            (#{italic{profile}}) and don't match any saved profile!
+
+            📋 Available profiles for #{bold{@model}}:
+            #{dump}
+          EOT
         end
 
         if confirm?(prompt: "\n❓ Switch to an existing profile? (y/n) ", yes: /\Ay/i)
@@ -525,7 +551,7 @@ module OllamaChat::ModelHandling
           if chosen
             new_opts = get_stored_model_options(@model, profile: chosen)
             session.update(model_options: new_opts)
-            STDOUT.puts "Switched to profile #{italic{chosen}}."
+            feedback("Switched to profile #{italic{chosen}}.", type: :info)
           end
         end
       end

@@ -13,7 +13,7 @@ describe OllamaChat::FavouritesManagement do
 
   describe '#prefix_favourite' do
     it 'prefixes with a red heart when favourited' do
-      expect(chat.prefix_favourite('llama3.1', true)).to eq "\u2764\uFE0F llama3.1"
+      expect(chat.prefix_favourite('llama3.1', true)).to eq "\u2764 llama3.1"
     end
 
     it 'prefixes with a grey heart when not favourited' do
@@ -60,7 +60,7 @@ describe OllamaChat::FavouritesManagement do
       things = [ wrapper.('llama3.1') ]
       expect(chat).to receive(:favourite_all_things).and_return(things)
 
-      expect(STDOUT).to receive(:puts).with('All items are already favourited.')
+      expect(chat).to receive(:feedback).with('All items are already favourited.', type: :info)
       chat.add_favourite('model')
     end
 
@@ -69,7 +69,7 @@ describe OllamaChat::FavouritesManagement do
       expect(chat).to receive(:favourite_all_things).and_return(things)
       expect(chat).to receive(:choose_entry).and_return('[EXIT]')
 
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect { chat.add_favourite('model') }.not_to change { fav_model.count }
     end
 
@@ -78,7 +78,7 @@ describe OllamaChat::FavouritesManagement do
       expect(chat).to receive(:favourite_all_things).and_return(things)
       expect(chat).to receive(:choose_entry).and_return(nil)
 
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect { chat.add_favourite('model') }.not_to change { fav_model.count }
     end
   end
@@ -101,7 +101,7 @@ describe OllamaChat::FavouritesManagement do
       expect(chat).to receive(:favourite_all_things).and_return(things)
       expect(chat).to receive(:choose_entry).and_return('[EXIT]')
 
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect { chat.delete_favourite('model') }.not_to change { fav_model.count }
     end
 
@@ -112,7 +112,7 @@ describe OllamaChat::FavouritesManagement do
       expect(chat).to receive(:favourite_all_things).and_return(things)
       expect(chat).to receive(:choose_entry).and_return(nil)
 
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect { chat.delete_favourite('model') }.not_to change { fav_model.count }
     end
   end

@@ -82,8 +82,11 @@ module OllamaChat::ConfigHandling
   # @return [Boolean, nil] the result of +system+ if a diff tool was
   #   found, or +nil+ if no diff tool is configured.
   def diff_config
-    diff_tool = OC::DIFF_TOOL? or
-      return STDERR.puts 'No diff tool configured (OC::DIFF_TOOL).'
+    unless diff_tool = OC::DIFF_TOOL?
+      feedback('No diff tool configured (OC::DIFF_TOOL).', type: :warn)
+      return
+    end
+
     cmd = [
       diff_tool,
       @ollama_chat_config.filename,
@@ -100,8 +103,11 @@ module OllamaChat::ConfigHandling
   # @param exception [Exception] the exception that occurred while reading
   #   the config file
   def fix_config(exception)
-    STDOUT.puts "When reading the config file, a #{exception.class} " \
-      "exception was caught: #{exception.message.inspect}"
+    feedback(
+      "When reading the config file, a #{exception.class} " \
+      "exception was caught: #{exception.message.inspect}",
+      type: :warn
+    )
     unless OC::DIFF_TOOL?
       exit 1
     end
@@ -173,10 +179,10 @@ module OllamaChat::ConfigHandling
         session_close
         exec($0, *fix_session(ARGV))
       else
-        STDOUT.puts "Skipped reloading the config."
+        feedback("Skipped reloading the config.", type: :info)
       end
     else
-      STDERR.puts "Editor returned a non-zero status!"
+      feedback("Editor returned a non-zero status!", type: :warn)
     end
   end
 
@@ -193,7 +199,7 @@ module OllamaChat::ConfigHandling
       session_close
       exec($0, *fix_session(ARGV))
     else
-      STDOUT.puts "Skipped reloading the config."
+      feedback("Skipped reloading the config.", type: :info)
     end
   end
 end

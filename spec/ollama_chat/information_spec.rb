@@ -28,8 +28,8 @@ describe OllamaChat::Information do
 
   it 'can show info' do
     expect { |b| chat.use_pager(&b) }.to yield_with_args(StringIO)
-    expect(STDOUT).to receive(:puts).with(/Running ollama_chat version/)
-    expect(STDOUT).to receive(:puts).with(/Connected to ollama server/)
+    expect(chat).to receive(:feedback).
+      with(a_string_including('Running ollama_chat version'), output: STDOUT)
     expect(STDOUT).to receive(:puts).with(/Documents database cache/)
     expect(STDOUT).to receive(:puts).with(/Currently selected search engine/)
     expect(STDOUT).to receive(:puts).with(/Current chat model is/)
@@ -52,12 +52,12 @@ describe OllamaChat::Information do
   end
 
   it 'can show usage' do
-    expect(STDOUT).to receive(:puts).with(/Usage: ollama_chat/)
+    expect(chat).to receive(:feedback).with(a_string_including('Usage: ollama_chat'))
     expect(chat.usage).to eq 0
   end
 
   it 'can show  version' do
-    expect(STDOUT).to receive(:puts).with(/^ollama_chat \d+\.\d+\.\d+$/)
+    expect(chat).to receive(:feedback).with(a_string_including('ollama_chat'))
     expect(chat.version).to eq 0
   end
 

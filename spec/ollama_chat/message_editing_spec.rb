@@ -26,7 +26,7 @@ describe OllamaChat::MessageEditing do
     end
 
     it 'handles missing last message' do
-      expect(STDERR).to receive(:puts).with(/No message available to change/)
+      expect(chat).to receive(:feedback).with(a_string_including('No message available'), type: :warn)
       expect(chat.change_response).to be_nil
     end
 
@@ -35,8 +35,8 @@ describe OllamaChat::MessageEditing do
 
       const_conf_as('OC::EDITOR' => nil)
 
-      expect(STDERR).to receive(:puts).with(/Need the environment variable var EDITOR/)
-      expect(STDERR).to receive(:puts).with(/Editor failed to edit message/)
+      expect(chat).to receive(:feedback).with(a_string_including('EDITOR'), type: :warn)
+      expect(chat).to receive(:feedback).with(a_string_including('Editor failed to edit message'), type: :warn)
       expect(chat.change_response).to be_nil
     end
 
@@ -44,7 +44,7 @@ describe OllamaChat::MessageEditing do
       # Clear messages array
       chat.instance_variable_get(:@messages).clear
 
-      expect(STDERR).to receive(:puts).with(/No message available to change/)
+      expect(chat).to receive(:feedback).with(a_string_including('No message available'), type: :warn)
       expect(chat.change_response).to be_nil
     end
 
@@ -54,7 +54,7 @@ describe OllamaChat::MessageEditing do
       tmp_double = double('tmp', write: true, flush: true, path: '/tmp/test')
       expect(chat).to receive(:edit_text_block).and_yield(tmp_double)
       expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)
-      expect(STDERR).to receive(:puts).with(/Editor failed to edit message/)
+      expect(chat).to receive(:feedback).with(a_string_including('Editor failed to edit message'), type: :warn)
       expect(chat.change_response).to be_nil
     end
   end

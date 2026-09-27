@@ -159,7 +159,7 @@ module OllamaChat::Information
     output.print '  '; think_loud.show(output:)
     output.print '  '; think_strip.show(output:)
     output.print '  🛠️ '; tools_support.show(output:)
-    output.print "\u2699\uFE0F Chat Settings"
+    output.print "\u2699 Chat Settings"
     output.print '  '; markdown.show(output:)
     output.print '  '; stream.show(output:)
     output.print '  🎙️ '; voice.show(output:)
@@ -209,8 +209,10 @@ module OllamaChat::Information
   # @param output [ IO ] the output stream where the welcome messages are
   #   printed (default: STDOUT)
   def print_welcome(output: STDOUT)
-    output.puts "💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}"
-    output.puts "🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}"
+    feedback(<<~EOT, output:)
+      💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}
+      🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}
+    EOT
   end
 
   # Displays a high-level summary dashboard of the current state of the
@@ -252,7 +254,7 @@ module OllamaChat::Information
   #
   # @return [ Integer ] always returns 0 indicating successful help display
   def usage
-    STDOUT.puts <<~EOT
+    feedback(<<~EOT)
       Usage: #{progname} [OPTIONS]
 
         -f CONFIG      config file to read
@@ -275,7 +277,7 @@ module OllamaChat::Information
   #
   # @return [ Integer ] returns 0 indicating successful execution
   def version
-    STDOUT.puts "%s %s" % [ progname, OllamaChat::VERSION ]
+    feedback("%s %s" % [ progname, OllamaChat::VERSION ])
     0
   end
 

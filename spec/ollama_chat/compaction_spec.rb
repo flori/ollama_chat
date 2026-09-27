@@ -329,7 +329,7 @@ describe OllamaChat::Compaction do
       allow(chat).to receive(:confirm?).and_return(false)
       expect(chat).to receive(:current_context_length).and_return 4096
 
-      expect(STDERR).to receive(:puts).with(/Compaction failed: empty response/)
+      expect(chat).to receive(:feedback).with(a_string_including('Compaction failed: empty response'), type: :warn)
 
       expect(chat.compact_with_retry).to be false
     end
@@ -345,8 +345,8 @@ describe OllamaChat::Compaction do
       )
       allow(chat.messages).to receive(:compact!).and_return(result)
 
-      expect(STDOUT).to receive(:puts)
-        .with(/Summarized:\s+12 messages/)
+      expect(chat).to receive(:feedback)
+        .with(a_string_matching(/Summarized:\s+12 messages/), type: :success)
 
       expect(chat.compact_with_retry).to be true
     end
@@ -354,7 +354,7 @@ describe OllamaChat::Compaction do
     it 'prints nothing-to-compact when compact! returns nil' do
       allow(chat.messages).to receive(:compact!).and_return(nil)
 
-      expect(STDOUT).to receive(:puts).with('Nothing to compact.')
+      expect(chat).to receive(:feedback).with('Nothing to compact.', type: :info)
 
       expect(chat.compact_with_retry).to be true
     end

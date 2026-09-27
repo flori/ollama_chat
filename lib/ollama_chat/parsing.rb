@@ -62,12 +62,12 @@ module OllamaChat::Parsing
       parse_audio(source_io, language:)
     when 'image/png'
       results = parse_png(source_io) and return results.join("\n\n---\n\n")
-      STDERR.puts "Could not parse metadata from #{source_io&.content_type} document."
+      feedback("Could not parse metadata from #{source_io&.content_type} document.", type: :warn)
       nil
     when %r(\Aapplication/(json|ld\+json|x-ruby|x-perl|x-gawk|x-python|x-javascript|x-c?sh|x-dosexec|x-shellscript|x-tex|x-latex|x-lyx|x-bibtex)), %r(\Atext/), nil
       source_io.read
     else
-      STDERR.puts "Cannot parse #{source_io&.content_type} document."
+      feedback("Cannot parse #{source_io&.content_type} document.", type: :warn)
       return
     end
   end
@@ -208,7 +208,7 @@ module OllamaChat::Parsing
         `#{pandoc} -f epub -t plain "#{tmp.path}"`
       end
     else
-      STDERR.puts "Cannot convert EPUB, pandoc not in path."
+      feedback("Cannot convert EPUB, pandoc not in path.", type: :warn)
       nil
     end
   end
@@ -235,7 +235,7 @@ module OllamaChat::Parsing
         end
       end
     else
-      STDERR.puts "Cannot convert #{io&.content_type} with ghostscript, gs not in path."
+      feedback("Cannot convert #{io&.content_type} with ghostscript, gs not in path.", type: :warn)
     end
   end
 
@@ -337,9 +337,9 @@ module OllamaChat::Parsing
         when 'text', 'application', nil
           process_document(source_io, source, contents)
         else
-          STDERR.puts(
-            "Cannot fetch #{source.to_s.inspect} with content type "\
-            "#{source_io&.content_type.inspect}"
+          feedback(
+            "Cannot fetch #{source.to_s.inspect} with content type " \
+            "#{source_io&.content_type.inspect}", type: :warn
           )
         end
       end

@@ -7,7 +7,8 @@ module OllamaChat::FileEditing
   #   configured
   def edit_file(filename)
     unless editor = OC::EDITOR?
-      STDERR.puts "Need the environment variable var EDITOR defined to use an editor"
+      feedback("Need the environment variable EDITOR defined to use an editor!",
+               type: :warn)
       return
     end
     system Shellwords.join([ editor, filename ])
@@ -48,7 +49,7 @@ module OllamaChat::FileEditing
         new_text = File.read(tmp.path)
         return new_text
       else
-        STDERR.puts "Editor failed to edit #{tmp.path.inspect}."
+        feedback("Editor failed to edit #{tmp.path.inspect}!", type: :warn)
       end
     end
   end
@@ -115,12 +116,12 @@ module OllamaChat::FileEditing
       loop do
         filename = ask_for_filename?(action:)
         unless filename
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return nil
         end
 
         if filename.exist?
-          STDERR.puts "File #{filename.to_path.inspect} already exists!"
+          feedback("File #{filename.to_path.inspect} already exists!", type: :warn)
         else
           return filename
         end

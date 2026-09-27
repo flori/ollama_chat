@@ -32,16 +32,16 @@ module OllamaChat::MessageOutput
         end
         exit_code = $?&.exitstatus
         if exit_code == 0
-          STDOUT.puts "Last response was piped to #{cmd.inspect}."
+          feedback("Last response was piped to #{cmd.inspect}.", type: :info)
         else
-          STDERR.puts "Executing #{cmd.inspect}, failed with exit code #{exit_code}."
+          feedback("Executing #{cmd.inspect}, failed with exit code #{exit_code}.", type: :warn)
         end
         self
       rescue => e
-        STDERR.puts "Executing #{cmd.inspect}, caused #{e.class}: #{e}."
+        feedback("Executing #{cmd.inspect}, caused #{e.class}: #{e}.", type: :warn)
       end
     else
-      STDERR.puts "No response available to output to pipe command #{cmd.inspect}."
+      feedback("No response available to output to pipe command #{cmd.inspect}.", type: :warn)
     end
   end
 
@@ -59,14 +59,14 @@ module OllamaChat::MessageOutput
       begin
         content = edit_text(content) if edit
         if attempt_to_write_file(filename, content)
-          STDOUT.puts "Last response was written to #{filename.inspect}."
+          feedback("Last response was written to #{filename.inspect}.", type: :info)
         end
         self
       rescue => e
-        STDERR.puts "Writing to #{filename.inspect}, caused #{e.class}: #{e}."
+        feedback("Writing to #{filename.inspect}, caused #{e.class}: #{e}.", type: :warn)
       end
     else
-      STDERR.puts "No response available to write to #{filename.inspect}."
+      feedback("No response available to write to #{filename.inspect}.", type: :warn)
     end
   end
 

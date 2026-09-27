@@ -27,8 +27,8 @@ describe OllamaChat::InputContent do
     it 'handles missing editor gracefully' do
       const_conf_as('OC::EDITOR' => nil)
 
-      expect(STDERR).to receive(:puts).with(/Need the environment variable var EDITOR/)
-      expect(STDERR).to receive(:puts).with(/Editor failed to edit/)
+      expect(chat).to receive(:feedback).with(a_string_including('EDITOR'), type: :warn)
+      expect(chat).to receive(:feedback).with(a_string_including('Editor failed to edit'), type: :warn)
       expect(chat.edit_text).to be_nil
     end
 
@@ -40,7 +40,7 @@ describe OllamaChat::InputContent do
 
       expect(chat).to receive(:system).with('/usr/bin/vim /tmp/test').and_return(false)
 
-      expect(STDERR).to receive(:puts).with(/Editor failed to edit/)
+      expect(chat).to receive(:feedback).with(a_string_including('Editor failed to edit'), type: :warn)
       expect(chat.edit_text).to be_nil
     end
   end

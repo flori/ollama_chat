@@ -233,21 +233,21 @@ module OllamaChat::PersonaeManagement
       pathname        = persona_name_to_pathname(persona)
       backup_pathname = persona_backup_pathname(persona)
       if pathname.exist?
-        STDOUT.puts "Deleting '#{bold{persona}}'..."
-        STDOUT.puts "Backup will be saved to: #{backup_pathname}"
+        feedback("Deleting '#{bold{persona}}'...")
+        feedback("Backup will be saved to: #{backup_pathname}")
 
         if confirm?(prompt: "🔔 Are you sure? (y/n) ", yes: /\Ay/i)
           FileUtils.mv pathname, backup_pathname
           default_persona_name == persona and
             set_default_persona_name(:none)
-          STDOUT.puts "Persona #{bold{persona}} deleted successfully"
+          feedback("Persona #{bold{persona}} deleted successfully", type: :info)
           self
         else
-          STDOUT.puts "Deletion cancelled."
+          feedback("Deletion denied.", type: :denied)
           return
         end
       else
-        STDOUT.puts "Persona not found."
+        feedback("Persona not found.", type: :warn)
         return
       end
     end
@@ -300,7 +300,7 @@ module OllamaChat::PersonaeManagement
       old_content     = pathname.read
       backup_pathname = persona_backup_pathname(persona)
       backup_pathname.write(old_content)
-      STDOUT.puts "Wrote backup of #{persona.to_s} to #{backup_pathname.to_s.inspect}."
+      feedback("Wrote backup of #{persona.to_s} to #{backup_pathname.to_s.inspect}.", type: :info)
     end
   end
 
@@ -348,7 +348,7 @@ module OllamaChat::PersonaeManagement
     use_pager do |output|
       personae = available_personae
       if personae.empty?
-        STDOUT.puts "No personae defined."
+        feedback("No personae defined.", type: :warn)
         return
       end
 
@@ -395,14 +395,14 @@ module OllamaChat::PersonaeManagement
     personae_list = available_personae_names.
       reject { chosen&.member?(_1) }
     if personae_list.empty?
-      STDERR.puts "No personae defined."
+      feedback("No personae defined.", type: :warn)
       return
     end
     personae_list.unshift('[NONE]') if none
     personae_list.unshift('[EXIT]')
     case persona = choose_entry(personae_list, prompt:)
     when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
+      feedback("Exiting chooser.")
       return
     when '[NONE]'
       :none
@@ -425,7 +425,7 @@ module OllamaChat::PersonaeManagement
     end
 
     if chosen.empty?
-      STDOUT.puts "No persona loaded."
+      feedback("No persona loaded.", type: :info)
       return
     end
 
@@ -525,11 +525,11 @@ module OllamaChat::PersonaeManagement
           prompt: "❓ Enter new persona prompt name #{action}, C-c ⇒ cancel: "
         )
         if persona_name.nil?
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return nil
         end
         if persona_name_to_pathname(persona_name).exist?
-          STDOUT.puts "Persona prompt named #{bold{persona_name}} already exists."
+          feedback("Persona prompt named #{bold{persona_name}} already exists.", type: :warn)
         else
           break
         end
@@ -626,12 +626,12 @@ module OllamaChat::PersonaeManagement
     persona  = choose_persona(prompt: 'Which persona are you taking with you? %s') or return
     pathname = persona_name_to_pathname(persona)
     content  = pathname.read
-    STDOUT.puts kramdown_ansi_parse(
-      content + "\n---"
-    )
-    filename = determine_valid_output_filename('to write to') or return
-    filename.write(content)
-    STDOUT.puts "Persona #{persona.inspect} was exported as #{filename.to_path.inspect}?"
+    use_pager do |output|
+      feedback(kramdown_ansi_parse(content + "\n---"), output:)
+      filename = determine_valid_output_filename('to write to') or return
+      filename.write(content)
+      feedback("Persona #{persona.inspect} was exported as #{filename.to_path.inspect}?", output:)
+    end
     self
   end
 

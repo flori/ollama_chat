@@ -132,9 +132,9 @@ describe OllamaChat::ToolCalling do
 
       expect(chat).to receive(:choose_entry).and_return(target_tool, '[EXIT]')
       expect(chat.session).to receive(:save).and_return(false)
-      expect(STDOUT).to receive(:puts).with(/Could not enable tool/)
+      expect(chat).to receive(:feedback).with(a_string_including('Could not enable tool'), type: :warn)
       expect(chat).to receive(:confirm?).and_return(true)
-      expect(STDOUT).to receive(:puts).with(/Exiting chooser./)
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.enable_tool
     end
 
@@ -165,9 +165,9 @@ describe OllamaChat::ToolCalling do
       chat.session.tools_default_enabled[target_tool] = true
       expect(chat).to receive(:choose_entry).and_return(target_tool, '[EXIT]')
       expect(chat.session).to receive(:save).and_return(false)
-      expect(STDOUT).to receive(:puts).with(/Could not disable tool/)
+      expect(chat).to receive(:feedback).with(a_string_including('Could not disable tool'), type: :warn)
       expect(chat).to receive(:confirm?).and_return(true)
-      expect(STDOUT).to receive(:puts).with(/Exiting chooser./)
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.disable_tool
     end
   end

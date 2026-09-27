@@ -278,7 +278,7 @@ describe OllamaChat::SessionManagement do
 
     it 'returns nil if the user provides an empty string (cancel)' do
       expect(chat).to receive(:ask?).and_return('')
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect(chat.determine_valid_new_name_for_session('to create')).to be_nil
     end
   end
@@ -327,13 +327,13 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:summarize_session).and_return('# Summary content')
       expect(chat).to receive(:use_pager)
       expect(chat).to receive(:ask_for_filename?).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       chat.summarize_conversation
     end
 
     it 'reports nothing when no messages' do
       expect(chat).to receive(:summarize_session).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Nothing to summarize!')
+      expect(chat).to receive(:feedback).with('Nothing to summarize!', type: :info)
       chat.summarize_conversation
     end
 
@@ -344,7 +344,7 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:use_pager)
       expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
       expect(chat).to receive(:should_overwrite?).and_return(true)
-      expect(STDOUT).to receive(:puts).with('File successfully written.')
+      expect(chat).to receive(:feedback).with('File successfully written.', type: :success)
       chat.summarize_conversation
       expect(tmpfile.exist?).to be_truthy
       expect(tmpfile.read).to include('Summary content')
@@ -387,13 +387,13 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:generate_conversation_report).and_return('# Report content')
       expect(chat).to receive(:use_pager)
       expect(chat).to receive(:ask_for_filename?).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Cancelled.')
+      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       chat.report_conversation
     end
 
     it 'reports nothing when no content' do
       expect(chat).to receive(:generate_conversation_report).and_return(nil)
-      expect(STDOUT).to receive(:puts).with('Nothing to report!')
+      expect(chat).to receive(:feedback).with('Nothing to report!', type: :info)
       chat.report_conversation
     end
 
@@ -404,7 +404,7 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:should_overwrite?).and_return(true)
       expect(chat).to receive(:generate_conversation_report).and_return('# Report content')
       expect(STDOUT).to receive(:puts).with(/Report content/)
-      expect(STDOUT).to receive(:puts).with('File successfully written.')
+      expect(chat).to receive(:feedback).with('File successfully written.', type: :success)
       chat.report_conversation
       expect(tmpfile.exist?).to be_truthy
       expect(tmpfile.read).to include('Report content')

@@ -72,8 +72,7 @@ describe OllamaChat::ConfigHandling do
       end
 
       it 'prints the error and exits with status 1' do
-        expect(STDOUT).to receive(:puts)
-          .with(/When reading the config file.*bad yaml/)
+        expect(chat).to receive(:feedback).with(a_string_including('When reading the config file'), type: :warn)
         expect(chat).to receive(:exit).with(1).at_least(:once)
           .and_raise("simulated exit 1")
         expect {
@@ -87,8 +86,7 @@ describe OllamaChat::ConfigHandling do
 
       it 'launches the diff tool and exits 0 on confirmation' do
         expect(chat).to receive(:confirm?).and_return(true)
-        expect(STDOUT).to receive(:puts)
-          .with(/When reading the config file/)
+        expect(chat).to receive(:feedback).with(a_string_including('When reading the config file'), type: :warn)
         expect(chat).to receive(:system).with('vimdiff', any_args)
         expect(chat).to receive(:exit).with(0)
           .and_raise("simulated exit 0")
@@ -99,8 +97,7 @@ describe OllamaChat::ConfigHandling do
 
       it 'exits with status 1 when the user declines' do
         expect(chat).to receive(:confirm?).and_return(false)
-        expect(STDOUT).to receive(:puts)
-          .with(/When reading the config file/)
+        expect(chat).to receive(:feedback).with(a_string_including('When reading the config file'), type: :warn)
         expect(chat).to receive(:exit).with(1)
           .and_raise("simulated exit 1")
         expect {
@@ -116,8 +113,8 @@ describe OllamaChat::ConfigHandling do
         expect(OC).to receive(:DIFF_TOOL?).and_return(nil)
       end
 
-      it 'prints an error to STDERR and returns nil' do
-        expect(STDERR).to receive(:puts).with(/No diff tool configured/)
+      it 'prints an error and returns nil' do
+        expect(chat).to receive(:feedback).with(a_string_including('No diff tool configured'), type: :warn)
         expect(chat.diff_config).to be_nil
       end
     end
@@ -152,13 +149,13 @@ describe OllamaChat::ConfigHandling do
     it 'skips restart when the user declines' do
       expect(chat).to receive(:edit_file).and_return(true)
       expect(chat).to receive(:confirm?).and_return(false)
-      expect(STDOUT).to receive(:puts).with(/Skipped reloading/)
+      expect(chat).to receive(:feedback).with(a_string_including('Skipped reloading'), type: :info)
       chat.edit_config
     end
 
     it 'reports a non-zero editor exit' do
-      expect(chat).to receive(:edit_file).and_return(nil)
-      expect(STDERR).to receive(:puts).with(/non-zero status/)
+        expect(chat).to receive(:edit_file).and_return(nil)
+        expect(chat).to receive(:feedback).with(a_string_including('non-zero status'), type: :warn)
       chat.edit_config
     end
   end
@@ -173,7 +170,7 @@ describe OllamaChat::ConfigHandling do
 
     it 'prints a skip message when the user declines' do
       expect(chat).to receive(:confirm?).and_return(false)
-      expect(STDOUT).to receive(:puts).with(/Skipped reloading/)
+      expect(chat).to receive(:feedback).with(a_string_including('Skipped reloading'), type: :info)
       chat.reload_config
     end
   end

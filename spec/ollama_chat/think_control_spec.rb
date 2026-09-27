@@ -71,13 +71,13 @@ describe OllamaChat::ThinkControl do
   describe '#think_mode.show' do
     it 'prints the current think mode in bold' do
       chat.think_mode.selected = 'high'
-      expect(STDOUT).to receive(:puts).with(/Think mode is \e\[1mhigh\e\[0m/)
+      expect(chat.think_mode).to receive(:feedback).with(a_string_including('Think mode is'), output: STDOUT)
       chat.think_mode.show
     end
 
     it 'prints “disabled” when the selector is off' do
       chat.think_mode.selected = 'disabled'
-      expect(STDOUT).to receive(:puts).with(/Think mode is \e\[1mdisabled\e\[0m/)
+      expect(chat.think_mode).to receive(:feedback).with(a_string_including('Think mode is'), output: STDOUT)
       chat.think_mode.show
     end
   end

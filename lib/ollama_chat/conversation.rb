@@ -29,10 +29,12 @@ module OllamaChat::Conversation
     cleaned = 'cleaned ' if clean
     filename = Pathname.new(filename)
     should_overwrite?(filename) or return
-    if messages.save_conversation(filename, messages: clean ? messages.clean_messages : messages.messages)
-      STDOUT.puts "Saved #{cleaned}conversation to #{filename.to_s.inspect}."
+    messages = clean ? self.messages.clean_messages : self.messages.messages
+    if self.messages.save_conversation(filename, messages:)
+      feedback("Saved #{cleaned}conversation to #{filename.to_s.inspect}.", type: :info)
     else
-      STDERR.puts "Saving #{cleaned}conversation to #{filename.to_s.inspect} failed."
+      feedback("Saving #{cleaned}conversation to "\
+               "#{filename.to_s.inspect} failed.", type: :warn)
     end
   end
 
@@ -55,9 +57,10 @@ module OllamaChat::Conversation
       messages.list_conversation(2)
     end
     if success
-      STDOUT.puts "Loaded conversation from #{filename.to_s.inspect}."
+      feedback("Loaded conversation from #{filename.to_s.inspect}.", type: :info)
     else
-      STDERR.puts "Loading conversation from #{filename.to_s.inspect} failed."
+      feedback("Loading conversation from "\
+               "#{filename.to_s.inspect} failed.", type: :warn)
     end
   end
 end

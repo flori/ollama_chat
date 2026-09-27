@@ -57,8 +57,8 @@ describe OllamaChat::ASR do
         .and_raise(Excon::Error.new('connection refused'))
 
       expect(chat).to receive(:log).with(:error, any_args)
-      expect(STDERR).to receive(:puts)
-        .with(/ASR transcription failed/)
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('ASR transcription failed'), type: :warn)
 
       expect(described_class.transcribe(audio_io, chat:)).to be_nil
     end

@@ -7,6 +7,8 @@ require 'tempfile'
 #   vim = OllamaChat::Vim.new("MY_SERVER")
 #   vim.insert("Hello, Vim!")
 class OllamaChat::Vim
+  include OllamaChat::Feedback
+
   # Initializes a new Vim server connection
   #
   # Creates a new OllamaChat::Vim instance for interacting with a specific Vim
@@ -123,7 +125,7 @@ class OllamaChat::Vim
   def open_file(file_path, start_line = nil, end_line = nil)
     start_line ||= 1
     unless server_running?
-      STDERR.puts <<~EOT
+      feedback(<<~EOT, type: :warn)
           Failed! Vim has to be running with server name "#@server_name"!
       EOT
       return
@@ -162,7 +164,7 @@ class OllamaChat::Vim
   # @return [true, false] returns false if the command succeeded
   def report_error(result)
     unless result
-      STDERR.puts <<~EOT
+      feedback(<<~EOT, type: :warn)
           Failed! vim is required in path and running with server name "#@server_name".
       EOT
       true

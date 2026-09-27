@@ -14,6 +14,7 @@ module OllamaChat::StateSelectors
   # consistency across both memory-based and database-backed state selectors.
   module Common
     include Term::ANSIColor
+    include OllamaChat::Feedback
     include OllamaChat::Utils::Chooser
 
     # The name reader returns the name of the state selector.
@@ -96,7 +97,7 @@ module OllamaChat::StateSelectors
       )
       case chosen
       when '[EXIT]', nil
-        STDOUT.puts "Exiting chooser."
+        feedback("Exiting chooser.")
       when
         self.selected = chosen.value
       end
@@ -109,7 +110,7 @@ module OllamaChat::StateSelectors
     #
     # @param output [IO] the output stream to write the message to
     def show(output: STDOUT)
-      output.puts "#{name} is #{bold(to_s)}."
+      feedback("#{name} is #{bold(to_s)}.", output:)
     end
 
     # The to_s method returns the string representation of the selected state.

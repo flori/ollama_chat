@@ -57,7 +57,7 @@ module OllamaChat::InputContent
     files.unshift('[EXIT]')
     case chosen_file = choose_entry(files, prompt: 'Select a file to import: %s')
     when '[EXIT]', nil
-      STDOUT.puts "Exiting chooser."
+      feedback("Exiting chooser.")
       return
     else
       Pathname.new(chosen_file)
@@ -106,10 +106,10 @@ module OllamaChat::InputContent
         end
       end
       if count > 0
-        STDOUT.puts "✅ Ingesting context now."
+        feedback("Ingesting context now.", type: :info)
         ctx.send("to_#{format.downcase}")
       else
-        STDERR.puts "❌ No files in context. ⇨ Cancelled."
+        feedback("No files in context.", type: :warn)
       end
     else
       if context_filename = choose_filename('.contexts/*.rb')
@@ -160,9 +160,9 @@ module OllamaChat::InputContent
     file_set_each(patterns, all:).each_with_object('') do |filename, result|
       count += 1
       if all
-        STDOUT.puts "Handling File (#{bold{count}}/#{bold{total}}):"
+        feedback("Handling File (#{bold{count}}/#{bold{total}}):")
       else
-        STDOUT.puts "Handling File (#{bold{count}}):"
+        feedback("Handling File (#{bold{count}}):")
       end
       block_result = block.(filename)
       if !skip_blank || block_result.present?

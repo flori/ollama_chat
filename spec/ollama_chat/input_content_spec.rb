@@ -100,7 +100,7 @@ describe OllamaChat::InputContent do
 
     it 'returns the serialized context instead of nil' do
       patterns = ['spec/assets/example.rb']
-      expect(STDOUT).to receive(:puts).with(/Ingesting context now/)
+      expect(chat).to receive(:feedback).with(a_string_including('Ingesting context now'), type: :info)
       result = chat.context_spook(patterns, all: true)
       expect(result).to be_a(String)
       json     = JSON.parse(result)

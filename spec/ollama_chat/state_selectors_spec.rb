@@ -143,7 +143,7 @@ describe OllamaChat::StateSelectors::StateSelector do
 
   describe '#show' do
     it 'outputs the current state to stdout' do
-      expect(STDOUT).to receive(:puts).with(/Test Selector is .*?enabled.*?\./)
+      expect(selector).to receive(:feedback).with(a_string_including('Test Selector is'), output: STDOUT)
       selector.show
     end
   end

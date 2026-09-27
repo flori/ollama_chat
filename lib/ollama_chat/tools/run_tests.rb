@@ -141,7 +141,7 @@ class OllamaChat::Tools::RunTests
     success = false
     Open3.popen2e(env, cmd) do |_,io,waiter|
       while line = io.gets
-        STDOUT.puts line
+        feedback line
         output << line
       end
       success = waiter.value.success?

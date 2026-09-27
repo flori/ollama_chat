@@ -12,7 +12,7 @@ describe OllamaChat::WebSearching do
   describe '#search_web' do
     it 'returns nil and warns for an unimplemented engine' do
       expect(chat).to receive(:search_engine).and_return('nonexistent')
-      expect(STDOUT).to receive(:puts).with(/not implemented/)
+      expect(chat).to receive(:feedback).with(a_string_including('not implemented'), type: :warn)
       expect(chat.search_web('ruby')).to be_nil
     end
 
@@ -102,7 +102,7 @@ describe OllamaChat::WebSearching do
   describe '#manage_links' do
     it 'prints a message when the link list is empty' do
       chat.links.clear
-      expect(STDOUT).to receive(:puts).with('List is empty.')
+      expect(chat).to receive(:feedback).with('List is empty.', type: :info)
       chat.manage_links(nil)
     end
   end

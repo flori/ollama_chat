@@ -158,11 +158,11 @@ module OllamaChat::SessionManagement
         prefill: default_name
       )
       if session_name.blank?
-        STDOUT.puts "Cancelled."
+        feedback("Cancelled.", type: :cancel)
         return nil
       end
       if models::Session.where(name: session_name).present?
-        STDOUT.puts "Session named #{bold{session_name}} already exists."
+        feedback("Session named #{bold{session_name}} already exists.", type: :warn)
       else
         break
       end
@@ -265,7 +265,7 @@ module OllamaChat::SessionManagement
   # switch to.
   def delete_session
     current_session_name, current_session_id = session.name, session.id
-    STDOUT.puts <<~EOT
+    feedback(<<~EOT, type: :info)
       The current session
         #{current_session_name.inspect} (#{current_session_id})
       will be deleted, pick a new session to switch to.
@@ -273,7 +273,7 @@ module OllamaChat::SessionManagement
     confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
     chosen = choose_session(??, except_id: current_session_id, allow_new: true, exit_app: true)
     if chosen == :quit_app
-      STDOUT.puts "Exiting application."
+      feedback("Exiting application.")
       exit 0
     end
     if chosen
@@ -285,7 +285,7 @@ module OllamaChat::SessionManagement
       change_session(chosen.id)
       models::Session.where(id: current_session_id).destroy
       log(:info, "Session deleted", data: { session_id: current_session_id, name: current_session_name })
-      STDOUT.puts "Just deleted session #{current_session_name.inspect}!"
+      feedback("Just deleted session #{current_session_name.inspect}!", type: :info)
     end
   end
 
@@ -313,7 +313,7 @@ module OllamaChat::SessionManagement
           prefill:
         )
         if name.nil?
-          STDERR.puts "\nInterrupt: Session renaming was cancelled."
+          feedback("Interrupt: Session renaming was cancelled.", type: :warn)
           return
         end
         if name.empty?
@@ -328,20 +328,20 @@ module OllamaChat::SessionManagement
         end
       end
       if name == session.name
-        STDOUT.puts "Keeping the old name #{name.inspect}."
+        feedback("Keeping the old name #{name.inspect}.", type: :info)
       elsif name.present?
         if exists = models::Session.where(name:).present?
-          STDOUT.puts "Session with name #{name.inspect} already exists."
+          feedback("Session with name #{name.inspect} already exists.", type: :warn)
         else
           session.update(name:)
           log(:info, "Session renamed", data: { session_id: session.id, new_name: name })
-          STDOUT.puts "Renamed current session to #{name.inspect}."
+          feedback("Renamed current session to #{name.inspect}.", type: :info)
         end
       else
-        STDERR.puts "Could not rename current session!"
+        feedback("Could not rename current session!", type: :warn)
       end
     rescue Sequel::UniqueConstraintViolation
-      STDERR.puts "Could not rename session to #{name.inspect}, already exists!"
+      feedback("Could not rename session to #{name.inspect}, already exists!", type: :warn)
     end
   end
 
@@ -399,12 +399,12 @@ module OllamaChat::SessionManagement
           should_overwrite?(filename)
       then
         filename.write(summary)
-        STDOUT.puts "File successfully written."
+        feedback("File successfully written.", type: :success)
       else
-        STDOUT.puts "Cancelled."
+        feedback("Cancelled.", type: :cancel)
       end
     else
-      STDOUT.puts "Nothing to summarize!"
+      feedback("Nothing to summarize!", type: :info)
     end
   end
 
@@ -460,12 +460,12 @@ module OllamaChat::SessionManagement
           should_overwrite?(filename)
       then
         filename.write(result)
-        STDOUT.puts "File successfully written."
+        feedback("File successfully written.", type: :success)
       else
-        STDOUT.puts "Cancelled."
+        feedback("Cancelled.", type: :cancel)
       end
     else
-      STDOUT.puts "Nothing to report!"
+      feedback("Nothing to report!", type: :info)
       return
     end
   end
@@ -565,7 +565,7 @@ module OllamaChat::SessionManagement
           redo
         end
       else
-        STDOUT.puts "Cancelled."
+        feedback("Cancelled.", type: :cancel)
         break
       end
     end

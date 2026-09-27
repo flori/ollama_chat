@@ -373,7 +373,8 @@ class OllamaChat::MessageList
   def load_conversation(filename)
     filename = Pathname.new(filename).expand_path
     unless filename.exist?
-      STDERR.puts "File #{filename.to_s.inspect} doesn't exist. Choose another filename."
+      @chat.feedback("File #{filename.to_s.inspect} doesn't exist. " \
+                     "Choose another filename.", type: :warn)
       return
     end
     @messages = OllamaChat::Utils::JSONJSONLIO.new(filename).read(
@@ -570,7 +571,7 @@ class OllamaChat::MessageList
       @messages.last.role == 'system' and next
       @messages.pop
     end
-    STDOUT.puts "Dropped the last #{m} exchanges."
+    @chat.feedback("Dropped the last #{m} exchanges.", type: :info)
     m
   ensure
     sync

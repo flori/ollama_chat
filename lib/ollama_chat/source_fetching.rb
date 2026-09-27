@@ -74,7 +74,7 @@ module OllamaChat::SourceFetching
     end
   rescue => e
     msg = "Fetching source #{source.to_s.inspect}: #{e.class} #{e}"
-    STDERR.puts "#{msg}\n#{e.backtrace * ?\n}"
+    feedback("#{msg}\n#{e.backtrace * ?\n}", type: :warn)
     log(:error, msg, data: { source: source.to_s, error: e.class })
     confirm?(prompt: '⏎  Press any key to continue (%s). ', output: STDERR, timeout: 3)
     msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
@@ -93,7 +93,7 @@ module OllamaChat::SourceFetching
   # @param source_io [IO] The input stream containing the image data
   # @param source [String, #to_s] The identifier or path for the source of the image
   def add_image(images, source_io, source)
-    STDERR.puts "Adding #{source_io&.content_type} image #{source.to_s.inspect}."
+    feedback("Adding #{source_io&.content_type} image #{source.to_s.inspect}.", type: :info)
     log(:info, "Image added", data: { source: source.to_s, content_type: source_io&.content_type })
     image = Ollama::Image.for_io(source_io, path: source.to_s)
     (images << image).uniq!
@@ -111,7 +111,7 @@ module OllamaChat::SourceFetching
   def import_source(source_io, source, language: nil)
     source        = source.to_s
     document_type = source_io&.content_type.full? { |ct| italic { ct } + ' ' }
-    STDOUT.puts "Importing #{document_type}document #{source.to_s.inspect} now."
+    feedback("Importing #{document_type}document #{source.to_s.inspect} now.", type: :info)
     log(:info, "Source imported", data: { source:, content_type: source_io&.content_type })
     source_content = parse_source(source_io, language:)
     <<~EOT

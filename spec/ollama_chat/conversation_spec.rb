@@ -10,8 +10,8 @@ describe OllamaChat::Conversation do
       expect(chat.messages).to receive(:save_conversation)
         .with(Pathname.new('./new_chat.jsonl'), messages: chat.messages.messages)
         .and_return(true)
-      expect(STDOUT).to receive(:puts)
-        .with('Saved conversation to "./new_chat.jsonl".')
+      expect(chat).to receive(:feedback)
+        .with('Saved conversation to "./new_chat.jsonl".', type: :info)
       chat.save_conversation('./new_chat.jsonl', clean: false)
     end
 
@@ -19,16 +19,16 @@ describe OllamaChat::Conversation do
       expect(chat.messages).to receive(:save_conversation)
         .with(Pathname.new('./new_chat.jsonl'), messages: chat.messages.clean_messages)
         .and_return(true)
-      expect(STDOUT).to receive(:puts)
-        .with('Saved cleaned conversation to "./new_chat.jsonl".')
+      expect(chat).to receive(:feedback)
+        .with('Saved cleaned conversation to "./new_chat.jsonl".', type: :info)
       chat.save_conversation('./new_chat.jsonl', clean: true)
     end
 
     it 'reports failure when save_conversation returns false' do
       expect(chat.messages).to receive(:save_conversation)
         .and_return(false)
-      expect(STDERR).to receive(:puts)
-        .with('Saving conversation to "./new_chat.jsonl" failed.')
+      expect(chat).to receive(:feedback)
+        .with('Saving conversation to "./new_chat.jsonl" failed.', type: :warn)
       chat.save_conversation('./new_chat.jsonl', clean: false)
     end
 
@@ -41,8 +41,8 @@ describe OllamaChat::Conversation do
         .and_return(true)
       expect(chat.messages).to receive(:save_conversation)
         .and_return(true)
-      expect(STDOUT).to receive(:puts)
-        .with(/Saved conversation to/)
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Saved conversation to'), type: :info)
       chat.save_conversation(tmpfile, clean: false)
     ensure
       FileUtils.rm_f(tmpfile)
@@ -55,8 +55,7 @@ describe OllamaChat::Conversation do
       expect(chat).to receive(:confirm?)
         .and_return(false)
       expect(chat.messages).not_to receive(:save_conversation)
-      expect(STDOUT).not_to receive(:puts)
-      expect(STDERR).to receive(:puts).with('File not written!')
+      expect(chat).to receive(:feedback).with('File not written!', type: :warn)
       chat.save_conversation(tmpfile, clean: false)
     ensure
       FileUtils.rm_f(tmpfile)
@@ -69,8 +68,8 @@ describe OllamaChat::Conversation do
         .and_return(true)
       expect(chat.messages).to receive(:size).and_return(5)
       expect(chat.messages).to receive(:list_conversation).with(2)
-      expect(STDOUT).to receive(:puts)
-        .with('Loaded conversation from "./saved.jsonl".')
+      expect(chat).to receive(:feedback)
+        .with('Loaded conversation from "./saved.jsonl".', type: :info)
       chat.load_conversation('./saved.jsonl')
     end
 
@@ -79,8 +78,8 @@ describe OllamaChat::Conversation do
         .and_return(true)
       expect(chat.messages).to receive(:size).and_return(0)
       expect(chat.messages).not_to receive(:list_conversation)
-      expect(STDOUT).to receive(:puts)
-        .with('Loaded conversation from "./saved.jsonl".')
+      expect(chat).to receive(:feedback)
+        .with('Loaded conversation from "./saved.jsonl".', type: :info)
       chat.load_conversation('./saved.jsonl')
     end
 
@@ -89,8 +88,8 @@ describe OllamaChat::Conversation do
         .and_return(false)
       expect(chat.messages).to receive(:size).and_return(3)
       expect(chat.messages).to receive(:list_conversation).with(2)
-      expect(STDERR).to receive(:puts)
-        .with('Loading conversation from "./saved.jsonl" failed.')
+      expect(chat).to receive(:feedback)
+        .with('Loading conversation from "./saved.jsonl" failed.', type: :warn)
       chat.load_conversation('./saved.jsonl')
     end
 
@@ -99,8 +98,8 @@ describe OllamaChat::Conversation do
         .and_return(false)
       expect(chat.messages).to receive(:size).and_return(0)
       expect(chat.messages).not_to receive(:list_conversation)
-      expect(STDERR).to receive(:puts)
-        .with('Loading conversation from "./saved.jsonl" failed.')
+      expect(chat).to receive(:feedback)
+        .with('Loading conversation from "./saved.jsonl" failed.', type: :warn)
       chat.load_conversation('./saved.jsonl')
     end
   end

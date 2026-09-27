@@ -113,7 +113,7 @@ module OllamaChat::SystemPromptManagement
     system_prompt_name =
       case chosen
       when '[EXIT]'
-        STDOUT.puts "Exiting chooser."
+        feedback("Exiting chooser.")
         return
       when '[MODEL DEFAULT]'
         'model_default'

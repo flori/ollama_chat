@@ -38,11 +38,11 @@ module OllamaChat
           executable = Shellwords.split(cmd).first
           result     = system(cmd, out: File::NULL, err: File::NULL)
           if result.nil?
-            STDERR.puts "ASR: #{executable} not found in PATH."
+            chat.feedback("ASR: #{executable} not found in PATH.", type: :warn)
             return
           end
           unless File.size(wav.path) > 0
-            STDERR.puts "ASR: #{executable} produced no output."
+            chat.feedback("ASR: #{executable} produced no output.", type: :warn)
             return
           end
 
@@ -61,7 +61,7 @@ module OllamaChat
           result = JSON.parse(response.body) rescue nil
         end
         chat.log(:error, e, data: { status:, result: })
-        STDERR.puts "ASR transcription failed: #{e.message}"
+        chat.feedback("ASR transcription failed: #{e.message}", type: :warn)
         nil
       end
 

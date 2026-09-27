@@ -109,11 +109,11 @@ module OllamaChat::Compaction
     if result
       report_compaction(result)
     else
-      STDOUT.puts('Nothing to compact.')
+      feedback('Nothing to compact.', type: :info)
     end
     return true
   rescue OllamaChat::CompactionError => e
-    STDERR.puts "⚠️  Compaction failed: #{e.message}"
+    feedback("Compaction failed: #{e.message}", type: :warn)
     log(:error, "Compaction failed", data: {
       model: @model,
       ctx:   current_context_length,
@@ -278,12 +278,13 @@ module OllamaChat::Compaction
   #
   # @param result [Result] the compaction result from +compact!+.
   def report_compaction(result)
-    STDOUT.puts(<<~EOT)
-      ✅ Conversation compacted.
-         Summarized:   #{result.candidates} messages (#{result.candidate_size})
-         Summary:      #{result.summary_size}
-         Context:      #{result.context_before} → #{result.context_after}
-         Stored total: #{result.stored_total}
+    feedback(<<~EOT, type: :success)
+      Conversation compacted:
+
+      Summarized:   #{result.candidates} messages (#{result.candidate_size})
+      Summary:      #{result.summary_size}
+      Context:      #{result.context_before} → #{result.context_after}
+      Stored total: #{result.stored_total}
     EOT
   end
 end

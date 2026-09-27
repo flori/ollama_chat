@@ -11,7 +11,7 @@ module OllamaChat::FavouritesManagement
   # @param favourited [Boolean] whether the item is a favourite
   # @return [String] the decorated string
   def prefix_favourite(string, favourited)
-    fav = favourited ? "\u2764\uFE0F" : '🩶'
+    fav = favourited ? "\u2764" : '🩶'
     "%s %s" % [ fav, string ]
   end
 
@@ -44,13 +44,13 @@ module OllamaChat::FavouritesManagement
         selected = models::Favourite.where(context: type).map(&:name)
         to_select = all_things - selected
         if to_select.empty?
-          STDOUT.puts "All items are already favourited."
+          feedback("All items are already favourited.", type: :info)
           return
         end
         to_select.unshift('[EXIT]')
         case chosen = choose_entry(to_select, prompt: 'Select an item to mark as favourite: %s')
         when '[EXIT]', nil
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return
         when SearchUI::Wrapper
           models::Favourite.create(context: type, name: chosen.value)
@@ -77,7 +77,7 @@ module OllamaChat::FavouritesManagement
         to_select = [ '[EXIT]' ] + to_select
         case chosen = choose_entry(to_select, prompt: 'Select a favourite to remove: %s')
         when '[EXIT]', nil
-          STDOUT.puts "Cancelled."
+          feedback("Cancelled.", type: :cancel)
           return
         when SearchUI::Wrapper
           models::Favourite.where(context: type, name: chosen.value).destroy

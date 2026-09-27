@@ -22,14 +22,14 @@ module OllamaChat::MessageEditing
           old_message           = @messages.messages.pop.as_json
           old_message[:content] = new_content
           @messages << OllamaChat::Message.from_hash(old_message)
-          STDOUT.puts "Message edited and updated."
+          feedback("Message edited and updated.", type: :info)
           return new_content
         else
-          STDERR.puts "Editor failed to edit message."
+          feedback("Editor failed to edit message.", type: :warn)
         end
       end
     else
-      STDERR.puts "No message available to change."
+      feedback("No message available to change.", type: :warn)
     end
     nil
   end

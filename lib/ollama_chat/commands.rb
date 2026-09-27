@@ -66,7 +66,7 @@ module OllamaChat::Commands
     complete: [ 'config', %w[ edit diff reload ] ],
     optional: true,
     help: <<~EOT
-      \u2699\uFE0F View, edit, diff, or reload configuration
+      \u2699 View, edit, diff, or reload configuration
     EOT
   ) do |subcommand|
     case subcommand
@@ -89,7 +89,7 @@ module OllamaChat::Commands
     regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
     complete: [ 'favourite', %w[ add delete ].product(%w[ model prompt system persona suggest ]) ],
     help: <<~EOT
-      \u2B50\uFE0F Manage favorites (add/delete models,
+      \u2B50 Manage favorites (add/delete models,
          prompts, personae)
     EOT
   ) do |subcommand, type|
@@ -143,7 +143,7 @@ module OllamaChat::Commands
       if prev = previous_session
         change_session(prev.id)
       else
-        STDOUT.puts "No previous session defined."
+        feedback("No previous session defined.", type: :info)
       end
     end
     :next
@@ -180,7 +180,9 @@ module OllamaChat::Commands
         switch.toggle
       end
     else
-      STDOUT.puts "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
+      feedback(
+        "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
+      )
     end
     :next
   end
@@ -353,7 +355,7 @@ module OllamaChat::Commands
       messages.drop(1)
       content = edit_text(content) if opts[?e]
     else
-      STDOUT.puts "Not enough messages in this conversation."
+      feedback("Not enough messages in this conversation.", type: :warn)
       next :redo
     end
     disable_content_parsing
@@ -387,7 +389,7 @@ module OllamaChat::Commands
     EOT
   ) do |subcommand,opts,path|
     if %w[ save load ].include?(subcommand) && path.blank?
-      STDERR.puts "Require a path as argument to save/load!"
+      feedback("Require a path as argument to save/load!", type: :warn)
       next :next
     end
     case subcommand
@@ -405,9 +407,9 @@ module OllamaChat::Commands
       then
         messages.clean_messages!
         session_sync
-        STDOUT.puts "Conversation cleaned."
+        feedback("Conversation cleaned.", type: :info)
       else
-        STDOUT.puts 'Cancelled.'
+        feedback("Denied.", type: :denied)
       end
     when 'compact'
       if confirm?(
@@ -417,7 +419,7 @@ module OllamaChat::Commands
       then
         compact_with_retry
       else
-        STDOUT.puts 'Cancelled.'
+        feedback("Denied.", type: :denied)
       end
     when 'summarize'
       opts = go_command('s', opts)
@@ -460,7 +462,7 @@ module OllamaChat::Commands
                 opts[?c] || choose_prompt_context
               end
     unless context
-       STDOUT.puts 'Cancelled.'
+        feedback("Cancelled.", type: :cancel)
        next :next
     end
 
@@ -493,9 +495,12 @@ module OllamaChat::Commands
         )
       then
         if reset_prompt_to_default(prompt.name, context:)
-          STDOUT.puts "Reset prompt #{bold{prompt.name}} to default."
+          feedback("Reset prompt #{bold{prompt.name}} to default.", type: :info)
         else
-          STDOUT.puts "No default value found for prompt #{bold{prompt.name}}."
+          feedback(
+            "No default value found for prompt #{bold{prompt.name}}.",
+            type: :warn
+          )
         end
       end
     when 'sync'
@@ -654,9 +659,9 @@ module OllamaChat::Commands
     when 'update all'
       results = ''
       all_collections.pluck(:name).each do |collection|
-        STDOUT.puts "📝 Updating collection #{collection.inspect}… "
+        feedback("📝 Updating collection #{collection.inspect}…")
         results << update_collection(collection) << ?\n
-        STDOUT.puts "✅ Done."
+        feedback("Done.", type: :success)
       end
       results.full? and next results
     when 'update'
@@ -711,7 +716,7 @@ module OllamaChat::Commands
     when 'import'
       filename = choose_filename('**/*.md')
       if filename and name = import_persona(filename)
-        STDOUT.puts "Imported persona as #{name.inspect}."
+        feedback("Imported persona as #{name.inspect}.", type: :info)
       end
       :next
     when 'export'
@@ -758,10 +763,10 @@ module OllamaChat::Commands
            end
     case
     when path.nil?
-      STDOUT.puts 'Cancelled.'
+      feedback("Cancelled.", type: :cancel)
       next :next
     when !path.exist?
-      STDERR.puts "Path #{path.to_s.inspect} does not exist!"
+      feedback("Path #{path.to_s.inspect} does not exist!", type: :warn)
       next :next
     end
     data = case path.extname
@@ -772,7 +777,7 @@ module OllamaChat::Commands
                OllamaChat::Utils::PNGMetadataExtractor.extract_character(io)
              end
            else
-             STDERR.puts "Only json and png characters are supported!"
+              feedback("Only json and png characters are supported!", type: :warn)
              next :next
            end
     json_to_yaml = -> d {
@@ -793,7 +798,10 @@ module OllamaChat::Commands
       data
     when 'import'
       persona_name = import_persona_from_json(data)
-      STDOUT.puts "Imported character as persona %s." % persona_name.to_s.inspect
+      feedback(
+        "Imported character as persona %s." % persona_name.to_s.inspect,
+        type: :info
+      )
       :next
     end
   end
@@ -804,7 +812,7 @@ module OllamaChat::Commands
     name: :compose,
     regexp: %r(^/compose$),
     help: <<~EOT
-      \u270D\uFE0F  Compose message in external editor
+      \u270D  Compose message in external editor
     EOT
   ) do
     edit_text.full? or :next
@@ -863,7 +871,7 @@ module OllamaChat::Commands
         source = arg
         next summarize(source, words:, instruction:) || :next
       else
-        STDERR.puts "Need a source to summarize for input!"
+        feedback("Need a source to summarize for input!", type: :warn)
         next :next
       end
     when 'context'
@@ -886,7 +894,7 @@ module OllamaChat::Commands
           yes: /\Ay/i
         )
         then
-          STDOUT.puts 'Cancelled.'
+          feedback("Denied.", type: :denied)
           next :next
         end
         tags = opts[?t].full?(:split, ?,)
@@ -898,7 +906,7 @@ module OllamaChat::Commands
         elsif arg
           next embed(arg, tags:) || :next
         else
-          STDERR.puts "Need a source to embed for input!"
+          feedback("Need a source to embed for input!", type: :warn)
           next :next
         end
       end
@@ -908,7 +916,7 @@ module OllamaChat::Commands
         all = opts.fetch(?a, false)
         patterns = extract_patterns(arg)
         read = -> pathname {
-          STDOUT.puts "Reading #{pathname.to_s.inspect}."
+          feedback "Reading #{pathname.to_s.inspect}."
           content = pathname.read
           opts[?m] ? OllamaChat::Utils::StripANSI.strip_ansi(content) : content
         }
@@ -921,7 +929,7 @@ module OllamaChat::Commands
         content = edit_text(content) if opts[?e]
         content
       else
-        STDERR.puts "Need a filename to read for input!"
+        feedback("Need a filename to read for input!", type: :warn)
         next :next
       end
     else
@@ -940,7 +948,7 @@ module OllamaChat::Commands
         content = edit_text(content) if opts[?e]
         content
       else
-        STDERR.puts "Need a source to import for input!"
+        feedback("Need a source to import for input!", type: :warn)
         next :next
       end
     end
@@ -974,7 +982,7 @@ module OllamaChat::Commands
     if message = messages.last
       vim(servername).insert message.content
     else
-      STDERR.puts "Warning: No message found to insert into Vim"
+      feedback("No message found to insert into Vim.", type: :warn)
     end
     :next
   end
@@ -1002,9 +1010,9 @@ module OllamaChat::Commands
       🔌 Reconnect to Ollama server
     EOT
   ) do
-    STDERR.print green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }
+    feedback green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }, type: :info
     connect_ollama
-    STDERR.puts green { " Done." }
+    feedback green { "Done." }, type: :success
     :next
   end
 
@@ -1027,7 +1035,7 @@ module OllamaChat::Commands
     complete: [ 'info', %w[ session model runtime rag ] ],
     optional: true,
     help: <<~EOT,
-      \u2139\uFE0F Show info:
+      \u2139 Show info:
          - session: Current chat details
          - model: Active AI model info
          - runtime: System/environmental data
@@ -1085,7 +1093,7 @@ module OllamaChat::Commands
     regexp: nil,
     complete: [],
   ) do
-    STDOUT.puts "Type /quit to quit."
+    feedback "Type /quit to quit."
     :next
   end
 end

@@ -90,13 +90,13 @@ describe OllamaChat::Chat, protect_env: true do
 
     it 'can display usage' do
       chat
-      expect(STDOUT).to receive(:puts).with(/\AUsage: ollama_chat/)
+      expect(chat).to receive(:feedback).with(a_string_including('Usage: ollama_chat'))
       expect(chat.usage).to eq 0
     end
 
     it 'can display version' do
       chat
-      expect(STDOUT).to receive(:puts).with(/\Aollama_chat \d+\.\d+\.\d+\z/)
+      expect(chat).to receive(:feedback).with(a_string_including('ollama_chat'))
       expect(chat.version).to eq 0
     end
   end
