@@ -143,7 +143,7 @@ class OllamaChat::Tools::SearchKnowledge
           records.map { |record|
             link = if record.source =~ %r(\Ahttps?://)
                      record.source
-                   else
+                   elsif record.source.present?
                      'file://%s' % File.expand_path(record.source)
                    end
             link && record.tags.any? or next
