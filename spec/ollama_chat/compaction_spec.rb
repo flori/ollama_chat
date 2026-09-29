@@ -214,7 +214,7 @@ describe OllamaChat::Compaction do
     end
 
     it 'raises CompactionError on empty LLM response' do
-      allow(chat).to receive(:generate).and_return('')
+      expect(chat).to receive(:generate).and_return('')
       expect {
         chat.call_summarizer(groups: 'x', previous_summary: nil)
       }.to raise_error(OllamaChat::CompactionError, /empty response/)
@@ -324,9 +324,9 @@ describe OllamaChat::Compaction do
 
   describe '#compact_with_retry' do
     it 'returns false when compact! raises and user declines retry' do
-      allow(chat.messages).to receive(:compact!)
+      expect(chat.messages).to receive(:compact!)
         .and_raise(OllamaChat::CompactionError, 'empty response')
-      allow(chat).to receive(:confirm?).and_return(false)
+      expect(chat).to receive(:confirm?).and_return(false)
       expect(chat).to receive(:current_context_length).and_return 4096
 
       expect(chat).to receive(:feedback).with(a_string_including('Compaction failed: empty response'), type: :warn)
@@ -343,7 +343,7 @@ describe OllamaChat::Compaction do
         summary_size:   '2.1 KB / 600 T',
         stored_total:   '120.5 KB / 35.0 KT',
       )
-      allow(chat.messages).to receive(:compact!).and_return(result)
+      expect(chat.messages).to receive(:compact!).and_return(result)
 
       expect(chat).to receive(:feedback)
         .with(a_string_matching(/Summarized:\s+12 messages/), type: :success)
@@ -352,7 +352,7 @@ describe OllamaChat::Compaction do
     end
 
     it 'prints nothing-to-compact when compact! returns nil' do
-      allow(chat.messages).to receive(:compact!).and_return(nil)
+      expect(chat.messages).to receive(:compact!).and_return(nil)
 
       expect(chat).to receive(:feedback).with('Nothing to compact.', type: :info)
 
