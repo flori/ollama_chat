@@ -43,7 +43,7 @@ describe OllamaChat::ASR do
 
     it 'omits language part when no hint is provided' do
       body_capture = nil
-      allow(chat).to receive(:request_url_response) do |_m, url, **opts, &blk|
+      expect(chat).to receive(:request_url_response) do |_m, url, **opts, &blk|
         body_capture = opts[:body]
         blk.call(double(body: '{"text": "Hello"}'))
       end
@@ -70,12 +70,12 @@ describe OllamaChat::ASR do
           out: File::NULL, err: File::NULL
         ).and_return(true)
 
-      allow(File).to receive(:size)
+      expect(File).to receive(:size)
         .and_wrap_original do |m, path, *args|
           path.to_s.end_with?('.wav') ? 1024 : m.call(path, *args)
         end
 
-      allow(chat).to receive(:request_url_response)
+      expect(chat).to receive(:request_url_response)
         .and_yield(double(body: '{"text": "video transcript"}'))
 
       io = StringIO.new('fake mp4 data')
