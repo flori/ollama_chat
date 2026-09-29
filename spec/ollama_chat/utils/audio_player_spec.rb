@@ -150,8 +150,8 @@ describe OllamaChat::Utils::AudioPlayer do
     let(:mock_io) { instance_double(IO, binmode: nil, write: nil, :sync= => true) }
 
     before do
-      allow(IO).to receive(:popen).and_yield(mock_io)
-      allow(player).to receive(:sleep)
+      expect(IO).to receive(:popen).and_yield(mock_io)
+      expect(player).to receive(:sleep).at_least(:once)
     end
 
     it 'writes silence when the queue is empty' do
@@ -170,7 +170,9 @@ describe OllamaChat::Utils::AudioPlayer do
     end
 
     it 'handles nil chunks gracefully' do
-      allow(player.instance_variable_get(:@audio_queue)).to receive(:shift).and_raise(StandardError)
+      expect(player.instance_variable_get(:@audio_queue)).to receive(:shift).
+        and_raise(StandardError).
+        at_least(:once)
       expect(mock_io).not_to receive(:write).with(nil)
       player.start
       sleep 0.05
