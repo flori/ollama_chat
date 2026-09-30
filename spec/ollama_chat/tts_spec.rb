@@ -104,19 +104,17 @@ describe OllamaChat::TTS do
     end
 
     it 'finalizes when the stream is done' do
-      allow(tts).to receive(:finalize)
+      expect(tts).to receive(:finalize)
       response = double(response: nil, message: nil, done: true)
 
       tts.call(response)
-
-      expect(tts).to have_received(:finalize)
     end
   end
 
   describe '#process_pending_blocks' do
     it 'extracts complete blocks and leaves the tail behind' do
       enqueued = []
-      allow(tts).to receive(:enqueue_tts) { |b| enqueued << b }
+      expect(tts).to receive(:enqueue_tts).at_least(:once) { |b| enqueued << b }
       tts.instance_variable_set(
         :@buffer, "first paragraph\n\nsecond paragraph\n\nincomplete"
       )
@@ -129,7 +127,7 @@ describe OllamaChat::TTS do
 
     it 'skips whitespace-only blocks' do
       enqueued = []
-      allow(tts).to receive(:enqueue_tts) { |b| enqueued << b }
+      expect(tts).to receive(:enqueue_tts).at_least(:once) { |b| enqueued << b }
       tts.instance_variable_set(:@buffer, "real text\n\n\n\nmore\n\n")
 
       tts.expose(:process_pending_blocks)
@@ -141,7 +139,7 @@ describe OllamaChat::TTS do
 
   describe '#enqueue_tts' do
     it 'counts the block as enqueued immediately' do
-      allow(tts).to receive(:fetch_tts)
+      expect(tts).to receive(:fetch_tts).at_least(:once)
       tts.expose(:enqueue_tts, 'hello')
 
       expect(tts.instance_variable_get(:@enqueued_count)).to eq 1
@@ -150,7 +148,7 @@ describe OllamaChat::TTS do
 
     it 'builds a non-streaming pcm payload without a voice key' do
       payload = nil
-      allow(tts).to receive(:fetch_tts) { |d| payload = d }
+      expect(tts).to receive(:fetch_tts).at_least(:once) { |d| payload = d }
 
       tts.expose(:enqueue_tts, 'hello')
       sleep 0.2 until payload
@@ -169,7 +167,7 @@ describe OllamaChat::TTS do
 
       tts = new_tts(voice: 'miyu')
       payload = nil
-      allow(tts).to receive(:fetch_tts) { |d| payload = d }
+      expect(tts).to receive(:fetch_tts).at_least(:once) { |d| payload = d }
 
       tts.expose(:enqueue_tts, 'hello')
       sleep 0.2 until payload
@@ -181,9 +179,9 @@ describe OllamaChat::TTS do
   describe '#finalize' do
     before do
       player = tts.instance_variable_get(:@audio_player)
-      allow(player).to receive(:start)
-      allow(player).to receive(:stop)
-      allow(player).to receive(:playing?).and_return(false)
+      expect(player).to receive(:start).at_least(:once)
+      expect(player).to receive(:stop).at_least(:once)
+      expect(player).to receive(:playing?).at_least(:once).and_return(false)
       tts.instance_variable_set(:@enqueued_count, 0)
       tts.instance_variable_set(:@finished_count, 0)
     end
@@ -192,15 +190,11 @@ describe OllamaChat::TTS do
       tts.instance_variable_set(:@buffer, '')
 
       tts.expose(:finalize)
-
-      expect(
-        tts.instance_variable_get(:@audio_player)
-      ).to have_received(:stop)
     end
 
     it 'flushes a non-empty buffer before stopping' do
       enqueued = []
-      allow(tts).to receive(:enqueue_tts) { |b| enqueued << b }
+      expect(tts).to receive(:enqueue_tts).at_least(:once) { |b| enqueued << b }
       tts.instance_variable_set(:@buffer, 'leftover')
 
       tts.expose(:finalize)
@@ -215,7 +209,7 @@ describe OllamaChat::TTS do
 
     it 'strips the 44-byte RIFF header from the first chunk' do
       received = []
-      allow(chat).to receive(:request_url_response) do |_m, _url, **opts|
+      expect(chat).to receive(:request_url_response).at_least(:once) do |_m, _url, **opts|
         rb = opts[:response_block]
         rb.call("RIFF#{'A' * 40}REALAUDIO", 100, 100)
         rb.call('SECOND', 10, 100)
@@ -228,7 +222,7 @@ describe OllamaChat::TTS do
 
     it 'skips empty chunks' do
       received = []
-      allow(chat).to receive(:request_url_response) do |_m, _url, **opts|
+      expect(chat).to receive(:request_url_response).at_least(:once) do |_m, _url, **opts|
         rb = opts[:response_block]
         rb.call('A', 1, 100)
         rb.call('', 0, 100)
@@ -244,7 +238,7 @@ describe OllamaChat::TTS do
       resp = double(body: { error: 'boom' }.to_json, status: 500)
       err  = StandardError.new('upstream')
       allow(err).to receive(:response).and_return(resp)
-      allow(chat).to receive(:request_url_response).and_raise(err)
+      expect(chat).to receive(:request_url_response).at_least(:once).and_raise(err)
       allow(tts).to receive(:format_bytes)
 
       expect {

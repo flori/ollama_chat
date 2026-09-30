@@ -50,7 +50,7 @@ describe OllamaChat::Tools::ExecuteShell do
         .with('ls -l', hash_including(basename: %w[cmd .sh]))
         .and_return('ls -l')
       expect(chat).to receive(:confirm?).and_return('y')
-      allow(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      expect(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
       expect(Open3).to receive(:capture3)
         .with('sh', '-c', 'ls -l')
         .and_return(['total 0', '', double('s', exitstatus: 0)])
@@ -67,11 +67,11 @@ describe OllamaChat::Tools::ExecuteShell do
     end
 
     it 'executes the command as edited in the editor' do
-      allow(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      expect(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
       expect(chat).to receive(:edit_text)
         .with('ls', anything)
         .and_return('ls -la /tmp')
-      allow(chat).to receive(:confirm?).and_return('y')
+      expect(chat).to receive(:confirm?).and_return('y')
       expect(Open3).to receive(:capture3)
         .with('sh', '-c', 'ls -la /tmp')
         .and_return(['x', '', double('s', exitstatus: 0)])
@@ -82,7 +82,7 @@ describe OllamaChat::Tools::ExecuteShell do
     end
 
     it 'returns cancelled when the user answers n' do
-      allow(chat).to receive(:edit_text).and_return('rm -rf .')
+      expect(chat).to receive(:edit_text).and_return('rm -rf .')
       expect(chat).to receive(:confirm?).and_return('n')
       expect(Open3).not_to receive(:capture3)
 
@@ -95,8 +95,8 @@ describe OllamaChat::Tools::ExecuteShell do
     end
 
     it 'returns instruct when the user answers i' do
-      allow(chat).to receive(:edit_text).and_return('rm -rf .')
-      allow(chat).to receive(:confirm?).and_return('i')
+      expect(chat).to receive(:edit_text).and_return('rm -rf .')
+      expect(chat).to receive(:confirm?).and_return('i')
       expect(chat).to receive(:ask?)
         .and_return('Actually use the build dir, not root')
       expect(Open3).not_to receive(:capture3)
@@ -197,7 +197,7 @@ describe OllamaChat::Tools::ExecuteShell do
     end
 
     it 'rejects a blank command' do
-      allow(chat).to receive(:edit_text)
+      expect(chat).not_to receive(:edit_text)
 
       result = tool.execute(tool_call(nil), chat:)
       json   = json_object(result)

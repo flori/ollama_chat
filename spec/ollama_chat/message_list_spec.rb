@@ -344,7 +344,7 @@ describe OllamaChat::MessageList do
       list << OllamaChat::Message.new(
         role: 'user', content: 'hi', group_uuid: 'g3'
       )
-      allow(chat).to receive(:summarize_for_compaction)
+      expect(chat).to receive(:summarize_for_compaction)
         .and_return(['x', []])
 
       expect(chat).to receive(:log).with(:info, /Compaction:/, kind_of(Hash)).at_least(:once)

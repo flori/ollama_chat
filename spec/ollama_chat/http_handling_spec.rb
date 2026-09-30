@@ -12,21 +12,21 @@ describe OllamaChat::HTTPHandling do
     end
 
     it 'disables peer verification for a host in ssl_no_verify' do
-      allow(chat.config).to receive(:ssl_no_verify?)
+      expect(chat.config).to receive(:ssl_no_verify?)
         .and_return(Set['example.com'])
       expect(chat.http_options('https://example.com'))
         .to eq(ssl_verify_peer: false)
     end
 
     it 'keeps peer verification for hosts outside ssl_no_verify' do
-      allow(chat.config).to receive(:ssl_no_verify?)
+      expect(chat.config).to receive(:ssl_no_verify?)
         .and_return(Set['other.com'])
       expect(chat.http_options('https://example.com'))
         .to eq(ssl_verify_peer: true)
     end
 
     it 'includes the proxy when one is configured' do
-      allow(chat.config).to receive(:proxy?)
+      expect(chat.config).to receive(:proxy?)
         .and_return('http://proxy:8080')
       expect(chat.http_options('https://example.com'))
         .to include(proxy: 'http://proxy:8080')
@@ -58,10 +58,10 @@ describe OllamaChat::HTTPHandling do
     end
 
     it 'merges http_options into the Excon options' do
-      allow(chat.config).to receive(:ssl_no_verify?)
+      expect(chat.config).to receive(:ssl_no_verify?)
         .and_return(Set['example.com'])
       captured = nil
-      allow(Excon).to receive(:new) do |_url, opts|
+      expect(Excon).to receive(:new) do |_url, opts|
         captured = opts
         excon
       end
@@ -73,7 +73,7 @@ describe OllamaChat::HTTPHandling do
 
     it 'passes caller options straight through to Excon' do
       captured = nil
-      allow(Excon).to receive(:new) do |_url, opts|
+      expect(Excon).to receive(:new) do |_url, opts|
         captured = opts
         excon
       end
@@ -94,10 +94,10 @@ describe OllamaChat::HTTPHandling do
     end
 
     it 'normalizes the URL for http_options but keeps raw URL for Excon' do
-      allow(chat.config).to receive(:ssl_no_verify?)
+      expect(chat.config).to receive(:ssl_no_verify?)
         .and_return(Set['example.com'])
       seen = {}
-      allow(Excon).to receive(:new) do |url, opts|
+      expect(Excon).to receive(:new) do |url, opts|
         seen[:url]  = url
         seen[:opts] = opts
         excon
@@ -115,7 +115,7 @@ describe OllamaChat::HTTPHandling do
 
     it 'forwards to the Fetcher and remembers the link' do
       seen = nil
-      allow(OllamaChat::Utils::Fetcher).to receive(:get) do |url, **o, &b|
+      expect(OllamaChat::Utils::Fetcher).to receive(:get) do |url, **o, &b|
         seen = { url:, opts: o }
         b.call(io)
       end
@@ -127,7 +127,7 @@ describe OllamaChat::HTTPHandling do
     end
 
     it 'does not remember the link when remember: false' do
-      allow(OllamaChat::Utils::Fetcher).to receive(:get) do |*_, &b|
+      expect(OllamaChat::Utils::Fetcher).to receive(:get) do |*_, &b|
         b.call(io)
       end
 
