@@ -354,7 +354,7 @@ module OllamaChat::PromptManagement
     # Build the context by gathering all current conversation messages
     history     = prepare_conversation_history
     template    = prompt('context_template_suggest', context: 'prompt').to_s
-    full_prompt = template % { history:, instruction: }
+    full_prompt = template.named_placeholders_interpolate({ history:, instruction: })
 
     # Execute a silent chat oneshot call (doesn't add to history)
     suggestions = Infobar.busy(

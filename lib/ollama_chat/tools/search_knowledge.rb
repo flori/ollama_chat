@@ -197,7 +197,7 @@ class OllamaChat::Tools::SearchKnowledge
     }.join("\n")
 
     prompt = chat.prompt('rerank') or raise "missing prompt 'rerank'"
-    prompt = prompt.to_s % { query:, candidates: }
+    prompt = prompt.to_s.named_placeholders_interpolate({ query:, candidates: })
 
     begin
       # We use the active chat model to perform the surgical precision

@@ -1072,7 +1072,7 @@ module OllamaChat::Commands
     case subcommand
     when 'me'
       disable_content_parsing
-      prompt(:help).to_s % { commands: help_message }
+      prompt(:help).to_s.named_placeholders_interpolate({ commands: help_message })
     when /\S+/
       display_chat_help(Regexp.new(Regexp.quote($&)))
       :next

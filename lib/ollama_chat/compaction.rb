@@ -188,9 +188,8 @@ module OllamaChat::Compaction
   def call_summarizer(groups:, previous_summary:)
     previous = previous_summary.to_s
 
-    prompt = prompt(:summarize, context: 'compaction').to_s % {
-      previous:, groups:
-    }
+    prompt = prompt(:summarize, context: 'compaction').to_s.
+      named_placeholders_interpolate({ previous:, groups: })
     system = prompt(:compaction, context: 'system').to_s
 
     es = OllamaChat::TokenEstimator.estimate(prompt)
@@ -231,7 +230,7 @@ module OllamaChat::Compaction
     tool_section = all_tools.map(&:to_json) * ?\n
 
     template = prompt(:assemble, context: 'compaction').to_s
-    content  = template % { narrative:, tool_section: }
+    content  = template.named_placeholders_interpolate({ narrative:, tool_section: })
 
     [content, all_tools]
   end

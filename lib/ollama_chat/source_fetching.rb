@@ -158,7 +158,9 @@ module OllamaChat::SourceFetching
     instruction    = instruction.full? { ", focusing specifically on: #{_1}" }
     source_content = parse_source(source_io)
     source_content.present? or return
-    prompt(:summarize).to_s % { source_content:, words:, instruction: }
+    prompt(:summarize).to_s.named_placeholders_interpolate(
+      { source_content:, words:, instruction: }
+    )
   end
 
 
@@ -277,7 +279,7 @@ module OllamaChat::SourceFetching
       source_io.rewind
       embed_source(source_io, source, tags:) or return
     end
-    prompt.to_s % { source:, collection: }
+    prompt.to_s.named_placeholders_interpolate({ source:, collection: })
   end
 
   # Embeds multiple sources concurrently using a bounded thread pool.
