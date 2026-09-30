@@ -34,6 +34,28 @@ module OllamaChat::PersonaeManagement
     end
   end
 
+  # The default_persona_name method returns the name of the default persona.
+  #
+  # @return [String, nil] the name of the default persona or nil if not set
+  attr_reader :default_persona_name
+
+  # Checks whether a persona file exists on disk.
+  #
+  # Resolves the given persona name to its file path via
+  # `persona_name_to_pathname` and tests for existence.
+  #
+  # @param persona_name [String, Symbol] the name of the persona to check
+  #   (without extension, e.g. `"alice"` or `:bob`)
+  #
+  # @return [Boolean] `true` if the persona file exists, `false` otherwise
+  def persona_exist?(persona_name)
+    if pathname = persona_name_to_pathname(persona_name) and pathname.exist?
+      true
+    else
+      false
+    end
+  end
+
   private
 
   # Returns the directory path where persona files are stored.
@@ -95,11 +117,6 @@ module OllamaChat::PersonaeManagement
       set_default_persona_name(persona)
     end
   end
-
-  # The default_persona_name method returns the name of the default persona.
-  #
-  # @return [String, nil] the name of the default persona or nil if not set
-  attr_reader :default_persona_name
 
   # The default_persona method returns the path to the default persona file.
   #

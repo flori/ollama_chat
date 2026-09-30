@@ -59,7 +59,7 @@ module OllamaChat::SystemPromptManagement
       model_default_system_prompt.to_s
     else
       prompt(system_name, context: 'system').to_s
-    end % { persona: nil, runtime_info: nil }
+    end.named_placeholders_interpolate({})
   end
 
   # Retrieves the content of the system prompt currently active in the chat

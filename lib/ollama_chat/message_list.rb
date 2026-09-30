@@ -600,10 +600,11 @@ class OllamaChat::MessageList
     end
     @messages.reject! { |msg| msg.role == 'system' }
     templates_values = {
-      persona:      @chat.default_persona_profile,
-      runtime_info: (@chat.static_runtime_information if @chat.runtime_info.on?),
+      persona:        @chat.default_persona_profile,
+      persona_name:   @chat.default_persona_name.full?,
+      runtime_info:   (@chat.static_runtime_information if @chat.runtime_info.on?),
     }
-    if new_system_prompt = system.full? { _1.to_s % templates_values }
+    if new_system_prompt = system.full? { _1.to_s.named_placeholders_interpolate(templates_values) }
       @system = new_system_prompt
       @messages.unshift(
         OllamaChat::Message.new(role: 'system', content: self.system).initialize_group_uuid

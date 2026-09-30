@@ -668,6 +668,14 @@ tools:
     search_knowledge:
       result_display_timeout: 3
       default: true
+    memorize:
+      result_display_timeout: 3
+      default: true
+      require_confirmation: false
+    forget:
+      result_display_timeout: 3
+      default: true
+      require_confirmation: true
     compute_bmi:
       result_display_timeout: 3
       default: true

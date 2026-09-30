@@ -491,6 +491,7 @@ describe OllamaChat::MessageList do
       expect(chat).to receive(:runtime_info).and_return(double(on?: true))
       expect(chat).to receive(:static_runtime_information)
       expect(chat).to receive(:default_persona_profile)
+      expect(chat).to receive(:default_persona_name).and_return(nil)
       expect(chat).to receive(:markdown).
         and_return(double(on?: true)).at_least(:once)
       expect(chat).to receive(:think_loud).and_return(double(on?: true)).at_least(:once)
@@ -534,6 +535,7 @@ describe OllamaChat::MessageList do
     list.messages.clear
     expect(list.messages.count { _1.role == 'system' }).to eq 0
     expect(chat).to receive(:default_persona_profile).and_return(nil)
+    expect(chat).to receive(:default_persona_name).and_return(nil)
     expect(chat).to receive(:prompt).with('test_prompt', context: 'system').and_return('test prompt')
     expect(chat).to receive(:runtime_info).and_return(double(on?: true))
     expect(chat).to receive(:static_runtime_information)
@@ -546,6 +548,7 @@ describe OllamaChat::MessageList do
 
   it 'can set_system_prompt if already set' do
     expect(chat).to receive(:default_persona_profile).and_return(nil).at_least(:once)
+    expect(chat).to receive(:default_persona_name).and_return(nil).at_least(:once)
     list.messages.clear
     expect(chat).to receive(:prompt).with('first_prompt', context: 'system').and_return('first prompt')
     expect(chat).to receive(:runtime_info).and_return(double(on?: true)).at_least(:once)
