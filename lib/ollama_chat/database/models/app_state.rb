@@ -75,12 +75,12 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
       removed = old.keys - hashes.keys
       changed = hashes.select { |k, v| old[k] && old[k] != v }.keys
 
-      feedback("Shipped prompts changed since last boot:", type: :warn)
-      changed.each { |k| feedback "  ~ #{k} (modified)" }
-      added.each   { |k| feedback "  + #{k} (new)" }
-      removed.each { |k| feedback "  - #{k} (removed)" }
+      chat.feedback("Shipped prompts changed since last boot:", type: :warn)
+      changed.each { |k| chat.feedback "  ~ #{k} (modified)" }
+      added.each   { |k| chat.feedback "  + #{k} (new)" }
+      removed.each { |k| chat.feedback "  - #{k} (removed)" }
     elsif !OllamaChat.test_mode?
-      feedback("First run — storing prompt fingerprints.", type: :warn)
+      chat.feedback("First run — storing prompt fingerprints.", type: :warn)
       store_fingerprint(fingerprint, hashes)
       return true
     end
