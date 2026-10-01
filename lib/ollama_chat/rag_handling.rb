@@ -172,6 +172,64 @@ module OllamaChat::RAGHandling
     end
   end
 
+  # Queries the active collection for matching records and prints
+  # a scored result table for debugging and inspection.
+  #
+  # @param edit [Boolean] use `edit_text` for query input (default: false)
+  # @param rerank [Boolean] apply LLM rerank to results (default: false)
+  def query_collection(edit: false, rerank: false)
+    unless embedding.on?
+      feedback("Embedding is disabled.", type: :warn)
+      return
+    end
+    query =
+      if edit
+        edit_text.full?(:strip)
+      else
+        switch_history(:query) { ask?(prompt: "🔍 Query: ").full?(:strip) }
+      end
+    query.blank? and return
+
+    records = find_document_records(query)
+    if rerank && records.any?
+      records = rerank_records(query, records)
+    end
+
+    use_pager do |output|
+      suffix = records.size == 1 ? '' : 's'
+      output.puts "📚 Collection: #{collection.to_s} (#{records.size} record#{suffix})"
+      output.puts
+      if records.empty?
+        output.puts '  No records found.'
+      else
+        max_num_width = Math.log10(1 + records.size).ceil
+        records.each_with_index do |record, i|
+          score = format('%.1f%%', record.similarity * 100)
+          text  = wrap(
+            truncate(record.text.strip, length: 5 * Tins::Terminal.rows),
+            percentage: 90
+          )
+          link = if record.source =~ %r(\Ahttps?://)
+                   record.source
+                 elsif record.source.present?
+                   'file://%s' % File.expand_path(record.source)
+                 end
+          tag = ?# + record.tags.first
+          if tag && link
+            tag = hyperlink(link, tag)
+          end
+          num = bold { "%#{max_num_width}u." % (i + 1) }
+          feedback(format("%s %s %s", num, score, tag), output:)
+          feedback(kramdown_ansi_parse("```\n%s\n```" % text), output:)
+          feedback(kramdown_ansi_parse(?- * 3), output:)
+        end
+      end
+    end
+    log(:info, "Collection queried", data: {
+      collection: collection.to_s, query:, hits: records.size, rerank:
+    })
+  end
+
   # Updates the documents in the current collection by re-embedding any sources
   # that have been modified since they were first added, and embedding any new
   # files matching the collection's patterns.

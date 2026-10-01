@@ -645,8 +645,8 @@ module OllamaChat::Commands
 
   command(
     name: :collection,
-    regexp: %r(^/collection(?:\s+(change|clear|list|rename|update(?: all)?|new|edit|delete))?$),
-    complete: [ 'collection', %w[ change clear list rename update update\ all new edit delete ] ],
+    regexp: %r(^/collection(?:\s+(change|clear|list|rename|update(?: all)?|new|edit|delete|query))?((?:\s+-[er])*)?$),
+    complete: [ 'collection', %w[ change clear list rename update update\ all new edit delete query ] ],
     optional: true,
     help: <<~EOT
       📚 Manage RAG collections:
@@ -656,9 +656,10 @@ module OllamaChat::Commands
          - new: Interactively create a new collection
          - edit: Interactively update an existing collection
          - delete: Permanently remove a collection
+         - query: Search collection (-e edit, -r rerank)
          - (no subcommand): Show stats
     EOT
-  ) do |subcommand|
+  ) do |subcommand, opts|
     case subcommand
     when 'clear'
       clear_collection
@@ -687,6 +688,9 @@ module OllamaChat::Commands
       edit_collection
     when 'delete'
       delete_collection
+    when 'query'
+      opts = go_command('er', opts.to_s)
+      query_collection(edit: opts[?e], rerank: opts[?r])
     when nil
       collection_stats
     end
@@ -870,9 +874,12 @@ module OllamaChat::Commands
     case input_mode
     when 'summary'
       opts = go_command('paw:i', opts)
-      instruction = if opts[?i]
-        ask?(prompt: 'Summary instruction (Enter to skip): ').full?(:strip)
-      end
+      instruction =
+        if opts[?i]
+          switch_history(:instruction) {
+            ask?(prompt: 'Summary instruction (Enter to skip): ').full?(:strip)
+          }
+        end
       if opts[?p]
         words = opts.fetch(?w, 100)
         all   = opts.fetch(?a, false)

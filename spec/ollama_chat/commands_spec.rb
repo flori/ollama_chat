@@ -329,6 +329,26 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:rename_collection).with(:default)
       expect(chat.handle_input("/collection rename")).to eq :next
     end
+
+    it 'returns :next when input is "/collection query"' do
+      expect(chat).to receive(:query_collection).with(edit: false, rerank: false)
+      expect(chat.handle_input("/collection query")).to eq :next
+    end
+
+    it 'returns :next when input is "/collection query -e"' do
+      expect(chat).to receive(:query_collection).with(edit: 1, rerank: false)
+      expect(chat.handle_input("/collection query -e")).to eq :next
+    end
+
+    it 'returns :next when input is "/collection query -r"' do
+      expect(chat).to receive(:query_collection).with(edit: false, rerank: 1)
+      expect(chat.handle_input("/collection query -r")).to eq :next
+    end
+
+    it 'returns :next when input is "/collection query -e -r"' do
+      expect(chat).to receive(:query_collection).with(edit: 1, rerank: 1)
+      expect(chat.handle_input("/collection query -e -r")).to eq :next
+    end
   end
 
   describe '/info' do
