@@ -68,10 +68,11 @@ module OllamaChat::SessionManagement
 
   # Creates a new, default session instance.
   #
+  # @param name [String, nil] an optional session name (defaults to a random name)
   # @return [OllamaChat::Database::Models::Session] a new session with default
   #   attributes
-  def new_session
-    models::Session.with_defaults(self)
+  def new_session(name: nil)
+    models::Session.with_defaults(self, name:)
   end
 
   # Retrieves the preferred session from the database, or creates a new one if
@@ -194,15 +195,10 @@ module OllamaChat::SessionManagement
     name.nil? and return
     session_close
     previous_session_id = @session.id
-    @session = new_session
+    @session = new_session(name:)
     set_previous_session_on_change(previous_session_id)
     session.lock? or raise OllamaChat::OllamaChatError,
       "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
-    if name.full?
-      session.update(name:)
-    else
-      session.touch
-    end
     session_apply
     messages.clear
     session.current_model.full? {
@@ -652,24 +648,26 @@ module OllamaChat::SessionManagement
         )
       }
       selector and sessions = sessions.select { _1 =~ selector }
-      session_name = if sessions.size == 1
-                        sessions.first.value
-                      else
-                        allow_new and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
-                        if exit_app
-                          sessions.unshift(SearchUI::Wrapper.new('[quit-app]', display: '[QUIT-APP]'))
-                        end
-                        sessions.unshift(SearchUI::Wrapper.new('[exit]', display: '[EXIT]'))
-                        value = choose_entry(sessions, prompt: 'Select a chat session: %s')&.value
-                        if value == '[new]'
-                          return new_session
-                        elsif value == '[quit-app]'
-                          return :quit_app
-                        elsif value == '[exit]'
-                          return nil
-                        end
-                        value
-                      end
+      session_name =
+        if sessions.size == 1
+          sessions.first.value
+        else
+          allow_new and sessions.unshift(SearchUI::Wrapper.new('[new]', display: '[NEW]'))
+          if exit_app
+            sessions.unshift(SearchUI::Wrapper.new('[quit-app]', display: '[QUIT-APP]'))
+          end
+          sessions.unshift(SearchUI::Wrapper.new('[exit]', display: '[EXIT]'))
+          value = choose_entry(sessions, prompt: 'Select a chat session: %s')&.value
+          if value == '[new]'
+            name = determine_valid_new_name_for_session('to create') or return
+            return new_session(name:)
+          elsif value == '[quit-app]'
+            return :quit_app
+          elsif value == '[exit]'
+            return nil
+          end
+          value
+        end
       if session_name
         session_query.first(name: session_name)
       end

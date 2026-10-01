@@ -152,15 +152,17 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # of default values derived from the active chat configuration.
   #
   # @param chat [OllamaChat::Chat] the active chat instance used to extract defaults
+  # @param name [String, nil] an optional session name (defaults to a random name)
   # @return [OllamaChat::Database::Models::Session] a new session instance with default attributes
-  def self.with_defaults(chat)
+  def self.with_defaults(chat, name: nil)
+    name ||= chat.new_random_session_name
     tools_default_enabled =
       chat.config.tools.functions.to_h.
       each_with_object({}) { |(name, f), h| h[name.to_s] = f[:default] }
     current_model = chat.initial_model
     model_options = chat.get_stored_model_options(current_model)
     attributes = {
-      name:                  chat.new_random_session_name,
+      name:                  ,
       current_model:         ,
       current_collection:    chat.initial_collection,
       default_persona_name:  chat.initial_persona_name,
