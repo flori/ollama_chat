@@ -38,15 +38,17 @@ module OllamaChat::CollectionSearch
   #
   # @param query [String] the original search query
   # @param records [Array<Documentrix::Utils::TagResult>] candidate records
-  #
+  # @param prompt_name [String, nil] the prompt template to use for
+  #   reranking; defaults to `'rerank'`
   # @return [Array<Documentrix::Utils::TagResult>] filtered records
-  def rerank_records(query, records)
+  def rerank_records(query, records, prompt_name: nil)
     candidates = records.each_with_index.map { |r, i|
       "[#{i}] #{truncate(r.text.strip, length: 300)}"
     }.join("\n")
 
-    rerank_prompt = prompt('rerank') or
-      raise "missing prompt 'rerank'"
+    prompt_name ||= 'rerank'
+    rerank_prompt = prompt(prompt_name) or
+      raise 'missing prompt %s' % prompt_name.inspect
     rerank_prompt = rerank_prompt.to_s
       .named_placeholders_interpolate({ query:, candidates: })
 
