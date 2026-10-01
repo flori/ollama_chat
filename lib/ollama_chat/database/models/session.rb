@@ -160,7 +160,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
     current_model = chat.initial_model
     model_options = chat.get_stored_model_options(current_model)
     attributes = {
-      name:                  "New Session #{Tins::Token.new}",
+      name:                  chat.new_random_session_name,
       current_model:         ,
       current_collection:    chat.initial_collection,
       default_persona_name:  chat.initial_persona_name,

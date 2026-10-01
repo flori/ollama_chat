@@ -276,8 +276,15 @@ describe OllamaChat::SessionManagement do
       expect(chat.determine_valid_new_name_for_session('to create')).to eq('new_unique')
     end
 
-    it 'returns nil if the user provides an empty string (cancel)' do
-      expect(chat).to receive(:ask?).and_return('')
+    it 'returns a random session if the user provides an empty string' do
+      expect(chat).to receive(:ask?).and_return('  ')
+      expect(chat).to receive(:feedback).with(/New Session /, type: :info)
+      expect(chat.determine_valid_new_name_for_session('to create')).
+        to match(/New Session /)
+    end
+
+    it 'returns nil if the user cancels' do
+      expect(chat).to receive(:ask?).and_return(nil)
       expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
       expect(chat.determine_valid_new_name_for_session('to create')).to be_nil
     end

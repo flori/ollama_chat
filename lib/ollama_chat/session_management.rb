@@ -50,6 +50,14 @@ module OllamaChat::SessionManagement
     OllamaChat::Utils::JSONJSONLIO.new('as.jsonl').read_io(input:)
   end
 
+  # Generates a unique random session name in the format
+  # `New Session <token>`.
+  #
+  # @return [String] a unique session name
+  def new_random_session_name
+    "New Session #{Tins::Token.new}"
+  end
+
   # The session reader returns the current session object.
   #
   # @return [OllamaChat::Database::Models::Session] the current session
@@ -157,10 +165,13 @@ module OllamaChat::SessionManagement
         prompt: "❓ Enter new session name #{action}, C-c ⇒ cancel: ",
         prefill: default_name
       )
-      if session_name.blank?
+      if session_name.nil?
         feedback("Cancelled.", type: :cancel)
-        return nil
+        return
+      elsif session_name.blank?
+        session_name = new_random_session_name
       end
+      feedback("New session name is #{session_name.inspect}.", type: :info)
       if models::Session.where(name: session_name).present?
         feedback("Session named #{bold{session_name}} already exists.", type: :warn)
       else
@@ -180,6 +191,7 @@ module OllamaChat::SessionManagement
     name = switch_history(:session_name) do
       determine_valid_new_name_for_session('to create')
     end
+    name.nil? and return
     session_close
     previous_session_id = @session.id
     @session = new_session
