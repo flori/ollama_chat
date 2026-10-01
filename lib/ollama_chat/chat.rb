@@ -65,6 +65,7 @@ class OllamaChat::Chat
   include OllamaChat::ConfigHandling
   include OllamaChat::PersonaeManagement
   include OllamaChat::SessionManagement
+  include OllamaChat::CollectionSearch
   include OllamaChat::RAGHandling
   include OllamaChat::FavouritesManagement
   include OllamaChat::PromptHandling

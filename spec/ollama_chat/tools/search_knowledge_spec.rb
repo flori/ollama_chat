@@ -31,8 +31,8 @@ describe OllamaChat::Tools::SearchKnowledge do
     )
 
     tool = described_class.new
-    expect(tool).to receive(:find_document_records).with(
-      kind_of(OllamaChat::Chat), kind_of(String), nil, 16384, 10, nil
+    expect(chat).to receive(:find_document_records).with(
+      kind_of(String), tags: nil, text_size: 16384, text_count: 10, min_similarity: nil
     ).and_return(
       [
         double(
@@ -77,8 +77,8 @@ describe OllamaChat::Tools::SearchKnowledge do
     )
 
     tool = described_class.new
-    expect(tool).to receive(:find_document_records).with(
-      kind_of(OllamaChat::Chat), kind_of(String), ['ruby', 'expert'], 16384, 10, nil
+    expect(chat).to receive(:find_document_records).with(
+      kind_of(String), tags: ['ruby', 'expert'], text_size: 16384, text_count: 10, min_similarity: nil
     ).and_return(
       [
         double(
@@ -129,7 +129,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(mock_docs).to receive(:collection=).with('default_collection').ordered
 
     tool = described_class.new
-    expect(tool).to receive(:find_document_records).and_return([])
+    expect(chat).to receive(:find_document_records).and_return([])
 
     tool.execute(tool_call, chat:)
   end
@@ -192,7 +192,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     )
 
     tool = described_class.new
-    expect(tool).to receive(:find_document_records).and_return([])
+    expect(chat).to receive(:find_document_records).and_return([])
 
     result = tool.execute(tool_call, chat:)
     json = json_object(result)
@@ -223,7 +223,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     ]
 
     tool = described_class.new
-    expect(tool).to receive(:find_document_records).and_return(records)
+    expect(chat).to receive(:find_document_records).and_return(records)
 
     expect(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('1')
@@ -260,7 +260,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     ]
 
     tool = described_class.new
-    expect(tool).to receive(:find_document_records).and_return(records)
+    expect(chat).to receive(:find_document_records).and_return(records)
 
     expect(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('0')
