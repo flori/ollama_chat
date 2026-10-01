@@ -364,9 +364,7 @@ module OllamaChat::Switches
       }
     )
 
-    reset_system_prompt = -> * {
-      messages.set_system_prompt(messages.system_name)
-    }
+    reset_system_prompt = -> * { refresh_system_prompt }
 
     @runtime_info = DatabaseSwitch.new(
       chat: self,

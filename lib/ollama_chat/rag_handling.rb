@@ -136,6 +136,7 @@ module OllamaChat::RAGHandling
         col&.update(name: new_collection.to_s)
         log(:info, "Collection renamed", data: { old_name: current_collection, new_name: new_collection })
         feedback("Renamed current collection #{current_collection} to #{new_collection}.", type: :info)
+        refresh_system_prompt
       rescue Sequel::UniqueConstraintViolation
         feedback("Renaming to #{new_collection} failed, it already exists in database.", type: :warn)
       rescue => e
@@ -325,6 +326,7 @@ module OllamaChat::RAGHandling
       end
       feedback("Created collection '#{name}'.", type: :success)
       log(:info, "Collection created", data: { name:, description:, patterns: })
+      refresh_system_prompt
     rescue Sequel::UniqueConstraintViolation
       feedback("Collection #{name.inspect} already exists.", type: :warn)
     rescue Sequel::Error => e
@@ -383,6 +385,7 @@ module OllamaChat::RAGHandling
       end
       feedback("Updated collection '#{col.name}'.", type: :success)
       log(:info, "Collection updated", data: { name: col.name, enabled: col.enabled })
+      refresh_system_prompt
     rescue Sequel::Error => e
       feedback("Database error: #{e.message}", type: :warn)
     end
@@ -412,6 +415,7 @@ module OllamaChat::RAGHandling
             col.destroy
             feedback("Deleted collection #{target_name.inspect}.", type: :success)
             log(:info, "Collection deleted", data: { name: target_name })
+            refresh_system_prompt
           rescue Sequel::Error => e
             feedback("Database error: #{e.message}", type: :warn)
           rescue => e

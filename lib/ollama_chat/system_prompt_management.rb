@@ -41,6 +41,18 @@ module OllamaChat::SystemPromptManagement
     messages.system_name
   end
 
+  # Re-interpolates the current system prompt with fresh dynamic values
+  # (persona content, collection descriptions, runtime info).
+  #
+  # Call this after any operation that mutates the sources baked into
+  # the system prompt, such as creating, editing, renaming, or deleting
+  # a collection, or after a persona file has been edited on disk.
+  #
+  # Safe to call when no system prompt is set; returns immediately.
+  def refresh_system_prompt
+    messages.set_system_prompt(messages.system_name) if messages.system_name
+  end
+
   # Resolves the currently active system prompt name to its raw text content.
   #
   # If the current system prompt is set to 'model_default', this method
