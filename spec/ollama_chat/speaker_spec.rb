@@ -77,4 +77,16 @@ describe OllamaChat::Speaker do
       expect(handler.calls).to be_empty
     end
   end
+
+  describe '#wait_for_speaker' do
+    it 'is a no-op when no background thread exists' do
+      expect { handler.wait_for_speaker }.not_to raise_error
+    end
+
+    it 'joins a completed background thread' do
+      handler.speak('bg', background: 0.05)
+      sleep 0.1
+      expect { handler.wait_for_speaker }.not_to raise_error
+    end
+  end
 end

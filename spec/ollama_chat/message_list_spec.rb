@@ -459,6 +459,75 @@ describe OllamaChat::MessageList do
     end
   end
 
+  describe '#speak_last' do
+    let :speaker_double do
+      double('Speaker', wait_for_speaker: nil)
+    end
+
+    before do
+      allow(chat).to receive(:markdown).and_return(double(on?: false))
+      allow(chat).to receive(:speak).and_return(speaker_double)
+    end
+
+    it 'returns nil and informs when voice is disabled' do
+      allow(chat).to receive(:voice).and_return(double(on?: false))
+      list << OllamaChat::Message.new(role: 'assistant', content: 'hello')
+      expect(chat).to receive(:feedback).
+        with('Voice output is disabled.', type: :info)
+      expect(list.speak_last).to be_nil
+    end
+
+    it 'returns nil and warns when last message is a user message' do
+      allow(chat).to receive(:voice).and_return(double(on?: true))
+      list << OllamaChat::Message.new(role: 'user', content: 'hi')
+      expect(chat).to receive(:feedback).
+        with('Last message is a user message!', type: :warn)
+      expect(list.speak_last).to be_nil
+    end
+
+    it 'speaks the last assistant message and returns self' do
+      allow(chat).to receive(:voice).and_return(double(on?: true))
+      list << OllamaChat::Message.new(role: 'user', content: 'hi')
+      list << OllamaChat::Message.new(role: 'assistant', content: 'hello there')
+
+      expect(STDOUT).to receive(:puts).with(/hello there/)
+      expect(chat).to receive(:speak).with('hello there', background: true)
+        .and_return(speaker_double)
+      expect(speaker_double).to receive(:wait_for_speaker)
+
+      expect(list.speak_last).to eq list
+    end
+
+    it 'speaks the last n assistant messages in order' do
+      allow(chat).to receive(:voice).and_return(double(on?: true))
+      list << OllamaChat::Message.new(role: 'assistant', content: 'first')
+      list << OllamaChat::Message.new(role: 'user', content: 'question')
+      list << OllamaChat::Message.new(role: 'assistant', content: 'second')
+
+      expect(STDOUT).to receive(:puts).with(/first/)
+      expect(STDOUT).to receive(:puts).with(/second/)
+      expect(chat).to receive(:speak).with('first', background: true)
+        .and_return(speaker_double)
+      expect(chat).to receive(:speak).with('second', background: true)
+        .and_return(speaker_double)
+      expect(speaker_double).to receive(:wait_for_speaker).twice
+
+      expect(list.speak_last(2)).to eq list
+    end
+
+    it 'skips messages with empty content' do
+      allow(chat).to receive(:voice).and_return(double(on?: true))
+      list << OllamaChat::Message.new(role: 'assistant', content: '')
+      list << OllamaChat::Message.new(role: 'assistant', content: 'real')
+
+      expect(chat).to receive(:speak).with('real', background: true)
+        .and_return(speaker_double)
+      expect(STDOUT).not_to receive(:puts).with(/\A\s*\z/)
+
+      expect(list.speak_last(2)).to eq list
+    end
+  end
+
   context 'without pager' do
     before do
       expect(list).to receive(:determine_pager_command).and_return nil

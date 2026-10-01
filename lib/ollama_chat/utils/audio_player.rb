@@ -62,6 +62,7 @@ class OllamaChat::Utils::AudioPlayer
         end
       end
     end
+    @thread.report_on_exception = false
     self
   end
 

@@ -514,6 +514,57 @@ class OllamaChat::MessageList
     self
   end
 
+  # Speaks the most recent assistant messages aloud via the session's
+  # voice handler (TTS or Say).
+  #
+  # Each message is printed to STDOUT (without thinking content) and
+  # then spoken on a background thread. The method blocks until each
+  # utterance finishes before moving to the next unless interrupted by entering
+  # `C-c`. If the last message in the list is a user message, a warning is
+  # shown and no audio is produced.
+  #
+  # @param n [Integer, nil] the number of assistant messages to speak.
+  #   Defaults to 1 if not specified.
+  #
+  # @return [OllamaChat::MessageList, nil] self if messages were spoken,
+  #   or nil if voice is disabled, the last message is a user message,
+  #   or there are no assistant messages to speak.
+  def speak_last(n = nil)
+    unless @chat.voice.on?
+      @chat.feedback('Voice output is disabled.', type: :info)
+      return
+    end
+    n ||= 1
+    messages = @messages.reject { |message| message.role == 'user' }
+    n = n.clamp(0..messages.size)
+    n <= 0 and return
+    last_message_user_message = (last.content if last&.role == 'user')
+    if last_message_user_message
+      @chat.feedback('Last message is a user message!', type: :warn)
+      return
+    end
+    last_messages = messages[-n..-1].to_a
+    last_messages = last_messages.with_infobar(
+      output:  STDERR,
+      label:   'Message',
+      total:   last_messages.size,
+      message: @chat.infobar_message,
+    )
+    last_messages.each do |message|
+      content = message.content.full? or next
+      STDOUT.puts message_text_for(message, think_loud: false)
+      speaker = @chat.speak(content, background: true)
+      begin
+        speaker&.wait_for_speaker
+      rescue Interrupt
+        @chat.feedback('Skipping voice output.', type: :info)
+      end
+    ensure
+      +infobar
+    end
+    self
+  end
+
   # Groups messages by their +group_uuid+, yielding an array of messages
   # belonging to the same conversational turn (User -> Assistant -> Tools).
   #

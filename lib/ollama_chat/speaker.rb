@@ -48,12 +48,26 @@ module OllamaChat::Speaker
       call(OpenStruct.new(response: text, done: true))
     end
     if background
-      Thread.new(&speaking)
+      @speaker_thread = Thread.new(&speaking)
+      @speaker_thread.report_on_exception = false
       self
     else
       speaking.()
       nil
     end
+  end
+
+  # Blocks the calling thread until a previously spawned background
+  # speaker thread (from +speak+ with +background:+) has finished
+  # playback.
+  #
+  # Safe to call when no background thread is running; returns +nil+
+  # immediately via safe navigation.
+  #
+  # @return [void, nil] the result of +Thread#join+ if a speaker thread
+  #   exists, otherwise +nil+.
+  def wait_for_speaker
+    @speaker_thread&.join
   end
 
   # Signals a pending background `#speak` to abort before it begins.
