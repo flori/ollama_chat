@@ -336,17 +336,23 @@ describe OllamaChat::Compaction do
 
     it 'reports and returns true on success' do
       result = OllamaChat::Compaction::Result.new(
-        context_before: '100.0 KT of 262.1 KT (38.2%)',
-        context_after:  '50.0 KT of 262.1 KT (19.1%)',
-        candidates:     12,
-        candidate_size: '45.2 KB / 13.0 KT',
-        summary_size:   '2.1 KB / 600 T',
-        stored_total:   '120.5 KB / 35.0 KT',
+        context_before:            '100.0 KT of 262.1 KT (38.2%)',
+        context_after:             '50.0 KT of 262.1 KT (19.1%)',
+        context_filled_before:     0.382,
+        context_filled_after:      0.191,
+        candidates:                12,
+        candidate_size:            '45.2 KB / 13.0 KT',
+        summary_size:              '2.1 KB / 600 T',
+        stored_total:              '120.5 KB / 35.0 KT',
       )
       expect(chat.messages).to receive(:compact!).and_return(result)
 
       expect(chat).to receive(:feedback)
         .with(a_string_matching(/Summarized:\s+12 messages/), type: :success)
+      expect(chat).to receive(:speak)
+        .with(a_string_matching(
+          /Compressed conversation context from \d+ to \d+ in \d+\.\d+ seconds\./
+        ))
 
       expect(chat.compact_with_retry).to be true
     end

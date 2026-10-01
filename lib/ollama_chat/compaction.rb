@@ -34,6 +34,12 @@ module OllamaChat::Compaction
   #   @return [String] formatted context usage before compaction
   # @!attribute [r] context_after
   #   @return [String] formatted context usage after compaction
+  # @!attribute [r] context_filled_before
+  #   @return [Float] fraction of the context window filled before
+  #     compaction (e. g. `0.382` for 38.2%)
+  # @!attribute [r] context_filled_after
+  #   @return [Float] fraction of the context window filled after
+  #     compaction
   # @!attribute [r] candidates
   #   @return [Integer] number of messages that were summarized
   # @!attribute [r] candidate_size
@@ -44,6 +50,7 @@ module OllamaChat::Compaction
   #   @return [String] formatted full conversation length
   Result = Data.define(
     :context_before, :context_after,
+    :context_filled_before, :context_filled_after,
     :candidates, :candidate_size,
     :summary_size, :stored_total
   )
@@ -104,10 +111,11 @@ module OllamaChat::Compaction
   # @return [Boolean] true if compaction succeeded, false if the user
   #   declined to retry.
   def compact_with_retry
-    result   = messages.compact!
+    start  = Time.now
+    result = messages.compact!
     session_sync
     if result
-      report_compaction(result)
+      report_compaction(result, duration: Time.now - start)
     else
       feedback('Nothing to compact.', type: :info)
     end
@@ -276,7 +284,9 @@ module OllamaChat::Compaction
   # before/after context metrics, candidate volume, and summary size.
   #
   # @param result [Result] the compaction result from +compact!+.
-  def report_compaction(result)
+  # @param duration [Float] elapsed seconds for the compaction operation,
+  #   used in the voice announcement.
+  def report_compaction(result, duration:)
     feedback(<<~EOT, type: :success)
       Conversation compacted:
 
@@ -285,5 +295,12 @@ module OllamaChat::Compaction
       Context:      #{result.context_before} → #{result.context_after}
       Stored total: #{result.stored_total}
     EOT
+    speak(
+      'Compressed conversation context from %.f to %.f in %.1f seconds.' % [
+        100 * result.context_filled_before,
+        100 * result.context_filled_after,
+        duration,
+      ]
+    )
   end
 end

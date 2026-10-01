@@ -238,6 +238,8 @@ describe OllamaChat::MessageList do
         .with(:keep_recent, 100).and_return 5
       allow(chat).to receive(:context_usage)
         .and_return '10.0 T of 100 T (10.0%)'
+      allow(chat).to receive(:context_filled).
+        and_return 0.1
       allow(chat).to receive(:conversation_length)
         .and_return '1.0 KB / 0.3 KT'
     end

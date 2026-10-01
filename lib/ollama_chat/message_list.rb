@@ -164,7 +164,8 @@ class OllamaChat::MessageList
     cand_es = OllamaChat::TokenEstimator::Crude.new(
       candidates.sum { |m| m.content.to_s.bytesize }
     ).perform
-    context_before = @chat.context_usage
+    context_before        = @chat.context_usage
+    context_filled_before = @chat.context_filled
 
     @chat.log(:info, 'Compaction: starting', data: {
       context_length: ctx,
@@ -210,13 +211,15 @@ class OllamaChat::MessageList
 
     OllamaChat::Compaction::Result.new(
       context_before:,
-      context_after:  @chat.context_usage,
-      candidates:     candidates.size,
-      candidate_size: "#{cand_es.bytes_formatted} / " \
-                      "#{cand_es.tokens_formatted}",
-      summary_size:   "#{compact_es.bytes_formatted} / " \
-                      "#{compact_es.tokens_formatted}",
-      stored_total:   @chat.conversation_length,
+      context_after:         @chat.context_usage,
+      context_filled_before: ,
+      context_filled_after:  @chat.context_filled,
+      candidates:            candidates.size,
+      candidate_size:        "#{cand_es.bytes_formatted} / " \
+                             "#{cand_es.tokens_formatted}",
+      summary_size:          "#{compact_es.bytes_formatted} / " \
+                             "#{compact_es.tokens_formatted}",
+      stored_total:          @chat.conversation_length,
     )
   end
 
