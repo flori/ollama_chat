@@ -49,7 +49,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<pdf-reader>.freeze, ["~> 2.0".freeze])
   s.add_runtime_dependency(%q<bigdecimal>.freeze, ["~> 3.1".freeze])
   s.add_runtime_dependency(%q<csv>.freeze, ["~> 3.0".freeze])
-  s.add_runtime_dependency(%q<const_conf>.freeze, ["~> 0.3".freeze])
+  s.add_runtime_dependency(%q<const_conf>.freeze, ["~> 0.9".freeze])
   s.add_runtime_dependency(%q<context_spook>.freeze, ["~> 1.6".freeze])
   s.add_runtime_dependency(%q<infobar>.freeze, [">= 0.13.1".freeze])
   s.add_runtime_dependency(%q<rubyzip>.freeze, ["~> 3.0".freeze])

@@ -83,7 +83,7 @@ module OllamaChat::Commands
     when 'reload'
       reload_config
     when 'env'
-      OC.view
+      OC.view(pager: OC::PAGER?)
     else
       display_config
     end

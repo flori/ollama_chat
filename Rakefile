@@ -55,7 +55,7 @@ GemHadar do
   dependency             'pdf-reader',            '~> 2.0'
   dependency             'bigdecimal',            '~> 3.1'
   dependency             'csv',                   '~> 3.0'
-  dependency             'const_conf',            '~> 0.3'
+  dependency             'const_conf',            '~> 0.9'
   dependency             'context_spook',         '~> 1.6'
   dependency             'infobar',               '>= 0.13.1'
   dependency             'rubyzip',               '~> 3.0'
