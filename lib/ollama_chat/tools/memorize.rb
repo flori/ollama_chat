@@ -102,7 +102,7 @@ class OllamaChat::Tools::Memorize
       )
     end
 
-    chat.log(:info, 'Memory stored', data: { tool: name, collection: })
+    chat.log(:info, 'Memory stored', data: { tool: name, collection:, text: })
 
     message = "Memory stored in collection #{collection.inspect}."
 
