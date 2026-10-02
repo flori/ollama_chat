@@ -26,12 +26,12 @@ class OllamaChat::Tools::DirectoryStructure
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Tree viewer – Returns JSON describing files/folders under path up to
-          max_depth (<= height of the tree), optionally only files ending with
-          suffix / file extension, e. g. rb for ruby files. Handy for locating
-          resources or presenting a project layout. Limit the required tokens
-          by using the max_depth parameter if possible, because the number of
-          nodes in a tree can grow exponentially with its height.
+          File locator – Returns a JSON tree of files/folders under
+          path, optionally filtered by suffix (e. g. "rb") and
+          max_depth. Prefer this over shell `find` or `ls -R`: it
+          shows where files sit relative to each other, which flat
+          `find` output cannot. Use max_depth to keep the result
+          small — nodes grow exponentially with tree height.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
