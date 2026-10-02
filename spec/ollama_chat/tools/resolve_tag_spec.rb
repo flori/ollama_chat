@@ -91,14 +91,15 @@ describe OllamaChat::Tools::ResolveTag do
     end
   end
 
-  context 'when a tag line triggers the internal rescue path' do
+  context 'when the tagged file does not exist' do
     let(:tags_path) { File.join(Dir.pwd, 'tmp', 'test_tags.ctags') }
 
     before do
       FileUtils.mkdir_p(File.dirname(tags_path))
       # Valid ctags format: symbol\tfilename\t/^regexp$/;"\tkind rest
-      # 5 regex captures, but TagResult needs 6 (…+ :linenumber),
-      # so TagResult.new always raises ArgumentError → rescue fires.
+      # Points to lib/foo.rb which does not exist, so the tag is
+      # silently skipped by the filename.exist? guard and 0 results
+      # are returned.
       File.write(tags_path, \
         "execute\tlib/foo.rb\t/^  def execute\\($/;\"\tf method\n")
       const_conf_as(
@@ -111,7 +112,7 @@ describe OllamaChat::Tools::ResolveTag do
       File.delete(tags_path) if File.exist?(tags_path)
     end
 
-    it 'logs via chat.log and returns empty results' do
+    it 'returns empty results without raising' do
       tool_call = double(
         'ToolCall',
         function: double(
@@ -119,11 +120,6 @@ describe OllamaChat::Tools::ResolveTag do
           arguments: double(symbol: 'execute', kind: nil, directory: nil)
         )
       )
-
-      expect(chat).to receive(:log).
-        with(:error, kind_of(ArgumentError),
-           hash_including(data: { context: 'tag_resolver' })).
-        and_return(nil)
 
       result = described_class.new.execute(tool_call, chat:)
       json = json_object(result)

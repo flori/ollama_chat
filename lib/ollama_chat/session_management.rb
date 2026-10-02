@@ -483,6 +483,80 @@ module OllamaChat::SessionManagement
     end
   end
 
+  # Interactively edits the trigger configuration for a collection.
+  #
+  # Presents a chooser for available rerank prompt names, then prompts
+  # for the collection, text_count, and enabled state. Existing values
+  # are prefilled when re-editing a known trigger so the user can simply
+  # accept defaults or toggle enabled off.
+  def edit_session_trigger
+    prompts = models::Prompt.where(context: 'rerank').map(&:name).sort
+    return feedback('No rerank prompts available.', type: :warn) \
+      unless prompts.any?
+
+    collections = all_collections.map(&:name).sort
+    return feedback('No collections available.', type: :warn) \
+      unless collections.any?
+
+    existing = session.trigger.to_h
+
+    collection = nil
+    choose_with_state do
+      # Prefill with the first configured collection as a starting
+      # point. Fine for the single-trigger case; with multiple
+      # configured, it's just an arbitrary default the user can
+      # override in the chooser.
+      if selected = existing.first&.first&.dup
+        self.current_search_state = SearchUI::Search::State.new(selected, 0)
+      end
+      collection = choose_entry(collections, prompt: 'Collection? %s')
+      return feedback('Exiting chooser.', type: :info) unless collection
+    end
+
+    prompt_name = nil
+    choose_with_state do
+      if selected = existing.dig(collection, 'prompt_name')
+        self.current_search_state = SearchUI::Search::State.new(selected, 0)
+      end
+      prompt_name = choose_entry(prompts, prompt: 'Rerank prompt? %s')
+      return feedback('Exiting chooser.', type: :info) unless prompt_name
+    end
+
+    prefill_tc      = ''
+    prefill_enabled = 'y'
+    if cfg = existing[collection]
+      prefill_tc      = cfg['text_count'].to_s
+      prefill_enabled = cfg['enabled'] ? 'y' : 'n'
+    end
+
+    tc_raw = ask?(
+      prompt:  'text_count (empty for no limit): ',
+      prefill: prefill_tc
+    )
+    return feedback('Cancelled.', type: :cancel) if tc_raw.nil?
+    text_count = tc_raw.strip.empty? ? nil : tc_raw.strip.to_i
+
+    enabled_raw = ask?(
+      prompt: 'Enabled? (y/n): ',
+      prefill: prefill_enabled
+    )
+    return feedback('Cancelled.', type: :cancel) if enabled_raw.nil?
+    enabled = enabled_raw.strip.match?(/\Ay/i)
+
+    cfg = {
+      'enabled'     => enabled,
+      'prompt_name' => prompt_name,
+    }
+    cfg['text_count'] = text_count if text_count
+
+    session.update(trigger: { collection => cfg })
+
+    feedback(
+      "Trigger for #{collection.inspect} → #{cfg.inspect}.",
+      type: :info
+    )
+  end
+
   # Derives a title for the session based on its content.
   #
   # @param length [Integer] the maximum length of the title (default: 128)

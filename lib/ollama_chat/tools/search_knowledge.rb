@@ -129,7 +129,11 @@ class OllamaChat::Tools::SearchKnowledge
     records = chat.find_document_records(query, tags:, text_size:, text_count:, min_similarity:)
 
     if rerank && records.any?
-      records = chat.rerank_records(query, records)
+      pre_rerank  = records.size
+      prompt_name = 'default'
+      records = chat.rerank_records(query, records, prompt_name:)
+      chat.log(:info, 'Tool: %d/%d passed rerank for %s' % [ records.size, pre_rerank, collection ],
+          data: { collection:, prompt_name: })
     end
 
     chat.log(:info, "Snippets retrieved", data: {
@@ -154,7 +158,11 @@ class OllamaChat::Tools::SearchKnowledge
       end
 
     {
-      prompt: 'Consider these snippets generated from retrieval when formulating your response!',
+      prompt: chat.prompt('snippets_retrieval').to_s,
+      collection: {
+        name:        collection_name,
+        description: chat.database_collection?(collection_name)&.description&.to_s,
+      },
       snippets: records.map do |record|
         {
           text:       record.text,

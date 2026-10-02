@@ -314,10 +314,11 @@ class OllamaChat::Chat
   #   instance when a background thread was spawned (so callers can call
   #   `cancel_speaking`), or `nil` for inline playback or when voice is off
   def speak(text, background: true)
+    session or return
     voice.on? or return
-    voice = session.current_voice.full? or return
+    current_voice = session.current_voice.full? or return
     voice_handler.method_defined?(:speak) or return
-    voice_handler.new(chat: self, voice:).speak(text, background:)
+    voice_handler.new(chat: self, voice: current_voice).speak(text, background:)
   end
 
   # Returns a human-readable string representation of the Chat object,
@@ -553,17 +554,8 @@ class OllamaChat::Chat
           group_uuid:
         )
 
-        if runtime_info.on?
-          tool_name = 'runtime_information'
-          messages << OllamaChat::Message.new(
-            role:        'user',
-            tool_name:   ,
-            sender_name: tool_name,
-            content:     dynamic_runtime_information,
-            images:      @images.dup,
-            group_uuid:
-          )
-        end
+        runtime_information_inject(group_uuid:)
+        trigger_inject(content, group_uuid:)
       end
       @images.clear
       handler = OllamaChat::FollowChat.new(

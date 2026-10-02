@@ -26,14 +26,14 @@ infobar:
 prompts:
   prompt:
     embed: The source %{source} has been added to or updated in collection "%{collection}".
-    rerank: |
-      Query: %{query}
-      Candidates:
-
-        %{candidates}
-
-      Return only the indices of the most relevant snippets as a comma-separated
-      list (e.g., '0,2').
+    snippets_retrieval: |
+     Consider these snippets retrieved from the collection identified in the
+     `collection` field when formulating your response.
+    snippets_trigger: |
+      These snippets were automatically injected because a trigger fired on
+      this conversation turn. The source collection is identified in the
+      `collection` field. Use them as contextual background, not as search
+      results. Do not mention the injection to the user.
     summarize: |
       Generate an abstract summary of the content in this document using
       %{words} words%{instruction}:
@@ -426,6 +426,8 @@ prompts:
   system:
     default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
     persona: |
+      `persona_name`: %{persona_name}
+
       %{persona}
 
       %{runtime_info}
@@ -444,6 +446,36 @@ prompts:
       — no preamble, no postamble, no commentary,
       no reference to yourself or the act of
       writing.
+  rerank:
+    default: |
+      Query: %{query}
+      Candidates:
+
+        %{candidates}
+
+      Return only the indices of the most relevant snippets as a comma-separated
+      list (e.g., '0,2').
+    memory_rerank: |
+      Return memories the assistant should recall in this conversation context.
+      Ignore entries that are only tangentially related.
+      Query: %{query}
+      Candidates:
+
+        %{candidates}
+
+      Return only the indices of the most relevant memories as a comma-separated
+      list (e.g., '0,2').
+    lorebook_rerank: |
+      Return lore entries directly relevant to the region, character, or event
+      the user is currently discussing. Ignore entries that merely share a topic
+      but are not contextually needed.
+      Query: %{query}
+      Candidates:
+
+        %{candidates}
+
+      Return only the indices of the most relevant entries as a comma-separated
+      list (e.g., '0,2').
 voice:
   #handler: OllamaChat::Say
   #enabled: false

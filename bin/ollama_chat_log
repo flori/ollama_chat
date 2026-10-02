@@ -4,7 +4,7 @@ require 'ollama_chat'
 require 'file/tail'
 require 'tins/xt'
 
-opts     = Tins::GO.go 'fm:n:h:', defaults: { ?n => 10  }
+opts     = Tins::GO.go 'hfm:n:', defaults: { ?n => 10  }
 log_path = ARGV.shift || OC::OLLAMA::CHAT::LOG::CHAT
 
 if opts[?h]

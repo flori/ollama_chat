@@ -12,6 +12,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   plugin :touch
   plugin :serialization, :json, :tools_default_enabled
   plugin :serialization, :json, :model_options
+  plugin :serialization, :json, :trigger
   plugin :validation_helpers
 
   # Validates the session instance.
@@ -133,6 +134,15 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] model_options
   #   @return [String, nil] A JSON-serialized string containing model-specific options.
   #
+  # @!attribute [v] trigger
+  #   @return [Hash, nil] Maps collection names to search/rerank
+  #     overrides, e.g.
+  #     `{ 'memory-miyu' => { 'prompt_name' => 'memory_rerank',
+  #       'text_count' => 5 } }`.
+  #     Recognized keys: `prompt_name`, `text_count`, `text_size`,
+  #     `min_similarity`.
+  #     `nil` when the trigger mechanism is disabled for this session.
+  #
   # @!attribute [v] messages
   #   @return [String] The full conversation history, stored in JSONL format.
   #
@@ -184,6 +194,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       context_format:        chat.config.context.format,
       working_directory:     Dir.pwd,
       messages:              '',
+      trigger:               nil,
     }
     new(attributes)
   end

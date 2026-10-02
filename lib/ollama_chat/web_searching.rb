@@ -45,7 +45,7 @@ module OllamaChat::WebSearching
   # the specified number of URLs. The processing approach varies based on the current
   # document policy and embedding status:
   #
-  # - **Embedding mode**: When `document_policy.selected == 'embedding'` AND `@embedding.on?` is true,
+  # - **Embedding mode**: When `document_policy.selected == 'embedding'` AND `embedding.on?` is true,
   #   each result is embedded and the query is interpolated into the `web_embed` prompt.
   # - **Summarizing mode**: When `document_policy.selected == 'summarizing'`,
   #   each result is summarized and both query and results are interpolated into the
@@ -63,7 +63,7 @@ module OllamaChat::WebSearching
   #   web('3', 'ruby programming tutorials')
   #
   # @example Web search with embedding policy
-  #   # With document_policy.selected == 'embedding' and @embedding.on?
+  #   # With document_policy.selected == 'embedding' and embedding.on?
   #   # Processes results through embedding pipeline
   #
   # @example Web search with summarizing policy
@@ -71,7 +71,7 @@ module OllamaChat::WebSearching
   #   # Processes results through summarization pipeline
   def web(count, query)
     urls = search_web(query, count.to_i) or return :next
-    if document_policy.selected == 'embedding' && @embedding.on?
+    if document_policy.selected == 'embedding' && embedding.on?
       prompt = prompt(:web_embed).to_s
       urls.each do |url|
         fetch_source(url) { |url_io| embed_source(url_io, url) }

@@ -194,7 +194,7 @@ module OllamaChat::SourceFetching
   # @return [Array, String, nil] The embedded chunks or processed content, or
   #   nil if embedding is disabled or fails
   def embed_source(source_io, source, tags: [], count: nil)
-    @embedding.on? or return parse_source(source_io)
+    embedding.on? or return parse_source(source_io)
     unless @documents.source_modified?(source)
       infobar.puts "Source #{source.to_s.inspect} already up-to-date. => Skipping."
       log(:info, "Source up-to-date", data: { source: source.to_s })
@@ -272,7 +272,7 @@ module OllamaChat::SourceFetching
   #   nil if the operation fails
   def embed(source, tags: [], prompt: prompt(:embed))
     prompt = prompt.to_s
-    @embedding.on? or return
+    embedding.on? or return
     fetch_source(source) do |source_io|
       content = parse_source(source_io)
       content.present? or return

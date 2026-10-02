@@ -113,15 +113,16 @@ module OllamaChat::Commands
 
   command(
     name: :session,
-    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|delete|model options change|model options))?((?:\s+-(?:p\s*\w+))*)(?:\s+([^-].*))?$),
-    complete: [ 'session', %w[ change previous list new duplicate rename delete model\ options\ change model\ options ] ],
+    regexp: %r(^/session(?:\s+(change|previous|list|new|duplicate|rename|delete|model options change|model options|trigger edit))?((?:\s+-(?:p\s*\w+))*)(?:\s+([^-].*))?$),
+    complete: [ 'session', %w[ change previous list new duplicate rename delete model\ options\ change model\ options trigger\ edit ] ],
     optional: true,
     options: "[-p profile]\n[name]",
     help: <<~EOT
       💬 Manage sessions:
          - list/new/delete/rename/duplicate
          - change [name]/previous
-         - model options/change
+          - model options/change
+          - trigger edit
     EOT
   ) do |subcommand, opts, name|
     case subcommand
@@ -152,6 +153,8 @@ module OllamaChat::Commands
       else
         feedback("No previous session defined.", type: :info)
       end
+    when 'trigger edit'
+      edit_session_trigger
     end
     :next
   end

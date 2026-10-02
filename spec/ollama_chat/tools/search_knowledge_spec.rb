@@ -40,7 +40,7 @@ describe OllamaChat::Tools::SearchKnowledge do
           text:       'quux',
           source:     'foo',
           tags:       %w[ bar ],
-          tags_set:   [],
+          tags_set:   double('Tags', to_s: '', map: []),
           similarity: 0.666
         )
       ]
@@ -52,7 +52,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.prompt).to eq(
-      "Consider these snippets generated from retrieval when formulating your response!"
+      "Consider these snippets retrieved from the collection identified in the\n`collection` field when formulating your response.\n"
     )
     expect(json.snippets.size).to eq 1
     expect(json.message).to include('Retrieved')
@@ -86,7 +86,7 @@ describe OllamaChat::Tools::SearchKnowledge do
           text:       'quintessential ruby',
           source:     'foo',
           tags:       %w[ ruby expert ],
-          tags_set:   [],
+          tags_set:   double('Tags', to_s: '', map: []),
           similarity: 0.666
         )
       ]
@@ -120,8 +120,9 @@ describe OllamaChat::Tools::SearchKnowledge do
 
     mock_docs = double('Documents')
     expect(chat).to receive(:documents).and_return(mock_docs).at_least(:once)
-    expect(chat).to receive(:database_collection?).with('tolkien').
-      and_return(double('Col', enabled: true))
+    expect(chat).to receive(:database_collection?)
+      .and_return(double('Col', description: 'Desc', enabled: true))
+      .at_least(:once)
 
     expect(mock_docs).to receive(:collection).and_return('default_collection').
       at_least(:once)
@@ -218,14 +219,16 @@ describe OllamaChat::Tools::SearchKnowledge do
     )
 
     records = [
-      double('Record', text: 'first', source: 's1', tags: [], tags_set: [], similarity: 0.1),
-      double('Record', text: 'second', source: 's2', tags: [], tags_set: [], similarity: 0.9)
+      double('Record', text: 'first', source: 's1', tags: [], tags_set: double('Tags', to_s: '', map: []), similarity: 0.1),
+      double('Record', text: 'second', source: 's2', tags: [], tags_set: double('Tags', to_s: '', map: []), similarity: 0.9)
     ]
 
     tool = described_class.new
     expect(chat).to receive(:find_document_records).and_return(records)
+    expect(chat).to receive(:database_collection?).and_return(double('Col', description: nil))
+    expect(chat).to receive(:prompt).with('snippets_retrieval').and_return("Consider these snippets")
 
-    expect(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
+    expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('1')
 
     result = tool.execute(tool_call, chat:)
@@ -255,14 +258,16 @@ describe OllamaChat::Tools::SearchKnowledge do
     )
 
     records = [
-      double('Record', text: 'first', source: 's1', tags: [], tags_set: [], similarity: 0.1),
-      double('Record', text: 'second', source: 's2', tags: [], tags_set: [], similarity: 0.9)
+      double('Record', text: 'first', source: 's1', tags: [], tags_set: double('Tags', to_s: '', map: []), similarity: 0.1),
+      double('Record', text: 'second', source: 's2', tags: [], tags_set: double('Tags', to_s: '', map: []), similarity: 0.9)
     ]
 
     tool = described_class.new
     expect(chat).to receive(:find_document_records).and_return(records)
+    expect(chat).to receive(:database_collection?).and_return(double('Col', description: nil))
+    expect(chat).to receive(:prompt).with('snippets_retrieval').and_return("Consider these snippets")
 
-    expect(chat).to receive(:prompt).with('rerank').and_return("template %{query} %{candidates}")
+    expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('0')
 
     result = tool.execute(tool_call, chat:)
