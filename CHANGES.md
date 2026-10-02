@@ -1,5 +1,73 @@
 # Changes
 
+## 2026-10-02 v0.0.124
+
+### Added
+
+*   `OllamaChat::Feedback` module to replace raw `STDOUT.puts` and
+    `STDERR.puts` calls with typed, testable system notifications.
+    *   Supports types: `:success`, `:cancel`, `:denied`, `:warn`, `:info`,
+        `:alarm`.
+    *   Integrates with `use_pager` and handles newline formatting via
+        `output.print`.
+*   `memorize` tool to embed timestamped entries into per-persona
+    `memory-<persona_name>` Documentrix collections.
+*   `forget` tool to clear a single memory record by its ISO-8601 timestamp
+    tag.
+*   `/collection query` subcommand to debug collections, supporting optional
+    `-e` (edit) and `-r` (rerank) flags.
+*   `/config env` subcommand to display the Ollama Chat environment variable
+    tree using `OC.view`.
+*   `/last -v` flag to voice previous assistant messages via
+    `MessageList#speak_last`.
+*   `OllamaChat::CollectionSearch` module extracted from `SearchKnowledge`
+    tool, providing `find_document_records` and `rerank_records` methods mixed
+    into `Chat`.
+*   `refresh_system_prompt` method in `SystemPromptManagement` to
+    re-interpolate the active system prompt with fresh `persona` and
+    `runtime_info` values after collection mutations.
+*   Voice announcement in the compaction report, including
+    `context_filled_before`, `context_filled_after`, and `duration` in
+    `Compaction::Result`.
+*   `Speaker#wait_for_speaker` method to join the speaker thread and block
+    until completion.
+*   `spec/ollama_chat/speaker_spec.rb` with tests for `OllamaChat::Speaker`.
+
+### Changed
+
+*   Replaced `str % {…}` with `named_placeholders_interpolate({…})` for
+    DB-prompt call sites to handle unknown placeholders gracefully.
+*   Updated `directory_structure` tool description from "Tree viewer" to "File
+    locator" and added guidance to prefer it over shell `find` or `ls -R`.
+*   Routed prompt change feedback through the `chat` instance in `app_state.rb`
+    to ensure messages target the active chat session.
+*   Switched spec stubs from `allow` to `expect` in `http_handling_spec.rb`,
+    `message_list_spec.rb`, `execute_shell_spec.rb`, `tts_spec.rb`,
+    `compaction_spec.rb`, `audio_player_spec.rb`, and `asr_spec.rb` to enforce
+    required calls.
+*   Bumped `const_conf` dependency from `~> **0.3**` to `~> **0.9**`.
+*   Updated `rerank_records` to accept an optional `prompt_name:` keyword
+    argument.
+*   Improved new session name generation by extracting
+    `new_random_session_name` into `SessionManagement` and handling `nil`
+    cancellation in `determine_valid_new_name_for_session`.
+*   Allowed naming new sessions via `choose_session` by threading an optional
+    `name:` keyword through `new_session` and `Session.with_defaults`.
+*   Logged stored memory text in the `memorize` tool by adding `text:` to the
+    `chat.log` data hash.
+*   Extracted context usage helpers `context_usage_colored` and
+    `context_percentage` to eliminate duplicated format logic.
+*   Updated `output_eval_stats` in `follow_chat.rb` to print colored context
+    usage.
+
+### Fixed
+
+*   Fixed indentation bug in `model_handling.rb` import/export by changing
+    `sub` to `gsub`.
+*   Guarded source link rendering in `search_knowledge` against `nil` or empty
+    `source` values.
+*   Suppressed `report_on_exception` on `AudioPlayer` background thread.
+
 ## 2026-09-25 v0.0.123
 
 ### Added
