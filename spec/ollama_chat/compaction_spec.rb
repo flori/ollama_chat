@@ -351,7 +351,7 @@ describe OllamaChat::Compaction do
         .with(a_string_matching(/Summarized:\s+12 messages/), type: :success)
       expect(chat).to receive(:speak)
         .with(a_string_matching(
-          /Compressed conversation context from \d+ to \d+ in \d+\.\d+ seconds\./
+          /Compressed conversation context from \d+ to \d+ in \d+ (?:seconds|minutes and \d+ seconds)\./
         ))
 
       expect(chat.compact_with_retry).to be true
