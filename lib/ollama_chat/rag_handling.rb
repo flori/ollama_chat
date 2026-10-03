@@ -41,6 +41,24 @@ module OllamaChat::RAGHandling
     @documents.collection
   end
 
+  # The clear_whole_collection method confirms user intent to delete the entire
+  # collection, then clears all documents and logs the action, returning self
+  # on success.
+  #
+  # @return [ nil, OllamaChat::Chat ] when the user declines the confirmation
+  #   prompt, self otherwise.
+  def clear_whole_collection
+    if confirm?(prompt: '🔔 Really delete the whole collection? Are you sure? (y/n) ', yes: /\Ay/i)
+      @documents.clear
+      log(:info, "Collection cleared", data: { collection: })
+      feedback("Cleared collection #{bold{collection}}.", type: :info)
+      self
+    else
+      feedback('Denied.', type: :denied)
+      nil
+    end
+  end
+
   # Clears documents from the collection through an interactive user interface.
   #
   # This method allows users to selectively clear documents by choosing
@@ -60,12 +78,7 @@ module OllamaChat::RAGHandling
           feedback("Exiting chooser.")
           break
         when '[ALL]'
-          if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
-            @documents.clear
-            log(:info, "Collection cleared", data: { collection: })
-            feedback("Cleared collection #{bold{collection}}.", type: :info)
-            break
-          end
+          clear_whole_collection and break
         when /./
           @documents.clear(tags: [ tag ])
           log(:info, "Tag cleared from collection", data: { collection:, tag: })
