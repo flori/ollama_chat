@@ -9,6 +9,7 @@ require 'open3'
 class OllamaChat::Tools::RunTests
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::PathValidator
+  include OllamaChat::Utils::StripANSI
 
   # @return [String] the registered name for this tool
   def self.register_name = 'run_tests'
@@ -142,7 +143,7 @@ class OllamaChat::Tools::RunTests
     Open3.popen2e(env, cmd) do |_,io,waiter|
       while line = io.gets
         feedback line
-        output << line
+        output << strip_ansi(line)
       end
       success = waiter.value.success?
     end
