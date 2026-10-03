@@ -1,5 +1,92 @@
 # Changes
 
+## 2026-10-03 v0.0.125
+
+### Added
+
+* Session-scoped trigger injection mechanism:
+  * New migration `011_add_trigger_to_sessions` adding a `:text` JSON column to
+    `sessions`.
+  * `Session#trigger` attribute with `plugin :serialization, :json` and `nil`
+    default.
+  * `CollectionSearch#trigger_inject` dispatch logic including embedding
+    guards, collection switching, document finding, and reranking.
+  * New `/session trigger edit` command registered in `commands.rb`.
+  * `edit_session_trigger` method in `session_management.rb` supporting dual
+    chooser and prefill.
+  * Trigger configuration display (⚡ block) added to `info_rag` in
+    `information.rb`.
+  * `runtime_information_inject` extracted from `chat.rb` into
+    `information.rb`.
+  * New prompt contexts: `prompts.rerank` (`default`, `memory_rerank`,
+    `lorebook_rerank`), `prompts.prompt.snippets_retrieval`, and
+    `prompts.prompt.snippets_trigger`.
+  * `persona_name` line added to `prompts.system.persona`.
+  * `TagResult` changed from `Data.define` to `Struct.new` to allow mutable
+    fields.
+  * `∅` fallback for empty patterns in `collection_stats`.
+  * Info-level logging for embedding requests/responses and rerank survivors in
+    `collection_search.rb`.
+  * New spec file `collection_search_spec.rb` with 7 examples for
+    `#trigger_inject`.
+
+### Changed
+
+* `SessionLocking#lock?` now accepts a required `chat:` keyword argument to
+  decouple feedback delegation from the host object.
+* `search_knowledge.rb` updated to use `snippets_retrieval` DB prompt,
+  `collection` block, and `database_collection?` guard.
+* `@embedding` instance variable swept to `embedding` accessor in
+  `information.rb`, `source_fetching.rb`, and `web_searching.rb`.
+* `Tins::Duration#format` used for compaction voice timing in
+  `report_compaction`, replacing `%.1f seconds`.
+* `tins` dependency bumped from `~> **1.58**` to `~> **1.60**` to support
+  unpadded `%H`, `%M`, and `%u` directives.
+* `resolve_tag_spec.rb` updated to replace an unreachable rescue-path test with
+  a "tagged file does not exist" test.
+* `search_knowledge_spec.rb` updated for new prompt names, `collection` block,
+  and `tags_set` doubles.
+* `compaction_spec.rb` regex updated to match the new duration format.
+* `Tins::GO.go` flag string reordered in `bin/ollama_chat_log`.
+
+### Fixed
+
+* Spec expectations in `session_management_spec.rb`, `parsing_spec.rb`, and
+  `source_fetching_spec.rb` updated to use Ruby 3.1+ hash shorthand `chat:`.
+
+### Tests
+
+* Added specs for `CommandConcern` class methods:
+  * `help_message` via `OllamaChat::Commands`: table structure, category
+    headers, pattern filtering, subcommand expansion, and optional/mandatory
+    asterisks.
+  * `command_completions`: array shape, bare names, subcommand variants, and
+    sort order.
+  * `Command` class: `execute_if_match?` (match, captures, nil-regexp path,
+    no-context error), `completions` (product, optional bare, strict),
+    `command_names`, and `optional?`.
+  * Duplicate registration guard against the real `:copy` entry in
+    `OllamaChat::Commands`.
+* Added specs for remaining command dispatch gaps:
+  * `/paste -i` stdin path via `paste_from_stdin`.
+  * `/last -v` voice output via `speak_last`.
+  * `/regenerate` success path (drop + return content).
+  * `/prompt delete` routes to `choose_and_delete_prompt`.
+  * `/web` without explicit count passes `nil`.
+  * `/character` JSON success paths: `info` (pager), `load` (raw content),
+    `import` (delegation).
+  * `/character` PNG `load` with `PNGMetadataExtractor`.
+* Added specs for `SessionManagement#edit_session_trigger`:
+  * Setting trigger from `nil` to a configured hash with `enabled`,
+    `prompt_name`, and `text_count`.
+  * Updating config for an already-configured collection.
+  * Switching the trigger to a different collection name.
+* Added specs for session model options and trigger edit:
+  * `/session model options` delegates to `edit_session_model_options` and
+    returns `:next`.
+  * `/session trigger edit` delegates to `edit_session_trigger` and returns
+    `:next`.
+
 ## 2026-10-02 v0.0.124
 
 ### Added
