@@ -109,7 +109,7 @@ describe OllamaChat::SessionManagement do
 
     it 'returns nil if the previous session is locked' do
       prev = chat.new_session.tap { |s| s.name = 'locked_test'; s.save }
-      prev.lock?
+      prev.lock?(chat:)
       chat.instance_variable_set(:@previous_session_id, prev.id)
       expect(chat.previous_session).to be_nil
     end
@@ -309,7 +309,7 @@ describe OllamaChat::SessionManagement do
       chat.instance_variable_set(:@opts, {})
       expect(chat).to receive(:preferred_session).and_return(chat.session)
       expect(chat).to receive(:session_apply).and_return(chat.session)
-      expect(chat.session).to receive(:lock?).and_return(true)
+      expect(chat.session).to receive(:lock?).with(chat:).and_return(true)
       expect(chat.setup_session).to eq(chat.session)
     end
   end

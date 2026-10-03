@@ -153,7 +153,7 @@ describe OllamaChat::SourceFetching do
           transcript.content_type = MIME::Types['text/plain'].first
 
           expect(OllamaChat::Invidious).to receive(:fetch_video_info)
-            .with(source, chat: chat).and_return(transcript)
+            .with(source,chat:).and_return(transcript)
           expect(chat).not_to receive(:get_url)
 
           result = nil
@@ -164,7 +164,7 @@ describe OllamaChat::SourceFetching do
         it 'falls back to get_url when no captions are available' do
           source = 'https://www.youtube.com/watch?v=Fypm8CDHwc8'
           expect(OllamaChat::Invidious).to receive(:fetch_video_info)
-            .with(source, chat: chat).and_return(nil)
+            .with(source,chat:).and_return(nil)
           expect(chat).to receive(:get_url).with(source, cache: anything)
           chat.fetch_source(source)
         end

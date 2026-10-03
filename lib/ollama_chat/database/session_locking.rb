@@ -25,10 +25,11 @@ module OllamaChat::Database::SessionLocking
 
   # Attempts to acquire a lock on the session.
   #
+  # @param chat [OllamaChat] the chat instance that receives feedback
   # @return [Boolean] true if the lock was successfully acquired, false if already locked.
-  def lock?
+  def lock?(chat:)
     if running_pid = locked?
-      feedback("session #{id} locked by running process #{running_pid}", type: :warn)
+      chat.feedback("session #{id} locked by running process #{running_pid}", type: :warn)
       false
     else
       lock

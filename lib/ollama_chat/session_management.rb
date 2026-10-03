@@ -197,7 +197,7 @@ module OllamaChat::SessionManagement
     previous_session_id = @session.id
     @session = new_session(name:)
     set_previous_session_on_change(previous_session_id)
-    session.lock? or raise OllamaChat::OllamaChatError,
+    session.lock?(chat: self) or raise OllamaChat::OllamaChatError,
       "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
     session_apply
     messages.clear
@@ -253,7 +253,7 @@ module OllamaChat::SessionManagement
                  preferred_session
                end
     session or abort "No session named #{bold{session_name.inspect}} found."
-    if session.lock?
+    if session.lock?(chat: self)
       messages.read_conversation_jsonl(session.messages.to_s)
       session_apply
     else
@@ -625,7 +625,7 @@ module OllamaChat::SessionManagement
         session_close
         previous_session = session
         @session = chosen_session
-        if session.lock?
+        if session.lock?(chat: self)
           messages.read_conversation_jsonl(session.messages.to_s)
           if current_collection = session.current_collection.full? and
             database_collection?(current_collection)
