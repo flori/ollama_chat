@@ -12,14 +12,17 @@ module OllamaChat::Pager
   # If the output would exceed the terminal's line capacity, it pipes the content
   # through an appropriate pager command (like 'less' or 'more').
   #
+  # @param force [Boolean] bypass the line-count threshold and always
+  #   invoke the pager, regardless of output length.
   # @yield A block that yields an IO object to write output to
   # @yieldparam [IO] the IO object to write to
-  def use_pager
+  def use_pager(force: false)
     command       = determine_pager_command
     output_buffer = StringIO.new
     yield output_buffer
     buffer = output_buffer.string
-    Kramdown::ANSI::Pager.pager(command:, lines: buffer.count(?\n)) do |output|
+    lines  = force ? Float::INFINITY : buffer.count(?\n)
+    Kramdown::ANSI::Pager.pager(command:, lines:) do |output|
       output.puts buffer
     end
   end

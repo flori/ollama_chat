@@ -86,30 +86,163 @@ module OllamaChat::RAGHandling
     end
   end
 
-  # Clears documents from the collection through an interactive user interface.
+  # Clears documents from the collection through an interactive
+  # two-level tag browser.
   #
-  # This method allows users to selectively clear documents by choosing
-  # specific tags from the current collection or to clear all documents in the
-  # collection. It provides a loop for multiple deletions until the user exits
-  # or completes a clear operation.
-  def clear_collection
+  # Level 1: choose a tag from the collection.
+  # Level 2: inspect records grouped by source, with preview (v) and
+  #   surgical clear (c) options.
+  def clear_collection_tags
     choose_with_state do
       loop do
-        tags = @documents.tags.to_a.unshift('[ALL]').unshift('[EXIT]')
+        display = @documents.tags.map(&:to_s).sort.unshift('[EXIT]')
         tag = choose_entry(
-          tags,
-          prompt: 'What obsolete records are to be excised from the annals? %s'
+          display,
+          prompt: 'Which tag to inspect? %s'
         )
         case tag
         when nil, '[EXIT]'
+          feedback('Exiting chooser.')
+          break
+        else
+          records = @documents.records(tags: tag)
+          groups  = records.group_by { |r| r.source.full? || '(nil)' }
+
+          if groups.size == 1 && groups.values.first.size == 1
+            record  = groups.values.first.first
+            source  = record.source
+            snippet = record.text.strip[0, 72].inspect
+            label   = source ? "#{source} #{snippet}" : snippet
+            feedback(label, type: :info)
+            view_tag_records(tag, [record])
+            ask?(prompt: "  [c]lear / other to go back: ") =~ /\Ac/i or next
+            clear_tag_records(tag, source)
+          else
+            group_lines = []
+            group_map   = {}
+            groups.sort_by { |src, _| src }.each do |src, recs|
+              if recs.size == 1
+                snippet = recs.first.text.strip[0, 72].inspect
+                line = src == '(nil)' ? snippet : "#{src} #{snippet}"
+              else
+                line = "#{src} (#{recs.size} records)"
+              end
+              group_lines << line
+              group_map[line] = [src, recs]
+            end
+            group_lines.unshift('[back]')
+            chosen = choose_entry(
+              group_lines,
+              prompt: "Tag #{tag.to_s.gsub(?%, '%%')} — which source group? %s"
+            )
+            next if chosen.nil? || chosen == '[back]'
+            src, recs = group_map[chosen]
+            action = ask?(prompt: "  [v]iew / [c]lear / other to go back: ")
+            case action
+            when /\Av/i
+              view_tag_records(tag, recs)
+            when /\Ac/i
+              clear_tag_records(tag, src == '(nil)' ? nil : src)
+            end
+          end
+        end
+      end
+    end
+  end
+
+  # Renders tag-filtered records in the pager.
+  def view_tag_records(tag, records)
+    use_pager(force: true) do |output|
+      output.puts "#{bold{tag}} (#{records.size} records)"
+      output.puts
+      records.each do |record|
+        output.puts kramdown_ansi_parse(<<~EOT)
+          **#{record.source}**
+          ```
+          #{Kramdown::ANSI::Width.wrap(record.text.rstrip(?\n), percentage: 90)}
+          ```
+          ---
+        EOT
+      end
+    end
+  end
+
+  # Clears records for a tag, using source_remove when a source is
+  # present, or clear(tags:) for memory entries (no source).
+  def clear_tag_records(tag, source)
+    if source
+      @documents.source_remove(source)
+    else
+      @documents.clear(tags: [ tag ])
+    end
+    log(:info, 'Tag cleared from collection',
+        data: { collection:, tag:, source: })
+    feedback(
+      "Cleared tag #{tag} from collection #{bold{collection}}.",
+      type: :info
+    )
+  end
+
+  # Removes source documents from the collection through an interactive
+  # user interface.
+  #
+  # Each source is displayed with its associated tags for context.
+  # Users can preview a source's records in a pager before confirming
+  # removal.
+  def clear_collection_sources
+    choose_with_state do
+      loop do
+        sources     = Set.new
+        source_tags = Hash.new { |h, k| h[k] = Set.new }
+        @documents.records.each do |record|
+          source = record.source.full? or next
+          sources.add(source)
+          source_tags[source].merge(record.tags)
+        end
+        display_map = {}
+        sources.each do |s|
+          tags = source_tags[s].map(&:to_s)
+          line = tags.any? ? "#{s}  [#{tags.join(', ')}]" : s
+          display_map[line] = s
+        end
+        display = display_map.keys
+        display.unshift('[EXIT]')
+        chosen = choose_entry(
+          display,
+          prompt: 'Which source to remove from the collection? %s'
+        )
+        case chosen
+        when nil, '[EXIT]'
           feedback("Exiting chooser.")
           break
-        when '[ALL]'
-          clear_whole_collection and break
-        when /./
-          @documents.clear(tags: [ tag ])
-          log(:info, "Tag cleared from collection", data: { collection:, tag: })
-          feedback("Cleared tag #{tag} from collection #{bold{collection}}.", type: :info)
+        else
+          source = display_map[chosen]
+          action = ask?(prompt: "  [v]iew / [c]lear / other to go back: ")
+          case action
+          when /\Av/i
+            records = @documents.records(sources: [ source ])
+            use_pager do |output|
+              output.puts "#{bold{source}} (#{records.size} records)"
+              output.puts
+              records.each do |record|
+                output.puts kramdown_ansi_parse(<<~EOT)
+                  **[#{record.tags.join(', ')}]**
+                  ```
+                  #{Kramdown::ANSI::Width.wrap(record.text.rstrip(?\n), percentage: 90)}
+                  ```
+                  ---
+                EOT
+              end
+            end
+          when /\Ac/i
+            @documents.source_remove(source)
+            log(:info, "Source removed from collection",
+                data: { collection:, source: })
+            feedback(
+              "Removed source #{source} from collection #{bold{collection}}.",
+              type: :info
+            )
+          end
         end
       end
     end

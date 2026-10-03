@@ -89,45 +89,6 @@ describe OllamaChat::RAGHandling do
     end
   end
 
-  describe '#clear_collection' do
-    let :docs do
-      double('Documents', collection: 'default', tags: %w[ t1 t2 ])
-    end
-
-    before do
-      expect(chat).to receive(:choose_with_state).and_yield
-    end
-
-    it 'exits on [EXIT]' do
-      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-      expect(chat).to receive(:feedback).with('Exiting chooser.')
-      chat.clear_collection
-    end
-
-    it 'exits on nil' do
-      expect(chat).to receive(:choose_entry).and_return(nil)
-      expect(chat).to receive(:feedback).with('Exiting chooser.')
-      chat.clear_collection
-    end
-
-    it 'clears all when [ALL] is confirmed' do
-      expect(chat).to receive(:choose_entry).and_return('[ALL]')
-      expect(chat).to receive(:confirm?).and_return(true)
-      expect(docs).to receive(:clear)
-      chat.clear_collection
-    end
-
-    it 'clears a single tag then exits' do
-      expect(chat).to receive(:choose_entry).
-        and_return('t1', '[EXIT]')
-      expect(docs).to receive(:clear).with(tags: [ 't1' ])
-      expect(chat).to receive(:feedback).
-        with(a_string_including('Cleared tag t1'), type: :info)
-      expect(chat).to receive(:feedback).with('Exiting chooser.')
-      chat.clear_collection
-    end
-  end
-
   describe '#clear_whole_collection' do
     it 'clears all documents and returns self when confirmed' do
       expect(chat).to receive(:confirm?).and_return(true)
@@ -143,6 +104,200 @@ describe OllamaChat::RAGHandling do
       expect(docs).not_to receive(:clear)
       expect(chat).to receive(:feedback).with('Denied.', type: :denied)
       expect(chat.clear_whole_collection).to be_nil
+    end
+  end
+
+  describe '#clear_collection_tags' do
+    before do
+      expect(chat).to receive(:choose_with_state).and_yield
+    end
+
+    it 'exits on [EXIT]' do
+      expect(docs).to receive(:tags).and_return(%w[ t1 ])
+      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
+      chat.clear_collection_tags
+    end
+
+    it 'exits on nil' do
+      expect(docs).to receive(:tags).and_return(%w[ t1 ])
+      expect(chat).to receive(:choose_entry).and_return(nil)
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
+      chat.clear_collection_tags
+    end
+
+    context 'single record, no source (memory)' do
+      let :rec do
+        double('Record', source: nil, text: 'hello world')
+      end
+
+      it 'views record and clears via clear(tags:) on c' do
+        expect(docs).to receive(:tags).at_least(:once).
+          and_return(%w[ mem ])
+        expect(chat).to receive(:choose_entry).and_return('mem', '[EXIT]')
+        expect(docs).to receive(:records).with(tags: 'mem').
+          and_return([ rec ])
+        expect(chat).to receive(:feedback).
+          with(a_string_including('hello world'), type: :info)
+        buf = StringIO.new
+        expect(chat).to receive(:use_pager).and_yield(buf)
+        expect(chat).to receive(:ask?).and_return('c')
+        expect(docs).to receive(:collection).at_least(:once).
+          and_return('default')
+        expect(docs).to receive(:clear).with(tags: [ 'mem' ])
+        expect(chat).to receive(:log)
+        expect(chat).to receive(:feedback)
+          .with(a_string_including('Cleared tag mem'), type: :info)
+        expect(chat).to receive(:feedback).with('Exiting chooser.')
+        chat.clear_collection_tags
+        expect(buf.string).to include('hello world')
+      end
+
+      it 'views record and goes back on other input' do
+        expect(docs).to receive(:tags).at_least(:once).
+          and_return(%w[ mem ])
+        expect(chat).to receive(:choose_entry).
+          and_return('mem', '[EXIT]')
+        expect(docs).to receive(:records).with(tags: 'mem').
+          and_return([ rec ])
+        expect(chat).to receive(:feedback).
+          with(a_string_including('hello world'), type: :info)
+        buf = StringIO.new
+        expect(chat).to receive(:use_pager).and_yield(buf)
+        expect(chat).to receive(:ask?).and_return('x')
+        expect(chat).to receive(:feedback).with('Exiting chooser.')
+        chat.clear_collection_tags
+        expect(buf.string).to include('hello world')
+      end
+    end
+
+    context 'single record, with source' do
+      let :rec do
+        double('Record', source: 'a.rb', text: 'hello')
+      end
+
+      it 'views record and clears via source_remove on c' do
+        expect(docs).to receive(:tags).at_least(:once).
+          and_return(%w[ t1 ])
+        expect(chat).to receive(:choose_entry).and_return('t1', '[EXIT]')
+        expect(docs).to receive(:records).with(tags: 't1').
+          and_return([ rec ])
+        expect(chat).to receive(:feedback).
+          with(a_string_including('a.rb'), type: :info)
+        buf = StringIO.new
+        expect(chat).to receive(:use_pager).and_yield(buf)
+        expect(chat).to receive(:ask?).and_return('c')
+        expect(docs).to receive(:collection).at_least(:once).
+          and_return('default')
+        expect(docs).to receive(:source_remove).with('a.rb')
+        expect(chat).to receive(:log)
+        expect(chat).to receive(:feedback)
+          .with(a_string_including('Cleared tag t1'), type: :info)
+        expect(chat).to receive(:feedback).with('Exiting chooser.')
+        chat.clear_collection_tags
+        expect(buf.string).to include('hello')
+      end
+    end
+
+    context 'multi-record, grouped by source' do
+      let :rec1 do
+        double('Record', source: 'a.rb', text: 'aaa', tags: %w[ t1 ])
+      end
+      let :rec2 do
+        double('Record', source: 'b.rb', text: 'bbb', tags: %w[ t1 ])
+      end
+
+      it 'shows source groups and clears picked source' do
+        expect(docs).to receive(:tags).at_least(:once).
+          and_return(%w[ t1 ])
+        expect(chat).to receive(:choose_entry).
+          and_return('t1', 'a.rb "aaa"', '[EXIT]')
+        expect(docs).to receive(:records).with(tags: 't1').
+          and_return([ rec1, rec2 ])
+        expect(chat).to receive(:ask?).and_return('c')
+        expect(docs).to receive(:collection).at_least(:once).
+          and_return('default')
+        expect(docs).to receive(:source_remove).with('a.rb')
+        expect(chat).to receive(:log)
+        expect(chat).to receive(:feedback)
+          .with(a_string_including('Cleared tag t1'), type: :info)
+        expect(chat).to receive(:feedback).with('Exiting chooser.')
+        chat.clear_collection_tags
+      end
+
+      it 'goes back on [back]' do
+        expect(docs).to receive(:tags).at_least(:once).
+          and_return(%w[ t1 ])
+        expect(chat).to receive(:choose_entry).
+          and_return('t1', '[back]', '[EXIT]')
+        expect(docs).to receive(:records).with(tags: 't1').
+          and_return([ rec1, rec2 ])
+        expect(chat).to receive(:feedback).with('Exiting chooser.')
+        chat.clear_collection_tags
+      end
+    end
+  end
+
+  describe '#clear_collection_sources' do
+    before do
+      expect(chat).to receive(:choose_with_state).and_yield
+    end
+
+    it 'exits on [EXIT]' do
+      expect(docs).to receive(:records).and_return([])
+      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
+      chat.clear_collection_sources
+    end
+
+    it 'exits on nil' do
+      expect(docs).to receive(:records).and_return([])
+      expect(chat).to receive(:choose_entry).and_return(nil)
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
+      chat.clear_collection_sources
+    end
+
+    it 'clears a source on c' do
+      rec = double('Record', source: 'a.rb', text: 'hello',
+                    tags: %w[ t1 ])
+      expect(docs).to receive(:records).at_least(:once).
+        and_return([ rec ])
+      expect(chat).to receive(:choose_entry).and_return('a.rb  [t1]', '[EXIT]')
+      expect(chat).to receive(:ask?).and_return('c')
+      expect(docs).to receive(:collection).at_least(:once).
+        and_return('default')
+      expect(docs).to receive(:source_remove).with('a.rb')
+      expect(chat).to receive(:log)
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Removed source a.rb'), type: :info)
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
+      chat.clear_collection_sources
+    end
+
+    it 'views in pager on v' do
+      rec = double('Record', source: 'a.rb', text: 'hello',
+                    tags: %w[ t1 ])
+      expect(docs).to receive(:records).at_least(:once).
+        and_return([ rec ])
+      expect(chat).to receive(:choose_entry).and_return('a.rb  [t1]', '[EXIT]')
+      expect(chat).to receive(:ask?).and_return('v')
+
+      buf = StringIO.new
+      expect(chat).to receive(:use_pager).and_yield(buf)
+      chat.clear_collection_sources
+      expect(buf.string).to include('hello')
+    end
+
+    it 'goes back on other input' do
+      rec = double('Record', source: 'a.rb', text: 'hello',
+                    tags: %w[ t1 ])
+      expect(docs).to receive(:records).at_least(:once).
+        and_return([ rec ])
+      expect(chat).to receive(:choose_entry).
+        and_return('a.rb  [t1]', '[EXIT]')
+      expect(chat).to receive(:ask?).and_return('x')
+      expect(chat).to receive(:feedback).with('Exiting chooser.')
+      chat.clear_collection_sources
     end
   end
 
