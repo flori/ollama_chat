@@ -424,7 +424,7 @@ prompts:
       To see the full output of any tool call above, use lookup_group
       with the group UUID in parentheses.
   system:
-    default: <%= OC::OLLAMA::CHAT::SYSTEM || "%{persona}\n\n%{runtime_info}".inspect %>
+    default: <%= OC::OLLAMA::CHAT::SYSTEM || "`persona_name`: %{persona_name}\n\n%{persona}\n\n%{runtime_info}".inspect %>
     persona: |
       `persona_name`: %{persona_name}
 
