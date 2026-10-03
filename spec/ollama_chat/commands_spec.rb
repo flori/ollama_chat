@@ -363,6 +363,11 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/collection rename")).to eq :next
     end
 
+    it 'routes bare "/collection clear" to clear_whole_collection' do
+      expect(chat).to receive(:clear_whole_collection)
+      expect(chat.handle_input("/collection clear")).to eq :next
+    end
+
     it 'returns :next when input is "/collection query"' do
       expect(chat).to receive(:query_collection).with(edit: false, rerank: false)
       expect(chat.handle_input("/collection query")).to eq :next

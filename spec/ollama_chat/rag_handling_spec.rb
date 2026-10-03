@@ -128,6 +128,24 @@ describe OllamaChat::RAGHandling do
     end
   end
 
+  describe '#clear_whole_collection' do
+    it 'clears all documents and returns self when confirmed' do
+      expect(chat).to receive(:confirm?).and_return(true)
+      expect(docs).to receive(:collection).twice.and_return('default')
+      expect(docs).to receive(:clear)
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Cleared collection'), type: :info)
+      expect(chat.clear_whole_collection).to eq chat
+    end
+
+    it 'returns nil and reports denied when declined' do
+      expect(chat).to receive(:confirm?).and_return(false)
+      expect(docs).not_to receive(:clear)
+      expect(chat).to receive(:feedback).with('Denied.', type: :denied)
+      expect(chat.clear_whole_collection).to be_nil
+    end
+  end
+
   describe '#choose_collection' do
     let :session do
       double('Session')
