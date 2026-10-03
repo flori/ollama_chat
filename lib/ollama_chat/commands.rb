@@ -648,8 +648,8 @@ module OllamaChat::Commands
 
   command(
     name: :collection,
-    regexp: %r(^/collection(?:\s+(change|clear|list|rename|update(?: all)?|new|edit|delete|query))?((?:\s+-[er])*)?$),
-    complete: [ 'collection', %w[ change clear list rename update update\ all new edit delete query ] ],
+    regexp: %r(^/collection(?:\s+(change|clear(?: tags)?|list|rename|update(?: all)?|new|edit|delete|query))?((?:\s+-[er])*)?$),
+    complete: [ 'collection', %w[ change clear\ tags clear list rename update update\ all new edit delete query ] ],
     optional: true,
     help: <<~EOT
       📚 Manage RAG collections:
@@ -665,6 +665,8 @@ module OllamaChat::Commands
   ) do |subcommand, opts|
     case subcommand
     when 'clear'
+      clear_whole_collection
+    when 'clear tags'
       clear_collection
     when 'change'
       choose_collection(collection)

@@ -352,7 +352,7 @@ describe OllamaChat::Commands, protect_env: true do
     it 'returns :next when input is "/collection(clear|change)"' do
       expect(chat).to receive(:choose_entry)
       expect(chat).to receive(:feedback).with(a_string_including('Exiting'))
-      expect(chat.handle_input("/collection clear")).to eq :next
+      expect(chat.handle_input("/collection clear tags")).to eq :next
       expect(chat).to receive(:choose_entry)
       expect(chat).to receive(:info)
       expect(chat).to receive(:feedback).with(a_string_including('Using collection'), type: :info)
