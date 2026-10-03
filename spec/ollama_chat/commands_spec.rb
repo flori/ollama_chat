@@ -47,6 +47,12 @@ describe OllamaChat::Commands, protect_env: true do
         and_return "pasted this"
       expect(chat.handle_input("/paste -e")).to eq "pasted this"
     end
+
+    it 'pastes from stdin with -i' do
+      expect(chat).to receive(:paste_from_stdin).with(edit: false)
+        .and_return "stdin content"
+      expect(chat.handle_input("/paste -i")).to eq "stdin content"
+    end
   end
 
   describe '/toggle' do
@@ -152,6 +158,11 @@ describe OllamaChat::Commands, protect_env: true do
     it 'returns :next when input is "/last -p 2"' do
       expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: false)
       expect(chat.handle_input("/last -p 2")).to eq :next
+    end
+
+    it 'speaks last message with -v' do
+      expect(chat.messages).to receive(:speak_last).with(1)
+      expect(chat.handle_input("/last -v")).to eq :next
     end
   end
 
@@ -320,6 +331,14 @@ describe OllamaChat::Commands, protect_env: true do
     it 'returns :next when input is "/regenerate -e"' do
       expect(chat).to receive(:feedback).with(a_string_including('Not enough messages'), type: :warn)
       expect(chat.handle_input("/regenerate -e")).to eq :redo
+    end
+
+    it 'drops last exchange and returns user content' do
+      chat.messages << OllamaChat::Message.new(
+        role: 'user', content: 'regen me'
+      )
+      expect(chat.messages).to receive(:drop).with(1)
+      expect(chat.handle_input('/regenerate')).to eq 'regen me'
     end
   end
 
@@ -605,6 +624,12 @@ describe OllamaChat::Commands, protect_env: true do
         expect(chat.handle_input('/prompt sync')).to eq :next
       end
 
+      it 'routes delete to choose_and_delete_prompt' do
+        expect(chat).to receive(:choose_and_delete_prompt)
+          .with(context: 'prompt', force: false)
+        expect(chat.handle_input('/prompt delete')).to eq :next
+      end
+
       it 'honours the -c flag without opening the context chooser' do
         expect(chat).not_to receive(:choose_prompt_context)
         expect(chat).to receive(:list_prompts).with(context: 'system')
@@ -705,6 +730,12 @@ describe OllamaChat::Commands, protect_env: true do
     it 'returns "the response" when input is "/web\\s+(?:(\\d+)\\s+)?(.+)"' do
       expect(chat).to receive(:web).with('23', 'query').and_return 'the response'
       expect(chat.handle_input("/web 23 query")).to eq 'the response'
+    end
+
+    it 'passes nil count when no number given' do
+      expect(chat).to receive(:web).with(nil, 'query')
+        .and_return 'the response'
+      expect(chat.handle_input("/web query")).to eq 'the response'
     end
   end
 
@@ -951,6 +982,57 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input(
         "/character info #{asset('example.rb')}"
       )).to eq :next
+    end
+
+    context 'with a JSON character file' do
+      let(:char_file) do
+        path = Pathname.new('tmp/spec_character_test.json')
+        path.dirname.mkpath
+        path.write('{"name": "TestChar"}')
+        path
+      end
+
+      it 'info renders YAML in pager' do
+        expect(chat).to receive(:use_pager)
+          .and_yield(double('output', puts: true))
+        expect(chat.handle_input(
+          "/character info #{char_file}"
+        )).to eq :next
+      end
+
+      it 'load returns raw JSON content' do
+        expect(chat.handle_input(
+          "/character load #{char_file}"
+        )).to eq '{"name": "TestChar"}'
+      end
+
+      it 'import delegates to import_persona_from_json' do
+        expect(chat).to receive(:import_persona_from_json)
+          .with('{"name": "TestChar"}').and_return 'TestChar'
+        expect(chat).to receive(:feedback)
+          .with(a_string_including('TestChar'), type: :info)
+        expect(chat.handle_input(
+          "/character import #{char_file}"
+        )).to eq :next
+      end
+    end
+
+    context 'with a PNG character file' do
+      let(:char_png) do
+        path = Pathname.new('tmp/spec_character_test.png')
+        path.dirname.mkpath
+        path.write('fake png data')
+        path
+      end
+
+      it 'load extracts metadata from PNG' do
+        expect(OllamaChat::Utils::PNGMetadataExtractor)
+          .to receive(:extract_character)
+          .and_return('{"name": "PNGChar"}')
+        expect(chat.handle_input(
+          "/character load #{char_png}"
+        )).to eq '{"name": "PNGChar"}'
+      end
     end
   end
 
