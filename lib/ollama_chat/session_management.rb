@@ -236,7 +236,9 @@ module OllamaChat::SessionManagement
       use_model(_1)
       copy_model_options_to_session
     }
-    log(:info, "Session duplicated", data: { session_id: session.id, name: session.name, old_session_id: old_session.id })
+    log(:info, "Session duplicated", data: {
+      session_id: session.id, name: session.name, old_session_id: old_session.id
+    })
     nil
   end
 

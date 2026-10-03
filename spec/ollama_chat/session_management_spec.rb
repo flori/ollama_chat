@@ -314,6 +314,70 @@ describe OllamaChat::SessionManagement do
     end
   end
 
+  describe '#edit_session_trigger' do
+    it 'sets trigger from nil to a configured hash' do
+      expect(OllamaChat::Database::Models::Prompt).to receive(:where)
+        .with(context: 'rerank').and_return(double(map: ['my_rerank']))
+      expect(chat).to receive(:all_collections)
+        .and_return(double(map: ['my_collection']))
+      expect(chat).to receive(:choose_with_state).twice.and_yield
+      expect(chat).to receive(:choose_entry)
+        .and_return('my_collection', 'my_rerank')
+      expect(chat).to receive(:ask?).and_return('5', 'y')
+      expect(chat.session).to receive(:update).with(trigger: {
+        'my_collection' => { 'enabled' => true,
+                             'prompt_name' => 'my_rerank',
+                             'text_count' => 5 }
+      })
+      chat.edit_session_trigger
+    end
+
+    it 'updates the config for an already-configured collection' do
+      chat.session.trigger = {
+        'my_collection' => { 'enabled' => true,
+                             'prompt_name' => 'old_prompt',
+                             'text_count' => 3 }
+      }
+      expect(OllamaChat::Database::Models::Prompt).to receive(:where)
+        .with(context: 'rerank')
+        .and_return(double(map: ['new_prompt', 'old_prompt'].sort))
+      expect(chat).to receive(:all_collections)
+        .and_return(double(map: ['my_collection']))
+      expect(chat).to receive(:choose_with_state).twice.and_yield
+      allow(chat).to receive(:current_search_state=)
+      expect(chat).to receive(:choose_entry)
+        .and_return('my_collection', 'new_prompt')
+      expect(chat).to receive(:ask?).and_return('10', 'y')
+      expect(chat.session).to receive(:update).with(trigger: {
+        'my_collection' => { 'enabled' => true,
+                             'prompt_name' => 'new_prompt',
+                             'text_count' => 10 }
+      })
+      chat.edit_session_trigger
+    end
+
+    it 'switches the trigger to a different collection name' do
+      chat.session.trigger = {
+        'old_collection' => { 'enabled' => true,
+                              'prompt_name' => 'my_prompt' }
+      }
+      expect(OllamaChat::Database::Models::Prompt).to receive(:where)
+        .with(context: 'rerank').and_return(double(map: ['my_prompt']))
+      expect(chat).to receive(:all_collections)
+        .and_return(double(map: ['new_collection', 'old_collection'].sort))
+      expect(chat).to receive(:choose_with_state).twice.and_yield
+      allow(chat).to receive(:current_search_state=)
+      expect(chat).to receive(:choose_entry)
+        .and_return('new_collection', 'my_prompt')
+      expect(chat).to receive(:ask?).and_return('', 'y')
+      expect(chat.session).to receive(:update).with(trigger: {
+        'new_collection' => { 'enabled' => true,
+                              'prompt_name' => 'my_prompt' }
+      })
+      chat.edit_session_trigger
+    end
+  end
+
   describe '#summarize_session' do
     it 'summarizes messages and yields content' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'summarize me')

@@ -363,12 +363,70 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:query_collection).with(edit: 1, rerank: 1)
       expect(chat.handle_input("/collection query -e -r")).to eq :next
     end
+    it 'returns :next when input is "/collection" (stats)' do
+      expect(chat).to receive(:collection_stats)
+      expect(chat.handle_input("/collection")).to eq :next
+    end
+
+    it 'returns :next when "/collection update" has no changes' do
+      expect(chat).to receive(:update_collection).with(:default)
+        .and_return nil
+      expect(chat.handle_input("/collection update")).to eq :next
+    end
+
+    it 'returns results when "/collection update" has content' do
+      expect(chat).to receive(:update_collection).with(:default)
+        .and_return 'updated 3'
+      expect(chat.handle_input("/collection update")).to eq 'updated 3'
+    end
+
+    it 'returns :next when input is "/collection new"' do
+      expect(chat).to receive(:create_collection)
+      expect(chat.handle_input("/collection new")).to eq :next
+    end
+
+    it 'returns :next when input is "/collection edit"' do
+      expect(chat).to receive(:edit_collection)
+      expect(chat.handle_input("/collection edit")).to eq :next
+    end
+
+    it 'returns :next when input is "/collection delete"' do
+      expect(chat).to receive(:delete_collection)
+      expect(chat.handle_input("/collection delete")).to eq :next
+    end
+
+    it 'aggregates results for "/collection update all"' do
+      expect(chat).to receive(:all_collections)
+        .and_return(double(pluck: ['default']))
+      expect(chat).to receive(:update_collection).with('default')
+        .and_return 'ok'
+      expect(chat.handle_input("/collection update all")).to eq "ok\n"
+    end
   end
 
   describe '/info' do
     it 'returns :next when input is "/info"' do
       expect(chat).to receive(:info)
       expect(chat.handle_input("/info")).to eq :next
+    end
+    it 'returns :next when input is "/info session"' do
+      expect(chat).to receive(:info_session)
+      expect(chat.handle_input("/info session")).to eq :next
+    end
+
+    it 'returns :next when input is "/info model"' do
+      expect(chat).to receive(:info_model)
+      expect(chat.handle_input("/info model")).to eq :next
+    end
+
+    it 'returns :next when input is "/info runtime"' do
+      expect(chat).to receive(:info_runtime)
+      expect(chat.handle_input("/info runtime")).to eq :next
+    end
+
+    it 'returns :next when input is "/info rag"' do
+      expect(chat).to receive(:info_rag)
+      expect(chat.handle_input("/info rag")).to eq :next
     end
   end
 
@@ -659,7 +717,7 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
-  describe 'conversation' do
+  describe '/conversation' do
     it 'returns :next when input is "/conversation save\\s+(.+)$"' do
       expect(chat).to receive(:save_conversation).with('./some_file.jsonl', clean: false)
       expect(chat.handle_input("/conversation save ./some_file.jsonl")).to eq :next
@@ -725,7 +783,7 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
-  describe 'tools' do
+  describe '/tools' do
     it 'returns :next when input is "/tools"' do
       expect(chat).to receive(:list_tools)
       expect(chat.handle_input("/tools")).to eq :next
@@ -739,6 +797,15 @@ describe OllamaChat::Commands, protect_env: true do
     it 'returns :next when input is "/tools disable"' do
       expect(chat).to receive(:disable_tool)
       expect(chat.handle_input("/tools disable")).to eq :next
+    end
+    it 'returns :next when input is "/tools on"' do
+      expect(chat.tools_support).to receive(:set).with(true, show: true)
+      expect(chat.handle_input("/tools on")).to eq :next
+    end
+
+    it 'returns :next when input is "/tools off"' do
+      expect(chat.tools_support).to receive(:set).with(false, show: true)
+      expect(chat.handle_input("/tools off")).to eq :next
     end
   end
 
@@ -763,6 +830,166 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:reload_config)
       expect(chat.handle_input("/config diff")).to eq :next
     end
+    it 'returns :next when input is "/config env"' do
+      expect(OC).to receive(:view)
+      expect(chat.handle_input("/config env")).to eq :next
+    end
+  end
+
+  describe '/persona' do
+    it 'will get examples later'
+  end
+
+  describe '/session' do
+    it 'returns :next and shows info when bare' do
+      expect(chat).to receive(:info_session)
+      expect(chat.handle_input('/session')).to eq :next
+    end
+
+    it 'returns :next and lists sessions' do
+      expect(chat).to receive(:list_sessions)
+      expect(chat.handle_input('/session list')).to eq :next
+    end
+
+    it 'returns :next and creates new session' do
+      expect(chat).to receive(:set_new_session)
+      expect(chat.handle_input('/session new')).to eq :next
+    end
+
+    it 'returns :next and duplicates session' do
+      expect(chat).to receive(:duplicate_session)
+      expect(chat.handle_input('/session duplicate')).to eq :next
+    end
+
+    it 'returns :next and deletes session' do
+      expect(chat).to receive(:delete_session)
+      expect(chat.handle_input('/session delete')).to eq :next
+    end
+
+    it 'returns :next and renames session' do
+      expect(chat).to receive(:rename_session)
+      expect(chat.handle_input('/session rename')).to eq :next
+    end
+
+    it 'returns :next and changes session by name' do
+      expect(chat).to receive(:change_session).with('my_session')
+      expect(chat.handle_input('/session change my_session')).to eq :next
+    end
+
+    it 'returns :next and changes to previous session' do
+      expect(chat).to receive(:previous_session)
+        .and_return(double('Session', id: 'abc123'))
+      expect(chat).to receive(:change_session).with('abc123')
+      expect(chat.handle_input('/session previous')).to eq :next
+    end
+
+    it 'gives feedback when no previous session exists' do
+      expect(chat).to receive(:previous_session).and_return nil
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('No previous session'), type: :info)
+      expect(chat.handle_input('/session previous')).to eq :next
+    end
+  end
+
+  describe '/favourite' do
+    it 'adds a favourite for each type' do
+      %w[model prompt system persona suggest].each do |type|
+        expect(chat).to receive(:add_favourite).with(type)
+        expect(chat.handle_input("/favourite add #{type}")).to eq :next
+      end
+    end
+
+    it 'deletes a favourite for each type' do
+      %w[model prompt system persona suggest].each do |type|
+        expect(chat).to receive(:delete_favourite).with(type)
+        expect(chat.handle_input("/favourite delete #{type}")).to eq :next
+      end
+    end
+  end
+
+  describe '/context_format' do
+    it 'returns :next and opens the chooser' do
+      expect(chat.context_format).to receive(:choose)
+      expect(chat.handle_input('/context_format')).to eq :next
+    end
+  end
+
+  describe '/suggest' do
+    it 'returns :next when input is "/suggest"' do
+      expect(chat).to receive(:suggest_prompts).with(edit: false)
+        .and_return nil
+      expect(chat.handle_input('/suggest')).to eq :next
+    end
+
+    it 'returns :next when input is "/suggest -e"' do
+      expect(chat).to receive(:suggest_prompts).with(edit: 1)
+        .and_return nil
+      expect(chat.handle_input('/suggest -e')).to eq :next
+    end
+  end
+
+  describe '/think' do
+    it 'returns :next and opens the chooser' do
+      expect(chat.think_mode).to receive(:choose)
+      expect(chat.handle_input('/think')).to eq :next
+    end
+  end
+
+  describe '/character' do
+    it 'returns :next when no file is chosen' do
+      expect(chat).to receive(:choose_filename).and_return nil
+      expect(chat.handle_input('/character info')).to eq :next
+    end
+
+    it 'returns :next when file does not exist' do
+      expect(chat.handle_input(
+        '/character info /nonexistent_xyz.json'
+      )).to eq :next
+    end
+
+    it 'returns :next for unsupported file extension' do
+      expect(chat.handle_input(
+        "/character info #{asset('example.rb')}"
+      )).to eq :next
+    end
+  end
+
+  describe '/compose' do
+    it 'returns :next when editor produces empty content' do
+      expect(chat).to receive(:edit_text).and_return ''
+      expect(chat.handle_input('/compose')).to eq :next
+    end
+
+    it 'returns the edited content when non-empty' do
+      expect(chat).to receive(:edit_text).and_return 'hello world'
+      expect(chat.handle_input('/compose')).to eq 'hello world'
+    end
+  end
+
+  describe '/vim' do
+    it 'returns :next with warning when no message exists' do
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('No message found'), type: :warn)
+      expect(chat.handle_input('/vim')).to eq :next
+    end
+
+    it 'returns :next and inserts last message into vim' do
+      chat.messages << OllamaChat::Message.new(
+        role: 'user', content: 'vim content'
+      )
+      expect(chat).to receive(:vim).with(nil)
+        .and_return(double('vim', insert: true))
+      expect(chat.handle_input('/vim')).to eq :next
+    end
+
+    it 'passes servername to vim' do
+      chat.messages << OllamaChat::Message.new(
+        role: 'user', content: 'vim content'
+      )
+      expect(chat).to receive(:vim).with('MY_SERVER')
+        .and_return(double('vim', insert: true))
+      expect(chat.handle_input('/vim MY_SERVER')).to eq :next
+    end
   end
 
   describe '/quit' do
@@ -783,6 +1010,11 @@ describe OllamaChat::Commands, protect_env: true do
     it 'returns "the help message" when input is "/help me"' do
       expect(chat).to receive(:help_message).and_return 'the help message'
       expect(chat.handle_input("/help me")).to include 'the help message'
+    end
+    it 'returns :next when filtering help with a pattern' do
+      expect(chat).to receive(:display_chat_help)
+        .with(instance_of(Regexp))
+      expect(chat.handle_input('/help model')).to eq :next
     end
   end
 end
