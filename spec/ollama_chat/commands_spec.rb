@@ -283,6 +283,20 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
+  describe '/session model options' do
+    it 'returns :next and delegates to edit_session_model_options' do
+      expect(chat).to receive(:edit_session_model_options)
+      expect(chat.handle_input("/session model options")).to eq :next
+    end
+  end
+
+  describe '/session trigger edit' do
+    it 'returns :next and delegates to edit_session_trigger' do
+      expect(chat).to receive(:edit_session_trigger)
+      expect(chat.handle_input("/session trigger edit")).to eq :next
+    end
+  end
+
   describe '/system' do
     it 'returns :next when input is "/system change"' do
       expect(chat).to receive(:change_system_prompt).with(nil)
