@@ -163,7 +163,7 @@ module OllamaChat::SessionManagement
     session_name = nil
     loop do
       session_name = ask?(
-        prompt: "❓ Enter new session name #{action}, C-c ⇒ cancel: ",
+        prompt: "❓ Enter new session name #{action}, C-u ⇒ random, C-c ⇒ cancel: ",
         prefill: default_name
       )
       if session_name.nil?
