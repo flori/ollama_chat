@@ -85,25 +85,39 @@ class OllamaChat::Tools::Forget
         "collection #{collection.inspect} does not exist"
     end
 
-    forgotten = 0
+    records = []
 
     chat.switch_collection(collection) do
-      before = chat.documents.size
+      records = chat.documents.records(tags: [ timestamp ])
       chat.documents.clear(tags: [ timestamp ])
-      forgotten = before - chat.documents.size
     end
+
+    forgotten = records.size
 
     chat.log(:info, 'Memory forgotten',
              data: { tool: name, collection:, forgotten: })
 
-    message = if forgotten > 0
-      "Forgot #{forgotten} memory in collection #{collection.inspect}."
+    texts   = records.map(&:text)
+    snippet = texts.first&.strip&.[](0, 80)
+
+    message = if forgotten.positive?
+      snippet ? "Forgot memory in #{collection.inspect}: " \
+                    "\"#{snippet}…\"" :
+                "Forgot #{forgotten} memories in " \
+                    "collection #{collection.inspect}."
     else
       "No memory with timestamp #{timestamp.inspect} " \
         "found in #{collection.inspect}."
     end
 
-    { success: true, timestamp:, collection:, forgotten:, message: }.to_json
+    {
+      success:        true,
+      timestamp:      ,
+      collection:     ,
+      forgotten:      ,
+      forgotten_text: texts.join("\n").full?,
+      message:
+    }.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name })
     { error: e.class, message: e.message }.to_json

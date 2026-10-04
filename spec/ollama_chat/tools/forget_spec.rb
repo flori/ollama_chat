@@ -41,12 +41,15 @@ describe OllamaChat::Tools::Forget do
       arguments.timestamp    = '2026-09-29T22:15:17+02:00'
 
       mock_docs = double('Documents')
-      expect(chat).to receive(:documents).at_least(:once).and_return(mock_docs)
+      expect(chat).to receive(:documents).at_least(:once).
+        and_return(mock_docs)
       expect(chat).to receive(:persona_exist?).with('sarah').and_return(true)
       expect(chat).to receive(:database_collection?).
         with('memory-sarah').and_return(double('Col'))
+      rec = double('Record', text: 'hello world')
       expect(chat).to receive(:switch_collection).with('memory-sarah') do |&blk|
-        expect(mock_docs).to receive(:size).and_return(3, 2)
+        expect(mock_docs).to receive(:records).
+          with(tags: ['2026-09-29T22:15:17+02:00']).and_return([ rec ])
         expect(mock_docs).to receive(:clear).
           with(tags: ['2026-09-29T22:15:17+02:00']).and_return(mock_docs)
         blk&.call
@@ -59,7 +62,8 @@ describe OllamaChat::Tools::Forget do
       expect(json.success).to eq true
       expect(json.forgotten).to eq 1
       expect(json.collection).to eq 'memory-sarah'
-      expect(json.message).to include('1 memory')
+      expect(json.forgotten_text).to eq 'hello world'
+      expect(json.message).to include('hello world')
     end
 
     it 'returns an error for blank timestamp' do
@@ -102,13 +106,16 @@ describe OllamaChat::Tools::Forget do
       arguments.timestamp    = '2026-09-29T22:15:17+02:00'
 
       mock_docs = double('Documents')
-      expect(chat).to receive(:documents).at_least(:once).and_return(mock_docs)
+      expect(chat).to receive(:documents).at_least(:once).
+        and_return(mock_docs)
       expect(chat).to receive(:persona_exist?).with('sarah').and_return(true)
       expect(chat).to receive(:database_collection?).
         with('memory-sarah').and_return(double('Col'))
       expect(chat).to receive(:switch_collection).with('memory-sarah') do |&blk|
-        expect(mock_docs).to receive(:size).and_return(3, 3)
-        expect(mock_docs).to receive(:clear).and_return(mock_docs)
+        expect(mock_docs).to receive(:records).
+          with(tags: ['2026-09-29T22:15:17+02:00']).and_return([])
+        expect(mock_docs).to receive(:clear).
+          with(tags: ['2026-09-29T22:15:17+02:00']).and_return(mock_docs)
         blk&.call
       end
 
@@ -117,6 +124,7 @@ describe OllamaChat::Tools::Forget do
       json = json_object(result)
       expect(json.success).to eq true
       expect(json.forgotten).to eq 0
+      expect(json.forgotten_text).to eq nil
     end
 
     it 'handles runtime errors from documents.clear' do
@@ -124,12 +132,14 @@ describe OllamaChat::Tools::Forget do
       arguments.timestamp    = '2026-09-29T22:15:17+02:00'
 
       mock_docs = double('Documents')
-      expect(chat).to receive(:documents).at_least(:once).and_return(mock_docs)
+      expect(chat).to receive(:documents).at_least(:once).
+        and_return(mock_docs)
       expect(chat).to receive(:persona_exist?).with('sarah').and_return(true)
       expect(chat).to receive(:database_collection?).
         with('memory-sarah').and_return(double('Col'))
       expect(chat).to receive(:switch_collection) do |&blk|
-        expect(mock_docs).to receive(:size).and_return(3)
+        expect(mock_docs).to receive(:records).
+          and_return([ double('Record', text: 'x') ])
         expect(mock_docs).to receive(:clear).and_raise(RuntimeError, 'boom')
         blk&.call
       end
