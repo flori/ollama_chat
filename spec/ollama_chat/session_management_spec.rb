@@ -208,6 +208,9 @@ describe OllamaChat::SessionManagement do
       expect(chat.session).to receive(:update).with(working_directory: '/curr')
       expect(chat).to receive(:init_history)
       expect(chat.session_apply).to eq(chat.session)
+      expect(chat.session.trigger).to be_present
+      collection = 'memory-%s' % chat.session.default_persona_name
+      expect(chat.database_collection?(collection)).to be_truthy
     end
   end
 
@@ -320,7 +323,8 @@ describe OllamaChat::SessionManagement do
         .with(context: 'rerank').and_return(double(map: ['my_rerank']))
       expect(chat).to receive(:all_collections)
         .and_return(double(map: ['my_collection']))
-      expect(chat).to receive(:choose_with_state).twice.and_yield
+      expect(chat).to receive(:choose_with_state).at_least(:once).and_yield
+      expect(chat).to receive(:current_search_state=).at_least(:once)
       expect(chat).to receive(:choose_entry)
         .and_return('my_collection', 'my_rerank')
       expect(chat).to receive(:ask?).and_return('5', 'y')

@@ -264,7 +264,26 @@ module OllamaChat::SessionManagement
     end
   end
 
+  # Applies the loaded session to the chat context.
+  #
+  # Performs the post-lock setup sequence:
+  #   1. Updates the session's working directory to `Dir.pwd`.
+  #   2. Initializes the in-memory message history from the session
+  #      payload.
+  #   3. Repairs any orphaned group UUIDs in the message list.
+  #   4. Ensures the persistent memory collection for the session's
+  #      persona exists in the database (no-op if already present).
+  #
+  # Called from {#setup_session} after the session has been locked.
+  #
+  # @return [OllamaChat::Database::Models::Session] the applied session
+  #   instance.
   def session_apply
+    initial_persona_name.full? do |persona_name|
+      collection        = create_memory_collection(persona_name)
+      session.trigger.present? or
+        session.trigger = { collection => chat.config.trigger.to_h }
+    end
     session.update(working_directory: Dir.pwd)
     init_history
     repair_group_uuids
@@ -503,6 +522,7 @@ module OllamaChat::SessionManagement
     existing = session.trigger.to_h
 
     collection = nil
+
     choose_with_state do
       # Prefill with the first configured collection as a starting
       # point. Fine for the single-trigger case; with multiple

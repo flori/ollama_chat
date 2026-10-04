@@ -32,6 +32,33 @@ module OllamaChat::RAGHandling
     models::Collection[name: collection.to_s]
   end
 
+  # Creates (or reuses) the persistent memory collection for a persona.
+  #
+  # The collection is named "memory-#{persona_name}" and is registered in
+  # the local database with an empty pattern list. If a collection with
+  # that name already exists, it is returned as-is without modification.
+  #
+  # This is the single canonical entry point for ensuring a persona's
+  # memory collection exists before it is referenced by the trigger
+  # mechanism, the `memorize`/`forget` tools, or any other consumer.
+  #
+  # @param persona_name [String] the persona stem (e.g. "miyu_pairing")
+  #   whose memory collection should be available.
+  # @return [String] the collection name (e.g. "memory-miyu_pairing").
+  def create_memory_collection(persona_name)
+    collection = "memory-#{persona_name}"
+
+    unless chat.database_collection?(collection)
+      models::Collection.create(
+        name:        collection,
+        description: "Memory for persona #{persona_name}",
+        patterns:    [],
+      )
+    end
+
+    collection
+  end
+
   private
 
   # Returns the name of the currently active document collection.

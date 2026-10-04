@@ -497,6 +497,10 @@ document_policy: importing
 persona:
   # Basename (without .md) of the default persona file in the personae directory.
   default_name: personal_assistant
+trigger:
+  enabled: true
+  prompt_name: memory_rerank
+  text_count: 3
 parsing:
   directory_structure_max_depth: 1
 think:

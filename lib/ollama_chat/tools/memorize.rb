@@ -82,15 +82,7 @@ class OllamaChat::Tools::Memorize
       raise OllamaChat::ToolFunctionArgumentError,
       'persona %s does not exist' % persona_name
 
-    collection = "memory-#{persona_name}"
-
-    unless chat.database_collection?(collection)
-      OllamaChat::Database::Models::Collection.create(
-        name:        collection,
-        description: "Memory for persona #{persona_name}",
-        patterns:    [],
-      )
-    end
+    collection = chat.create_memory_collection(persona_name)
 
     timestamp = Time.now.iso8601
 
