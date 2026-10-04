@@ -33,6 +33,8 @@ class OllamaChat::Tools::Memorize
           collection: "memory-<persona_name>".
           Use for facts, decisions, feelings, locations, preferences,
           or open threads worth remembering across sessions.
+          Provide `update` to replace an existing entry identified by
+          its timestamp tag.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -51,6 +53,15 @@ class OllamaChat::Tools::Memorize
                 The persona name (e.g. 'sarah', 'miyu_pairing').
                 The memory is stored in the collection
                 'memory-<persona_name>'.
+              EOT
+            ),
+            update: Tool::Function::Parameters::Property.new(
+              type: 'string',
+              description: <<~EOT,
+                Optional. The ISO 8601 timestamp tag of an existing
+                memory to replace. When given, that entry is cleared
+                before the new one is stored. E.g.
+                '2026-09-29T23:12:57+02:00'.
               EOT
             ),
           },
@@ -84,9 +95,21 @@ class OllamaChat::Tools::Memorize
 
     collection = chat.create_memory_collection(persona_name)
 
+    update        = args.update&.full?(:strip)
+    replaced_text = nil
+
     timestamp = Time.now.iso8601
 
     chat.switch_collection(collection) do
+      if update
+        records = chat.documents.records(tags: [ update ])
+        records.empty? and
+          raise OllamaChat::ToolFunctionArgumentError,
+          "No memory with timestamp #{update.inspect} " \
+          "found in #{collection.inspect}."
+        replaced_text = records.map(&:text).join("\n").full?
+        chat.documents.clear(tags: [ update ])
+      end
       chat.documents.add(
         ["#{timestamp}: #{text}"],
         tags: [ timestamp ],
@@ -94,11 +117,23 @@ class OllamaChat::Tools::Memorize
       )
     end
 
-    chat.log(:info, 'Memory stored', data: { tool: name, collection:, text: })
+    chat.log(:info, 'Memory stored',
+             data: { tool: name, collection:, text:, update: })
 
-    message = "Memory stored in collection #{collection.inspect}."
+    message = update ?
+      "Replaced memory ##{update} in #{collection.inspect}.\n" \
+      "New entry tagged ##{timestamp}." :
+      "Memory stored in collection #{collection.inspect}."
 
-    { success: true, timestamp:, collection:, message: }.to_json
+    result = { success: true, timestamp:, collection:, message: }
+    if update
+      result |= {
+        replaced_timestamp: update,
+        replaced_text:      ,
+      }
+    end
+
+    result.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name })
     { error: e.class, message: e.message }.to_json

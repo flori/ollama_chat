@@ -33,7 +33,7 @@ describe OllamaChat::Tools::Memorize do
     end
 
     let :arguments do
-      OpenStruct.new(text: nil, persona_name: nil)
+      OpenStruct.new(text: nil, persona_name: nil, update: nil)
     end
 
     it 'stores a memory entry successfully' do
@@ -199,6 +199,62 @@ describe OllamaChat::Tools::Memorize do
       json = json_object(result)
       expect(json.error).to eq 'RuntimeError'
       expect(json.message).to eq 'boom'
+    end
+
+    it 'replaces a memory entry when update is given' do
+      arguments.text         = 'corrected memory'
+      arguments.persona_name = 'sarah'
+      arguments.update       = '2026-09-29T22:15:17+02:00'
+
+      mock_docs = double('Documents')
+      expect(chat).to receive(:documents).and_return(mock_docs).at_least(:once)
+      expect(chat).to receive(:embedding).
+        and_return(double('Embedding', on?: true))
+      expect(chat).to receive(:persona_exist?).with('sarah').and_return(true)
+      expect(chat).to receive(:database_collection?).
+        with('memory-sarah').and_return(double('Col'))
+      rec = double('Record', text: 'old memory text')
+      expect(chat).to receive(:switch_collection).with('memory-sarah') do |&blk|
+        expect(mock_docs).to receive(:records).
+          with(tags: ['2026-09-29T22:15:17+02:00']).and_return([ rec ])
+        expect(mock_docs).to receive(:clear).
+          with(tags: ['2026-09-29T22:15:17+02:00']).and_return(mock_docs)
+        expect(mock_docs).to receive(:add).and_return(mock_docs)
+        blk&.call
+      end
+
+      result = tool.execute(tool_call, chat:)
+
+      json = json_object(result)
+      expect(json.success).to eq true
+      expect(json.replaced_timestamp).to eq '2026-09-29T22:15:17+02:00'
+      expect(json.replaced_text).to eq 'old memory text'
+      expect(json.message).to include('Replaced memory')
+    end
+
+    it 'errors when update timestamp not found' do
+      arguments.text         = 'new memory'
+      arguments.persona_name = 'sarah'
+      arguments.update       = '2026-01-01T00:00:00+02:00'
+
+      mock_docs = double('Documents')
+      expect(chat).to receive(:documents).and_return(mock_docs)
+      expect(chat).to receive(:embedding).
+        and_return(double('Embedding', on?: true))
+      expect(chat).to receive(:persona_exist?).with('sarah').and_return(true)
+      expect(chat).to receive(:database_collection?).
+        with('memory-sarah').and_return(double('Col'))
+      expect(chat).to receive(:switch_collection).with('memory-sarah') do |&blk|
+        expect(mock_docs).to receive(:records).
+          with(tags: ['2026-01-01T00:00:00+02:00']).and_return([])
+        blk&.call
+      end
+
+      result = tool.execute(tool_call, chat:)
+
+      json = json_object(result)
+      expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
+      expect(json.message).to include('No memory with timestamp')
     end
   end
 end
