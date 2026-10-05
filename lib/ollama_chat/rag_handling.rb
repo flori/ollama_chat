@@ -66,6 +66,14 @@ module OllamaChat::RAGHandling
     @documents.collection
   end
 
+  # Sets the documents collection to collection.
+  #
+  # @param collection [String, Symbol] the name of the collection to set
+  # @return [String, Symbol] the newly set collection name
+  def set_documents_collection(collection)
+    @documents.collection = collection
+  end
+
   # Retrieves a hash of collection names and their descriptions from the
   # database.
   #
@@ -264,14 +272,6 @@ module OllamaChat::RAGHandling
     end
   end
 
-  # Sets the documents collection to collection.
-  #
-  # @param collection [String, Symbol] the name of the collection to set
-  # @return [String, Symbol] the newly set collection name
-  def set_documents_collection(collection)
-    @documents.collection = collection
-  end
-
   # The choose_collection method presents a menu to select or create a document
   # collection. It displays existing collections along with options to create a
   # new one or exit.
@@ -290,12 +290,12 @@ module OllamaChat::RAGHandling
     case collection = collection&.to_s
     when '[NEW]'
       if name = create_collection
-        @documents.collection = name
+        set_documents_collection(name)
       end
     when nil, '[EXIT]'
       feedback("Exiting chooser.")
     when /./
-      @documents.collection = collection
+      set_documents_collection(collection)
     end
   ensure
     if collection

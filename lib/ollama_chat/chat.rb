@@ -712,7 +712,7 @@ class OllamaChat::Chat
   # @note Progress is reported to STDOUT during processing
   def add_documents_from_argv(document_list)
     if document_list.any?(&:empty?)
-      feedback("Clearing collection #{bold{documents.collection}}.", type: :info)
+      feedback("Clearing collection #{bold{collection}}.", type: :info)
       documents.clear
       document_list.reject!(&:empty?)
     end
@@ -724,7 +724,7 @@ class OllamaChat::Chat
           File.expand_path(doc)
         end
       end
-      feedback("Collection #{bold{documents.collection}}: Adding #{document_list.size} documents…", type: :info)
+      feedback("Collection #{bold{collection}}: Adding #{document_list.size} documents…", type: :info)
       count = 1
       document_list.each_slice(25) do |docs|
         docs.each do |doc|

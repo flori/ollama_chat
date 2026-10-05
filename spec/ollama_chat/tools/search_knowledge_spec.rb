@@ -118,17 +118,14 @@ describe OllamaChat::Tools::SearchKnowledge do
       )
     )
 
-    mock_docs = double('Documents')
-    expect(chat).to receive(:documents).and_return(mock_docs).at_least(:once)
+    expect(chat).to receive(:collection).
+      and_return('default_collection').at_least(:once)
+    expect(chat).to receive(:set_documents_collection).with('tolkien').ordered
+    expect(chat).to receive(:set_documents_collection).
+      with('default_collection').ordered
     expect(chat).to receive(:database_collection?)
       .and_return(double('Col', description: 'Desc', enabled: true))
       .at_least(:once)
-
-    expect(mock_docs).to receive(:collection).and_return('default_collection').
-      at_least(:once)
-    expect(mock_docs).to receive(:collection=).with('tolkien').ordered
-    expect(mock_docs).to receive(:collection=).with('default_collection').ordered
-
     tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return([])
 

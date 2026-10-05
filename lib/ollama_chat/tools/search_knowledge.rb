@@ -123,28 +123,29 @@ class OllamaChat::Tools::SearchKnowledge
         raise OllamaChat::ToolFunctionArgumentError,
           "Collection #{collection} is disabled."
       end
-      old_collection            = chat.documents.collection
-      chat.documents.collection = collection
+      old_collection = chat.collection
+      chat.set_documents_collection(collection)
     end
 
     records = chat.find_document_records(query, tags:, text_size:, text_count:, min_similarity:)
 
+    pre_rerank  = records.size
+    prompt_name = 'default'
     if rerank && records.any?
-      pre_rerank  = records.size
-      prompt_name = 'default'
       records = chat.rerank_records(query, records, prompt_name:)
-      chat.log(:info, 'Tool: %d/%d passed rerank for %s' % [ records.size, pre_rerank, collection ],
-          data: { collection:, prompt_name: })
     end
 
     chat.log(:info, "Snippets retrieved", data: {
-      tool: name, collection: chat.documents.collection, hits: records.size
-    })
+      tool: name,
+      collection: chat.collection,
+      rerank:,
+      pre_rerank:,
+      hits: records.size
+    }.compact)
 
-    collection_name = chat.documents.collection
     message =
       if records.any?
-        "Retrieved #{records.size} relevant snippets from collection #{collection_name.inspect} for query #{query.inspect}. See snippets below:\n\n" +
+        "Retrieved #{records.size} relevant snippets from collection #{chat.collection.inspect} for query #{query.inspect}. See snippets below:\n\n" +
           records.map { |record|
             link = if record.source =~ %r(\Ahttps?://)
                      record.source
@@ -155,14 +156,14 @@ class OllamaChat::Tools::SearchKnowledge
             [ link, ?# + record.tags.first ]
           }.flat_map { |l, t| chat.hyperlink(l, t) }.join(' ')
       else
-        "No relevant snippets found for query #{query.inspect} in collection #{collection_name.inspect}."
+        "No relevant snippets found for query #{query.inspect} in collection #{chat.collection.inspect}."
       end
 
     {
       prompt: chat.prompt('snippets_retrieval').to_s,
       collection: {
-        name:        collection_name,
-        description: chat.database_collection?(collection_name)&.description&.to_s,
+        name:        chat.collection,
+        description: chat.database_collection?(chat.collection)&.description&.to_s,
       },
       snippets: records.map do |record|
         {
@@ -183,7 +184,7 @@ class OllamaChat::Tools::SearchKnowledge
     chat.log(:error, e, data: { tool: name, query: args.query })
     { error: e.class.name, message: e.message }.to_json
   ensure
-    old_collection and chat.documents.collection = old_collection
+    old_collection and chat.set_documents_collection(old_collection)
   end
 
   self
