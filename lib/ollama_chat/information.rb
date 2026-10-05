@@ -340,7 +340,6 @@ module OllamaChat::Information
       current_directory:    Pathname.pwd.expand_path.to_path,
       languages:            config.languages * ', ',
       location:             location.on?.full? { location_description } || 'n/a',
-      tool_paths_allowed:   JSON.pretty_generate(tool_paths_allowed),
       user:                 ,
     }
   end

@@ -56,7 +56,6 @@ prompts:
       - Location: %{location}
       - Current directory is "%{current_directory}"
       - Client is %{client}.
-      - These tools have access to these allowed paths: %{tool_paths_allowed}
     dynamic_runtime_info: |
       There is usually no reason to mention this information to the user unless
       asked about it.

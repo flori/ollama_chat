@@ -56,8 +56,9 @@ class OllamaChat::Tools::PatchFile
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: <<~EOT
-                The path to the file to patch (must be within allowed directories)
+              description: <<~EOT,
+                The path to the file to patch. Allowed directories:
+                #{allowed_paths.map(&:inspect).join(', ')}
               EOT
             ),
             edits: Tool::Function::Parameters::Property.new(

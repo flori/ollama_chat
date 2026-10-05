@@ -26,11 +26,17 @@ class OllamaChat::Tools::MoveFile
           properties: {
             source: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The path to the file to move (must be within allowed directories)'
+              description: <<~EOT
+                The path to the file to move. Allowed directories:
+                #{allowed_paths.map(&:inspect).join(', ')}
+              EOT
             ),
             destination: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The destination path (must be within allowed directories and must not exist)'
+              description: <<~EOT
+                The destination path. Must not exist. Allowed directories:
+                #{allowed_paths.map(&:inspect).join(', ')}
+              EOT
             ),
           },
           required: %w[source destination]

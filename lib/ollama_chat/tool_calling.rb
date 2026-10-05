@@ -183,21 +183,6 @@ module OllamaChat::ToolCalling
     end
   end
 
-  # The tool_paths_allowed method returns a hash mapping each enabled tool name
-  # to its list of allowed paths or patterns. @return [Hash] a hash where keys
-  # are tool names and values are the allowed path lists
-  def tool_paths_allowed
-    config.tools.functions.to_h.
-      select { |name, value| tool_enabled?(name) && value[:allowed].present? }.
-      sort_by(&:first).
-      each_with_object({}) do |(name, value), hash|
-        hash[name.to_s] = value[:allowed].filter_map do
-          pathname = Pathname.new(_1).expand_path
-          pathname.exist?.full? { pathname.to_path }
-        end
-      end
-  end
-
   private
 
   def handle_tool_call_results?(&block)

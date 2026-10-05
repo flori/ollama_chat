@@ -37,9 +37,9 @@ class OllamaChat::Tools::ReadFile
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: <<~EOT
-                The path to the file to read (must be within allowed
-                directories)
+              description: <<~EOT,
+                The path to the file to read. Allowed directories:
+                #{allowed_paths.map(&:inspect).join(', ')}
               EOT
             ),
             start_line: Tool::Function::Parameters::Property.new(

@@ -172,17 +172,6 @@ describe OllamaChat::ToolCalling do
     end
   end
 
-  describe '#tool_paths_allowed' do
-    it 'returns a mapping of enabled tools to expanded existing paths' do
-      tool_name = chat.configured_tools.find { |t| chat.tool_function(t)[:allowed].present? }
-      expect(tool_name).to be_present
-      chat.session.tools_default_enabled[tool_name] = true
-      paths = chat.tool_paths_allowed
-      expect(paths).to have_key(tool_name)
-      expect(paths[tool_name]).to be_an(Array)
-    end
-  end
-
   describe '#handle_tool_call_results?' do
     it 'yields tool results to the provided block and then clears them' do
       # Setup: inject tool results directly into the instance variable

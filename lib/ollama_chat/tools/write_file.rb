@@ -31,7 +31,10 @@ class OllamaChat::Tools::WriteFile
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The path to the file to write (must be within allowed directories)'
+              description: <<~EOT,
+                The path to the file to write. Allowed directories:
+                #{allowed_paths.map(&:inspect).join(', ')}
+              EOT
             ),
             content: Tool::Function::Parameters::Property.new(
               type: 'string',

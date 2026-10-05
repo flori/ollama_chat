@@ -63,6 +63,20 @@ module OllamaChat::Tools::Concern
     self.class.register_name
   end
 
+  # Returns the list of allowed filesystem paths for this tool, as configured
+  # in the tool's `allowed` setting.
+  #
+  # Expands each configured path and filters out non-existent entries.
+  # Returns an empty array if the tool has no `allowed` paths configured.
+  #
+  # @return [Array<String>] absolute paths the tool is permitted to operate on
+  def allowed_paths
+    chat.config.tools.functions[name]&.allowed?.to_a.filter_map {
+      pathname = Pathname.new(_1).expand_path
+      pathname.exist?.full? { pathname.to_path }
+    }
+  end
+
   # The chat attribute reader.
   #
   # @return [OllamaChat::Chat] the chat session this tool operates in

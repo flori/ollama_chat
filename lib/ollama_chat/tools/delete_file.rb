@@ -28,7 +28,10 @@ class OllamaChat::Tools::DeleteFile
           properties: {
             path: Tool::Function::Parameters::Property.new(
               type: 'string',
-              description: 'The path to the file to delete (must be within allowed directories)'
+              description: <<~EOT
+                The path to the file to delete. Allowed directories:
+                #{allowed_paths.map(&:inspect).join(', ')}
+              EOT
             ),
           },
           required: %w[path]
