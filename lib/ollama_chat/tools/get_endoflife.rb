@@ -48,10 +48,8 @@ class OllamaChat::Tools::GetEndoflife
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the parsed endoflife data or an error as a JSON string
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     product = tool_call.function.arguments.product
 

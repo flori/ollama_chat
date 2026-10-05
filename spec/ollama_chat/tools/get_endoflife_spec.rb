@@ -6,15 +6,15 @@ describe OllamaChat::Tools::GetEndoflife do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_endoflife'
+    expect(described_class.new(chat).name).to eq 'get_endoflife'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed successfully' do
@@ -40,7 +40,7 @@ describe OllamaChat::Tools::GetEndoflife do
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.cycle).to eq '3.1'
     expect(json.releaseDate).to eq '2023-05-01'
@@ -66,7 +66,7 @@ describe OllamaChat::Tools::GetEndoflife do
     stub_request(:get, url % { product: })
       .to_return(status: 404, body: 'Not Found')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::HTTPError'
     expect(json.message).to eq 'request failed with status 404'

@@ -12,15 +12,15 @@ describe OllamaChat::Tools::ResolveTag do
   end
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'resolve_tag'
+    expect(described_class.new(chat).name).to eq 'resolve_tag'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   context 'when executed successfully with a valid topic' do
@@ -53,7 +53,7 @@ describe OllamaChat::Tools::ResolveTag do
       expect(OllamaChat::Utils::TagResolver).to receive(:new).
         and_return(double(resolve: double(size: 2, resolve: result_array)))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       expect(result).to be_a String
       json = json_object(result)
@@ -82,7 +82,7 @@ describe OllamaChat::Tools::ResolveTag do
 
       expect(OllamaChat::Utils::TagResolver).to receive(:new).and_raise('some error')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')
@@ -121,7 +121,7 @@ describe OllamaChat::Tools::ResolveTag do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
 
       expect(json.error).to be_nil

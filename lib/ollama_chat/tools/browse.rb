@@ -56,7 +56,6 @@ class OllamaChat::Tools::Browse
   # @return [String] the execution result as JSON string
   # @raise [StandardError] if there's an issue with opening the URL/file
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     url     = tool_call.function.arguments.url
     result  = browse_url(url)
 

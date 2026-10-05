@@ -72,13 +72,11 @@ class OllamaChat::Tools::ReadFile
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   #
   # @return [String] the file content as a JSON string containing `path` and `content` keys
   # @return [String] an error message as a JSON string if the operation fails
   # @raise [JSON::ParserError] if the result cannot be serialized to JSON
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     args   = tool_call.function.arguments
 

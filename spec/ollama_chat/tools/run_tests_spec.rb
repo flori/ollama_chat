@@ -10,15 +10,15 @@ describe OllamaChat::Tools::RunTests do
   end
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'run_tests'
+    expect(described_class.new(chat).name).to eq 'run_tests'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   context 'switchable test runner' do
@@ -26,14 +26,14 @@ describe OllamaChat::Tools::RunTests do
       const_conf_as(
         'OC::OLLAMA::CHAT::TOOLS::TEST_RUNNER'  => 'rspec'
       )
-      expect(described_class.new.expose.test_runner).to eq 'rspec'
+      expect(described_class.new(chat).expose.test_runner).to eq 'rspec'
     end
 
     it 'supports test-unit' do
       const_conf_as(
         'OC::OLLAMA::CHAT::TOOLS::TEST_RUNNER'  => 'test-unit'
       )
-      expect(described_class.new.expose.test_runner).to eq 'test-unit'
+      expect(described_class.new(chat).expose.test_runner).to eq 'test-unit'
     end
   end
 
@@ -54,7 +54,7 @@ describe OllamaChat::Tools::RunTests do
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['yeah', true])
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     json = json_object(result)
     expect(json.success).to be true
@@ -82,7 +82,7 @@ describe OllamaChat::Tools::RunTests do
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, true).and_return(['yeah', true])
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     json = json_object(result)
     expect(json.success).to be true
@@ -107,7 +107,7 @@ describe OllamaChat::Tools::RunTests do
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['some errors', false])
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.success).to be false
     expect(json.status).to eq 'failed'
@@ -132,7 +132,7 @@ describe OllamaChat::Tools::RunTests do
     allow_any_instance_of(described_class).to receive(:check_path).
       and_raise(StandardError, 'Unexpected boom')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'StandardError'
     expect(json.message).to eq 'Unexpected boom'
@@ -158,7 +158,7 @@ describe OllamaChat::Tools::RunTests do
       expect_any_instance_of(described_class).to receive(:run_tests).
         with(path_expanded, false).and_return(['ok', true])
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       expect(json_object(result).path).to eq path_expanded.to_path
     end
 
@@ -167,7 +167,7 @@ describe OllamaChat::Tools::RunTests do
       expect(File).to receive(:exist?).with('./test').and_return(false)
       expect(File).to receive(:exist?).with('./tests').and_return(false)
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       expect(json_object(result).error).to eq 'ArgumentError'
     end
   end
@@ -184,7 +184,7 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
   end
@@ -201,7 +201,7 @@ describe OllamaChat::Tools::RunTests do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::InvalidPathError'
   end

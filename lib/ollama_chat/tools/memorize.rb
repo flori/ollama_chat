@@ -74,11 +74,9 @@ class OllamaChat::Tools::Memorize
   # Execute the tool and store the memory.
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call object
-  # @param opts [Hash] must include `chat`
   #
   # @return [String] a JSON string with the result
   def execute(tool_call, **opts)
-    chat = opts[:chat]
     chat.embedding.on? or
       raise OllamaChat::OllamaChatError, 'embedding is disabled'
 

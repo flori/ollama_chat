@@ -102,11 +102,9 @@ class OllamaChat::Tools::PatchFile
   #
   # @param tool_call [Ollama::Tool::Call] the tool call containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   #
   # @return [String] a JSON string containing the result of the operation
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     args   = tool_call.function.arguments
 
@@ -141,7 +139,7 @@ class OllamaChat::Tools::PatchFile
 
     # We use the content we just read for the patch, as it's verified fresh
     patched_content = apply_edits(content, edits)
-    result          = apply_patch(chat, path, patched_content)
+    result          = apply_patch(path, patched_content)
 
     chat.log(:info, "File patched", data: {
       tool: name, path: path.to_s, success: result[:success], edits:
@@ -281,7 +279,7 @@ class OllamaChat::Tools::PatchFile
   # @param path [Pathname] The path to the file being patched
   # @param content [String] The proposed patched content
   # @return [Hash] The result of the patch application
-  def apply_patch(chat, path, content)
+  def apply_patch(path, content)
     old_digest = digest(path)
     diff_tool  = OC::DIFF_TOOL? or raise 'Diff tool not defined in env var DIFF_TOOL'
     File.exist?(diff_tool) or raise "Diff tool #{diff_tool.inspect} does not exist"

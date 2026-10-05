@@ -180,7 +180,7 @@ class OllamaChat::FollowChat
         feedback(
           ("\n%s Execution of tool %s confirmed.\n\n" % [ symbol, bold { name } ])
         )
-        result = OllamaChat::Tools.registered[name].execute(tool_call, chat:)
+        result = OllamaChat::Tools.registered_tool(name, chat:).execute(tool_call)
         chat.log(:info, "Tool execution confirmed", data: { tool: name, confirmed: })
       end
 

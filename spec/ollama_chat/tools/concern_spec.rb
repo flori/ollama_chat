@@ -1,11 +1,17 @@
 describe OllamaChat::Tools::Concern do
+  let :chat do
+    OllamaChat::Chat.new(argv: chat_default_config)
+  end
+
+  connect_to_ollama_server
+
   # Use a tool that does NOT override `summary_template` for base-class tests.
   let :tool_class do
     OllamaChat::Tools::GetTime
   end
 
   let :tool do
-    tool_class.new
+    tool_class.new(chat)
   end
 
   describe '.summary_template' do

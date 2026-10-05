@@ -59,12 +59,10 @@ class OllamaChat::Tools::OpenFileInEditor
   #
   # @param tool_call [Ollama::Tool::Call] the tool call containing function details
   # @param opts [Hash] additional options
-  # @option opts [OllamaChat::Chat] :chat the chat instance
   #
   # @return [String] a JSON string containing the result of the operation
   # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
-    chat       = opts[:chat]
     args       = tool_call.function.arguments
     file_path  = Pathname.new(args.path).expand_path
     start_line = args.start_line

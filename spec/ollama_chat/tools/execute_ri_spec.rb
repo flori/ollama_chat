@@ -6,15 +6,15 @@ describe OllamaChat::Tools::ExecuteRI do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'execute_ri'
+    expect(described_class.new(chat).name).to eq 'execute_ri'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   context 'when executed successfully with a valid topic' do
@@ -35,7 +35,7 @@ describe OllamaChat::Tools::ExecuteRI do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       expect(result).to be_a String
       json = json_object(result)
@@ -57,7 +57,7 @@ describe OllamaChat::Tools::ExecuteRI do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
@@ -82,7 +82,7 @@ describe OllamaChat::Tools::ExecuteRI do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')

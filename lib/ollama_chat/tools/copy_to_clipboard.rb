@@ -40,12 +40,10 @@ class OllamaChat::Tools::CopyToClipboard
 
   # Execute the tool.
   #
-  # @param _tool_call [OllamaChat::Tool::Call] the tool call object (unused)
+  # @param tool_call [OllamaChat::Tool::Call] the tool call object (unused)
   # @param opts [Hash] additional options
-  # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
   def execute(tool_call, **opts)
-    chat = opts[:chat]
     args = tool_call.function.arguments
     edit = !!args.edit
     text = args.text.full? or raise OllamaChat::ToolFunctionArgumentError, 'no text given'

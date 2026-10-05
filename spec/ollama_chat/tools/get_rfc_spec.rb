@@ -6,15 +6,15 @@ describe OllamaChat::Tools::GetRFC do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_rfc'
+    expect(described_class.new(chat).name).to eq 'get_rfc'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed successfully' do
@@ -40,7 +40,7 @@ describe OllamaChat::Tools::GetRFC do
         headers: { 'Content-Type' => 'text/plain' }
       )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.rfc_id).to eq rfc_id
     expect(json.content).to include('RFC 1234')
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::GetRFC do
     stub_request(:get, url % { rfc_id: })
       .to_return(status: 404, body: 'Not Found')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to be_a String
     expect(json.message).to be_a String

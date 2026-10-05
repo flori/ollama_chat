@@ -48,7 +48,6 @@ class OllamaChat::Tools::GemPathLookup
   # @param opts [Hash] additional options
   # @return [String] the result of the gem path lookup
   def execute(tool_call, **opts)
-    chat     = opts[:chat]
     gem_name = tool_call.function.arguments.gem_name
     lookup_gem_path(gem_name)
   rescue => e

@@ -45,8 +45,8 @@ class OllamaChat::Tools::GetTime
   # as an ISO8601 formatted string. The time includes timezone information
   # and is serialized as JSON for easy parsing by the caller.
   #
-  # @param _tool_call [OllamaChat::Tool::Call] the tool call object (unused, as the tool has no parameters)
-  # @param _opts [Hash] additional options (unused)
+  # @param tool_call [OllamaChat::Tool::Call] the tool call object (unused, as the tool has no parameters)
+  # @param opts [Hash] additional options (unused)
   #
   # @return [String] a JSON string containing the current time in ISO8601 format with a `time` key
   #
@@ -54,7 +54,6 @@ class OllamaChat::Tools::GetTime
   #   execute(tool_call, config:)
   #   # => {"time":"2026-02-09T14:32:00+01:00","weekday":"Monday"}
   def execute(tool_call, **opts)
-    chat = opts[:chat]
     now  = Time.now
     hour = now.hour
 

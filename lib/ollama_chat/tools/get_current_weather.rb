@@ -44,18 +44,16 @@ class OllamaChat::Tools::GetCurrentWeather
   # @param tool_call [Object] the tool call object containing function
   #   details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   #
   # @return [String] a JSON string containing the retrieved weather data
   # @return [String] an error message if the weather data could not be
   #   retrieved
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     units  = config.location.units =~ /SI/ ? 'si' : 'us'
 
     data   = { current_time: Time.now, units: } |
-      JSON(get_weather_data(chat, config, units)).deep_symbolize_keys
+      JSON(get_weather_data(config, units)).deep_symbolize_keys
 
     temp      = data.dig(:currently, :temperature)
     curr_sum  = data.dig(:currently, :summary)
@@ -94,7 +92,7 @@ class OllamaChat::Tools::GetCurrentWeather
   #
   # @raise [OllamaChat::ConfigMissingError] if the required Pirate Weather API
   #   key is missing
-  def get_weather_data(chat, config, units)
+  def get_weather_data(config, units)
     api_key    = OC::OLLAMA::CHAT::TOOLS::PIRATEWEATHER_API_KEY? or
       raise OllamaChat::ConfigMissingError, 'require env var OLLAMA_CHAT_TOOLS_PIRATEWEATHER_API_KEY'
     lat, lon = config.location.decimal_degrees

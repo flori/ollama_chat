@@ -11,18 +11,64 @@ module OllamaChat::Tools
     # The registered attribute reader
     #
     # @return [ Hash ] the registered tools hash containing all available tools
+    #   (as class or instance).
     attr_accessor :registered
 
-    # The register method adds a new tool to the registry.
+    # Returns the tool class for a registered tool name.
     #
-    # @param tool [ Object ] the tool to be registered
-    # @return [ OllamaChat::Tools ] the current instance after registration
+    # @param name [String, #to_s] the registered tool name
+    # @return [Class] the tool class
+    # @raise [ArgumentError] if no tool with the given name is registered
+    def registered_class(name)
+      name = name.to_s
+      registered.key?(name) or raise ArgumentError, 'tool %s not registered'
+      tool = registered[name]
+      if tool.is_a?(Class)
+        tool
+      else
+        tool.class
+      end
+    end
+
+    # Instantiates a registered tool, binding it to the given chat session.
+    #
+    # The registry stores tool classes (not instances). This method
+    # produces a fresh instance with the chat reference injected via
+    # `Concern#initialize(chat)`, making `self.chat` available for
+    # config access and feedback during execution.
+    #
+    # @param name [String, #to_s] the registered tool name
+    # @param chat [OllamaChat::Chat] the chat session to bind
+    # @return [OllamaChat::Tools::Concern, nil] a tool instance, or nil
+    #   if the tool is not registered
+    def registered_tool(name, chat:)
+      name = name.to_s
+      case tool = registered[name]
+      when NilClass
+        nil
+      when Class
+        tool.new(chat)
+      else
+        tool
+      end
+    end
+
+    # Registers a tool class in the registry.
+    #
+    # The class (not an instance) is stored. Instantiation is deferred
+    # to `registered_tool(name, chat:)` at request time, so each
+    # invocation gets a fresh instance bound to the current session.
+    #
+    # @param tool [Class] the tool class to register
+    # @return [OllamaChat::Tools] the current instance after registration
+    # @raise [ArgumentError] if the tool has no `register_name` or is
+    #   already registered
     def register(tool)
       name = tool.register_name.to_s
       name.present? or raise ArgumentError, 'tool needs a name'
       registered.key?(name) and
         raise ArgumentError, 'tool %s already registered' % name
-      registered[name] = tool.new
+      registered[name] = tool
       self
     end
 

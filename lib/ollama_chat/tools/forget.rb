@@ -61,11 +61,9 @@ class OllamaChat::Tools::Forget
   # — clearing a tag never re-embeds anything.
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call object
-  # @param opts [Hash] must include `chat`
   #
   # @return [String] a JSON string with the result
   def execute(tool_call, **opts)
-    chat = opts[:chat]
 
     args = tool_call.function.arguments
     timestamp = args.timestamp.full?(:strip) or

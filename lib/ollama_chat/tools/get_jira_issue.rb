@@ -44,10 +44,8 @@ class OllamaChat::Tools::GetJiraIssue
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the parsed JIRA issue data or an error message as JSON string
   def execute(tool_call, **opts)
-    chat      = opts[:chat]
     issue_key = tool_call.function.arguments.issue_key
     fetch_issue(issue_key)
   rescue => e

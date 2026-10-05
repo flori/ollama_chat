@@ -70,11 +70,9 @@ class OllamaChat::Tools::GetGHR
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] a JSON string containing the release data or an error message
   # @raise [StandardError] if there's an issue with the HTTP request or JSON parsing
   def execute(tool_call, **opts)
-    chat = opts[:chat]
     args = tool_call.function.arguments
     user = args.user.full?
     repo = args.repo.full?
@@ -98,7 +96,7 @@ class OllamaChat::Tools::GetGHR
     query << "limit=#{limit}" if limit
     url.query = query.full? { _1 * ?& }
 
-    data = get_ghr_data(chat, url)
+    data = get_ghr_data(url)
 
     if user && repo
       { user:, repo: }.stringify_keys.merge(data).to_json
@@ -112,7 +110,7 @@ class OllamaChat::Tools::GetGHR
 
   private
 
-  def get_ghr_data(chat, url)
+  def get_ghr_data(url)
     headers = {
       'Accept' => 'application/json',
     }

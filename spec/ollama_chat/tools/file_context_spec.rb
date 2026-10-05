@@ -6,11 +6,11 @@ describe OllamaChat::Tools::FileContext do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'file_context'
+    expect(described_class.new(chat).name).to eq 'file_context'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be executed successfully with pattern and directory' do
@@ -26,7 +26,7 @@ describe OllamaChat::Tools::FileContext do
     )
 
     # Test with actual files in spec/assets
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     expect(result).to be_a(String)
     json = json_object(result)
     content_file = json.files[Pathname.pwd.join('spec/assets/example.rb').to_s].content
@@ -48,7 +48,7 @@ describe OllamaChat::Tools::FileContext do
     )
 
     # Test that it handles non-existent patterns gracefully
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should still return a string (even if empty or minimal)
     expect(result).to be_a(String)

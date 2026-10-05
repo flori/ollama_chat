@@ -6,11 +6,11 @@ describe OllamaChat::Tools::SearchKnowledge do
   connect_to_ollama_server
 
   it 'has the expected name' do
-    expect(described_class.new.name).to eq 'search_knowledge'
+    expect(described_class.new(chat).name).to eq 'search_knowledge'
   end
 
   it 'provides a Tool instance' do
-    expect(described_class.new.tool).to be_a(Ollama::Tool)
+    expect(described_class.new(chat).tool).to be_a(Ollama::Tool)
   end
 
   it 'works with a valid query' do
@@ -30,7 +30,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       )
     )
 
-    tool = described_class.new
+    tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).with(
       kind_of(String), tags: nil, text_size: 16384, text_count: 10, min_similarity: nil
     ).and_return(
@@ -46,7 +46,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       ]
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     # Should return a JSON string
     expect(result).to be_a(String)
@@ -76,7 +76,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       )
     )
 
-    tool = described_class.new
+    tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).with(
       kind_of(String), tags: ['ruby', 'expert'], text_size: 16384, text_count: 10, min_similarity: nil
     ).and_return(
@@ -92,7 +92,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       ]
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -129,10 +129,10 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(mock_docs).to receive(:collection=).with('tolkien').ordered
     expect(mock_docs).to receive(:collection=).with('default_collection').ordered
 
-    tool = described_class.new
+    tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return([])
 
-    tool.execute(tool_call, chat:)
+    tool.execute(tool_call)
   end
 
   it 'raises an error for invalid collection names' do
@@ -152,7 +152,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
     expect(json.message).to match(/Invalid collection name/)
@@ -169,7 +169,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq('OllamaChat::OllamaChatError')
     expect(json.message).to eq('Empty query')
@@ -192,10 +192,10 @@ describe OllamaChat::Tools::SearchKnowledge do
       )
     )
 
-    tool = described_class.new
+    tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return([])
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.message).to include('No relevant snippets found')
     expect(json.message).to include('"nonexistent"')
@@ -223,7 +223,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       double('Record', text: 'second', source: 's2', tags: [], tags_set: double('Tags', to_s: '', map: []), similarity: 0.9)
     ]
 
-    tool = described_class.new
+    tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return(records)
     expect(chat).to receive(:database_collection?).and_return(double('Col', description: nil))
     expect(chat).to receive(:prompt).with('snippets_retrieval').and_return("Consider these snippets")
@@ -231,7 +231,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('1')
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
 
     expect(json.snippets.size).to eq 1
@@ -262,7 +262,7 @@ describe OllamaChat::Tools::SearchKnowledge do
       double('Record', text: 'second', source: 's2', tags: [], tags_set: double('Tags', to_s: '', map: []), similarity: 0.9)
     ]
 
-    tool = described_class.new
+    tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return(records)
     expect(chat).to receive(:database_collection?).and_return(double('Col', description: nil))
     expect(chat).to receive(:prompt).with('snippets_retrieval').and_return("Consider these snippets")
@@ -270,7 +270,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('0')
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
 
     expect(json.snippets.size).to eq 1
@@ -280,6 +280,6 @@ describe OllamaChat::Tools::SearchKnowledge do
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a(Hash)
+    expect(described_class.new(chat).to_hash).to be_a(Hash)
   end
 end

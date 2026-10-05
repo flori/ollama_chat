@@ -6,7 +6,7 @@ describe OllamaChat::Tools::GetCurrentWeather do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new
+    described_class.new(chat)
   end
 
   let :weather_data do
@@ -14,15 +14,15 @@ describe OllamaChat::Tools::GetCurrentWeather do
   end
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_current_weather'
+    expect(described_class.new(chat).name).to eq 'get_current_weather'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed for celsius' do
@@ -34,7 +34,7 @@ describe OllamaChat::Tools::GetCurrentWeather do
         arguments: double()
       )
     )
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.current_time).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}[+-]\d{2}:\d{2}\z/)
     expect(json.currently.temperature).to be_within(0.01).of(7.74)
@@ -56,7 +56,7 @@ describe OllamaChat::Tools::GetCurrentWeather do
       )
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     # Parse the JSON result to verify structured error format
     json = json_object(result)

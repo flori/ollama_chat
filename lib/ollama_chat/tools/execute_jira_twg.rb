@@ -52,10 +52,8 @@ class OllamaChat::Tools::ExecuteJIRATWG
   #
   # @param tool_call [OllamaChat::Tool::Call] The tool call with arguments
   # @param opts [Hash] Additional options
-  # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] The execution result as JSON string
   def execute(tool_call, **opts)
-    chat    = opts[:chat]
     command = tool_call.function.arguments.command
     command.full? or raise OllamaChat::ToolFunctionArgumentError,
       'require a command for twg'

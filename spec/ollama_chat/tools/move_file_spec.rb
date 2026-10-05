@@ -6,15 +6,15 @@ describe OllamaChat::Tools::MoveFile do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'move_file'
+    expect(described_class.new(chat).name).to eq 'move_file'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can move a file successfully when destination does not exist' do
@@ -36,7 +36,7 @@ describe OllamaChat::Tools::MoveFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -74,7 +74,7 @@ describe OllamaChat::Tools::MoveFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -109,7 +109,7 @@ describe OllamaChat::Tools::MoveFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -134,7 +134,7 @@ describe OllamaChat::Tools::MoveFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -163,7 +163,7 @@ describe OllamaChat::Tools::MoveFile do
     # Mock FileUtils.mv to raise error
     expect(FileUtils).to receive(:mv).and_raise 'Unexpected system error'
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)

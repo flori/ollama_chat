@@ -6,15 +6,15 @@ describe OllamaChat::Tools::DeleteFile do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'delete_file'
+    expect(described_class.new(chat).name).to eq 'delete_file'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed successfully and create a backup' do
@@ -31,7 +31,7 @@ describe OllamaChat::Tools::DeleteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -64,7 +64,7 @@ describe OllamaChat::Tools::DeleteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -90,7 +90,7 @@ describe OllamaChat::Tools::DeleteFile do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -119,7 +119,7 @@ describe OllamaChat::Tools::DeleteFile do
     # Mock perform_backup to raise an error
     allow_any_instance_of(OllamaChat::Tools::DeleteFile).to receive(:perform_backup).and_raise 'Unexpected error'
 
-    result = described_class.new.execute(tool_call, chat: )
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)

@@ -90,12 +90,10 @@ class OllamaChat::Tools::SearchKnowledge
   # Called when the model invokes the tool.
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call object
-  # @param opts [Hash] additional options, usually containing the chat
   # @return [String] JSON string with the resulting snippets, or an error
   # @raise [OllamaChat::OllamaChatError] if embeddings are disabled or query
   #   is empty
   def execute(tool_call, **opts)
-    chat = opts[:chat]
 
     chat.embedding.on? or raise OllamaChat::OllamaChatError, 'Embedding disabled'
 

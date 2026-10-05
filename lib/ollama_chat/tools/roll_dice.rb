@@ -47,10 +47,8 @@ class OllamaChat::Tools::RollDice
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the roll results as a JSON string
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     reroll = chat.config.tools.functions.roll_dice.reroll?
     dice   = tool_call.function.arguments.dice.to_s.strip
 

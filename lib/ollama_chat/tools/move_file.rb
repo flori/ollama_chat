@@ -47,13 +47,11 @@ class OllamaChat::Tools::MoveFile
   # @param tool_call [Ollama::Tool::Call] the tool call containing function
   #   details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   #
   # @return [String] the result of the move operation as a JSON string
   # @return [String] a JSON string containing error information if the
   #   operation fails
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     args   = tool_call.function.arguments
 

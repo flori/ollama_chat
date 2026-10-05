@@ -59,13 +59,11 @@ class OllamaChat::Tools::LookupGroup
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call with arguments
   # @param opts [Hash] additional options
-  # @option opts [OllamaChat::Chat] :chat the chat instance
   #
   # @return [String] a JSON string containing the group messages
   # @return [String] an error message as a JSON string if the group is
   #   not found or the argument is invalid
   def execute(tool_call, **opts)
-    chat = opts[:chat]
     args = tool_call.function.arguments
 
     uuid = args.group_uuid.to_s.strip

@@ -40,11 +40,9 @@ class OllamaChat::Tools::GetLocation
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [OllamaChat::Chat] :chat the chat instance containing location data
   # @return [String] the location data as a JSON string
   # @raise [StandardError] if there's an issue with location data retrieval or JSON serialization
   def execute(tool_call, **opts)
-    chat = opts[:chat]
     chat.location_data.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name })

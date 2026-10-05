@@ -37,12 +37,10 @@ class OllamaChat::Tools::PasteIntoEditor
   # Executes the tool by pasting text into Vim.
   #
   # @param [OllamaChat::ToolCall] tool_call The LLM-generated tool call object.
-  # @option opts [OllamaChat::Chat] :chat Reference to the current chat instance.
   # @return [String] JSON‑encoded response indicating success or failure.
   def execute(tool_call, **opts)
     text = tool_call.function.arguments.text
 
-    chat = opts[:chat]
     chat.perform_insert(text:, content: true)
 
     message = "The provided text has been successfully pasted into the editor."

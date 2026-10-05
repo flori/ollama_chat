@@ -38,15 +38,12 @@ class OllamaChat::Tools::PasteFromClipboard
 
   # Execute the tool.
   #
-  # @param _tool_call [OllamaChat::Tool::Call] the tool call object (unused)
+  # @param tool_call [OllamaChat::Tool::Call] the tool call object (unused)
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
-  # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] JSON payload indicating success or failure
   def execute(tool_call, **opts)
     args = tool_call.function.arguments
     edit = !!args.edit
-    chat = opts[:chat]
 
     # Use the chat instance's clipboard paste functionality
     content = chat.perform_paste_from_clipboard(edit:)

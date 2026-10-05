@@ -6,11 +6,11 @@ describe OllamaChat::Tools::GeneratePassword do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'generate_password'
+    expect(described_class.new(chat).name).to eq 'generate_password'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   let :arguments do
@@ -36,7 +36,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -61,7 +61,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -84,7 +84,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -107,7 +107,7 @@ describe OllamaChat::Tools::GeneratePassword do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -130,7 +130,7 @@ describe OllamaChat::Tools::GeneratePassword do
     )
 
     # Test that it handles missing required parameters gracefully
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -142,6 +142,6 @@ describe OllamaChat::Tools::GeneratePassword do
   end
 
   it 'can be converted t)o hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 end

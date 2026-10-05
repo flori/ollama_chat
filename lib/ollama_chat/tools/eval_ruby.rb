@@ -53,7 +53,6 @@ class OllamaChat::Tools::EvalRuby
   #
   # @return [String] a JSON string containing the `result` (stdout) or an `error`
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     args   = tool_call.function.arguments
     source = args.source.full? or
       raise OllamaChat::ToolFunctionArgumentError, 'require source to evaluate'

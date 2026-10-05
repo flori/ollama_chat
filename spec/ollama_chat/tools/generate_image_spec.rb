@@ -17,11 +17,11 @@ describe OllamaChat::Tools::GenerateImage do
   end
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'generate_image'
+    expect(described_class.new(chat).name).to eq 'generate_image'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   let :arguments do
@@ -42,7 +42,7 @@ describe OllamaChat::Tools::GenerateImage do
   end
 
   context 'when executing' do
-    let(:instance) { described_class.new }
+    let(:instance) { described_class.new(chat) }
 
     it 'can be executed successfully' do
       expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).
@@ -53,7 +53,7 @@ describe OllamaChat::Tools::GenerateImage do
       )
       expect(instance).to receive(:poll_for_image).and_return('kitten_output.png')
 
-      result = instance.execute(tool_call, chat:)
+      result = instance.execute(tool_call)
 
       expect(chat.links).to include(%r{/api/view.*filename=kitten_output.png})
 
@@ -69,7 +69,7 @@ describe OllamaChat::Tools::GenerateImage do
     it 'returns an error when prompt is missing' do
       arguments.prompt = nil
 
-      result = instance.execute(tool_call, chat:)
+      result = instance.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -82,7 +82,7 @@ describe OllamaChat::Tools::GenerateImage do
       # Force a config error by simulating the OllamaChat::OllamaChatError
       expect(OC::OLLAMA::CHAT::TOOLS::IMAGE_GENERATOR).to receive(:URL?).and_return(nil)
 
-      result = instance.execute(tool_call, chat:)
+      result = instance.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ConfigMissingError'
@@ -99,7 +99,7 @@ describe OllamaChat::Tools::GenerateImage do
       )
       expect(instance).to receive(:poll_for_image).and_return(nil)
 
-      result = instance.execute(tool_call, chat:)
+      result = instance.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::OllamaChatError'
@@ -115,7 +115,7 @@ describe OllamaChat::Tools::GenerateImage do
         OpenStruct.new(prompt_id: nil)
       )
 
-      result = instance.execute(tool_call, chat:)
+      result = instance.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::OllamaChatError'
@@ -129,7 +129,7 @@ describe OllamaChat::Tools::GenerateImage do
         and_return(service_url)
       expect(instance).to receive(:post_url).and_raise(StandardError, 'Network crash')
 
-      result = instance.execute(tool_call, chat:)
+      result = instance.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'StandardError'
@@ -140,6 +140,6 @@ describe OllamaChat::Tools::GenerateImage do
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 end

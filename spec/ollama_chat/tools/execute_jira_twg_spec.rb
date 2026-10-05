@@ -6,15 +6,15 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'execute_jira_twg'
+    expect(described_class.new(chat).name).to eq 'execute_jira_twg'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   context 'when executed successfully' do
@@ -37,7 +37,7 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       expect(result).to be_a String
       json = json_object(result)
@@ -68,7 +68,7 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.result).to eq '{ "issues": [] }'
@@ -85,7 +85,7 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq('OllamaChat::ToolFunctionArgumentError')
@@ -108,7 +108,7 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq('RuntimeError')
@@ -130,7 +130,7 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq('OllamaChat::ExecuteError')

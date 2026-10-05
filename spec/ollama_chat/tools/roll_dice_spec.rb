@@ -6,7 +6,7 @@ describe OllamaChat::Tools::RollDice do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new
+    described_class.new(chat)
   end
 
   it 'can have name' do
@@ -35,7 +35,7 @@ describe OllamaChat::Tools::RollDice do
 
     expect(tool).to receive(:rand).with(1..6).and_return(2, 5)
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -60,7 +60,7 @@ describe OllamaChat::Tools::RollDice do
 
     expect(tool).to receive(:rand).with(1..20).and_return(10)
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -83,7 +83,7 @@ describe OllamaChat::Tools::RollDice do
 
     expect(tool).to receive(:rand).with(1..20).and_return(15)
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -107,7 +107,7 @@ describe OllamaChat::Tools::RollDice do
 
     expect(tool).to receive(:rand).with(1..20).and_return(5)
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -128,7 +128,7 @@ describe OllamaChat::Tools::RollDice do
       )
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)

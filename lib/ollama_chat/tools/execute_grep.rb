@@ -74,10 +74,8 @@ class OllamaChat::Tools::ExecuteGrep
   #
   # @param tool_call [OllamaChat::Tool::Call] The tool call with arguments
   # @param opts [Hash] Additional options
-  # @option opts [Hash] :chat chat instance
   # @return [String] The execution result with command and output as JSON string
   def execute(tool_call, **opts)
-    chat       = opts[:chat]
     config       = chat.config
     args        = tool_call.function.arguments
     pattern     = Shellwords.escape(args.pattern)

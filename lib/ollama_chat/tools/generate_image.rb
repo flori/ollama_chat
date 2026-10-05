@@ -43,11 +43,9 @@ class OllamaChat::Tools::GenerateImage
   #
   # @param tool_call [Object] the tool call object containing the prompt
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   #
   # @return [String] a JSON string containing either the success URL or an error message
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     args   = tool_call.function.arguments
     prompt = args.prompt.full? or
@@ -77,13 +75,13 @@ class OllamaChat::Tools::GenerateImage
     url        = service_url + '/prompt'
     payload    = { prompt: workflow }
     started    = Time.now
-    prompt_id  = post_url(url, payload, chat).prompt_id
+    prompt_id  = post_url(url, payload).prompt_id
 
     prompt_id.nil? and raise OllamaChat::OllamaChatError,
       "failed to trigger ComfyUI with #{prompt_id}"
 
     # 3. Poll for completion
-    filename = poll_for_image(service_url, prompt_id, config, chat)
+    filename = poll_for_image(service_url, prompt_id, config)
 
     filename.nil? and raise OllamaChat::OllamaChatError,
        'Image generation took too long or failed'
@@ -123,7 +121,7 @@ class OllamaChat::Tools::GenerateImage
   # @param payload [Hash] the data to be sent as JSON
   # @param chat [OllamaChat::Chat] the chat instance (for HTTP middleware)
   # @return [JSON::GenericObject] the parsed JSON response
-  def post_url(url, payload, chat)
+  def post_url(url, payload)
     response = chat.request_url_response(:post, url,
       body:    JSON.dump(payload),
       headers: { 'Content-Type' => 'application/json' },
@@ -137,7 +135,7 @@ class OllamaChat::Tools::GenerateImage
   # @param url [URI] the target URL
   # @param chat [OllamaChat::Chat] the chat instance (for HTTP middleware)
   # @return [JSON::GenericObject] the parsed JSON response
-  def get_url(url, chat)
+  def get_url(url)
     response = chat.request_url_response(:get, url,
       headers: { 'Accept' => 'application/json' },
       expects: 200
@@ -151,7 +149,7 @@ class OllamaChat::Tools::GenerateImage
   # @param prompt_id [String] the ID of the prompt to track
   # @param config [ComplexConfig::Settings] the configuration settings for timeout
   # @return [String, nil] the filename of the generated image, or nil if it timed out
-  def poll_for_image(service_url, prompt_id, config, chat)
+  def poll_for_image(service_url, prompt_id, config)
     history_url = service_url + '/history'
     filename = nil
 
@@ -159,7 +157,7 @@ class OllamaChat::Tools::GenerateImage
     sleep    = -(config.tools.functions.generate_image.timeout_duration? || 60)
 
     attempt attempts:, sleep:, exception_class: nil do
-      response = get_url(history_url, chat)
+      response = get_url(history_url)
       output_data = response[prompt_id]
 
       if filename = output_data&.outputs&.each_pair&.first&.last&.images&.first&.filename

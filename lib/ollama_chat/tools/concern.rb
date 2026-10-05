@@ -49,12 +49,24 @@ module OllamaChat::Tools::Concern
     end
   end
 
+  # Initializes the tool instance with a reference to the chat session.
+  #
+  # @param chat [OllamaChat::Chat] the chat session this tool operates in
+  def initialize(chat)
+    @chat = chat
+  end
+
   # The name method returns the registered name of the tool.
   #
   # @return [String] the registered name of the tool instance
   def name
     self.class.register_name
   end
+
+  # The chat attribute reader.
+  #
+  # @return [OllamaChat::Chat] the chat session this tool operates in
+  attr_reader :chat
 
   # The valid_json? method returns a proc that validates JSON data from a
   # temporary file.

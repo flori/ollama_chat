@@ -6,7 +6,7 @@ describe OllamaChat::Tools::Memorize do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new
+    described_class.new(chat)
   end
 
   it 'can have name' do
@@ -57,7 +57,7 @@ describe OllamaChat::Tools::Memorize do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       expect(result).to be_a(String)
       json = json_object(result)
@@ -73,7 +73,7 @@ describe OllamaChat::Tools::Memorize do
       expect(chat).to receive(:embedding).
         and_return(double('Embedding', on?: false))
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::OllamaChatError'
@@ -87,7 +87,7 @@ describe OllamaChat::Tools::Memorize do
       expect(chat).to receive(:embedding).
         and_return(double('Embedding', on?: true))
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -101,7 +101,7 @@ describe OllamaChat::Tools::Memorize do
       expect(chat).to receive(:embedding).
         and_return(double('Embedding', on?: true))
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -115,7 +115,7 @@ describe OllamaChat::Tools::Memorize do
       expect(chat).to receive(:embedding).
         and_return(double('Embedding', on?: true))
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -128,7 +128,7 @@ describe OllamaChat::Tools::Memorize do
       expect(chat).to receive(:embedding).
         and_return(double('Embedding', on?: true))
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -150,7 +150,7 @@ describe OllamaChat::Tools::Memorize do
         blk&.call
       end
 
-      tool.execute(tool_call, chat:)
+      tool.execute(tool_call)
     end
 
     it 'auto-creates the collection in the database if missing' do
@@ -172,7 +172,7 @@ describe OllamaChat::Tools::Memorize do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.success).to eq true
@@ -194,7 +194,7 @@ describe OllamaChat::Tools::Memorize do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'RuntimeError'
@@ -223,7 +223,7 @@ describe OllamaChat::Tools::Memorize do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.success).to eq true
@@ -250,7 +250,7 @@ describe OllamaChat::Tools::Memorize do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'

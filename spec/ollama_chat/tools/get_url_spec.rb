@@ -6,15 +6,15 @@ describe OllamaChat::Tools::GetURL do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_url'
+    expect(described_class.new(chat).name).to eq 'get_url'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
 
@@ -36,7 +36,7 @@ describe OllamaChat::Tools::GetURL do
       expect(chat).to receive(:fetch_source).
         with(URI.parse('https://www.example.com/foo'), check_exist: false)
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       expect(result).to be_a(String)
       json = json_object(result)
@@ -66,7 +66,7 @@ describe OllamaChat::Tools::GetURL do
       # Import should never be called
       expect(chat).not_to receive(:import)
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
 
       expect(result).to be_a(String)
 
@@ -97,7 +97,7 @@ describe OllamaChat::Tools::GetURL do
       with(URI.parse('https://www.example.com/foo'), check_exist: false).
       and_raise('it somehow failed')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -119,7 +119,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('raw content')
     end
@@ -129,7 +129,7 @@ describe OllamaChat::Tools::GetURL do
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:import_source).with(source_io, URI.parse(url), language: nil).and_return('imported content')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('imported content')
     end
@@ -139,7 +139,7 @@ describe OllamaChat::Tools::GetURL do
       tool_call = double(function: double(arguments: args))
       expect(chat).to receive(:embed_source).with(source_io, URI.parse(url)).and_return('embedded content')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('embedded content')
     end
@@ -150,7 +150,7 @@ describe OllamaChat::Tools::GetURL do
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 0, instruction: nil).and_return('summarize prompt')
       expect(chat).to receive(:generate).with(prompt: 'summarize prompt').and_return('summarized content')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('summarized content')
     end
@@ -161,7 +161,7 @@ describe OllamaChat::Tools::GetURL do
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 50, instruction: nil).and_return('summarize prompt 50')
       expect(chat).to receive(:generate).with(prompt: 'summarize prompt 50').and_return('short summary')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('short summary')
     end
@@ -172,7 +172,7 @@ describe OllamaChat::Tools::GetURL do
       expect(chat).to receive(:summarize_source).with(source_io, URI.parse(url), words: 0, instruction: 'stress breaking changes').and_return('summarize prompt with instruction')
       expect(chat).to receive(:generate).with(prompt: 'summarize prompt with instruction').and_return('focused summary')
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('focused summary')
     end
@@ -181,7 +181,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url:, document_policy: 'chaos_mode', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.message).to match(/Invalid document policy "chaos_mode"/)
     end
@@ -198,7 +198,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.message).to eq('Received requested URL successfully.')
     end
@@ -211,7 +211,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: 'de')
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('transcribed text')
     end
@@ -224,7 +224,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.content).to eq('video text')
     end
@@ -236,7 +236,7 @@ describe OllamaChat::Tools::GetURL do
       args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
       tool_call = double(function: double(arguments: args))
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.message).to match(/Cannot fetch.*with content type/)
     end

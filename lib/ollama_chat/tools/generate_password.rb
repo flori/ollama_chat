@@ -113,10 +113,8 @@ class OllamaChat::Tools::GeneratePassword
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the generated password as a JSON string
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     args   = tool_call.function.arguments
 
     # Parse and validate parameters

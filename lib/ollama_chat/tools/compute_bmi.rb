@@ -64,11 +64,10 @@ class OllamaChat::Tools::ComputeBMI
   # Execute the tool logic.
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call object containing arguments
-  # @param _opts [Hash] additional options
+  # @param opts [Hash] additional options
   #
   # @return [String] a JSON string containing the BMI and the category
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     args   = tool_call.function.arguments
     weight = args.weight.full?(:to_f) or raise OllamaChat::ToolFunctionArgumentError, 'no weight given'
     height = args.height.full?(:to_f) or raise OllamaChat::ToolFunctionArgumentError, 'no height given'

@@ -6,15 +6,15 @@ describe OllamaChat::Tools::CopyToClipboard do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'copy_to_clipboard'
+    expect(described_class.new(chat).name).to eq 'copy_to_clipboard'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'raises an error if no text is provided' do
@@ -29,7 +29,7 @@ describe OllamaChat::Tools::CopyToClipboard do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -56,7 +56,7 @@ describe OllamaChat::Tools::CopyToClipboard do
     # Test that perform_copy_to_clipboard is called with the custom text
     expect(chat).to receive(:perform_copy_to_clipboard).with(text:, content: true, edit: false)
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -84,7 +84,7 @@ describe OllamaChat::Tools::CopyToClipboard do
     # Test that perform_copy_to_clipboard is called with edit: true
     expect(chat).to receive(:perform_copy_to_clipboard).with(text:, content: true, edit: true)
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -113,7 +113,7 @@ describe OllamaChat::Tools::CopyToClipboard do
     expect(chat).to receive(:perform_copy_to_clipboard).with(text:, content: true, edit: false).
       and_raise(OllamaChat::OllamaChatError, 'No response available to copy to the system clipboard.')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
@@ -141,7 +141,7 @@ describe OllamaChat::Tools::CopyToClipboard do
     expect(chat).to receive(:perform_copy_to_clipboard).with(text:, content: true, edit: false).
       and_raise(RuntimeError, 'some kind of exception')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON even with exceptions
     expect(result).to be_a(String)

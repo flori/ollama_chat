@@ -6,15 +6,15 @@ describe OllamaChat::Tools::GetCVE do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_cve'
+    expect(described_class.new(chat).name).to eq 'get_cve'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed successfully' do
@@ -40,7 +40,7 @@ describe OllamaChat::Tools::GetCVE do
         headers: { 'Content-Type' => 'application/json' }
       )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.id).to eq 'CVE-2023-12345'
     expect(json.description).to include('Test vulnerability description')
@@ -65,7 +65,7 @@ describe OllamaChat::Tools::GetCVE do
     stub_request(:get, url % { cve_id: })
       .to_return(status: 404, body: 'Not Found')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::HTTPError'
     expect(json.message).to eq 'request failed with status 404'

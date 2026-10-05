@@ -67,10 +67,8 @@ class OllamaChat::Tools::ExecuteShell
   #
   # @param tool_call [OllamaChat::Tool::Call] the tool call with args
   # @param opts [Hash] additional options
-  # @option opts [OllamaChat::Chat] :chat the chat instance
   # @return [String] a JSON result string
   def execute(tool_call, **opts)
-    chat    = opts[:chat]
     args    = tool_call.function.arguments
     command = args.command.to_s.strip
     raise OllamaChat::ToolFunctionArgumentError,
@@ -79,7 +77,7 @@ class OllamaChat::Tools::ExecuteShell
     monochrome = args.monochrome.nil? ? true : args.monochrome
 
     unless OllamaChat.test_mode?
-      reviewed = review(command, chat:)
+      reviewed = review(command)
       raise OllamaChat::ToolFunctionArgumentError,
             "Shell command cancelled by user: #{command}" unless reviewed
       command = reviewed
@@ -116,7 +114,7 @@ class OllamaChat::Tools::ExecuteShell
       stderr_bytes: stderr.bytesize,
     })
 
-    display(chat, stdout, stderr, exit_code)
+    display(stdout, stderr, exit_code)
 
     {
       stdout:, stderr:, exit_code:, command:,
@@ -134,13 +132,13 @@ class OllamaChat::Tools::ExecuteShell
   #
   # @return [String, nil] the (possibly modified) command, or nil
   #   if the user abandoned or cleared the editor.
-  def review(command, chat:)
+  def review(command)
     edited = chat.edit_text(command, basename: %w[cmd .sh])
     edited.full?(:chomp)
   end
 
   # Display command output through the pager.
-  def display(chat, stdout, stderr, exit_code)
+  def display(stdout, stderr, exit_code)
     chat.use_pager do |io|
       if stdout.present?
         io.puts bold { "stdout:" }, ""

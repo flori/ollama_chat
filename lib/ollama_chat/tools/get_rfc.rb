@@ -46,10 +46,8 @@ class OllamaChat::Tools::GetRFC
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the parsed RFC text or an error message as JSON string
   def execute(tool_call, **opts)
-    chat   = opts[:chat]
     config = chat.config
     rfc_id = tool_call.function.arguments.rfc_id
     url    = config.tools.functions.get_rfc.url % { rfc_id: }

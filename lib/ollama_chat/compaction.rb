@@ -21,7 +21,7 @@ module OllamaChat::Compaction
     # @return [String] a short natural-language description of the call.
     def tool_summary_line(tool_name, result)
       default_summary = "was called."
-      klass           = OllamaChat::Tools.registered[tool_name.to_s]&.class
+      klass           = OllamaChat::Tools.registered_class(tool_name)
       klass&.summary_template(result:) || default_summary
     rescue StandardError
       default_summary

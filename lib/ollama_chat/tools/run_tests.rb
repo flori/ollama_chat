@@ -54,7 +54,6 @@ class OllamaChat::Tools::RunTests
   # @return [String] JSON containing either result metrics (``success``, ``path``, ``output``, ``status``)
   #   or error details (``error``, ``message``).
   def execute(tool_call, **opts)
-    chat     = opts[:chat]
     config   = chat.config
     path     = tool_call.function.arguments.path
     coverage = tool_call.function.arguments.coverage || false

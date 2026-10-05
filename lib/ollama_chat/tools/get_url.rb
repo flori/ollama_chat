@@ -91,12 +91,10 @@ class OllamaChat::Tools::GetURL
   #
   # @param tool_call [Ollama::Tool::Call] the tool call object containing function details
   # @param opts [Hash] additional options
-  # @option opts [ComplexConfig::Settings] :chat the chat instance
   # @return [String] the fetched content as a JSON string
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
   # @see OllamaChat::Parsing::HAS_AUDIO
   def execute(tool_call, **opts)
-    chat            = opts[:chat]
     config          = chat.config
     args            = tool_call.function.arguments
     url             = args.url.to_s

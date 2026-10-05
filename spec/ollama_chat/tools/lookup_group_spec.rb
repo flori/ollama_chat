@@ -6,7 +6,7 @@ describe OllamaChat::Tools::LookupGroup do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new
+    described_class.new(chat)
   end
 
   let :uuid do
@@ -50,7 +50,7 @@ describe OllamaChat::Tools::LookupGroup do
       )
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(result).to be_a(String)
 
     json = json_object(result)
@@ -72,7 +72,7 @@ describe OllamaChat::Tools::LookupGroup do
       )
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::OllamaChatError'
     expect(json.message).to include('Group not found')
@@ -88,7 +88,7 @@ describe OllamaChat::Tools::LookupGroup do
       )
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(json.message).to eq 'group_uuid required'
@@ -103,7 +103,7 @@ describe OllamaChat::Tools::LookupGroup do
       )
     )
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.group_uuid).to eq uuid
     expect(json.message).to include('Retrieved 4 message(s)')

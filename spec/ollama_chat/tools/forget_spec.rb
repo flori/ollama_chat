@@ -6,7 +6,7 @@ describe OllamaChat::Tools::Forget do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new
+    described_class.new(chat)
   end
 
   it 'can have name' do
@@ -55,7 +55,7 @@ describe OllamaChat::Tools::Forget do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       expect(result).to be_a(String)
       json = json_object(result)
@@ -70,7 +70,7 @@ describe OllamaChat::Tools::Forget do
       arguments.persona_name = 'sarah'
       arguments.timestamp    = '   '
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -81,7 +81,7 @@ describe OllamaChat::Tools::Forget do
       arguments.persona_name = '   '
       arguments.timestamp    = '2026-09-29T22:15:17+02:00'
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -94,7 +94,7 @@ describe OllamaChat::Tools::Forget do
 
       expect(chat).to receive(:persona_exist?).with('ghost').and_return(false)
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
@@ -119,7 +119,7 @@ describe OllamaChat::Tools::Forget do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.success).to eq true
@@ -144,7 +144,7 @@ describe OllamaChat::Tools::Forget do
         blk&.call
       end
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
 
       json = json_object(result)
       expect(json.error).to eq 'RuntimeError'

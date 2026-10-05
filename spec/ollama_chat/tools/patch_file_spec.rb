@@ -6,7 +6,7 @@ describe OllamaChat::Tools::PatchFile do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new.expose
+    described_class.new(chat).expose
   end
 
   let :test_file do
@@ -140,7 +140,7 @@ describe OllamaChat::Tools::PatchFile do
     expect(tool).to receive(:system).and_return(true)
     expect(tool).to receive(:digest).and_return 'old', 'new'
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(json_object(result).success).to eq true
     expect(described_class.summary_template(result:))\
       .to match(/Successfully applied patch to/)
@@ -152,7 +152,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: test_file, edits: nil)
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
     expect(described_class.summary_template(result:))\
       .to match(/Failed to apply patch to file/)
@@ -162,7 +162,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: '/etc/passwd', edits: [])
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(json_object(result).error).to eq 'OllamaChat::InvalidPathError'
   end
 
@@ -170,7 +170,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: test_file, edits: { invalid: 'hash' })
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
   end
 
@@ -178,7 +178,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: '', edits: [])
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
   end
 
@@ -187,7 +187,7 @@ describe OllamaChat::Tools::PatchFile do
     args_double = double('Arguments', path: test_file, edits: [], checksum: 'deadbeef')
     tool_call = double('ToolCall', function: double(name: 'patch_file', arguments: args_double))
 
-    result = tool.execute(tool_call, chat:)
+    result = tool.execute(tool_call)
     expect(json_object(result).error).to eq 'OllamaChat::ToolFunctionArgumentError'
   ensure
     File.delete(test_file) if File.exist?(test_file)
@@ -223,7 +223,7 @@ describe OllamaChat::Tools::PatchFile do
         .and_return({ status: 'fail',
                       output: "test.rb:2: syntax error" })
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
       json = json_object(result)
       expect(json.message).to include('❌ Syntax error detected')
       expect(json.syntax_check[:status]).to eq 'fail'
@@ -245,7 +245,7 @@ describe OllamaChat::Tools::PatchFile do
       expect(tool).to receive(:digest).and_return 'old', 'new'
       expect(chat).to receive(:syntax_checker_for).and_return(nil)
 
-      result = tool.execute(tool_call, chat:)
+      result = tool.execute(tool_call)
       json = json_object(result)
       expect(json.syntax_check).to be_nil
     end

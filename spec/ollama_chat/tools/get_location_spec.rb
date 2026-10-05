@@ -6,15 +6,15 @@ describe OllamaChat::Tools::GetLocation do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'get_location'
+    expect(described_class.new(chat).name).to eq 'get_location'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed successfully' do
@@ -35,7 +35,7 @@ describe OllamaChat::Tools::GetLocation do
       )
     )
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     json = json_object(result)
     expect(json.latitude).to be_within(0.0001).of(40.7128)
@@ -56,7 +56,7 @@ describe OllamaChat::Tools::GetLocation do
 
     # Test that the method handles nil location_data gracefully
     expect {
-      described_class.new.execute(tool_call, chat:)
+      described_class.new(chat).execute(tool_call)
     }.to_not raise_error
   end
 
@@ -70,7 +70,7 @@ describe OllamaChat::Tools::GetLocation do
         )
       )
 
-      result = described_class.new.execute(tool_call, chat:)
+      result = described_class.new(chat).execute(tool_call)
       # Should still be valid JSON even if location_data is nil
       expect { JSON.parse(result) }.to_not raise_error
       expect(described_class.summary_template(result:))\

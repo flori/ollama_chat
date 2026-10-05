@@ -6,15 +6,15 @@ describe OllamaChat::Tools::PasteFromClipboard do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new.name).to eq 'paste_from_clipboard'
+    expect(described_class.new(chat).name).to eq 'paste_from_clipboard'
   end
 
   it 'can have tool' do
-    expect(described_class.new.tool).to be_a Ollama::Tool
+    expect(described_class.new(chat).tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new.to_hash).to be_a Hash
+    expect(described_class.new(chat).to_hash).to be_a Hash
   end
 
   it 'can be executed successfully' do
@@ -32,7 +32,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(chat).to receive(:perform_paste_from_clipboard).with(edit: false).
       and_return 'Hello World'
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -58,7 +58,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(chat).to receive(:perform_paste_from_clipboard).with(edit: true).
       and_return 'Hello Edited World'
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON
     expect(result).to be_a(String)
@@ -84,7 +84,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(chat).to receive(:perform_paste_from_clipboard).with(edit: false).
       and_raise(OllamaChat::OllamaChatError, 'No content available to paste from the system clipboard.')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON even with errors
     expect(result).to be_a(String)
@@ -110,7 +110,7 @@ describe OllamaChat::Tools::PasteFromClipboard do
     expect(chat).to receive(:perform_paste_from_clipboard).with(edit: false).
       and_raise(RuntimeError, 'some kind of exception')
 
-    result = described_class.new.execute(tool_call, chat:)
+    result = described_class.new(chat).execute(tool_call)
 
     # Should return valid JSON even with exceptions
     expect(result).to be_a(String)

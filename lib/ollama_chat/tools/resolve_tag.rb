@@ -55,10 +55,9 @@ class OllamaChat::Tools::ResolveTag
   # the symbol, kind, directory, and results.
   #
   # @param tool_call [ToolCall] the tool call object containing function arguments
-  # @param _opts [Hash] additional options for execution (currently unused)
+  # @param opts [Hash] additional options for execution (currently unused)
   # @return [String] JSON string containing the resolved tag information or error details
   def execute(tool_call, **opts)
-    chat      = opts[:chat]
     args      = tool_call.function.arguments
     symbol    = args.symbol.full? or raise OllamaChat::ToolFunctionArgumentError, 'require a symbol'
     kind      = args.kind.full?

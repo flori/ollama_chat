@@ -6,7 +6,7 @@ describe OllamaChat::Tools::ExecuteShell do
   connect_to_ollama_server
 
   let :tool do
-    described_class.new
+    described_class.new(chat)
   end
 
   before do
