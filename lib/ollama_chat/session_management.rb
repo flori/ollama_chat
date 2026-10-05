@@ -650,11 +650,11 @@ module OllamaChat::SessionManagement
         if session.lock?(chat: self)
           messages.read_conversation_jsonl(session.messages.to_s)
           if current_collection = session.current_collection.full? and
-            database_collection?(current_collection)
+              database_collection?(current_collection)
           then
-            set_current_collection(current_collection)
+            set_documents_collection(current_collection)
           else
-            set_current_collection(:default)
+            set_documents_collection(:default)
           end
           session.current_model.full? { use_model(_1) }
           set_default_persona_name(session.default_persona_name.full? || :none)

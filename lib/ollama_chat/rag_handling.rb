@@ -59,14 +59,14 @@ module OllamaChat::RAGHandling
     collection
   end
 
-  private
-
   # Returns the name of the currently active document collection.
   #
   # @return [String, Symbol] the name of the current collection
   def collection
     @documents.collection
   end
+
+  private
 
   # The clear_whole_collection method confirms user intent to delete the entire
   # collection, then clears all documents and logs the action, returning self
@@ -248,11 +248,11 @@ module OllamaChat::RAGHandling
     end
   end
 
-  # Sets the current document collection.
+  # Sets the documents collection to collection.
   #
   # @param collection [String, Symbol] the name of the collection to set
   # @return [String, Symbol] the newly set collection name
-  def set_current_collection(collection)
+  def set_documents_collection(collection)
     @documents.collection = collection
   end
 

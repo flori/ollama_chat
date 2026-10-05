@@ -58,7 +58,10 @@ class OllamaChat::Tools::SearchKnowledge
             collection: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The specific knowledge collection to search in.
+                The specific knowledge collection to search in,
+                allowed collections are: #{chat.collection_descriptions.to_json}
+                defaults to current collection #{chat.collection.inspect} if
+                not specified.
               EOT
             ),
             min_similarity: Tool::Function::Parameters::Property.new(

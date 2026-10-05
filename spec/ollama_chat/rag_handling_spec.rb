@@ -61,10 +61,10 @@ describe OllamaChat::RAGHandling do
     end
   end
 
-  describe '#set_current_collection' do
+  describe '#set_documents_collection' do
     it 'sets the collection on documents' do
       expect(docs).to receive(:collection=).with('x')
-      chat.set_current_collection('x')
+      chat.set_documents_collection('x')
     end
   end
 

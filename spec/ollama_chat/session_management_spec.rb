@@ -493,7 +493,7 @@ describe OllamaChat::SessionManagement do
       new_s = chat.new_session.tap { |s| s.name = 'change_to_me'; s.save }
       expect(chat).to receive(:choose_session).and_return(new_s)
       expect(chat).to receive(:session_close)
-      expect(chat).to receive(:set_current_collection)
+      expect(chat).to receive(:set_documents_collection)
       expect(chat).to receive(:use_model)
       expect(chat).to receive(:set_default_persona_name)
       expect(chat).to receive(:set_current_system_prompt)
