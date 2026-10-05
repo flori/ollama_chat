@@ -16,9 +16,9 @@ class OllamaChat::Tools::PasteIntoEditor
         name:,
         description: <<~EOT,
           Editor helper – Pastes a text into the editor, no file or line is required.
-          This tool will only be called,
-          1. if the user requests it and
-          2. only once per user request.
+          Only call this tool
+          1. if the user requested it explicitly and
+          2. only once not multiple times.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
