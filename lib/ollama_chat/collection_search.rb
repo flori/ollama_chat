@@ -130,8 +130,20 @@ module OllamaChat::CollectionSearch
       records.empty? and return
       pre_rerank = records.size
       records    = rerank_records(content, records, prompt_name:)
-      log(:info, 'Trigger: %d/%d passed rerank for %s' % [ records.size, pre_rerank, collection ],
-          data: { collection:, prompt_name: })
+      log(
+        :info,
+        'Trigger: %d/%d passed rerank for %s' % [ records.size, pre_rerank, collection ],
+        data: {
+          collection:,
+          prompt_name:,
+          records: records.map { |r|
+            {
+              text:       r.text,
+              similarity: r.similarity&.round(4),
+              tags:       r.tags_set.to_s(link: false)
+            }
+          }
+        })
       records.empty? and return
     end
     snippets = records.map { |record|
