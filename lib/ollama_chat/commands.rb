@@ -427,15 +427,7 @@ module OllamaChat::Commands
         feedback("Denied.", type: :denied)
       end
     when 'compact'
-      if confirm?(
-          prompt: '🔔 Compact conversation? Old messages will be summarized. (y/n) ',
-          yes: /\Ay/i
-        )
-      then
-        compact_with_retry
-      else
-        feedback("Denied.", type: :denied)
-      end
+      compact_with_retry
     when 'summarize'
       opts = go_command('s', opts)
       summarize_conversation(sentence: opts[?s])
