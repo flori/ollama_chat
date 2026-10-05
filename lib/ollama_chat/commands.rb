@@ -825,12 +825,23 @@ module OllamaChat::Commands
 
   command(
     name: :compose,
-    regexp: %r(^/compose$),
+    regexp: %r(^/compose(\s+-r)?\s*$),
+    options: '[-r]',
     help: <<~EOT
       \u270D  Compose message in external editor
+         Options: -r pre-fill with quoted last assistant reply
     EOT
-  ) do
-    edit_text.full? or :next
+  ) do |opts|
+    opts = go_command('r', opts)
+    prefill = if opts[?r]
+      if msg = messages.find_last(content: true) { !_1.tool? && _1.role == 'assistant' }
+        msg.content.to_s.lines.map { "> #{_1}" }.join + "\n\n"
+      else
+        feedback('No assistant message to quote.', type: :warn)
+        next :next
+      end
+    end
+    edit_text(prefill).full? or :next
   end
 
   command(

@@ -1044,6 +1044,22 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat).to receive(:edit_text).and_return 'hello world'
       expect(chat.handle_input('/compose')).to eq 'hello world'
     end
+
+    it 'prefills blockquote with -r and an assistant message' do
+      chat.messages << OllamaChat::Message.new(
+        role: 'assistant', content: "line one\nline two"
+      )
+      expect(chat).to receive(:edit_text)
+        .with("> line one\n> line two\n\n").and_return 'my reply'
+      expect(chat.handle_input('/compose -r')).to eq 'my reply'
+    end
+
+    it 'warns and skips edit with -r but no assistant message' do
+      expect(chat).to receive(:feedback)
+        .with('No assistant message to quote.', type: :warn)
+      expect(chat).not_to receive(:edit_text)
+      expect(chat.handle_input('/compose -r')).to eq :next
+    end
   end
 
   describe '/vim' do
