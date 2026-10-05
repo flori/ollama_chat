@@ -140,7 +140,7 @@ class OllamaChat::Tools::PatchFile
     result          = apply_patch(chat, path, patched_content)
 
     chat.log(:info, "File patched", data: {
-      tool: name, path: path.to_s, success: result[:success], edits_count: edits.size
+      tool: name, path: path.to_s, success: result[:success], edits:
     })
 
     message =
