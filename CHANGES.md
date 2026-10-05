@@ -1,5 +1,95 @@
 # Changes
 
+## 2026-10-05 v0.0.126
+
+*   **Tool Registry Refactor**: Refactored the tool registry to store tool
+    classes instead of pre-built instances.
+    *   `registered_class(name)` now returns the class for `summary_template`
+        access.
+    *   `registered_tool(name, chat:)` instantiates a fresh instance bound to
+        the current session.
+    *   `Concern#initialize(chat)` injects the chat reference; all tools now
+        access config via `self.chat` instead of `opts[:chat]`.
+    *   Helper methods in `execute_shell`, `generate_image`,
+        `get_current_weather`, `get_ghr`, and `patch_file` now use `self.chat`
+        directly.
+    *   Migrated all tool specs to use `described_class.new(chat)` and
+        `.execute(tool_call)`.
+
+*   **Path Allowlists**: Moved path allowlists into tool parameter
+    descriptions.
+    *   Added `allowed_paths` to `tools/concern.rb` to return expanded,
+        existing paths for the calling tool's `allowed` config.
+    *   Removed `tool_paths_allowed` from `tool_calling.rb` and its spec.
+    *   Injected `allowed_paths.map(&:inspect).join(', ')` into the `path`,
+        `source`, and `destination` parameter descriptions of `delete_file`,
+        `move_file`, `patch_file`, `read_file`, and `write_file`.
+
+*   **RAG Handling & Runtime Info**: Relocated `collection_descriptions` from
+    `information.rb` to `rag_handling.rb`.
+    *   Removed `collections` key from `static_runtime_information_values` and
+        `default_config.yml`.
+    *   Migrated `static_runtime_information` and `dynamic_runtime_information`
+        from `String#%` to `named_placeholders_interpolate`.
+
+*   **Collection Commands**: Reworked collection clearing into three distinct
+    commands.
+    *   Split monolithic `clear_collection` into `clear_whole_collection`,
+        `clear_collection_tags`, and `clear_collection_sources`.
+    *   `clear_collection_tags` implements a two-level tag-to-source browser.
+    *   `clear_collection_sources` implements a source-to-tags browser.
+    *   Added `use_pager(force:)` keyword in `pager.rb` to bypass size checks
+        using `Float::INFINITY`.
+    *   Added `Kramdown::ANSI::Width.wrap(..., percentage: 90)` to pager views
+        for terminal-width wrapping.
+    *   Bumped `documentrix` minimum to **0.8.0** in `Rakefile` and
+        `ollama_chat.gemspec` for the new `records(tags:, sources:)` API.
+    *   Extended `/collection` regexp and completion for `clear sources`.
+
+*   **Memory Tools**: Enhanced memory management tools.
+    *   `memorize` now accepts an optional `update` kwarg (ISO timestamp tag)
+        to replace an existing memory entry, returning `replaced_timestamp` and
+        `replaced_text`.
+    *   `forget` now returns `forgotten_text` in the JSON response and includes
+        an 80-character snippet in the human-readable `message`.
+    *   Renamed `set_current_collection` to `set_documents_collection` in
+        `rag_handling.rb`, `session_management.rb`, and specs.
+    *   Made `current_collection` public in `RAGHandling`.
+    *   Enriched `search_knowledge` tool `collection` param with allowed
+        collections from `collection_descriptions` and current default.
+
+*   **Session Management**:
+    *   Derive memory trigger from persona at session apply by adding a
+        `trigger` block to `default_config.yml`.
+    *   Extracted `create_memory_collection` into `RAGHandling` as the single
+        canonical entry point.
+    *   In `SessionManagement#session_apply`, auto-derive the session trigger
+        from `initial_persona_name` and `config.trigger` when no explicit
+        trigger is set.
+    *   Advertise `C-u` random shortcut in the session prompt to clear prefill
+        and obtain a random session name.
+
+*   **Commands & UX**:
+    *   Added `-r` flag to `/compose` to quote the last assistant reply as an
+        `edit_text` pre-fill.
+    *   Removed the `confirm?` prompt before `compact_with_retry` in
+        `/conversation compact`; compaction now runs immediately.
+    *   Split `/collection clear` into `clear tags` subcommand and bare `clear`
+        routing to `clear_whole_collection`.
+
+*   **Tool Descriptions & Logging**:
+    *   Made `paste_into_editor` description imperative.
+    *   Documented bottom-up edit order in `patch_file` to prevent models from
+        incorrectly compensating for line shifts.
+    *   Log full `edits` array in `patch_file` tool info log payload instead of
+        just `edits_count`.
+    *   Strip ANSI codes from `run_tests` captured output using
+        `OllamaChat::Utils::StripANSI`.
+
+*   **Compatibility & Fixes**:
+    *   Include `persona_name` in the `default` system prompt template in
+        `default_config.yml`.
+
 ## 2026-10-03 v0.0.125
 
 ### Added
