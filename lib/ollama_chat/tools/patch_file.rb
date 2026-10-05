@@ -27,6 +27,10 @@ class OllamaChat::Tools::PatchFile
           original and the proposed version. Path of the file must be given,
           existing, and be allowed.
 
+          Multi-edit application: Edits are applied **bottom-up**
+          (highest `start_line` first). All line numbers must
+          reference the original file; earlier edits in the list do
+          not shift the line positions of later ones.
           Precision Hint: To identify exact line ranges for patching, first
           read the target file using `read_file` with `line_numbers: true`.
 
