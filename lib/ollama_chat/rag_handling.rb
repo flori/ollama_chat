@@ -66,6 +66,22 @@ module OllamaChat::RAGHandling
     @documents.collection
   end
 
+  # Retrieves a hash of collection names and their descriptions from the
+  # database.
+  #
+  # This is used to provide context to the AI model about available RAG
+  # collections.
+  #
+  # @return [Hash{String => String}] a hash mapping collection names to their
+  #   descriptions
+  def collection_descriptions
+    cols = models::Collection.where(enabled: true)
+      .select(:name, :description).order(:name)
+    cols.each_with_object({}) do |c, hash|
+      hash[c.name] = c.description
+    end
+  end
+
   private
 
   # The clear_whole_collection method confirms user intent to delete the entire

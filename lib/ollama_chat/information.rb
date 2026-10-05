@@ -327,22 +327,6 @@ module OllamaChat::Information
     config.infobar.message.to_h
   end
 
-  # Retrieves a hash of collection names and their descriptions from the
-  # database.
-  #
-  # This is used to provide context to the AI model about available RAG
-  # collections.
-  #
-  # @return [Hash{String => String}] a hash mapping collection names to their
-  #   descriptions
-  def collection_descriptions
-    cols = models::Collection.where(enabled: true)
-      .select(:name, :description).order(:name)
-    cols.each_with_object({}) do |c, hash|
-      hash[c.name] = c.description
-    end
-  end
-
   # Generates a hash containing static runtime information.
   #
   # This method collects session-level constants including the user,
@@ -353,7 +337,6 @@ module OllamaChat::Information
   def static_runtime_information_values
     {
       client:               ,
-      collections:          JSON.pretty_generate(collection_descriptions),
       current_directory:    Pathname.pwd.expand_path.to_path,
       languages:            config.languages * ', ',
       location:             location.on?.full? { location_description } || 'n/a',
@@ -369,7 +352,9 @@ module OllamaChat::Information
   #
   # @return [String] a formatted static runtime information string.
   def static_runtime_information
-    prompt(:static_runtime_info).to_s % static_runtime_information_values
+    prompt(:static_runtime_info).to_s.named_placeholders_interpolate(
+      static_runtime_information_values
+    )
   end
 
   # Returns a formatted string representing the estimated text length of
@@ -423,7 +408,9 @@ module OllamaChat::Information
   #
   # @return [String] the formatted dynamic runtime information string.
   def dynamic_runtime_information
-    prompt(:dynamic_runtime_info).to_s % dynamic_runtime_information_values
+    prompt(:dynamic_runtime_info).to_s.named_placeholders_interpolate(
+      dynamic_runtime_information_values
+    )
   end
 
   # Injects the current dynamic runtime information (the "heartbeat")
