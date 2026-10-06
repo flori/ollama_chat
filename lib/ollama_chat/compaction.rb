@@ -199,7 +199,7 @@ module OllamaChat::Compaction
   def build_tool_entries(messages)
     messages.filter_map do |msg|
       next unless tool_name = msg.tool_name.full?
-      next if tool_name == 'runtime_information'
+      next if %w[ runtime_information trigger_inject ].include?(tool_name)
       uuid = msg.group_uuid.to_s[-8..]
       summary = OllamaChat::Compaction.tool_summary_line(
         tool_name, msg.content.to_s
