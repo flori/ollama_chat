@@ -95,6 +95,34 @@ describe OllamaChat::Switches do
         }.from(true).to(false)
       end
     end
+
+    context 'callable value (non-adhoc closure)' do
+      let(:store) { { enabled: false } }
+      let :switch do
+        described_class.new(
+          value: -> nv = described_class::UNSET do
+            nv == described_class::UNSET ? store[:enabled]
+                                         : (store[:enabled] = nv; nil)
+          end,
+          msg: { true => 'On', false => 'Off' }
+        )
+      end
+
+      it 'reads without writing' do
+        expect(switch.on?).to eq false
+        expect(store[:enabled]).to eq false
+      end
+
+      it 'set calls the closure with the explicit value' do
+        expect { switch.set(true) }
+          .to change { store[:enabled] }.from(false).to(true)
+      end
+
+      it 'toggle reads then writes the negation' do
+        expect { switch.toggle(show: false) }
+          .to change { store[:enabled] }.from(false).to(true)
+      end
+    end
   end
 
   describe OllamaChat::Switches::DatabaseSwitch do

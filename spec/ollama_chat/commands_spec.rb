@@ -111,6 +111,21 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.stream).to receive(:set).with(false, show: true)
       expect(chat.handle_input("/toggle stream -n")).to eq :next
     end
+
+    it 'returns :next when input is "/toggle memory_trigger"' do
+      expect(chat.memory_trigger).to receive(:toggle)
+      expect(chat.handle_input("/toggle memory_trigger")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle memory_trigger -y"' do
+      expect(chat.memory_trigger).to receive(:set).with(true, show: true)
+      expect(chat.handle_input("/toggle memory_trigger -y")).to eq :next
+    end
+
+    it 'returns :next when input is "/toggle memory_trigger -n"' do
+      expect(chat.memory_trigger).to receive(:set).with(false, show: true)
+      expect(chat.handle_input("/toggle memory_trigger -n")).to eq :next
+    end
   end
 
   describe '/voice' do

@@ -104,11 +104,19 @@ module OllamaChat::Switches
     # Initializes a new Switch instance.
     #
     # @param msg [Hash{Boolean => String}] a hash containing true and false messages
-    # @param value [Object] the initial state of the switch (coerced to boolean)
+    # @param value [Object, Proc] the initial state of the switch. A plain
+    #   value is coerced to a boolean and wrapped in an internal closure;
+    #   a callable is used directly and must be invokable both bare (read)
+    #   and with an explicit boolean (write). If the callable responds to
+    #   `arity`, it must return -1 (a `TypeError` is raised otherwise);
+    #   callables without an `arity` method are accepted as-is.
     # @param callbacks [Hash{[Boolean, Boolean] => Proc}] optional mapping of
     #   state transitions to callback procs. Keys are `[old_value, new_value]`.
     def initialize(msg:, value:, callbacks: {})
       if value.respond_to?(:call)
+        if arity = value.ask_and_send(:arity)
+          arity != -1 and raise TypeError, 'value Proc requires arity -1'
+        end
         @value = value
       else
         @value = adhoc_closure(value)

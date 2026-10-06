@@ -161,13 +161,13 @@ module OllamaChat::Commands
 
   command(
     name: :toggle,
-    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding)(?:\s+(-[yn]))?)?$),
-    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding ] ],
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding|memory_trigger)(?:\s+(-[yn]))?)?$),
+    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding memory_trigger ] ],
     options: '[-y|-n]',
     help: <<~EOT
       🎛️ Toggle feature switches
-      (markdown, stream, location, runtime_info,
-      voice, think_loud, think_strip, embedding)
+       (markdown, stream, location, runtime_info,
+       voice, think_loud, think_strip, embedding, memory_trigger)
       Options: -y (on), -n (off)
     EOT
   ) do |toggle_name, flag|
@@ -191,7 +191,7 @@ module OllamaChat::Commands
       end
     else
       feedback(
-        "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding"
+        "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding|memory_trigger"
       )
     end
     :next
