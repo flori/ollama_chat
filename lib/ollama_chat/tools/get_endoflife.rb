@@ -50,11 +50,11 @@ class OllamaChat::Tools::GetEndoflife
   # @param opts [Hash] additional options
   # @return [String] the parsed endoflife data or an error as a JSON string
   def execute(tool_call, **opts)
-    config = chat.config
+
     product = tool_call.function.arguments.product
 
     # Construct the URL for the endoflife API
-    url = config.tools.functions.get_endoflife.url % { product: }
+    url = tool_config.url % { product: }
 
     # Fetch the data from endoflife.date API
     chat.get_url(

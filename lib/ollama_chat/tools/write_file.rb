@@ -67,10 +67,10 @@ class OllamaChat::Tools::WriteFile
   # @return [String] a JSON string containing error information if the
   #   operation fails
   def execute(tool_call, **opts)
-    config = chat.config
+
     args   = tool_call.function.arguments
 
-    path = assert_valid_path(args.path, config.tools.functions.write_file.allowed?)
+    path = assert_valid_path(args.path, tool_config.allowed?)
 
     # Ensure the parent directory exists
     path.dirname.mkpath

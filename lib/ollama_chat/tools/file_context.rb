@@ -64,14 +64,13 @@ class OllamaChat::Tools::FileContext
   # @return [String] the generated context data in the configured format (JSON by default)
   # @return [String] a JSON string containing error information if the operation fails
   def execute(tool_call, **opts)
-    config      = chat.config
     pattern     = tool_call.function.arguments.pattern
     format      = chat.context_format.selected
 
     directory   = Pathname.new(tool_call.function.arguments.directory || ?.)
     search_path = directory + pattern
     check_path = -> filename {
-      assert_valid_path(filename, config.tools.functions.file_context.allowed?, check: :file)
+      assert_valid_path(filename, tool_config.allowed?, check: :file)
     }
     ContextSpook::generate_context(verbose: true, format:) do |context|
       context do

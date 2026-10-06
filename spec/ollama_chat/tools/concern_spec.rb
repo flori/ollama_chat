@@ -11,7 +11,7 @@ describe OllamaChat::Tools::Concern do
   end
 
   let :tool do
-    tool_class.new(chat)
+    tool_class.new(chat).expose
   end
 
   describe '.summary_template' do

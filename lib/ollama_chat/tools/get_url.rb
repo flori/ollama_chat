@@ -95,7 +95,6 @@ class OllamaChat::Tools::GetURL
   # @raise [StandardError] if there's an issue with the HTTP request or content fetching
   # @see OllamaChat::Parsing::HAS_AUDIO
   def execute(tool_call, **opts)
-    config          = chat.config
     args            = tool_call.function.arguments
     url             = args.url.to_s
     document_policy = args.document_policy.full? || 'ignoring'
@@ -103,7 +102,7 @@ class OllamaChat::Tools::GetURL
     instruction     = args.instruction
     language        = args.language
 
-    allowed_schemes = Array(config.tools.functions.get_url.schemes?).map(&:to_s)
+    allowed_schemes = Array(tool_config.schemes?).map(&:to_s)
 
     url = URI.parse(args.url.to_s)
     unless allowed_schemes.include?(url.scheme)

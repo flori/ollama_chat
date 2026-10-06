@@ -48,9 +48,9 @@ class OllamaChat::Tools::GetRFC
   # @param opts [Hash] additional options
   # @return [String] the parsed RFC text or an error message as JSON string
   def execute(tool_call, **opts)
-    config = chat.config
+
     rfc_id = tool_call.function.arguments.rfc_id
-    url    = config.tools.functions.get_rfc.url % { rfc_id: }
+    url    = tool_config.url % { rfc_id: }
     content = chat.get_url(
       url,
       headers: {

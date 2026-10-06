@@ -106,7 +106,6 @@ class OllamaChat::Tools::PatchFile
   #
   # @return [String] a JSON string containing the result of the operation
   def execute(tool_call, **opts)
-    config = chat.config
     args   = tool_call.function.arguments
 
     edits = args.edits or
@@ -123,7 +122,7 @@ class OllamaChat::Tools::PatchFile
 
     path = assert_valid_path(
       path,
-      config.tools.functions.patch_file.allowed?,
+      tool_config.allowed?,
       check: :file
     )
 

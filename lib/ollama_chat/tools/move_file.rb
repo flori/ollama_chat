@@ -58,14 +58,14 @@ class OllamaChat::Tools::MoveFile
   # @return [String] a JSON string containing error information if the
   #   operation fails
   def execute(tool_call, **opts)
-    config = chat.config
+
     args   = tool_call.function.arguments
 
     # Validate paths
     # source: must exist and be a file
     # destination: must NOT exist (check: false)
-    source      = assert_valid_path(args.source, config.tools.functions.move_file.allowed?, check: :file)
-    destination = assert_valid_path(args.destination, config.tools.functions.move_file.allowed?, check: false)
+    source      = assert_valid_path(args.source, tool_config.allowed?, check: :file)
+    destination = assert_valid_path(args.destination, tool_config.allowed?, check: false)
 
     # Ensure destination parent directory exists
     destination.dirname.mkpath

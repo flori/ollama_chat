@@ -76,7 +76,6 @@ class OllamaChat::Tools::ExecuteGrep
   # @param opts [Hash] Additional options
   # @return [String] The execution result with command and output as JSON string
   def execute(tool_call, **opts)
-    config       = chat.config
     args        = tool_call.function.arguments
     pattern     = Shellwords.escape(args.pattern)
     path        = Shellwords.escape(Pathname.new(args.path || '.').expand_path)
@@ -85,7 +84,7 @@ class OllamaChat::Tools::ExecuteGrep
     before      = normalize_number(args.before)
     after       = normalize_number(args.after)
     context     = normalize_number(args.context)
-    cmd         = eval_template(config, pattern, path, max_results, ignore_case, before, after, context)
+    cmd         = eval_template(pattern, path, max_results, ignore_case, before, after, context)
     result      = OllamaChat::Utils::Fetcher.execute(cmd, &:read)
     match_count = result.lines.count
     chat.log(:info, "Grep executed", data: {
@@ -127,15 +126,14 @@ class OllamaChat::Tools::ExecuteGrep
   # interpolations are resolved against the local parameters via `eval`,
   # so all arguments below serve as the interpolation context.
   #
-  # @param config [Object] the configuration object containing tool settings
   # @param pattern [String] the regex pattern to search for
   # @param path [String] the file or directory path to search in
   # @param max_results [Integer] the maximum number of matches to return
   # @param ignore_case [true, false] whether to ignore case when searching
   #
   # @return [String] the evaluated template string with substituted variables
-  def eval_template(config, pattern, path, max_results, ignore_case, before, after, context)
-    eval('"%s"' % config.tools.functions.execute_grep.cmd.chomp)
+  def eval_template(pattern, path, max_results, ignore_case, before, after, context)
+    eval('"%s"' % tool_config.cmd.chomp)
   end
 
   self

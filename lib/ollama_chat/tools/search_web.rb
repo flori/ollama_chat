@@ -56,11 +56,10 @@ class OllamaChat::Tools::SearchWeb
   # @return [String] the search results as a JSON string
   # @raise [StandardError] if there's an issue with the search operation
   def execute(tool_call, **opts)
-    config = chat.config
     args   = tool_call.function.arguments
 
     query       = args.query
-    max_results = config.tools.functions.search_web?.max_results? || 10
+    max_results = tool_config.max_results? || 10
     num_results = (args.num_results || 5).clamp(..max_results)
     results     = chat.search_web(query, num_results)
 

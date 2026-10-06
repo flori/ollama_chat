@@ -96,7 +96,7 @@ class OllamaChat::Tools::GetCurrentWeather
     api_key    = OC::OLLAMA::CHAT::TOOLS::PIRATEWEATHER_API_KEY? or
       raise OllamaChat::ConfigMissingError, 'require env var OLLAMA_CHAT_TOOLS_PIRATEWEATHER_API_KEY'
     lat, lon = config.location.decimal_degrees
-    url      = config.tools.functions.get_current_weather.url % {
+    url      = tool_config.url % {
       lat:, lon:, units:, api_key:,
     }
     headers = {

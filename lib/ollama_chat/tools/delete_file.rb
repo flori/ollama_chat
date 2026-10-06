@@ -52,10 +52,10 @@ class OllamaChat::Tools::DeleteFile
   # @return [String] a JSON string containing error information if the
   #   operation fails
   def execute(tool_call, **opts)
-    config = chat.config
+
     args   = tool_call.function.arguments
 
-    path = assert_valid_path(args.path, config.tools.functions.delete_file.allowed?, check: :file)
+    path = assert_valid_path(args.path, tool_config.allowed?, check: :file)
 
     backup_path = perform_backup(path)
 

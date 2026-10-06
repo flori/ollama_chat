@@ -50,7 +50,7 @@ describe OllamaChat::Tools::RunTests do
     )
 
     expect_any_instance_of(described_class).to receive(:check_path).
-      with(path, chat.config).and_return path
+      with(path).and_return path
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['yeah', true])
 
@@ -78,7 +78,7 @@ describe OllamaChat::Tools::RunTests do
     )
 
     expect_any_instance_of(described_class).to receive(:check_path).
-      with(path, chat.config).and_return path
+      with(path).and_return path
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, true).and_return(['yeah', true])
 
@@ -103,7 +103,7 @@ describe OllamaChat::Tools::RunTests do
     )
 
     expect_any_instance_of(described_class).to receive(:check_path).
-      with(path, chat.config).and_return path
+      with(path).and_return path
     expect_any_instance_of(described_class).to receive(:run_tests).
       with(path, false).and_return(['some errors', false])
 

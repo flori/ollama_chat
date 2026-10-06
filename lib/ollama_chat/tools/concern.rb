@@ -63,24 +63,19 @@ module OllamaChat::Tools::Concern
     self.class.register_name
   end
 
-  # Returns the list of allowed filesystem paths for this tool, as configured
-  # in the tool's `allowed` setting.
-  #
-  # Expands each configured path and filters out non-existent entries.
-  # Returns an empty array if the tool has no `allowed` paths configured.
-  #
-  # @return [Array<String>] absolute paths the tool is permitted to operate on
-  def allowed_paths
-    chat.config.tools.functions[name]&.allowed?.to_a.filter_map {
-      pathname = Pathname.new(_1).expand_path
-      pathname.exist?.full? { pathname.to_path }
-    }
-  end
-
   # The chat attribute reader.
   #
   # @return [OllamaChat::Chat] the chat session this tool operates in
   attr_reader :chat
+
+  # The to_hash method converts the tool to a hash representation.
+  #
+  # @return [ Hash ] a hash representation of the tool
+  def to_hash
+    tool.to_hash
+  end
+
+  private
 
   # The valid_json? method returns a proc that validates JSON data from a
   # temporary file.
@@ -98,10 +93,30 @@ module OllamaChat::Tools::Concern
     }
   end
 
-  # The to_hash method converts the tool to a hash representation.
+  # Returns the configuration hash for this tool from the application
+  # config (`config[:tools][:functions][<name>]`).
   #
-  # @return [ Hash ] a hash representation of the tool
-  def to_hash
-    tool.to_hash
+  # Used to read tool-specific settings such as `allowed:` paths,
+  # `require_confirmation:`, `result_display_timeout:`, and (for
+  # `execute_git`) the `commands:` subcommand map.
+  #
+  # @return [ComplexConfig::Settings, nil] the tool's config node, or
+  #   `nil` if the tool has no entry in `config[:tools][:functions]`
+  def tool_config
+    chat.config.tools.functions[name]
+  end
+
+  # Returns the list of allowed filesystem paths for this tool, as configured
+  # in the tool's `allowed` setting.
+  #
+  # Expands each configured path and filters out non-existent entries.
+  # Returns an empty array if the tool has no `allowed` paths configured.
+  #
+  # @return [Array<String>] absolute paths the tool is permitted to operate on
+  def allowed_paths
+    tool_config&.allowed?.to_a.filter_map {
+      pathname = Pathname.new(_1).expand_path
+      pathname.exist?.full? { pathname.to_path }
+    }
   end
 end

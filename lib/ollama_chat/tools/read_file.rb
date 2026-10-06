@@ -77,14 +77,14 @@ class OllamaChat::Tools::ReadFile
   # @return [String] an error message as a JSON string if the operation fails
   # @raise [JSON::ParserError] if the result cannot be serialized to JSON
   def execute(tool_call, **opts)
-    config = chat.config
+
     args   = tool_call.function.arguments
 
     start_line   = args.start_line.full?
     end_line     = args.end_line.full?
     line_numbers = args.line_numbers
 
-    path                = assert_valid_path(args.path, config.tools.functions.read_file.allowed?, check: :file)
+    path                = assert_valid_path(args.path, tool_config.allowed?, check: :file)
     full_content        = path.read
     content, line_count = extract_range(full_content, start_line, end_line, line_numbers:)
     checksum            = '%08x' % Zlib.crc32(full_content) if line_numbers && !start_line && !end_line

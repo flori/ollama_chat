@@ -49,7 +49,7 @@ class OllamaChat::Tools::RollDice
   # @param opts [Hash] additional options
   # @return [String] the roll results as a JSON string
   def execute(tool_call, **opts)
-    reroll = chat.config.tools.functions.roll_dice.reroll?
+    reroll = tool_config.reroll?
     dice   = tool_call.function.arguments.dice.to_s.strip
 
     # Parse the dice notation

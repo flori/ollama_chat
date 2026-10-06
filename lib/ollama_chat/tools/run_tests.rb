@@ -54,10 +54,9 @@ class OllamaChat::Tools::RunTests
   # @return [String] JSON containing either result metrics (``success``, ``path``, ``output``, ``status``)
   #   or error details (``error``, ``message``).
   def execute(tool_call, **opts)
-    config   = chat.config
     path     = tool_call.function.arguments.path
     coverage = tool_call.function.arguments.coverage || false
-    path     = check_path(path, config)
+    path     = check_path(path)
     output, success = run_tests(path, coverage)
     result = JSON.parse(output.lines.last) rescue nil
     chat.log(:info, "Tests executed", data: {
@@ -89,9 +88,8 @@ class OllamaChat::Tools::RunTests
   # on existing directories and validates it against a whitelist.
   #
   # @param path [ String ] the initial path to be checked
-  # @param config [ Object ] configuration object containing tool function settings
   # @return [ Pathname ] the expanded, validated and existing path
-  def check_path(path, config)
+  def check_path(path)
     if path.blank?
       if File.exist?('./spec')
         path = './spec'
@@ -103,7 +101,7 @@ class OllamaChat::Tools::RunTests
         raise ArgumentError, 'path could not be determined'
       end
     end
-    assert_valid_path(path, config.tools.functions.run_tests.allowed?, check: true)
+    assert_valid_path(path, tool_config.allowed?, check: true)
   end
 
   # Run the test suite using the configured test runner.
