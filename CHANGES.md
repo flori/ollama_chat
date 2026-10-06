@@ -1,5 +1,67 @@
 # Changes
 
+## 2026-10-06 v0.0.127
+
+## Changes
+
+*   **Switches and Configuration**
+    *   Added `memory_trigger` switch, registered in `/toggle` (regexp,
+        completion list, help string, and fallback feedback).
+    *   Refactored `Switch` to accept callable values alongside plain values;
+        plain values are now wrapped via a new private `adhoc_closure` method
+        using a `UNSET` sentinel for read/write disambiguation.
+    *   Hardened `Switch#initialize` with an arity guard: callable values
+        responding to `:arity` must return `-1` (optional single parameter
+        defaulting to `UNSET`), otherwise a `TypeError` is raised.
+    *   Updated `set` methods in `OllamaChat::Switches` to explicitly return
+        `nil` for consistent behavior.
+    *   Added `@raise [TypeError]` tag to `Switch#initialize` and expanded
+        `@param value` YARD documentation for `CombinedSwitch`.
+    *   Added arity guard (`ask_and_send(:arity) <= 0`) to
+        `CombinedSwitch#initialize`.
+
+*   **Session and Model Updates**
+    *   Added `trigger_enabled?` and `set_trigger_enabled` to the `Session`
+        model to encapsulate trigger hash shape.
+    *   Added YARD documentation for `adhoc_closure` and the `:memory_trigger`
+        reader.
+
+*   **Conversation and Compaction**
+    *   Added `/conversation compact summary` command.
+    *   Introduced `show_compaction_summary` in `Compaction` to retrieve the
+        most recent summary message via `messages.find_summary` and render its
+        content (narrative + `tool_calls` lookup index) through the pager,
+        prefixed with a size header and entry count.
+    *   Registered the new `compact summary` subcommand in the `/conversation`
+        regexp alternation, completion list, help text, and dispatch block.
+    *   Excluded system-injected messages (`runtime_information`,
+        `trigger_inject`) from the compaction summary's `tool_calls` block to
+        keep the index focused on user-initiated tool calls.
+
+*   **RAG and Search**
+    *   Moved `set_documents_collection` above the `private` keyword in
+        `rag_handling.rb` to make it callable from outside `RAGHandling`.
+    *   Updated `choose_collection` to call `set_documents_collection` instead
+        of assigning `@documents.collection` directly.
+    *   Replaced direct `chat.documents.collection` reads/writes in `chat.rb`
+        and `search_knowledge.rb` with public accessors `chat.collection` and
+        `chat.set_documents_collection`.
+    *   Consolidated two `chat.log` calls in `search_knowledge.rb` into one,
+        adding `rerank:` and `pre_rerank:` to the structured data hash with
+        `.compact`.
+    *   Removed `String#%` interpolation in the old rerank log line and
+        eliminated the `collection_name` local variable.
+    *   Updated `trigger_inject` in `collection_search.rb` to include the
+        surviving `records` array (text, similarity, tags) in the log `data:`
+        hash instead of only logging the count.
+
+*   **Shell Execution**
+    *   Forced pager for all `execute_shell` output by passing `force: true` to
+        `use_pager`, ensuring consistent UX with other pager-based tools.
+    *   Updated test-mode spec examples to include a `stub_success` call with
+        sample stdout to exercise the always-active pager path with real
+        content.
+
 ## 2026-10-05 v0.0.126
 
 *   **Tool Registry Refactor**: Refactored the tool registry to store tool
