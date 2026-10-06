@@ -112,6 +112,8 @@ module OllamaChat::Switches
     #   callables without an `arity` method are accepted as-is.
     # @param callbacks [Hash{[Boolean, Boolean] => Proc}] optional mapping of
     #   state transitions to callback procs. Keys are `[old_value, new_value]`.
+    # @raise [TypeError] if `value` is a callable that responds to `arity`
+    #   and the arity is not -1
     def initialize(msg:, value:, callbacks: {})
       if value.respond_to?(:call)
         if arity = value.ask_and_send(:arity)
@@ -244,9 +246,18 @@ module OllamaChat::Switches
   class CombinedSwitch
     # Initializes a new CombinedSwitch instance.
     #
-    # @param value [Proc] the proc used to determine the current state
-    # @param msg [Hash{Boolean => String}] the message hash containing true and false keys
+    # @param value [Proc] the proc used to determine the current state.
+    #   Must be invokable with no arguments. If the proc responds to
+    #   `arity`, it must return 0 or -1 (a `TypeError` is raised
+    #   otherwise); procs without an `arity` method are accepted as-is.
+    # @param msg [Hash{Boolean => String}] the message hash containing
+    #   true and false keys
+    # @raise [TypeError] if `value` responds to `arity` and returns a
+    #   value greater than 0 (the proc must be invokable with no args)
     def initialize(value:, msg:)
+      if arity = value.ask_and_send(:arity)
+        arity <= 0 or raise TypeError, 'value Proc requires arity <= 0'
+      end
       @value = value
       @msg   = msg
     end
