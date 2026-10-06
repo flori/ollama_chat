@@ -134,6 +134,33 @@ module OllamaChat::Compaction
     false
   end
 
+  # Displays the most recent compaction summary in the pager.
+  #
+  # Shows the narrative and the tool-call lookup index (the
+  # `lookup_group` entries with short UUIDs) carried in the summary
+  # message, prefixed with size metadata.
+  #
+  # @return [nil] always returns nil (command block handles :next).
+  def show_compaction_summary
+    unless msg = messages.find_summary
+      feedback('No compaction summary yet.', type: :info)
+      return
+    end
+    es = OllamaChat::TokenEstimator.estimate(msg.content.to_s)
+    use_pager do |output|
+      output.puts <<~EOT
+        #{bold{'Compaction Summary'}}
+        #{'─' * Tins::Terminal.columns}
+
+        #{kramdown_ansi_parse(msg.content.to_s)}
+
+        #{'─' * Tins::Terminal.columns}
+        Size:   👾#{es.bytes_formatted} 🧩#{es.tokens_formatted}
+        Tools:  #{msg.tool_calls&.size || 0} lookup_group entries
+      EOT
+    end
+  end
+
   private
 
   # Serializes non-system messages into a readable block for the prompt.

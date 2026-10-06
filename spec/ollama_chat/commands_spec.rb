@@ -809,6 +809,11 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/conversation compact")).to eq :next
     end
 
+    it 'returns :next when input is "/conversation compact summary"' do
+      expect(chat).to receive(:show_compaction_summary)
+      expect(chat.handle_input("/conversation compact summary")).to eq :next
+    end
+
     it 'returns :next when input is "/conversation summarize"' do
       expect(chat).to receive(:summarize_conversation)
         .with(sentence: false)

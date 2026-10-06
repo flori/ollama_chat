@@ -391,14 +391,15 @@ module OllamaChat::Commands
 
   command(
     name: :conversation,
-    regexp: %r(^/conversation\s+(clean|compact|save|load|summarize|report)((?:\s+-[sc])*)(?:\s+([^-].*\.jsonl?))?$),
-    complete: [ 'conversation', %w[ save load clean compact summarize report ] ],
+    regexp: %r(^/conversation\s+(clean|compact summary|compact|save|load|summarize|report)((?:\s+-[sc])*)(?:\s+([^-].*\.jsonl?))?$),
+    complete: [ 'conversation', %w[ compact clean report compact\ summary summarize save load ] ],
     options: '[-s|-c] [FILENAME]',
     help: <<~EOT
       💾 Manage conversation content:
          - save/load: Export/import as .json or .jsonl
          - clean: Remove tool content, images, thinking
          - compact: Summarize old messages, keep recent
+         - compact summary: Show last compaction summary
          - summarize: Per-message narrative (-s sentence)
          - report: Generate a session report document
     EOT
@@ -426,6 +427,8 @@ module OllamaChat::Commands
       else
         feedback("Denied.", type: :denied)
       end
+    when 'compact summary'
+      show_compaction_summary
     when 'compact'
       compact_with_retry
     when 'summarize'
