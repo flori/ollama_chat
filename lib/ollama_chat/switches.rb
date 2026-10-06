@@ -159,10 +159,10 @@ module OllamaChat::Switches
     # @param value [Object] the value to be coerced to a boolean and assigned
     # @param show [Boolean] determines whether to display the status message
     # @param output [IO] the output stream to write the message to
-    # @return [String, nil, Boolean] the result of the display operation or the show flag
     def set(value, show: false, output: STDOUT)
       @value.(value)
       show && self.show(output:)
+      nil
     end
 
     # Toggles the current boolean value and optionally displays the result.
@@ -214,10 +214,10 @@ module OllamaChat::Switches
     # @param value [Object] the value to be coerced to a boolean and saved
     # @param show [Boolean] whether to show the updated value
     # @param output [IO] the output stream to use when showing the value
-    # @return [String, nil, Boolean] the result of the display operation or the show flag
     def set(value, show: false, output: STDOUT)
       @chat.session.update("#{attribute}": !!value)
       show && self.show(output:)
+      nil
     end
 
     # Toggles the value of a session attribute and optionally displays the new state.
