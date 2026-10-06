@@ -139,7 +139,7 @@ class OllamaChat::Tools::ExecuteShell
 
   # Display command output through the pager.
   def display(stdout, stderr, exit_code)
-    chat.use_pager do |io|
+    chat.use_pager(force: true) do |io|
       if stdout.present?
         io.puts bold { "stdout:" }, ""
         io.puts stdout

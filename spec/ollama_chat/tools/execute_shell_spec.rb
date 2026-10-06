@@ -134,6 +134,7 @@ describe OllamaChat::Tools::ExecuteShell do
     end
 
     it 'skips editor and confirm in test mode' do
+      stub_success(stdout: "file1\nfile2", stderr: '')
       expect(OllamaChat).to receive(:test_mode?).and_return(true)
       expect(chat).not_to receive(:edit_text)
       expect(chat).not_to receive(:confirm?)
