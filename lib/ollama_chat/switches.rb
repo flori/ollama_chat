@@ -99,6 +99,8 @@ module OllamaChat::Switches
   #   switch.off?    # Returns false
   #   switch.on?     # Returns true
   class Switch
+    UNSET = Object.new.freeze
+
     # Initializes a new Switch instance.
     #
     # @param msg [Hash{Boolean => String}] a hash containing true and false messages
@@ -106,14 +108,41 @@ module OllamaChat::Switches
     # @param callbacks [Hash{[Boolean, Boolean] => Proc}] optional mapping of
     #   state transitions to callback procs. Keys are `[old_value, new_value]`.
     def initialize(msg:, value:, callbacks: {})
-      @value     = !!value
+      if value.respond_to?(:call)
+        @value = value
+      else
+        @value = adhoc_closure(value)
+      end
       @msg       = msg
       @callbacks = callbacks.to_h
     end
 
+    # Wraps a plain (non-callable) value in a closure so that every switch
+    # state is stored and accessed uniformly via a `Proc`.
+    #
+    # The returned closure reads the coerced (`!!`) boolean state when called
+    # with no argument (or the `UNSET` sentinel) and rebinds the captured
+    # `original_value` when called with an explicit value.
+    #
+    # @param original_value [Object] the initial value to be coerced to a
+    #   boolean on read
+    # @return [Proc] a closure that reads or writes the switch state
+    def adhoc_closure(original_value)
+      -> new_value = UNSET {
+        if new_value == UNSET
+          !!original_value
+        else
+          original_value = new_value
+        end
+      }
+    end
+    private :adhoc_closure
+
     # @!attribute [r] value
     #   @return [Boolean] the current state of the switch
-    attr_reader :value
+    def value
+      @value.()
+    end
 
     # Assigns a boolean value to the switch and optionally displays the result.
     #
@@ -122,7 +151,7 @@ module OllamaChat::Switches
     # @param output [IO] the output stream to write the message to
     # @return [String, nil, Boolean] the result of the display operation or the show flag
     def set(value, show: false, output: STDOUT)
-      @value = !!value
+      @value.(value)
       show && self.show(output:)
     end
 
@@ -131,7 +160,7 @@ module OllamaChat::Switches
     # @param show [Boolean] determines whether to show the value after toggling
     # @return [String, nil, Boolean] the result of the display operation or the show flag
     def toggle(show: true)
-      @value = !@value
+      @value.(!@value.())
       show && self.show
     end
 
@@ -279,6 +308,14 @@ module OllamaChat::Switches
   #   @return [OllamaChat::Switches::DatabaseSwitch] the tools support setting switch
   attr_reader :tools_support
 
+  # Controls whether the session's memory trigger is active. The enabled
+  # state is read from and written to the session's `trigger` hash; the
+  # switch is a no-op when no trigger is configured.
+  #
+  # @!attribute [r] memory_trigger
+  #   @return [OllamaChat::Switches::Switch] the memory trigger switch instance
+  attr_reader :memory_trigger
+
   # Initializes the various switches for configuring the application's behavior.
   #
   # This method creates and configures the database and local switch objects
@@ -386,6 +423,20 @@ module OllamaChat::Switches
         true  => "Tools support enabled.",
         false => "Tools support disabled.",
       }
+    )
+    @memory_trigger = Switch.new(
+      value: -> new_value = OllamaChat::Switches::Switch::UNSET {
+        if new_value == OllamaChat::Switches::Switch::UNSET
+          chat.session.trigger_enabled?
+        else
+          chat.session.set_trigger_enabled(new_value)
+          nil
+        end
+      },
+      msg: {
+        true  => "Memory trigger active.",
+        false => "Memory trigger inactive.",
+      },
     )
   end
 end

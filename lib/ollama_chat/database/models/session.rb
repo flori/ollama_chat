@@ -65,6 +65,27 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
     messages.to_s.count(?\n)
   end
 
+  # Returns the `enabled` flag of the first configured trigger entry.
+  #
+  # @return [Boolean, nil] true when the trigger is active, false when
+  #   explicitly disabled, nil when no trigger is configured
+  def trigger_enabled?
+    trigger&.values&.first&.[]('enabled')
+  end
+
+  # Sets the `enabled` flag of the first configured trigger entry and
+  # persists the change.
+  #
+  # No-op when no trigger is configured.
+  #
+  # @param value [Boolean] the new enabled state
+  def set_trigger_enabled(value)
+    if hash = trigger&.values&.first
+      hash['enabled'] = value
+      save
+    end
+  end
+
   # @!attribute [v] id
   #   @return [Integer] The primary key for the session.
   #
