@@ -50,6 +50,12 @@ class OllamaChat::Tools::PatchFile
           end_line specified). This is deliberate — you must have read the
           complete file with line numbers before patching, ensuring you have
           full context of the file's structure.
+
+          SYNTAX CHECK: After a successful patch, the tool automatically runs
+          a language-appropriate syntax check (e.g. `ruby -wc` for `.rb` files)
+          and reports any errors or warnings in the result message. You do NOT
+          need to invoke a separate syntax-check command afterwards; trust the
+          tool's own report.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
