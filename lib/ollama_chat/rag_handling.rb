@@ -34,19 +34,21 @@ module OllamaChat::RAGHandling
 
   # Creates (or reuses) the persistent memory collection for a persona.
   #
-  # The collection is named "memory-#{persona_name}" and is registered in
-  # the local database with an empty pattern list. If a collection with
-  # that name already exists, it is returned as-is without modification.
+  # The collection name is derived from the argument: a bare stem gets the
+  # `memory-` prefix; a full `memory-*` name is used as-is. The collection is
+  # registered with an empty pattern list. If it already exists, it is
+  # returned without modification.
   #
   # This is the single canonical entry point for ensuring a persona's
   # memory collection exists before it is referenced by the trigger
   # mechanism, the `memorize`/`forget` tools, or any other consumer.
   #
-  # @param persona_name [String] the persona stem (e.g. "miyu_pairing")
-  #   whose memory collection should be available.
-  # @return [String] the collection name (e.g. "memory-miyu_pairing").
+  # @param persona_name [String] the persona stem (e.g. "personal_assistant")
+  #   or the full collection name (e.g. "memory-personal_assistant").
+  # @return [String] the collection name (e.g. "memory-personal_assistant").
   def create_memory_collection(persona_name)
-    collection = "memory-#{persona_name}"
+    collection = persona_name.to_s
+    collection = "memory-#{collection}" unless collection.start_with?('memory-')
 
     unless chat.database_collection?(collection)
       models::Collection.create(
@@ -88,6 +90,113 @@ module OllamaChat::RAGHandling
     cols.each_with_object({}) do |c, hash|
       hash[c.name] = c.description
     end
+  end
+
+  # Dumps one or more `memory-<persona>` collections to a JSONL file
+  # for portable backup or migration.
+  #
+  # Presents an accumulating chooser of all `memory-*` collections:
+  # pick individual collections (they drop out of the list once selected),
+  # `[ALL]` to grab everything remaining, or `[DONE]` to commit the write.
+  # Each line carries a `collection` field so one file can hold multiple
+  # personas.
+  #
+  # @param filename [String, nil] the output path (must end in .json/.jsonl);
+  #   prompts interactively if nil
+  def memory_dump(filename)
+    collections = all_collections
+      .where(Sequel.lit('name LIKE "memory-%"'))
+      .pluck(:name)
+    return feedback('No memory-* collections found.', type: :warn) unless collections
+
+    selected = Set.new
+    choose_with_state do
+      loop do
+        remaining = collections - selected.to_a
+        entries   = (remaining.empty? ? [] : ['[ALL]'] + remaining) + ['[DONE]']
+        choice    = choose_entry(entries, prompt: 'Which memory collections to dump? %s')
+        case choice
+        when nil, '[DONE]'
+          break
+        when '[ALL]'
+          selected.merge(remaining)
+          break
+        else
+          selected.add(choice)
+        end
+      end
+    end
+
+    return feedback('Cancelled, no collections selected.', type: :cancel) if selected.empty?
+
+    filename.present? or filename = ask_for_filename?(action: 'to dump into')
+    unless filename
+      feedback("Dumping memory cancelled.", type: :cancel)
+      return
+    end
+    filename = Pathname.new(filename).expand_path
+    should_overwrite?(filename) or return
+
+    feedback("Dumping #{selected.size} collection(s): #{selected.to_a.sort.join(', ')}")
+
+    records = []
+    selected.to_a.sort.each do |col|
+      switch_collection(col) do
+        @documents.each_record do |r|
+          records << {
+            collection: col,
+            text:       r.text,
+            tags:       r.tags.to_a.map { _1.to_s(link: false) },
+            source:     r.source.full?,
+          }.compact
+        end
+      end
+    end
+
+    OllamaChat::Utils::JSONJSONLIO.new(filename).write(collection: records)
+    log(:info, 'Memory dumped',
+        data: { collections: selected.to_a.sort, records: records.size, file: filename.to_s })
+    feedback(
+      "Dumped #{records.size} record(s) across #{selected.size} collection(s) to #{filename.to_s.inspect}.",
+      type: :success
+    )
+  end
+
+  # Restores `memory-<persona>` collections from a JSONL dump file.
+  #
+  # Each line's `collection` field determines the target collection;
+  # records are added with their original tag and source so timestamps
+  # and file associations survive.
+  #
+  # @param filename [String, nil] the input path (must end in .json/.jsonl);
+  #   prompts interactively if nil
+  def memory_restore(filename)
+    unless filename.present?
+      filename = ask_for_filename?(action: 'to restore from')
+    end
+    unless filename
+      feedback("Restoring memory cancelled.", type: :cancel)
+      return
+    end
+    filename = Pathname.new(filename).expand_path
+    filename.exist? or return feedback("File #{filename.to_s.inspect} not found.", type: :warn)
+
+    entries = OllamaChat::Utils::JSONJSONLIO.new(filename).read.to_a
+    return feedback("No records found in #{filename.to_s.inspect}.", type: :warn) if entries.empty?
+
+    total = 0
+    entries.group_by { |e| e['collection'] }.each do |col, group|
+      create_memory_collection(col)
+      switch_collection(col) do
+        group.each do |entry|
+          @documents.add([entry['text']], tags: Array(entry['tags']), batch_size: 1, source: entry['source'])
+          total += 1
+        end
+      end
+    end
+
+    log(:info, 'Memory restored', data: { file: filename.to_s, records: total })
+    feedback("Restored #{total} record(s) from #{filename.to_s.inspect}.", type: :success)
   end
 
   private

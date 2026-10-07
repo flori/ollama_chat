@@ -443,6 +443,34 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
+  describe '/memory' do
+    it 'returns :next when input is "/memory dump ./some_file.jsonl"' do
+      expect(chat).to receive(:memory_dump).with('./some_file.jsonl')
+      expect(chat.handle_input("/memory dump ./some_file.jsonl")).to eq :next
+    end
+
+    it 'returns :next when input is "/memory dump" without path' do
+      expect(chat).to receive(:memory_dump).with(nil)
+      expect(chat.handle_input("/memory dump")).to eq :next
+    end
+
+    it 'returns :next when input is "/memory restore ./some_file.jsonl"' do
+      expect(chat).to receive(:memory_restore).with('./some_file.jsonl')
+      expect(chat.handle_input("/memory restore ./some_file.jsonl")).to eq :next
+    end
+
+    it 'returns :next when input is "/memory restore" without path' do
+      expect(chat).to receive(:memory_restore).with(nil)
+      expect(chat.handle_input("/memory restore")).to eq :next
+    end
+
+    it 'passes a path containing spaces' do
+      expect(chat).to receive(:memory_dump)
+        .with('./my memory dump.jsonl')
+      expect(chat.handle_input("/memory dump ./my memory dump.jsonl")).to eq :next
+    end
+  end
+
   describe '/info' do
     it 'returns :next when input is "/info"' do
       expect(chat).to receive(:info)

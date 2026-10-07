@@ -136,16 +136,16 @@ describe OllamaChat::Tools::Memorize do
 
     it 'stores into the correct per-persona collection' do
       arguments.text         = 'miyu memory'
-      arguments.persona_name = 'miyu_pairing'
+      arguments.persona_name = 'personal_assistant'
 
       mock_docs = double('Documents')
       expect(chat).to receive(:documents).and_return(mock_docs)
       expect(chat).to receive(:embedding).
         and_return(double('Embedding', on?: true))
-      expect(chat).to receive(:persona_exist?).with('miyu_pairing').and_return(true)
+      expect(chat).to receive(:persona_exist?).with('personal_assistant').and_return(true)
       expect(chat).to receive(:database_collection?).
-        with('memory-miyu_pairing').and_return(double('Col'))
-      expect(chat).to receive(:switch_collection).with('memory-miyu_pairing') do |&blk|
+        with('memory-personal_assistant').and_return(double('Col'))
+      expect(chat).to receive(:switch_collection).with('memory-personal_assistant') do |&blk|
         expect(mock_docs).to receive(:add).and_return(mock_docs)
         blk&.call
       end

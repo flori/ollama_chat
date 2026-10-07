@@ -670,4 +670,117 @@ describe OllamaChat::RAGHandling do
         .not_to change { col_model.count }
     end
   end
+
+  describe '#create_memory_collection' do
+    it 'prepends memory- to a bare persona stem' do
+      expect(chat.create_memory_collection('flori')).to eq 'memory-flori'
+      expect(col_model[name: 'memory-flori']).not_to be_nil
+    end
+
+    it 'uses a full memory- name as-is' do
+      expect(chat.create_memory_collection('memory-flori')).to eq 'memory-flori'
+      expect(col_model[name: 'memory-flori']).not_to be_nil
+    end
+  end
+
+  describe '#memory_dump' do
+    it 'warns and stops when the collection query yields no list' do
+      expect(chat).to receive(:all_collections)
+        .and_return(double('DS', where: double('DS2', pluck: nil)))
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('No memory-* collections found'), type: :warn)
+      expect(chat).not_to receive(:choose_with_state)
+      chat.memory_dump('x.jsonl')
+    end
+
+    it 'cancels when the user selects nothing' do
+      expect(chat).to receive(:all_collections)
+        .and_return(double('DS', where: double('DS2', pluck: %w[ memory-a ])))
+      expect(chat).to receive(:choose_with_state).and_yield
+      expect(chat).to receive(:choose_entry).and_return('[DONE]')
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Cancelled, no collections selected'), type: :cancel)
+      chat.memory_dump('x.jsonl')
+    end
+
+    it 'writes one JSONL line per record, tagged with its collection' do
+      target = Pathname.new('tmp/memory_dump_spec.jsonl')
+      target.dirname.mkpath
+      target.delete if target.file?
+
+      expect(chat).to receive(:all_collections)
+        .and_return(double('DS', where: double('DS2', pluck: %w[ memory-a ])))
+      expect(chat).to receive(:choose_with_state).and_yield
+      expect(chat).to receive(:choose_entry).and_return('[ALL]')
+
+      tag = double('Tag')
+      allow(tag).to receive(:to_s).and_return('2026-01-01T00:00:00+02:00')
+      rec = double('Record', text: 'hello',
+                    tags: [ tag ],
+                    source: nil)
+      expect(chat).to receive(:switch_collection).with('memory-a').and_yield
+      expect(docs).to receive(:each_record).and_yield(rec)
+
+      expect(chat).to receive(:log)
+      allow(chat).to receive(:feedback)
+
+      chat.memory_dump('tmp/memory_dump_spec.jsonl')
+
+      lines = target.read.lines
+      expect(lines.size).to eq(1)
+      expect(lines.first.strip).to eq(
+        '{"collection":"memory-a","text":"hello","tags":["2026-01-01T00:00:00+02:00"]}'
+      )
+    ensure
+      target&.delete if target&.file?
+    end
+  end
+
+  describe '#memory_restore' do
+    let :target do
+      Pathname.new('tmp/memory_restore_spec.jsonl')
+    end
+
+    before do
+      target.dirname.mkpath
+      target.write(<<~JSONL)
+        {"collection":"memory-a","text":"hello","tags":["2026-01-01T00:00:00+02:00"]}
+        {"collection":"memory-a","text":"world","tags":["2026-01-02T00:00:00+02:00"]}
+        {"collection":"memory-b","text":"foo","tags":["2026-01-03T00:00:00+02:00"]}
+      JSONL
+    end
+
+    after do
+      target.delete if target.file?
+    end
+
+    it 'restores each record into its collection with the original tag' do
+      expect(chat).to receive(:create_memory_collection).with('memory-a')
+      expect(chat).to receive(:create_memory_collection).with('memory-b')
+      expect(chat).to receive(:switch_collection).with('memory-a').and_yield
+      expect(chat).to receive(:switch_collection).with('memory-b').and_yield
+
+      expect(docs).to receive(:add)
+        .with(['hello'], tags: [ '2026-01-01T00:00:00+02:00' ],
+             batch_size: 1, source: nil)
+      expect(docs).to receive(:add)
+        .with(['world'], tags: [ '2026-01-02T00:00:00+02:00' ],
+             batch_size: 1, source: nil)
+      expect(docs).to receive(:add)
+        .with(['foo'], tags: [ '2026-01-03T00:00:00+02:00' ],
+             batch_size: 1, source: nil)
+
+      expect(chat).to receive(:log)
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Restored 3 record'), type: :success)
+
+      chat.memory_restore('tmp/memory_restore_spec.jsonl')
+    end
+
+    it 'warns when the file does not exist' do
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('not found'), type: :warn)
+      chat.memory_restore('tmp/no_such_memory.jsonl')
+    end
+  end
 end

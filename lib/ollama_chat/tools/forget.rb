@@ -8,7 +8,7 @@
 #
 # @example Forgetting a memory:
 #   forget(timestamp: '2026-09-29T23:12:57+02:00',
-#          persona_name: 'miyu_pairing')
+#          persona_name: 'personal_assistant')
 class OllamaChat::Tools::Forget
   include OllamaChat::Tools::Concern
 
@@ -43,7 +43,7 @@ class OllamaChat::Tools::Forget
             persona_name: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The persona name (e.g. 'sarah', 'miyu_pairing').
+                The persona name (e.g. 'sarah', 'personal_assistant').
                 The memory is removed from the collection
                 'memory-<persona_name>'.
               EOT

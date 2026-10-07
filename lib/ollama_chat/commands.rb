@@ -699,6 +699,25 @@ module OllamaChat::Commands
     :next
   end
 
+  command(
+    name: :memory,
+    regexp: %r{^/memory(?:\s+(dump|restore))(?:\s+([^-].*\.jsonl?))?$},
+    complete: [ 'memory', %w[ dump restore ] ],
+    options: '[FILENAME]',
+    help: <<~EOT
+      💾 Manage persona memory (dump/restore)
+         optional path must end in .json or .jsonl
+    EOT
+  ) do |subcommand, path|
+    case subcommand
+    when 'dump'
+      memory_dump(path)
+    when 'restore'
+      memory_restore(path)
+    end
+    :next
+  end
+
   category :Persona
 
   command(

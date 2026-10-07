@@ -50,7 +50,7 @@ class OllamaChat::Tools::Memorize
             persona_name: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The persona name (e.g. 'sarah', 'miyu_pairing').
+                The persona name (e.g. 'sarah', 'personal_assistant').
                 The memory is stored in the collection
                 'memory-<persona_name>'.
               EOT
