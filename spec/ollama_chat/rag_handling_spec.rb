@@ -434,7 +434,7 @@ describe OllamaChat::RAGHandling do
           with('a.rb').and_return(true)
         expect(docs).to receive(:source_remove).with('a.rb')
         expect(chat).to receive(:embed).
-          with('a.rb', tags: %w[ t1 ]).and_return('Embedded a.rb')
+          with('a.rb', prompt: anything, tags: %w[ t1 ]).and_return('Embedded a.rb')
 
         expect(chat.update_collection('tc')).to eq 'Embedded a.rb'
       end
@@ -459,9 +459,9 @@ describe OllamaChat::RAGHandling do
         expect(chat).to receive(:database_collection?).
           and_return(col_model[name: 'tc'])
         expect(docs).to receive(:each_record)
-        expect(chat).to receive(:all_file_set).and_return(Set[ file ])
+        expect(chat).to receive(:all_file_set).twice.and_return(Set[ file ])
         expect(chat).to receive(:embed).
-          with(file.to_s, tags: []).and_return('Embedded n.rb')
+          with(file.to_s, prompt: anything, tags: []).and_return('Embedded n.rb')
 
         expect(chat.update_collection('tc')).to eq 'Embedded n.rb'
       end

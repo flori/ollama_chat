@@ -288,12 +288,12 @@ module OllamaChat::SourceFetching
   #   to the tags array to apply to that source
   # @return [Array<String>] results from each successful embed call
   def bulk_embed_sources(sources_tags)
-    return sources_tags.map { |s, tags| embed(s, tags:) }.compact if
+    prompt = prompt(:embed)
+    return sources_tags.map { |s, tags| embed(s, prompt:, tags:) }.compact if
       sources_tags.size <= 1 or config.embedding.concurrency <= 1
 
     results = []
     mutex   = Mutex.new
-    prompt = prompt(:embed)
     Tins::Limited.new(config.embedding.concurrency, name: 'embed').process do |l|
       sources_tags.each do |s, tags|
         l.execute do
