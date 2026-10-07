@@ -49,7 +49,7 @@ describe OllamaChat::Tools::GetURL do
 
   context 'with an invalid scheme' do
     it 'rejects URLs whose scheme is not whitelisted' do
-      url = 'file:///etc/passwd'
+      url = 'ftp://files.example.com/document.pdf'
 
       tool_call = double(
         'ToolCall',
@@ -72,10 +72,10 @@ describe OllamaChat::Tools::GetURL do
 
       json = json_object(result)
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
-      expect(json.message).to match(/scheme "file" not allowed/)
+      expect(json.message).to match(/scheme "ftp" not allowed/)
       expect(json.url).to eq url
       expect(described_class.summary_template(result:)).
-        to match(/scheme "file" not allowed/)
+        to match(/scheme "ftp" not allowed/)
     end
   end
 

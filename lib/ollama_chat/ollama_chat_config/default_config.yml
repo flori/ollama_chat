@@ -645,6 +645,7 @@ tools:
       schemes:
         - http
         - https
+        - file
     gem_path_lookup:
       result_display_timeout: 3
       default: true

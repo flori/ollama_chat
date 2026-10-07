@@ -25,6 +25,7 @@ class OllamaChat::Tools::GetURL
          Web fetcher – Downloads any web resource (HTML, Markdown, plain text, or images)
          at url and makes its contents available to the model. Good for pulling
          documentation snippets or viewing generated images.
+         Allowed schemes: #{Array(tool_config.schemes?).map(&:to_s).join(', ')}
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
