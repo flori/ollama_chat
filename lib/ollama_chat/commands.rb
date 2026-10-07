@@ -380,6 +380,12 @@ module OllamaChat::Commands
       💾 Manage conversation content:
          - save/load: Export/import as .json or .jsonl
          - clean: Interactively clean conversation content
+           - tools: tool call content
+           - images: added images
+           - thinking: reasoning content
+           - messages: all messages ⇒ tools, images, thinking
+           - history: command history
+           - links: remembered URLs
          - compact: Summarize old messages, keep recent
          - compact summary: Show last compaction summary
          - summarize: Per-message narrative (-s sentence)
