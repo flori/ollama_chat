@@ -873,7 +873,10 @@ module OllamaChat::Commands
     EOT
     help: <<~EOT
       📥 Import content (read, summarize, embed, context)
-         Subcommands: path, context, embedding, summary
+           Subcommands: path, context, embedding, summary
+           (no subcommand) → smart import (HTML→MD, audio→ASR,
+             image→context, PNG char cards)
+           path → raw file read (no parsing)
            Options: -p (pattern), -w [words], -a (all),
                     -c [collection], -t [tags], -e (edit),
                     -m (monochrome), -i (summary instruction),
