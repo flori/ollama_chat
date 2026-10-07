@@ -63,4 +63,52 @@ module OllamaChat::Conversation
                "#{filename.to_s.inspect} failed.", type: :warn)
     end
   end
+
+  # Selectively cleans parts of the current conversation.
+  #
+  # Presents an accumulating chooser of cleanable targets:
+  # tool content, images, thinking, messages, history, links.
+  # The user picks one or more (or [ALL]), confirms, and the
+  # selected items are cleared.
+  def conversation_clean
+    options = %w[ tools images thinking messages history links ]
+
+    selected = Set.new
+    choose_with_state do
+      loop do
+        remaining = options - selected.to_a
+        entries   = (remaining.empty? ? [] : ['[ALL]'] + remaining) + ['[DONE]']
+        choice    = choose_entry(entries, prompt: 'What to clean from conversation? %s')
+        case choice
+        when nil, '[DONE]'
+          break
+        when '[ALL]'
+          selected.merge(remaining)
+          break
+        else
+          selected.add(choice)
+        end
+      end
+    end
+
+    return feedback('Cancelled, nothing selected.', type: :cancel) if selected.empty?
+
+    what = selected.map { |s| bold{s} }.to_a
+
+    unless confirm?(
+      prompt: "🔔 Clean #{what * ', '} from conversation? (y/n) ",
+      yes: /\Ay/i
+    )
+      return feedback('Denied.', type: :denied)
+    end
+
+    field_options = %w[ tools images thinking ].select { selected.include?(_1) }
+    messages.clear if selected.include?('messages')
+    messages.clean_messages!(what: field_options.map(&:to_sym)) unless field_options.empty?
+    clear_history if selected.include?('history')
+    links.clear if selected.include?('links')
+
+    session_sync
+    feedback("Cleaned #{what * ', '} from conversation.", type: :info)
+  end
 end

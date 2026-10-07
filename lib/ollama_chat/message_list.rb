@@ -407,11 +407,13 @@ class OllamaChat::MessageList
   # @param messages [Array<OllamaChat::Message>] the list of messages to clean
   # @return [Array<OllamaChat::Message>] a new array containing duplicated
   #   messages with stripped content
-  def clean_messages(messages: @messages)
+  def clean_messages(messages: @messages, what: %i[ tools images ])
+    what = Array(what).map(&:to_sym)
     messages.map do |message|
       message = message.dup
-      message.content = '' if message.tool?
-      message.images = nil
+      message.content = '' if what.include?(:tools) && message.tool?
+      message.images = nil if what.include?(:images)
+      message.thinking = nil if what.include?(:thinking)
       message
     end
   end
@@ -422,8 +424,8 @@ class OllamaChat::MessageList
   # @param messages [Array<OllamaChat::Message>] the messages to clean.
   #   Defaults to all current messages.
   # @return [OllamaChat::MessageList] self to allow for method chaining.
-  def clean_messages!(messages: @messages)
-    @messages = clean_messages(messages:)
+  def clean_messages!(messages: @messages, what: %i[ tools images ])
+    @messages = clean_messages(messages:, what:)
     self
   end
 

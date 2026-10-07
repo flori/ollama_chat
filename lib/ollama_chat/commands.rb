@@ -325,24 +325,6 @@ module OllamaChat::Commands
   end
 
   command(
-    name: :clear,
-    regexp: %r(^/clear(?:\s+(messages|images|links|history|tags|all))?$),
-    complete: [ 'clear', %w[ messages images links history tags all ] ],
-    optional: true,
-    help: <<~EOT
-      🧹 Clear chat state (messages, images, links,
-         history, tags, all)
-    EOT
-  ) do |subcommand|
-    if result = clean(subcommand)
-      disable_content_parsing
-      result
-    else
-      :next
-    end
-  end
-
-  command(
     name: :links,
     regexp: %r(^/links(?:\s+(clear))?$),
     complete: [ 'links', %w[ clear ] ],
@@ -397,7 +379,7 @@ module OllamaChat::Commands
     help: <<~EOT
       💾 Manage conversation content:
          - save/load: Export/import as .json or .jsonl
-         - clean: Remove tool content, images, thinking
+         - clean: Interactively clean conversation content
          - compact: Summarize old messages, keep recent
          - compact summary: Show last compaction summary
          - summarize: Per-message narrative (-s sentence)
@@ -416,17 +398,7 @@ module OllamaChat::Commands
       load_conversation(path)
       repair_group_uuids
     when 'clean'
-      if confirm?(
-          prompt: '🔔 Clean tool content, images, and thinking from conversation? (y/n) ',
-          yes: /\Ay/i
-        )
-      then
-        messages.clean_messages!
-        session_sync
-        feedback("Conversation cleaned.", type: :info)
-      else
-        feedback("Denied.", type: :denied)
-      end
+      conversation_clean
     when 'compact summary'
       show_compaction_summary
     when 'compact'

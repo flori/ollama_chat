@@ -142,23 +142,6 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
-  describe '/clear' do
-    it 'returns :next when input is "/clear (messages|links|history|tags|images|all)"' do
-      expect(chat).to receive(:clean).with('messages')
-      expect(chat.handle_input("/clear messages")).to eq :next
-      expect(chat).to receive(:clean).with('links')
-      expect(chat.handle_input("/clear links")).to eq :next
-      expect(chat).to receive(:clean).with('history')
-      expect(chat.handle_input("/clear history")).to eq :next
-      expect(chat).to receive(:clean).with('tags')
-      expect(chat.handle_input("/clear tags")).to eq :next
-      expect(chat).to receive(:clean).with('images')
-      expect(chat.handle_input("/clear images")).to eq :next
-      expect(chat).to receive(:clean).with('all')
-      expect(chat.handle_input("/clear all")).to eq :next
-    end
-  end
-
   describe '/last' do
     it 'returns :next when input is "/last"' do
       expect(chat.messages).to receive(:show_last)
@@ -823,12 +806,7 @@ describe OllamaChat::Commands, protect_env: true do
     end
 
     it 'returns :next when input is "/conversation clean$"' do
-      expect(chat).to receive(:confirm?).and_return true
-      expect(chat.handle_input("/conversation clean")).to eq :next
-    end
-
-    it 'returns :next when input is "/conversation clean" and user cancels' do
-      expect(chat).to receive(:confirm?).and_return false
+      expect(chat).to receive(:conversation_clean)
       expect(chat.handle_input("/conversation clean")).to eq :next
     end
 

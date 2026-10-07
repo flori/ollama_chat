@@ -2,6 +2,7 @@ require 'tins'
 require 'tins/xt/string_version'
 require 'tins/xt/full'
 require 'json'
+require 'set'
 require 'term/ansicolor'
 require 'reline'
 require 'reverse_markdown'
@@ -436,47 +437,6 @@ class OllamaChat::Chat
       action and return action
     end
     content
-  end
-
-  # The clean method clears various parts of the chat session based on the
-  # specified parameter.
-  #
-  # @param what [ String, nil ] the type of data to clear, defaults to
-  #   'messages' if nil
-  def clean(what)
-    persona_profile = nil
-    case what
-    when 'messages', nil
-      messages.clear
-      feedback("Cleared messages.", type: :info)
-    when 'links'
-      links.clear
-      feedback("Cleared links.", type: :info)
-    when 'history'
-      clear_history
-      feedback("Cleared history.", type: :info)
-    when 'tags'
-      @documents.clear
-      feedback("Cleared all tags.", type: :info)
-    when 'images'
-      messages.clear_images
-      feedback("Cleared all images.", type: :info)
-    when 'all'
-      if confirm?(
-          prompt: '🔔 Are you sure to clear messages and collection? (y/n) ',
-          yes: /\Ay/i
-        )
-      then
-        messages.clear
-        @documents.clear
-        links.clear
-        clear_history
-        feedback("Cleared messages and collection #{bold{collection}}.", type: :info)
-      else
-        feedback("Denied.", type: :denied)
-      end
-    end
-    persona_profile
   end
 
   # The interact_with_user method manages the interactive loop for user input
