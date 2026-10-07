@@ -1,5 +1,94 @@
 # Changes
 
+## 2026-10-07 v0.0.128
+
+### Features
+
+*   Migrate `/clear` to `/conversation clean` chooser:
+    *   Removed `clean` method from `chat.rb` and the `/clear` command from
+        `commands.rb`.
+    *   Added `conversation_clean` to `conversation.rb` with an accumulating
+        `choose_with_state` chooser (options: `tools`, `images`, `thinking`,
+        `messages`, `history`, `links`), a `confirm?` gate, and per-field
+        dispatch.
+    *   Added `what:` keyword argument to `clean_messages` and
+        `clean_messages!` in `message_list.rb` supporting `:tools`, `:images`,
+        and `:thinking` selection.
+    *   Updated `/conversation clean` command handler to delegate to
+        `conversation_clean`.
+*   Add `OLLAMA_EMBEDDING_URL` for dedicated embedding host:
+    *   Add `OC::OLLAMA::EMBEDDING_URL` const_conf setting (optional,
+        `sensitive true`, decoded to `URI`, scheme-checked).
+    *   Add `connect_embedding_ollama` + public `embedding_ollama` accessor in
+        `chat.rb`; fallback to primary chat client when unset.
+    *   Propagate `ollama:` kwarg through `model_present?`,
+        `pull_model_from_remote`, `pull_model_unless_present`, `prepare_model`,
+        `use_model` in `model_handling.rb`.
+    *   Refactor `connect_message` to keyword-arg signature (`base_url:`,
+        `prefix:`) + new `connect_message_done` in `dialog.rb`; remove old
+        positional-arg version.
+    *   Remove `ensure connect_message` from `choose_model`.
+    *   `/reconnect` now calls both `connect_ollama` +
+        `connect_embedding_ollama`; `info_rag` shows embedding URL.
+    *   Fix `source_fetching.rb` Semantic splitter to route chunking
+        calls to `embedding_ollama` instead of the primary chat client.
+    *   Add `url` + `model` to log payloads in `collection_search.rb` and
+        `search_knowledge.rb`.
+    *   Update `README.md` with `OLLAMA_EMBEDDING_URL` entry.
+*   Add `/memory dump` and `/memory restore` command:
+    *   Add `/memory` command in `commands.rb` routing `dump` and `restore`
+        subcommands with an optional trailing `.jsonl` path.
+    *   Add `memory_dump` in `rag_handling.rb` with accumulating multi-select
+        chooser (`[ALL]`/`[DONE]`) writing JSONL via `JSONJSONLIO`.
+    *   Add `memory_restore` in `rag_handling.rb` grouping records by
+        `collection` field and re-embedding with original tags and
+        `source` association.
+    *   Extend `create_memory_collection` to accept either a bare persona stem
+        or a full `memory-*` collection name via `start_with?` guard.
+    *   Update `create_memory_collection` YARD prose to reflect dual-input
+        behavior.
+    *   Swap `miyu_pairing` → `personal_assistant` in `forget.rb`,
+        `memorize.rb`, and `memorize_spec.rb` to decouple docs from active
+        persona.
+
+### Refactoring
+
+*   Refactor all tools to use `tool_config`:
+    *   Replace 20 `config.tools.functions.<name>` call sites across 14 tool
+        files with the `tool_config` accessor from `Tools::Concern`.
+    *   Remove 12 dead `config = chat.config` locals that existed solely to
+        reach the tool's own config.
+    *   Drop `config` parameter from `eval_template` in `execute_grep.rb`,
+        `poll_for_image` in `generate_image.rb`, and `check_path` in
+        `run_tests.rb`.
+    *   Move `tool_config` and `allowed_paths` below `private` in `concern.rb`;
+        add YARD documentation to `tool_config`.
+
+### Documentation
+
+*   Document automatic syntax checking in `patch_file` description:
+    *   Added a `SYNTAX CHECK` note to the `OllamaChat::Tools::PatchFile`
+        description, informing users that the tool automatically runs
+        language-appropriate checks (e.g. `ruby -wc` for `.rb` files) and
+        reports errors in the result message.
+
+### Tests
+
+*   Removed `/clear` describe block from `commands_spec.rb`; replaced
+    `/conversation clean` specs with delegation test.
+*   Added 6 unit examples for `#conversation_clean` in `conversation_spec.rb`
+    covering cancel, deny, field-only, messages+fields, links-only, and
+    history-only paths.
+*   Fix `model_handling_spec.rb` call sites for new `ollama:` kwarg.
+*   Stub `connect_message_done` in `spec_helper.rb`.
+*   Add 5 routing specs in `commands_spec.rb` for `/memory` (with-path,
+    without-path, spaces-in-path).
+*   Add 7 specs in `rag_handling_spec.rb` for `create_memory_collection`,
+    `memory_dump`, and `memory_restore`.
+*   Update 3 `check_path` mocks in `run_tests_spec.rb` to match the new
+    single-argument signature; use `.expose` in `concern_spec.rb` for private
+    method access.
+
 ## 2026-10-06 v0.0.127
 
 ## Changes
