@@ -121,6 +121,10 @@ class OllamaChat::Tools::GetURL
       case source_io&.content_type&.media_type
       when 'image'
         chat.add_image(chat.images, source_io, source)
+        if source_io&.content_type&.sub_type == 'png'
+          source_io.rewind
+          content = chat.parse_png(source_io).full?(:join, ?\n)
+        end
       when 'text', 'application', nil
         case document_policy
         when 'ignoring'

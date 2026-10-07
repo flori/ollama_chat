@@ -191,7 +191,7 @@ describe OllamaChat::Tools::GetURL do
     let(:url) { 'https://www.example.com/foo' }
 
     it 'handles image content types' do
-      source_io = double('SourceIO', content_type: double(media_type: 'image'))
+      source_io = double('SourceIO', content_type: double(media_type: 'image', sub_type: 'jpeg'))
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:add_image).with(chat.images, source_io, URI.parse(url))
 
@@ -200,6 +200,24 @@ describe OllamaChat::Tools::GetURL do
 
       result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
+      expect(json.message).to eq('Received requested URL successfully.')
+    end
+
+    it 'handles image/png with embedded character card' do
+      png_url = 'file://' + asset('fluffy.png')
+
+      expect(chat).to receive(:add_image)
+
+      args = double(
+        url: png_url,
+        document_policy: 'ignoring',
+        words: nil, instruction: nil, language: nil,
+      )
+      tool_call = double(function: double(arguments: args))
+
+      result = described_class.new(chat).execute(tool_call)
+      json = json_object(result)
+      expect(json.content).to include('"name": "Fluffy McFluffington"')
       expect(json.message).to eq('Received requested URL successfully.')
     end
 
