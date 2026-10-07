@@ -61,6 +61,7 @@ The following environment variables can be used to configure behavior:
 #### Ollama Core
 - `OLLAMA_URL` - Base URL for Ollama server (default: `http://localhost:11434`)
 - `OLLAMA_HOST` - Base hostname for Ollama server (default: `localhost:11434`)
+- `OLLAMA_EMBEDDING_URL` - Optional base URL for a dedicated Ollama server used exclusively for embedding operations. When set, the embedding model runs on this host while the chat model stays on `OLLAMA_URL`. Falls back to `OLLAMA_URL` when unset.
 - `OLLAMA_SEARXNG_URL` - SearxNG search endpoint URL
 - `OLLAMA_CHAT_TTS_URL` - Base URL for the [audio.cpp](https://github.com/0xshug0/audio.cpp) TTS server (default: `http://localhost:8880`)
 

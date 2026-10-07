@@ -8,13 +8,13 @@
 # model retrieval when necessary.
 #
 # @example Checking if a model is present
-#   chat.model_present?('llama3.1')
+#   chat.model_present?('llama3.1', ollama:)
 #
 # @example Pulling a model from a remote server
-#   chat.pull_model_from_remote('mistral')
+#   chat.pull_model_from_remote('mistral', ollama:)
 #
 # @example Ensuring a model is available locally
-#   chat.pull_model_unless_present('phi3', {})
+#   chat.pull_model_unless_present('phi3', ollama:)
 module OllamaChat::ModelHandling
 
   # A simple data structure representing metadata about a model.
@@ -411,10 +411,11 @@ module OllamaChat::ModelHandling
   # available.
   #
   # @param model [ String ] the name of the Ollama model
+  # @param ollama [Ollama::Client] the client to query for model presence
   #
   # @return [ ModelMetadata, NilClass ] if the model is present,
   #   nil otherwise
-  def model_present?(model)
+  def model_present?(model, ollama:)
     ollama.show(model:) do |md|
       return ModelMetadata.new(
         name:         model,
@@ -432,7 +433,8 @@ module OllamaChat::ModelHandling
   # remote server if it is not found locally.
   #
   # @param model [ String ] the name of the model to be pulled
-  def pull_model_from_remote(model)
+  # @param ollama [Ollama::Client] the client to pull the model from
+  def pull_model_from_remote(model, ollama:)
     feedback("Model #{bold{model}} not found locally, attempting to pull it from remote now…", type: :info)
     ollama.pull(model:)
   end
@@ -444,16 +446,17 @@ module OllamaChat::ModelHandling
   # an UnknownModelError indicating the missing model name.
   #
   # @param model [String] the name of the model to ensure is present
+  # @param ollama [Ollama::Client] the client to query and pull from
   #
   # @return [ModelMetadata] the metadata for the available model
   # @raise [OllamaChat::UnknownModelError] if the model cannot be found after
   #   attempting to pull it from remote
-  def pull_model_unless_present(model)
-    if model_metadata = model_present?(model)
+  def pull_model_unless_present(model, ollama:)
+    if model_metadata = model_present?(model, ollama:)
       return model_metadata
     else
-      pull_model_from_remote(model)
-      if model_metadata = model_present?(model)
+      pull_model_from_remote(model, ollama:)
+      if model_metadata = model_present?(model, ollama:)
         return model_metadata
       end
       raise OllamaChat::UnknownModelError, "unknown model named #{@model.inspect}"
@@ -487,7 +490,7 @@ module OllamaChat::ModelHandling
   # @return [OllamaChat::ModelHandling::ModelMetadata] the metadata for the
   #   prepared model
   def prepare_model(model)
-    @model_metadata = pull_model_unless_present(model)
+    @model_metadata = pull_model_unless_present(model, ollama:)
     if think? && !@model_metadata.can?('thinking')
       think_mode.selected = 'disabled'
     end
@@ -584,7 +587,7 @@ module OllamaChat::ModelHandling
       @model = choose_model(model, config.model.name)
     end
 
-    if @model_metadata = model_present?(@model)
+    if @model_metadata = model_present?(@model, ollama:)
       session.update(current_model: @model)
     else
       session.update(current_model: nil)
@@ -655,7 +658,5 @@ module OllamaChat::ModelHandling
       else
         cli_model || current_model
       end
-  ensure
-    connect_message(model, ollama.base_url)
   end
 end

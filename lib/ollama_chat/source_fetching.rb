@@ -216,7 +216,7 @@ module OllamaChat::SourceFetching
       inputs = splitter.split(text)
     when 'Semantic'
       splitter = Documentrix::Documents::Splitters::Semantic.new(
-        ollama:, model: config.embedding.model.name,
+        ollama: embedding_ollama, model: config.embedding.model.name,
         chunk_size: splitter_config.chunk_size,
       )
       inputs = splitter.split(

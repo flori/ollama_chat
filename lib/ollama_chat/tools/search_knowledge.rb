@@ -136,11 +136,13 @@ class OllamaChat::Tools::SearchKnowledge
     end
 
     chat.log(:info, "Snippets retrieved", data: {
-      tool: name,
+      tool:       name,
+      url:        chat.embedding_ollama.base_url,
+      model:      chat.config.embedding.model.to_h,
       collection: chat.collection,
       rerank:,
-      pre_rerank:,
-      hits: records.size
+      pre_rerank: ,
+      hits:       records.size
     }.compact)
 
     message =

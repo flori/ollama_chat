@@ -118,14 +118,21 @@ module OllamaChat::Dialog
     files
   end
 
-  # The connect_message method displays a connection status message.
+  # Displays an info-level feedback message indicating that a connection
+  # to an Ollama server is being established.
   #
-  # @param model [String] the model name to connect to
-  # @param base_url [String] the base URL of the connection
-  def connect_message(model, base_url)
-    msg = "Connecting to #{model}@#{base_url} now…"
-    log(:info, msg, data: { model:, base_url: })
-    feedback green { msg }, type: :info
+  # @param base_url [URI, String] the target Ollama server URL
+  # @param prefix [String] an optional label prepended to "ollama" to
+  #   distinguish the connection type, e.g. `"embedding "` for a dedicated
+  #   embedding host (default: `""`)
+  def connect_message(base_url:, prefix: '')
+    feedback green { "Connecting to #{prefix}ollama #{base_url.to_s.inspect}…" }, type: :info
+  end
+
+  # Displays a success-level feedback message confirming that a
+  # connection was established. Counterpart to {#connect_message}.
+  def connect_message_done
+    feedback green { "Done." }, type: :success
   end
 
   # The change_voice method allows the user to select a voice from a list of

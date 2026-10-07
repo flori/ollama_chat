@@ -1061,9 +1061,8 @@ module OllamaChat::Commands
       🔌 Reconnect to Ollama server
     EOT
   ) do
-    feedback green { "Reconnecting to ollama #{base_url.to_s.inspect}…" }, type: :info
     connect_ollama
-    feedback green { "Done." }, type: :success
+    connect_embedding_ollama
     :next
   end
 

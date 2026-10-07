@@ -31,6 +31,7 @@ module OllamaChat::CollectionSearch
     log(
       :info, 'Embedding search request',
       data: {
+        url:        embedding_ollama.base_url,
         model:      config.embedding.model.to_h,
         collection: collection,
         query:      effective_query,
@@ -48,6 +49,7 @@ module OllamaChat::CollectionSearch
     log(
       :info, 'Embedding search response',
       data: {
+        url:          embedding_ollama.base_url,
         collection:   collection,
         query:        effective_query,
         result_count: records.size,

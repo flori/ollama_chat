@@ -191,6 +191,9 @@ module OllamaChat::Information
   # @param output [IO] the output stream to write the information to, defaults to STDOUT
   def info_rag(output: STDOUT)
     if embedding.on?
+      if base_url = OC::OLLAMA::EMBEDDING_URL?
+        output.puts "🔌 Connected to embedding ollama server on: #{base_url.to_s.inspect}"
+      end
       output.puts "🗄️ Current RAG model is #{bold{@embedding_model}}"
       if @embedding_model_options.present?
         output.puts "  Options: #{JSON.pretty_generate(@embedding_model_options).gsub(/(?<!\A)^/, '  ')}"

@@ -112,6 +112,13 @@ module OC
       check { value.scheme =~ /\Ahttps?\z/ }
     end
 
+    EMBEDDING_URL = set do
+      description 'Ollama base URL to connect to for embedding'
+      sensitive   true
+      decode { URI.parse(_1) if _1.present? }
+      check { value.nil? || value.scheme =~ /\Ahttps?\z/ }
+    end
+
     SEARXNG_URL = set do
       description 'URL for the SearXNG service for searches'
       default     'http://localhost:8088/search?q=%{query}&language=en&format=json'

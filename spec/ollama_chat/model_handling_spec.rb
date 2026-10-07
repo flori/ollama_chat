@@ -7,22 +7,22 @@ describe OllamaChat::ModelHandling do
 
   it 'can check if model_present? false' do
     expect(chat.ollama).to receive(:show).and_raise Ollama::Errors::NotFoundError
-    expect(chat.model_present?('nixda')).to eq nil
+    expect(chat.model_present?('nixda', ollama: chat.ollama)).to eq nil
   end
 
   it 'can check if model_present? true' do
     stub_request(:post, %r(/api/show\z)).
       to_return(status: 200, body: asset_json('api_show.json'))
-    model_metadata = chat.model_present?('llama3.1')
+    model_metadata = chat.model_present?('llama3.1', ollama: chat.ollama)
     expect(model_metadata.name).to eq 'llama3.1'
     expect(model_metadata.capabilities).to eq %w[ completion tools ]
   end
 
   it 'can pull_model_unless_present' do
-    expect(chat).to receive(:model_present?).with('llama3.1').and_return false
-    expect(chat).to receive(:model_present?).with('llama3.1').and_return true
-    expect(chat).to receive(:pull_model_from_remote).with('llama3.1')
-    expect(chat.pull_model_unless_present('llama3.1')).to eq true
+    expect(chat).to receive(:model_present?).with('llama3.1', ollama: chat.ollama).and_return false
+    expect(chat).to receive(:model_present?).with('llama3.1', ollama: chat.ollama).and_return true
+    expect(chat).to receive(:pull_model_from_remote).with('llama3.1', ollama: chat.ollama)
+    expect(chat.pull_model_unless_present('llama3.1', ollama: chat.ollama)).to eq true
   end
 
   describe '#use_model think-mode clamping' do
@@ -37,7 +37,7 @@ describe OllamaChat::ModelHandling do
         name: 'target', system: '', capabilities: %w[ completion ],
         families: %w[ mistral ], thinking: nil
       )
-      expect(chat).to receive(:model_present?).with('target').and_return metadata
+      expect(chat).to receive(:model_present?).with('target', ollama: chat.ollama).and_return metadata
       chat.use_model('target')
       expect(chat.session.think_mode).to eq 'disabled'
     end
@@ -49,7 +49,7 @@ describe OllamaChat::ModelHandling do
         families: %w[ llama ],
         thinking: double(values: %w[ low high ], default: 'high')
       )
-      expect(chat).to receive(:model_present?).with('target').and_return metadata
+      expect(chat).to receive(:model_present?).with('target', ollama: chat.ollama).and_return metadata
       chat.use_model('target')
       expect(chat.session.think_mode).to eq 'high'
     end
@@ -61,7 +61,7 @@ describe OllamaChat::ModelHandling do
         families: %w[ llama ],
         thinking: double(values: %w[ low high max ], default: 'low')
       )
-      expect(chat).to receive(:model_present?).with('target').and_return metadata
+      expect(chat).to receive(:model_present?).with('target', ollama: chat.ollama).and_return metadata
       chat.use_model('target')
       expect(chat.session.think_mode).to eq 'high'
     end

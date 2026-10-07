@@ -116,6 +116,7 @@ class OllamaChat::Chat
     setup_session
     setup_state_selectors(config)
     connect_ollama
+    connect_embedding_ollama
     @documents = setup_documents
     models::Collection.sync(self)
     @cache                = setup_cache
@@ -319,6 +320,16 @@ class OllamaChat::Chat
     current_voice = session.current_voice.full? or return
     voice_handler.method_defined?(:speak) or return
     voice_handler.new(chat: self, voice: current_voice).speak(text, background:)
+  end
+
+  # Returns the Ollama client to use for embedding operations.
+  #
+  # Falls back to the primary chat client when no dedicated embedding
+  # URL has been configured.
+  #
+  # @return [Ollama::Client] the embedding or chat Ollama client
+  def embedding_ollama
+    @embedding_ollama || ollama
   end
 
   # Returns a human-readable string representation of the Chat object,
@@ -646,12 +657,13 @@ class OllamaChat::Chat
   # @raise [RuntimeError] if the connected Ollama server API version is less
   #   than 0.9.0
   def connect_ollama
+    connect_message(base_url:)
     @server_version = nil
     @ollama = Ollama::Client.new(
       connect_timeout: config.timeouts.connect_timeout?,
       read_timeout:    config.timeouts.read_timeout?,
       write_timeout:   config.timeouts.write_timeout?,
-      base_url:        base_url,
+      base_url:        ,
       debug:           ,
       user_agent:
     )
@@ -659,6 +671,7 @@ class OllamaChat::Chat
       raise 'require ollama API version 0.9.0 or higher'
     end
     log(:info, "Connection established", data: { base_url: })
+    connect_message_done
     @ollama
   end
 
@@ -673,10 +686,10 @@ class OllamaChat::Chat
     if embedding.on?
       @embedding_model         = config.embedding.model.name
       @embedding_model_options = Ollama::Options[config.embedding.model.options]
-      pull_model_unless_present(@embedding_model)
+      pull_model_unless_present(@embedding_model, ollama: embedding_ollama)
       collection = initial_collection
       @documents = Documentrix::Documents.new(
-        ollama:,
+        ollama:            embedding_ollama,
         model:             @embedding_model,
         model_options:     config.embedding.model.options,
         embedding_length:  config.embedding.model.embedding_length,
@@ -688,6 +701,33 @@ class OllamaChat::Chat
       )
     else
       NULL
+    end
+  end
+
+  # Establishes a dedicated Ollama connection for embedding operations.
+  #
+  # When OC::OLLAMA::EMBEDDING_URL is configured, creates a separate
+  # Ollama::Client targeting that host so the embedding model can run
+  # on a different machine (e.g. a GPU box running audio.cpp alongside
+  # the embedding model) while the chat model stays on the primary
+  # Ollama server.
+  #
+  # @return [Ollama::Client, nil] the embedding client, or nil when no
+  #   dedicated embedding URL is configured
+  def connect_embedding_ollama
+    if base_url = OC::OLLAMA::EMBEDDING_URL?
+      connect_message(base_url:, prefix: 'embedding ')
+      @embedding_ollama = Ollama::Client.new(
+        connect_timeout: config.timeouts.connect_timeout?,
+        read_timeout:    config.timeouts.read_timeout?,
+        write_timeout:   config.timeouts.write_timeout?,
+        base_url:        ,
+        debug:           ,
+        user_agent:
+      )
+      log(:info, "Embedding connection established", data: { base_url: })
+      connect_message_done
+      @embedding_ollama
     end
   end
 
