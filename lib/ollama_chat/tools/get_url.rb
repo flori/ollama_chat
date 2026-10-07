@@ -105,7 +105,7 @@ class OllamaChat::Tools::GetURL
 
     allowed_schemes = Array(tool_config.schemes?).map(&:to_s)
 
-    url = URI.parse(args.url.to_s)
+    url = URI.parse(args.url.to_s.gsub(' ', '%20'))
     unless allowed_schemes.include?(url.scheme)
       raise OllamaChat::ToolFunctionArgumentError,
         "scheme #{url.scheme.inspect} not allowed "\
