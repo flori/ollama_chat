@@ -547,22 +547,30 @@ module OllamaChat::RAGHandling
         feedback("Collection #{collection.inspect} not found in database.", type: :warn)
         return ''
       end
+
+      matched_sources = nil
+      if patterns = col.patterns.full?
+        matched_sources = all_file_set(patterns).map(&:to_s).to_set
+      end
+
       sources = {}
       seen = {}
       @documents.each_record do |record|
         source = @documents.normalize_source(record.source) or next
-        seen.key?(source) and next
-        seen[source] = true
-        unless @documents.source_modified?(source)
-          infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
-          next
+        if matched_sources.nil? || matched_sources.member?(source)
+          seen.key?(source) and next
+          seen[source] = true
+          unless @documents.source_modified?(source)
+            infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
+            next
+          end
+          sources[source] = record.tags_set
         end
-        sources[source] = record.tags_set
         @documents.source_remove(source)
       end
 
       if patterns = col.patterns.full?
-        new_sources = all_file_set(patterns).map(&:to_s).reject { seen.key?(_1) }
+        new_sources = all_file_set(patterns).map(&:to_s).reject { seen.key?(_1) }.to_set
         new_sources.each { seen[_1] = true }
         new_sources.each { sources[_1] = [] }
       end
