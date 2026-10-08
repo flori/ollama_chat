@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-10-08 v0.0.130
+
+*   Replace `ask?` with `confirm?` in `rag_handling.rb` for the `[v]iew` /
+    `[c]lear` prompts in `#clear_collection_tags` and
+    `#clear_collection_sources` to bypass `Reline` and keep command history
+    clean.
+*   Add `use_pager(force: true)` in the `#clear_collection_sources` view branch
+    to fix display.
+*   Rewrite `confirm?` YARD documentation in `dialog.rb` to clarify the
+    two-branch return contract (`yes: nil` → raw char, `yes:` matcher → matched
+    char or `nil`) and history-pollution rationale.
+*   Swap 7 `ask?` → `confirm?` stubs in `rag_handling_spec.rb`.
+*   Add `line_numbers: true` to the `read_file` tool block in
+    `default_config.yml`.
+*   Update `read_file.rb` to fall back to `tool_config.line_numbers?` when the
+    model omits the argument and interpolate the live default into the tool
+    description.
+*   Fix typo in description: `linenumbers` → `line numbers`.
+*   Update specs to extract `let :tool`, adjust `nil`-arg expectations for the
+    `1: ` prefix, checksum, and `line_count`, and add a new spec asserting raw
+    content when `tool_config.line_numbers` is stubbed to `false`.
+
 ## 2026-10-08 v0.0.129
 
 ### Features
