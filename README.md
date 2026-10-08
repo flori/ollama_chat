@@ -529,13 +529,13 @@ context, manipulate files, and retrieve external information.
 | **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife`, `get_ghr`, `get_jira_issue`, `execute_jira_twg` | Access the internet, fetch specific URLs, and look up technical standards; run Jira CLI queries via `twg`. |
 | **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi`, `roll_dice` | General utility functions for time, location, and simple calculations. |
 | **Editor/Clip** | `copy_to_clipboard`, `paste_from_clipboard`, `paste_into_editor`, `open_file_in_editor` | Bridge the gap between the chat and the system clipboard or editor. |
-| **Knowledge** | `search_knowledge`, `file_context`, `lookup_group` | Semantic search for specific snippets, broad retrieval of structured project context, or retrieving prior message groups by UUID. |
+| **Knowledge** | `search_knowledge`, `lookup_group` | Semantic search for specific snippets, or retrieving prior message groups by UUID. |
 | **Multimodal** | `generate_image` | Generate images via a local ComfyUI server. |
 
-***Note on Knowledge Tools**: Use `search_knowledge` for precise,
-low-token semantic discovery and `file_context` for a comprehensive view of
-modules or patterns. Be cautious with broad patterns in `file_context`, as
-importing too many files can exceed the LLM's context window.*
+***Note on Knowledge Tools**: Use `search_knowledge` for low-token
+semantic discovery. For comprehensive project context, use the
+`/input context` command instead of loading files into the tool
+call context window.*
 
 ## External Dependencies
 

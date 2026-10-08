@@ -584,12 +584,6 @@ tools:
     get_location:
       result_display_timeout: 3
       default: true
-    file_context:
-      default: false
-      require_confirmation: false
-      result_display_timeout: 3
-      allowed:
-        - './spec'
     list_directory:
       default: true
       require_confirmation: false
