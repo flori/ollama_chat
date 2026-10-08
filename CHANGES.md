@@ -1,5 +1,62 @@
 # Changes
 
+## 2026-10-08 v0.0.129
+
+### Features
+
+*   **`get_url`**: Added support for the `file` scheme and updated the tool
+    description to display live allowed schemes.
+*   **`get_url`**: Implemented extraction of character card metadata from PNG
+    images when `sub_type` is `'png'`.
+*   **`patch_file`**: Enabled deletion of line ranges by passing `text: null`.
+    Omitting the key now raises an error, while an explicit `nil` value deletes
+    the range.
+*   **`update_collection`**: Prunes stale sources from the vector store when
+    collection patterns are shrunk, ensuring pattern edits propagate cleanly.
+*   **`/input`**: Clarified help text to distinguish between smart import
+    (content-type detection, HTML→MD, audio→ASR) and raw file reading.
+*   **`/conversation clean`**: Expanded help text to list cleanable categories
+    (`tools`, `images`, `thinking`, `messages`, `history`, `links`).
+
+### Fixes
+
+*   **`execute_grep`**: Replaced `it` with `_1` in the grep command template to
+    fix a Ruby **3.3** deprecation warning regarding the implicit block
+    parameter in **3.4**.
+*   **`less`/`more` fallback**: Split the combined fallback logic so that
+    `less` receives the `-r` flag for raw control characters, while `more`
+    remains bare, fixing compatibility with GNU `more` on Debian trixie.
+*   **`get_url`**: Fixed `URI.parse` errors for URLs containing spaces by
+    encoding them as `%20`.
+*   **Web searching prompts**: Corrected swapped prompt references to ensure
+    `prompt(:web_summarize)` is used for the 'summarizing' policy and
+    `prompt(:web_import)` for the import mode.
+*   **`source_fetching`**: Moved the `prompt(:embed)` call earlier to ensure it
+    is available for both concurrent and non-concurrent execution paths.
+
+### Refactoring
+
+*   **Tools**: Renamed `directory_structure` to `list_directory` (class
+    `DirectoryStructure` → `ListDirectory`).
+*   **Tools**: Renamed `gem_path_lookup` to `lookup_gem_path` (class
+    `GemPathLookup` → `LookupGemPath`) for verb-first naming consistency.
+*   **Tools**: Removed the `file_context` tool, as bulk file context is now
+    handled by `/input context` (ContextSpook).
+*   **`get_url`**: Reformatted description text for improved readability.
+
+### Dependencies
+
+*   Bumped the minimum version of the `tins` dependency to **1.60.1**.
+
+### Testing
+
+*   Stubbed `Tins::Terminal.columns` and `Tins::Terminal.lines` in
+    `spec/spec_helper.rb`.
+*   Added specs for PNG character card extraction and updated image spec
+    doubles to include `sub_type: 'jpeg'`.
+*   Split `patch_file` specs to distinguish between omitted keys (raises) and
+    explicit `nil` (deletes).
+
 ## 2026-10-07 v0.0.128
 
 ### Features
