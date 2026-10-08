@@ -71,7 +71,8 @@ class OllamaChat::Tools::PatchFile
               type: 'array',
               description: <<~EOT,
                 A list of edits. Each edit must contain start_line, end_line,
-                and text.
+                and text. Set `text` to null to delete the line range
+                without replacement.
               EOT
               items: Tool::Function::Parameters::Property.new(
                 type: 'object',
@@ -86,7 +87,8 @@ class OllamaChat::Tools::PatchFile
                     type: 'integer', description: '1-indexed end line'
                   ),
                   text: Tool::Function::Parameters::Property.new(
-                    type: 'string', description: 'The replacement text'
+                    type: 'string',
+                    description: 'The replacement text. Set to null to delete the range.'
                   ),
                 },
               )
@@ -234,7 +236,7 @@ class OllamaChat::Tools::PatchFile
       s_idx = edit[:start_line] - 1
       e_idx = edit[:end_line] - 1
 
-      lines[s_idx..e_idx] = [edit[:text]]
+      lines[s_idx..e_idx] = edit[:text].nil? ? [] : [edit[:text]]
     end
 
     lines * ?\n
@@ -251,8 +253,8 @@ class OllamaChat::Tools::PatchFile
       e[:start_line] or raise OllamaChat::ToolFunctionArgumentError,
         "Edit ##{i + 1} is missing a start_line"
       e[:end_line] ||= e[:start_line]
-      e[:text] or raise OllamaChat::ToolFunctionArgumentError,
-        "Edit ##{i + 1} is missing its substiution text"
+      e.key?(:text) or raise OllamaChat::ToolFunctionArgumentError,
+        "Edit ##{i + 1} is missing the text key; set it to null to delete"
       if e[:start_line] < 1 || e[:end_line] > 1 && e[:end_line] > file_size || e[:start_line] > e[:end_line]
         raise OllamaChat::ToolFunctionArgumentError,
           "Invalid range for edit ##{i + 1}: lines #{e[:start_line]}-#{e[:end_line]} (File size: #{file_size})"

@@ -105,13 +105,21 @@ describe OllamaChat::Tools::PatchFile do
         raise_error(OllamaChat::ToolFunctionArgumentError, /Edit #2 is missing a start_line/)
     end
 
-    it 'raises error when an edit is missing text' do
+    it 'raises error when the text key is omitted' do
       edits = [
-        { start_line: 2, end_line: 4, text: 'Valid' },
-        { start_line: 23 },
+        { start_line: 6, end_line: 8 },
       ]
       expect { tool.apply_edits(File.read(test_file), edits) }.to\
-        raise_error(OllamaChat::ToolFunctionArgumentError, /Edit #2 is missing its substiution text/)
+        raise_error(OllamaChat::ToolFunctionArgumentError, /missing the text key/)
+    end
+
+    it 'deletes a range when text is explicitly nil' do
+      edits = [
+        { start_line: 6, end_line: 8, text: nil },
+      ]
+      result = tool.apply_edits(File.read(test_file), edits)
+      expect(result).not_to include('def age')
+      expect(result).not_to include('30')
     end
 
 
