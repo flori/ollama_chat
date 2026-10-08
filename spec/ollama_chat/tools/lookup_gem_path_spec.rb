@@ -1,4 +1,4 @@
-describe OllamaChat::Tools::GemPathLookup do
+describe OllamaChat::Tools::LookupGemPath do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -6,7 +6,7 @@ describe OllamaChat::Tools::GemPathLookup do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new(chat).name).to eq 'gem_path_lookup'
+    expect(described_class.new(chat).name).to eq 'lookup_gem_path'
   end
 
   it 'can have tool' do
@@ -22,7 +22,7 @@ describe OllamaChat::Tools::GemPathLookup do
       tool_call = double(
         'ToolCall',
         function: double(
-          name: 'gem_path_lookup',
+          name: 'lookup_gem_path',
           arguments: double(
             gem_name: 'json'
           )
@@ -41,7 +41,7 @@ describe OllamaChat::Tools::GemPathLookup do
       tool_call = double(
         'ToolCall',
         function: double(
-          name: 'gem_path_lookup',
+          name: 'lookup_gem_path',
           arguments: double(
             gem_name: 'json'
           )

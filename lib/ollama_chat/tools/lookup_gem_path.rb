@@ -3,11 +3,11 @@
 # This tool allows the chat client to find the installation paths of gems
 # on the system. It integrates with the Ollama tool calling system to
 # provide gem path information to the language model.
-class OllamaChat::Tools::GemPathLookup
+class OllamaChat::Tools::LookupGemPath
   include OllamaChat::Tools::Concern
 
   # @return [String] the registered name for this tool
-  def self.register_name = 'gem_path_lookup'
+  def self.register_name = 'lookup_gem_path'
 
   # Creates and returns a tool definition for gem path lookup.
   #

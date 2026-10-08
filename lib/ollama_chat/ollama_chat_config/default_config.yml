@@ -646,7 +646,7 @@ tools:
         - http
         - https
         - file
-    gem_path_lookup:
+    lookup_gem_path:
       result_display_timeout: 3
       default: true
     lookup_group:
