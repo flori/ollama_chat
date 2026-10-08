@@ -217,6 +217,9 @@ RSpec.configure do |config|
 
   config.before do
     OllamaChat.test_mode = true
+    # We are traditional in this household:
+    allow(Tins::Terminal).to receive(:columns).and_return(80)
+    allow(Tins::Terminal).to receive(:lines).and_return(24)
     const_conf_as(
       'OC::OLLAMA::CHAT::HISTORY'          => Pathname.pwd.join('tmp', 'history.json'),
       'OC::OLLAMA::CHAT::LOG::CHAT'        => Pathname.pwd.join('tmp', 'chat.log'),
