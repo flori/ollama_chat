@@ -41,10 +41,10 @@ module OC
     description 'Pager command to use in case terminal lines are exceeded by output'
 
     default do
-      if fallback_pager = `which 2>/dev/null less`.full?(:chomp) ||
-          `which 2>/dev/null more`.full?(:chomp)
-      then
+      if fallback_pager = `which 2>/dev/null less`.full?(:chomp)
         fallback_pager << ' -r'
+      elsif fallback_pager = `which 2>/dev/null more`.full?(:chomp)
+        fallback_pager
       end
     end
   end
