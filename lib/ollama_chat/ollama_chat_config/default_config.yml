@@ -590,7 +590,7 @@ tools:
       result_display_timeout: 3
       allowed:
         - './spec'
-    directory_structure:
+    list_directory:
       default: true
       require_confirmation: false
       result_display_timeout: 3

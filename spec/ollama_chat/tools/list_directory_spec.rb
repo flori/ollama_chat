@@ -1,4 +1,4 @@
-describe OllamaChat::Tools::DirectoryStructure do
+describe OllamaChat::Tools::ListDirectory do
   let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
   end
@@ -6,7 +6,7 @@ describe OllamaChat::Tools::DirectoryStructure do
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new(chat).name).to eq 'directory_structure'
+    expect(described_class.new(chat).name).to eq 'list_directory'
   end
 
   it 'can have tool' do
@@ -17,7 +17,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'directory_structure',
+        name: 'list_directory',
         arguments: double(
           path: 'spec/assets',
           max_depth: nil,
@@ -41,7 +41,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'directory_structure',
+        name: 'list_directory',
         arguments: double(
           path: nil,  # Should default to '.'
           max_depth: nil,
@@ -68,7 +68,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'directory_structure',
+        name: 'list_directory',
         arguments: double(
           path:         hidden_dir,
           max_depth:    nil,
@@ -89,7 +89,7 @@ describe OllamaChat::Tools::DirectoryStructure do
     tool_call = double(
       'ToolCall',
       function: double(
-        name: 'directory_structure',
+        name: 'list_directory',
         arguments: double(
           path: '/nonexistent/path',
           max_depth: nil,

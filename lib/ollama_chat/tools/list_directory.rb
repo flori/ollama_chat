@@ -6,12 +6,12 @@
 #
 # The tool supports traversing directories and returns a structured
 # representation of the file system hierarchy.
-class OllamaChat::Tools::DirectoryStructure
+class OllamaChat::Tools::ListDirectory
   include OllamaChat::Tools::Concern
   include OllamaChat::Utils::AnalyzeDirectory
 
   # @return [String] the registered name for this tool
-  def self.register_name = 'directory_structure'
+  def self.register_name = 'list_directory'
 
   # Creates and returns a tool definition for retrieving directory structure.
   #

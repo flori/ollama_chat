@@ -38,7 +38,7 @@ class OllamaChat::Tools::ExecuteShell
           then a mandatory y/n/i confirm prompt gates execution.
           Last resort: use ONLY when no dedicated tool covers
           the task (e.g. `git commit`, `bundle install`, `make`).
-          Prefer `execute_grep`, `directory_structure`, `read_file`,
+          Prefer `execute_grep`, `list_directory`, `read_file`,
           `patch_file` over shell equivalents. Only invoke when
           the user explicitly requests it or you have proposed
           the command to the user beforehand. Runs in the current

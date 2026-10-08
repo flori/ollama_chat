@@ -524,7 +524,7 @@ context, manipulate files, and retrieve external information.
 
 | Category | Tools | Description |
 | :--- | :--- | :--- |
-| **Filesystem** | `read_file`, `write_file`, `patch_file`, `delete_file`, `move_file`, `directory_structure`, `execute_grep`, `execute_shell` | Read, write, and search files within allowed directories; run shell commands as a last resort. |
+| **Filesystem** | `read_file`, `write_file`, `patch_file`, `delete_file`, `move_file`, `list_directory`, `execute_grep`, `execute_shell` | Read, write, and search files within allowed directories; run shell commands as a last resort. |
 | **Ruby/Dev** | `resolve_tag`, `execute_ri`, `lookup_gem_path`, `run_tests`, `eval_ruby` | Introspect Ruby code, check documentation, and run test suites. |
 | **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife`, `get_ghr`, `get_jira_issue`, `execute_jira_twg` | Access the internet, fetch specific URLs, and look up technical standards; run Jira CLI queries via `twg`. |
 | **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi`, `roll_dice` | General utility functions for time, location, and simple calculations. |
