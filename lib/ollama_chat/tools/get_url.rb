@@ -22,9 +22,9 @@ class OllamaChat::Tools::GetURL
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-         Web fetcher – Downloads any web resource (HTML, Markdown, plain text, or images)
-         at url and makes its contents available to the model. Good for pulling
-         documentation snippets or viewing generated images.
+         Web fetcher – Downloads any web resource (HTML, Markdown, plain text,
+         or images) at url and makes its contents available to the model. Good
+         for pulling documentation snippets or viewing generated images.
          Allowed schemes: #{Array(tool_config.schemes?).map(&:to_s).join(', ')}
         EOT
         parameters: Tool::Function::Parameters.new(
@@ -47,8 +47,10 @@ class OllamaChat::Tools::GetURL
                 typically transform the source content into a text-based
                 representation
                 (e.g., HTML to Markdown, PDF to text) before processing.
-                - 'ignoring': Returns the raw content without any transformation (best for raw text, logs, or code).
-                - 'importing': Processes content (e.g., HTML to Markdown) and adds it to the chat context.
+                - 'ignoring': Returns the raw content without any
+                  transformation (best for raw text, logs, or code).
+                - 'importing': Processes content (e.g., HTML to Markdown) and
+                  adds it to the chat context.
                 - 'embedding': Processes the content for vector storage.
                 - 'summarizing': Returns a condensed summary of the content.
               EOT
