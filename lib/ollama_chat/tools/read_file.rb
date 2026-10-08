@@ -28,7 +28,7 @@ class OllamaChat::Tools::ReadFile
           File reader – Returns raw text from path if it’s within allowed
           directories. No side effects; useful for inspecting config or source
           files. You can optionally specify a line range to read. You can also
-          enable prefixing with linenumbers; this is highly recommended (and
+          enable prefixing with line numbers; this is highly recommended (and
           practically mandatory) before calling `open_file_in_editor` to ensure
           the line range is precise.
         EOT
@@ -53,8 +53,8 @@ class OllamaChat::Tools::ReadFile
             line_numbers: Tool::Function::Parameters::Property.new(
               type: 'boolean',
               description: <<~EOT
-                Whether to prefix each line with its line number,
-                e.g. "666: The line content…
+                Whether to prefix each line with its line number, e.g.
+                "666: The line content…" (default: #{!!tool_config.line_numbers?})
               EOT
             )
           },
@@ -77,12 +77,12 @@ class OllamaChat::Tools::ReadFile
   # @return [String] an error message as a JSON string if the operation fails
   # @raise [JSON::ParserError] if the result cannot be serialized to JSON
   def execute(tool_call, **opts)
-
     args   = tool_call.function.arguments
 
     start_line   = args.start_line.full?
     end_line     = args.end_line.full?
     line_numbers = args.line_numbers
+    line_numbers.nil? and line_numbers = !!tool_config.line_numbers?
 
     path                = assert_valid_path(args.path, tool_config.allowed?, check: :file)
     full_content        = path.read

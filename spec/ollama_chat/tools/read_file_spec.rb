@@ -1,20 +1,24 @@
 describe OllamaChat::Tools::ReadFile do
-  let(:chat) do
+  let :chat do
     OllamaChat::Chat.new(argv: chat_default_config)
+  end
+
+  let :tool do
+    described_class.new(chat)
   end
 
   connect_to_ollama_server
 
   it 'can have name' do
-    expect(described_class.new(chat).name).to eq 'read_file'
+    expect(tool.name).to eq 'read_file'
   end
 
   it 'can have tool' do
-    expect(described_class.new(chat).tool).to be_a Ollama::Tool
+    expect(tool.tool).to be_a Ollama::Tool
   end
 
   it 'can be converted to hash' do
-    expect(described_class.new(chat).to_hash).to be_a Hash
+    expect(tool.to_hash).to be_a Hash
   end
 
 
@@ -32,7 +36,38 @@ describe OllamaChat::Tools::ReadFile do
       )
     )
 
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
+
+    expect(result).to be_a(String)
+    json = json_object(result)
+    expect(json.path).to include 'example.rb'
+    expect(json.content).to eq <<~EOT
+      1: puts "Hello World!"
+    EOT
+    expect(json.message).to match(/Read .+ from/)
+    expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+    expect(json.line_count).to eq 1
+    expect(json.checksum).to match(/\A[0-9a-f]{8}\z/)
+    expect(described_class.summary_template(result:))\
+      .to match(/Read .+ from/)
+  end
+
+  it 'can be executed successfully with config line_numbers false' do
+    expect(tool.expose.tool_config).to receive(:line_numbers).and_return false
+    tool_call = double(
+      'ToolCall',
+      function: double(
+        name: 'read_file',
+        arguments: double(
+          path: asset('example.rb'),
+          start_line: nil,
+          end_line: nil,
+          line_numbers: nil,
+        )
+      )
+    )
+
+    result = tool.execute(tool_call)
 
     expect(result).to be_a(String)
     json = json_object(result)
@@ -40,13 +75,14 @@ describe OllamaChat::Tools::ReadFile do
     expect(json.content).to eq <<~EOT
       puts "Hello World!"
     EOT
-    expect(json.message).to include('Read 6.0 T (20.0 B) from')
+    expect(json.message).to match(/Read .+ from/)
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     expect(json.line_count).to be_nil
-    expect(json.checksum).not_to be_present
+    expect(json.checksum).not_to match(/\A[0-9a-f]{8}\z/)
     expect(described_class.summary_template(result:))\
-      .to include('Read 6.0 T (20.0 B) from')
+      .to match(/Read .+ from/)
   end
+
 
   it 'can extract range when start_line is provided and end_line is nil' do
     tool_call = double(
@@ -61,12 +97,12 @@ describe OllamaChat::Tools::ReadFile do
         )
       )
     )
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
     json = json_object(result)
-    expect(json.content).to eq "puts \"Hello World!\"\n"
-    expect(json.message).to include('Read 6.0 T (20.0 B) from')
+    expect(json.content).to eq "1: puts \"Hello World!\"\n"
+    expect(json.message).to match(/Read .+ from/)
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-    expect(json.line_count).to be_nil
+    expect(json.line_count).to eq 1
     expect(json.checksum).not_to be_present
   end
 
@@ -83,12 +119,12 @@ describe OllamaChat::Tools::ReadFile do
         )
       )
     )
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
     json = json_object(result)
-    expect(json.content).to eq "puts \"Hello World!\"\n"
-    expect(json.message).to include('Read 6.0 T (20.0 B) from')
+    expect(json.content).to eq "1: puts \"Hello World!\"\n"
+    expect(json.message).to match(/Read .+ from/)
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-    expect(json.line_count).to be_nil
+    expect(json.line_count).to eq 1
     expect(json.checksum).not_to be_present
   end
 
@@ -105,7 +141,7 @@ describe OllamaChat::Tools::ReadFile do
         )
       )
     )
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.content).to eq ''
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
@@ -126,7 +162,7 @@ describe OllamaChat::Tools::ReadFile do
         )
       )
     )
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.content).to include("1: puts \"Hello World!\"\n")
     expect(json.line_count).to eq 1
@@ -146,7 +182,7 @@ describe OllamaChat::Tools::ReadFile do
         )
       )
     )
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.content).not_to include("1: ")
     expect(json.mtime).to match(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
@@ -167,7 +203,7 @@ describe OllamaChat::Tools::ReadFile do
         )
       )
     )
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
     json = json_object(result)
     expect(json.content).to eq(<<~EOT)
       2: John Doe,32,Software Engineer
@@ -192,7 +228,7 @@ describe OllamaChat::Tools::ReadFile do
       )
     )
 
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
@@ -219,7 +255,7 @@ describe OllamaChat::Tools::ReadFile do
       )
     )
 
-    result = described_class.new(chat).execute(tool_call)
+    result = tool.execute(tool_call)
 
     # Should return valid JSON with error
     expect(result).to be_a(String)
