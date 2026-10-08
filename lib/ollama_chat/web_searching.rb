@@ -78,7 +78,7 @@ module OllamaChat::WebSearching
       end
       prompt.named_placeholders_interpolate({query:})
     elsif document_policy.selected == 'summarizing'
-      prompt = prompt(:web_import).to_s
+      prompt = prompt(:web_summarize).to_s
       results = urls.each_with_object('') do |url, content|
         summarize(url).full? do |c|
           content << c.ask_and_send_or_self(:read)
@@ -86,7 +86,7 @@ module OllamaChat::WebSearching
       end
       prompt.named_placeholders_interpolate({query:, results:})
     else
-      prompt = prompt(:web_summarize).to_s
+      prompt = prompt(:web_import).to_s
       results = urls.each_with_object('') do |url, content|
         import(url).full? do |c|
           content << c.ask_and_send_or_self(:read)
