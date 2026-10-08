@@ -248,7 +248,7 @@ module OllamaChat::RAGHandling
             label   = source ? "#{source} #{snippet}" : snippet
             feedback(label, type: :info)
             view_tag_records(tag, [record])
-            ask?(prompt: "  [c]lear / other to go back: ") =~ /\Ac/i or next
+            confirm?(prompt: "  [c]lear / other to go back: ") =~ /\Ac/i or next
             clear_tag_records(tag, source)
           else
             group_lines = []
@@ -270,7 +270,7 @@ module OllamaChat::RAGHandling
             )
             next if chosen.nil? || chosen == '[back]'
             src, recs = group_map[chosen]
-            action = ask?(prompt: "  [v]iew / [c]lear / other to go back: ")
+            action = confirm?(prompt: "  [v]iew / [c]lear / other to go back: ")
             case action
             when /\Av/i
               view_tag_records(tag, recs)
@@ -350,11 +350,11 @@ module OllamaChat::RAGHandling
           break
         else
           source = display_map[chosen]
-          action = ask?(prompt: "  [v]iew / [c]lear / other to go back: ")
+          action = confirm?(prompt: "  [v]iew / [c]lear / other to go back: ")
           case action
           when /\Av/i
             records = @documents.records(sources: [ source ])
-            use_pager do |output|
+            use_pager(force: true) do |output|
               output.puts "#{bold{source}} (#{records.size} records)"
               output.puts
               records.each do |record|

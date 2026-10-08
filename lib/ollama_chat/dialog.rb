@@ -29,21 +29,37 @@ module OllamaChat::Dialog
     prefill and Reline.pre_input_hook = old_pre_input_hook
   end
 
-  # The confirm? method displays a prompt and reads a single character input
-  # from the user in raw mode, then returns that character. This is best used
-  # for confirmation prompts.
+  # The confirm? method displays a prompt and reads a **single keypress**
+  # from the user in raw mode (no Enter required), returning that character.
+  # Unlike {#ask?}, it does not go through Reline, so it never pollutes the
+  # command history — making it the right tool for confirmation gates *and*
+  # terse single-key selections such as `[v]iew` / `[c]lear` menus.
+  #
+  # The returned value depends on whether a positive-response matcher (`yes`)
+  # is supplied:
+  #
+  # - `yes: nil` (default) — the raw keypress is returned verbatim so the
+  #   caller can dispatch on it (e.g. `case key; when /\Av/i; ...`); on
+  #   timeout the `default` value is returned, and on interrupt (Ctrl-C)
+  #   `nil` is returned.
+  # - `yes: <Regexp/Object>` — the keypress is returned only when it
+  #   satisfies `yes === keypress` (e.g. `yes: /\Ay/i`); any other keypress,
+  #   or an interrupt, yields `nil`.
   #
   # @param prompt   [String]  the prompt to display to the user
   # @param timeout  [Integer, nil] optional timeout in seconds; if nil, the
-  #   method blocks until input, if 0 the method immediately returns the default
-  #   value.
+  #   method blocks until input, if 0 it immediately returns the `default`
+  #   value without waiting.
   # @param default  [Object, nil]  value returned when the timeout expires
   #   (defaults to `nil`)
-  # @param yes      [Object, nil]  value that is considered a positive response
+  # @param yes      [Object, nil]  matcher (`#===`) that defines a positive
+  #   response; when `nil` the raw keypress is returned for the caller to
+  #   interpret (default: `nil`)
   # @param output   [IO]  the IO object to write the prompt and the answer to
   #
-  # @return [Object] the character entered by the user, the `default` value
-  #   if a timeout occurs, or `nil` if the read is interrupted (e.g. Ctrl-C)
+  # @return [Object, nil] see the dispatch rules above: the keypress (or
+  #   `default` on timeout / `nil` on interrupt) when `yes:` is nil, otherwise
+  #   the keypress only if it matches `yes`, else `nil`.
   def confirm?(prompt:, timeout: nil, default: nil, yes: nil, output: STDOUT)
     return default if timeout&.zero?
     if prompt.include?('%s')

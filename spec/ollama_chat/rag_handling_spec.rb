@@ -141,7 +141,7 @@ describe OllamaChat::RAGHandling do
           with(a_string_including('hello world'), type: :info)
         buf = StringIO.new
         expect(chat).to receive(:use_pager).and_yield(buf)
-        expect(chat).to receive(:ask?).and_return('c')
+        expect(chat).to receive(:confirm?).and_return('c')
         expect(docs).to receive(:collection).at_least(:once).
           and_return('default')
         expect(docs).to receive(:clear).with(tags: [ 'mem' ])
@@ -164,7 +164,7 @@ describe OllamaChat::RAGHandling do
           with(a_string_including('hello world'), type: :info)
         buf = StringIO.new
         expect(chat).to receive(:use_pager).and_yield(buf)
-        expect(chat).to receive(:ask?).and_return('x')
+        expect(chat).to receive(:confirm?).and_return('x')
         expect(chat).to receive(:feedback).with('Exiting chooser.')
         chat.clear_collection_tags
         expect(buf.string).to include('hello world')
@@ -186,7 +186,7 @@ describe OllamaChat::RAGHandling do
           with(a_string_including('a.rb'), type: :info)
         buf = StringIO.new
         expect(chat).to receive(:use_pager).and_yield(buf)
-        expect(chat).to receive(:ask?).and_return('c')
+        expect(chat).to receive(:confirm?).and_return('c')
         expect(docs).to receive(:collection).at_least(:once).
           and_return('default')
         expect(docs).to receive(:source_remove).with('a.rb')
@@ -214,7 +214,7 @@ describe OllamaChat::RAGHandling do
           and_return('t1', 'a.rb "aaa"', '[EXIT]')
         expect(docs).to receive(:records).with(tags: 't1').
           and_return([ rec1, rec2 ])
-        expect(chat).to receive(:ask?).and_return('c')
+        expect(chat).to receive(:confirm?).and_return('c')
         expect(docs).to receive(:collection).at_least(:once).
           and_return('default')
         expect(docs).to receive(:source_remove).with('a.rb')
@@ -263,7 +263,7 @@ describe OllamaChat::RAGHandling do
       expect(docs).to receive(:records).at_least(:once).
         and_return([ rec ])
       expect(chat).to receive(:choose_entry).and_return('a.rb  [t1]', '[EXIT]')
-      expect(chat).to receive(:ask?).and_return('c')
+      expect(chat).to receive(:confirm?).and_return('c')
       expect(docs).to receive(:collection).at_least(:once).
         and_return('default')
       expect(docs).to receive(:source_remove).with('a.rb')
@@ -280,7 +280,7 @@ describe OllamaChat::RAGHandling do
       expect(docs).to receive(:records).at_least(:once).
         and_return([ rec ])
       expect(chat).to receive(:choose_entry).and_return('a.rb  [t1]', '[EXIT]')
-      expect(chat).to receive(:ask?).and_return('v')
+      expect(chat).to receive(:confirm?).and_return('v')
 
       buf = StringIO.new
       expect(chat).to receive(:use_pager).and_yield(buf)
@@ -295,7 +295,7 @@ describe OllamaChat::RAGHandling do
         and_return([ rec ])
       expect(chat).to receive(:choose_entry).
         and_return('a.rb  [t1]', '[EXIT]')
-      expect(chat).to receive(:ask?).and_return('x')
+      expect(chat).to receive(:confirm?).and_return('x')
       expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.clear_collection_sources
     end
