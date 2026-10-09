@@ -26,8 +26,8 @@ module OllamaChat
       def transcribe(source_io, chat:, language: nil)
         asr_url   = OC::OLLAMA::CHAT::ASR::URL
         asr_model = OC::OLLAMA::CHAT::ASR::MODEL
-        input = Tempfile.new(['asr_in'])
-        wav   = Tempfile.new(['asr', '.wav'])
+        input = Tempfile.new(%w[ asr_in ])
+        wav   = Tempfile.new(%w[ asr .wav ])
         begin
           IO.copy_stream(source_io, input)
           input.flush
@@ -41,7 +41,7 @@ module OllamaChat
             chat.feedback("ASR: #{executable} not found in PATH.", type: :warn)
             return
           end
-          unless File.size(wav.path) > 0
+          unless wav.size > 0
             chat.feedback("ASR: #{executable} produced no output.", type: :warn)
             return
           end

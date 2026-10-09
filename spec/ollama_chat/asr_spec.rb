@@ -70,10 +70,7 @@ describe OllamaChat::ASR do
           out: File::NULL, err: File::NULL
         ).and_return(true)
 
-      expect(File).to receive(:size)
-        .and_wrap_original do |m, path, *args|
-          path.to_s.end_with?('.wav') ? 1024 : m.call(path, *args)
-        end
+      allow_any_instance_of(Tempfile).to receive(:size).and_return(1024)
 
       expect(chat).to receive(:request_url_response)
         .and_yield(double(body: '{"text": "video transcript"}'))
