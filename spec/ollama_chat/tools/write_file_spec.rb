@@ -18,7 +18,7 @@ describe OllamaChat::Tools::WriteFile do
   end
 
   let :test_write_file do
-    "./tmp/test_write_file_#{Tins::Token.new(bits: 128)}.txt"
+    asset_tmp_path('tmp/test_write_file.txt').to_s
   end
 
   it 'can be executed successfully with overwrite mode on new file' do
@@ -278,7 +278,7 @@ describe OllamaChat::Tools::WriteFile do
 
   describe 'syntax check integration' do
     let :test_rb_file do
-      "./tmp/test_syntax_#{Tins::Token.new(bits: 128)}.rb"
+      asset_tmp_path('tmp/test_syntax.rb').to_s
     end
 
     after do

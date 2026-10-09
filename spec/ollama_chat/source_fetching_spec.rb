@@ -107,7 +107,7 @@ describe OllamaChat::SourceFetching do
       end
 
       it 'handles absolute paths in filename' do
-        source = '/tmp/test.txt'
+        source = asset_tmp_path('tmp/test.txt').expand_path.to_s
         expect(chat).to receive(:fetch_source_as_filename).
           with(File.expand_path(source))
         chat.fetch_source(source)
@@ -173,7 +173,7 @@ describe OllamaChat::SourceFetching do
 
     context 'with existence check' do
       it 'returns early if check_exist is true and file does not exist' do
-        source = "/tmp/non_existent_file_#{Time.now.to_i}"
+        source = asset_tmp_path('tmp/non_existent_file').expand_path.to_s
         expect(chat).not_to receive(:fetch_source_as_filename)
         chat.fetch_source(source, check_exist: true)
       end

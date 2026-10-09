@@ -10,7 +10,7 @@ describe OllamaChat::Tools::PatchFile do
   end
 
   let :test_file do
-    "./tmp/patch_test_#{Tins::Token.new(bits: 128)}.txt"
+    asset_tmp_path('tmp/patch_test.txt').to_s
   end
 
   it 'can have name' do
@@ -203,7 +203,7 @@ describe OllamaChat::Tools::PatchFile do
 
   describe 'syntax check integration' do
     let :test_rb_file do
-      "./tmp/patch_syntax_#{Tins::Token.new(bits: 128)}.rb"
+      asset_tmp_path('tmp/patch_syntax.rb').to_s
     end
 
     after do

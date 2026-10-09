@@ -33,7 +33,7 @@ describe OllamaChat::Conversation do
     end
 
     it 'prompts to overwrite when file already exists and user says yes' do
-      tmpfile = File.join(Dir.tmpdir, "conv_#{$$}_existing.jsonl")
+      tmpfile = asset_tmp_path('tmp/conv_existing.jsonl').to_s
       File.write(tmpfile, '{}')
 
       expect(chat).to receive(:confirm?)
@@ -49,7 +49,7 @@ describe OllamaChat::Conversation do
     end
 
     it 'aborts when file exists and user says no' do
-      tmpfile = File.join(Dir.tmpdir, "conv_#{$$}_existing.jsonl")
+      tmpfile = asset_tmp_path('tmp/conv_existing.jsonl').to_s
       File.write(tmpfile, '{}')
 
       expect(chat).to receive(:confirm?)

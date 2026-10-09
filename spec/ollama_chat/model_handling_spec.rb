@@ -75,7 +75,7 @@ describe OllamaChat::ModelHandling do
     end
 
     it 'exports all models to file and returns the filename' do
-      filename = Pathname.new('tmp/export_test.json')
+      filename = asset_tmp_path('tmp/export_test.json')
       expect(chat).to receive(:determine_valid_output_filename).and_return filename
       expect(chat.export_model_options).to eq filename
       data   = JSON.parse(filename.read)
@@ -99,7 +99,7 @@ describe OllamaChat::ModelHandling do
   end
 
   describe '#import_model_options' do
-    let(:filename) { Pathname.new('tmp/import_test.json') }
+    let(:filename) { asset_tmp_path('tmp/import_test.json') }
 
     after do
       filename&.delete if filename&.exist?

@@ -296,7 +296,7 @@ describe OllamaChat::PromptManagement do
     it 'exports the selected prompt to a file' do
       prompt_model.create(context: 'prompt', name: 'exportable',
                           metadata: { default: false, content: 'Export me' })
-      out = Pathname.pwd.join('tmp', 'export_out.txt')
+      out = asset_tmp_path('tmp/export_out.txt')
       expect(chat).to receive(:choose_prompt).and_return(chat.prompt('exportable'))
       expect(chat).to receive(:determine_valid_output_filename).and_return(out)
 

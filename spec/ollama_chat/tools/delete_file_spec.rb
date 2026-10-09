@@ -18,8 +18,8 @@ describe OllamaChat::Tools::DeleteFile do
   end
 
   it 'can be executed successfully and create a backup' do
-    file_path = './tmp/test_delete_file.txt'
-    File.secure_write(file_path, 'Content to be deleted')
+    file_path = asset_tmp_path('tmp/test_delete_file.txt')
+    file_path.write('Content to be deleted')
 
     tool_call = double(
       'ToolCall',
@@ -77,7 +77,7 @@ describe OllamaChat::Tools::DeleteFile do
   end
 
   it 'can handle execution errors gracefully when file does not exist' do
-    file_path = './tmp/non_existent_file.txt'
+    file_path = asset_tmp_path('tmp/non_existent_file.txt')
     File.delete(file_path) if File.exist?(file_path)
 
     tool_call = double(
@@ -103,8 +103,8 @@ describe OllamaChat::Tools::DeleteFile do
   end
 
   it 'can handle exceptions gracefully' do
-    file_path = './tmp/test_exception_delete.txt'
-    File.secure_write(file_path, 'Some content')
+    file_path = asset_tmp_path('tmp/test_exception_delete.txt')
+    file_path.write('Some content')
 
     tool_call = double(
       'ToolCall',

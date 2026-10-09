@@ -147,11 +147,11 @@ describe OllamaChat::PromptHandling do
 
   describe '#load_prompt_from_file' do
     let :temp_file do
-      Pathname(__dir__).join('..', 'assets', 'prompt_file.txt')
+      asset_pathname('prompt_file.txt')
     end
 
     before do
-      File.write(temp_file, 'file-based prompt content')
+      temp_file.write('file-based prompt content')
     end
 
     after do

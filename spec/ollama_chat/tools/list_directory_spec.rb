@@ -60,7 +60,7 @@ describe OllamaChat::Tools::ListDirectory do
   end
 
   it 'includes hidden files when include_hidden is true' do
-    hidden_dir = File.join(Dir.pwd, '.tool_hidden_test')
+    hidden_dir = asset_tmp_path('tmp/tool_hidden_test').to_s
     FileUtils.mkdir_p(hidden_dir)
     File.write(File.join(hidden_dir, '.secret'), 's')
     File.write(File.join(hidden_dir, 'visible.txt'), 'v')

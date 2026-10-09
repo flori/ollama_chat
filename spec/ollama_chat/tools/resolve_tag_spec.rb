@@ -92,7 +92,7 @@ describe OllamaChat::Tools::ResolveTag do
   end
 
   context 'when the tagged file does not exist' do
-    let(:tags_path) { File.join(Dir.pwd, 'tmp', 'test_tags.ctags') }
+    let(:tags_path) { asset_tmp_path('tmp/test_tags.ctags') }
 
     before do
       FileUtils.mkdir_p(File.dirname(tags_path))
@@ -100,11 +100,10 @@ describe OllamaChat::Tools::ResolveTag do
       # Points to lib/foo.rb which does not exist, so the tag is
       # silently skipped by the filename.exist? guard and 0 results
       # are returned.
-      File.write(tags_path, \
-        "execute\tlib/foo.rb\t/^  def execute\\($/;\"\tf method\n")
+      tags_path.write("execute\tlib/foo.rb\t/^  def execute\\($/;\"\tf method\n")
       const_conf_as(
         'OC::OLLAMA::CHAT::TOOLS::CTAGS_TOOL' => 'true',
-        'OC::OLLAMA::CHAT::TOOLS::TAGS_FILE'  => Pathname.new(tags_path),
+        'OC::OLLAMA::CHAT::TOOLS::TAGS_FILE'  => tags_path,
       )
     end
 

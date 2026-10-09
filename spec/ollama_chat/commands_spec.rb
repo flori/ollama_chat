@@ -260,7 +260,7 @@ describe OllamaChat::Commands, protect_env: true do
     end
 
     it 'returns :next when input is "/model options import"' do
-      filename = Pathname.new('tmp/test.json')
+      filename = asset_tmp_path('tmp/model_import_test.json')
       expect(chat).to receive(:choose_filename).with('**/*.json').and_return filename
       expect(chat).to receive(:import_model_options).with(filename)
       expect(chat.handle_input("/model options import")).to eq :next
@@ -1010,7 +1010,7 @@ describe OllamaChat::Commands, protect_env: true do
 
     context 'with a JSON character file' do
       let(:char_file) do
-        path = Pathname.new('tmp/spec_character_test.json')
+        path = asset_tmp_path('tmp/spec_character_test.json')
         path.dirname.mkpath
         path.write('{"name": "TestChar"}')
         path
@@ -1043,7 +1043,7 @@ describe OllamaChat::Commands, protect_env: true do
 
     context 'with a PNG character file' do
       let(:char_png) do
-        path = Pathname.new('tmp/spec_character_test.png')
+        path = asset_tmp_path('tmp/spec_character_test.png')
         path.dirname.mkpath
         path.write('fake png data')
         path

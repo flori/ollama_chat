@@ -359,11 +359,11 @@ describe OllamaChat::Parsing do
     end
 
     it 'always includes hidden files' do
-      hidden_dir = File.join(Dir.pwd, '.hidden_test')
-      FileUtils.mkdir_p(hidden_dir)
-      File.write(File.join(hidden_dir, '.secret'), 's')
-      File.write(File.join(hidden_dir, 'visible.txt'), 'v')
-      content, = chat.parse_content('look at ./.hidden_test', [])
+      hidden_dir = asset_tmp_path('tmp/.hidden_test')
+      hidden_dir.mkpath
+      (hidden_dir +  '.secret').write('s')
+      (hidden_dir + 'visible.txt').write('v')
+      content, = chat.parse_content("look at ./#{hidden_dir}", [])
       json_data = content.lines[2..-1].join('')
       json = JSON(json_data)
       expect(json.map { _1['name'] }).to contain_exactly('.secret', 'visible.txt')

@@ -414,7 +414,7 @@ describe OllamaChat::SessionManagement do
 
     it 'saves summary to file when user provides a filename' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
-      tmpfile = Pathname.new(File.join(Dir.tmpdir, "summ_#{$$}_test.md"))
+      tmpfile = asset_tmp_path('tmp/summ_test.md')
       expect(chat).to receive(:summarize_session).and_return('# Summary content')
       expect(chat).to receive(:use_pager)
       expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
@@ -474,7 +474,7 @@ describe OllamaChat::SessionManagement do
 
     it 'saves report to file when save: true' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
-      tmpfile = Pathname.new(File.join(Dir.tmpdir, "report_#{$$}_test.md"))
+      tmpfile = asset_tmp_path('tmp/report_test.md')
       expect(chat).to receive(:ask_for_filename?).and_return(tmpfile)
       expect(chat).to receive(:should_overwrite?).and_return(true)
       expect(chat).to receive(:generate_conversation_report).and_return('# Report content')

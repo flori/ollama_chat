@@ -378,22 +378,25 @@ describe OllamaChat::MessageList do
 
   describe '.save_conversation' do
     it 'can save conversations in JSON' do
-      expect(list.save_conversation('tmp/test-conversation.json')).to eq list
+      path = asset_tmp_path('tmp/test-conversation.json').to_s
+      expect(list.save_conversation(path)).to eq list
     ensure
-      FileUtils.rm_f 'tmp/test-conversation.json'
+      FileUtils.rm_f(path)
     end
 
     it 'can save conversations in JSONL' do
-      expect(list.save_conversation('tmp/test-conversation.jsonl')).to eq list
+      path = asset_tmp_path('tmp/test-conversation.jsonl').to_s
+      expect(list.save_conversation(path)).to eq list
     ensure
-      FileUtils.rm_f 'tmp/test-conversation.jsonl'
+      FileUtils.rm_f(path)
     end
 
     it 'can save conversations with thinking' do
-      expect(list.save_conversation('tmp/test-conversation.json')).to eq list
-      expect(JSON.load(File.new('tmp/test-conversation.json'))[0]['thinking']).to eq 'a while'
+      path = asset_tmp_path('tmp/test-conversation.json').to_s
+      expect(list.save_conversation(path)).to eq list
+      expect(JSON.load(File.new(path))[0]['thinking']).to eq 'a while'
     ensure
-      FileUtils.rm_f 'tmp/test-conversation.json'
+      FileUtils.rm_f(path)
     end
   end
 

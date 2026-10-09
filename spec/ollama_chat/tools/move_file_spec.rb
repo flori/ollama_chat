@@ -18,8 +18,8 @@ describe OllamaChat::Tools::MoveFile do
   end
 
   it 'can move a file successfully when destination does not exist' do
-    source_path = './tmp/test_move_source.txt'
-    dest_path   = './tmp/test_move_dest.txt'
+    source_path = asset_tmp_path('tmp/test_move_source.txt')
+    dest_path   = asset_tmp_path('tmp/test_move_dest.txt')
     content     = 'Moving this content'
 
     File.secure_write(source_path, content)
@@ -42,8 +42,8 @@ describe OllamaChat::Tools::MoveFile do
     expect(result).to be_a(String)
     json = json_object(result)
     expect(json.success).to eq true
-    expect(json.source).to include('test_move_source.txt')
-    expect(json.destination).to include('test_move_dest.txt')
+    expect(json.source).to include('test_move_source')
+    expect(json.destination).to include('test_move_dest')
 
     # Verify filesystem state
     expect(File.exist?(source_path)).to be false
@@ -57,8 +57,8 @@ describe OllamaChat::Tools::MoveFile do
   end
 
   it 'fails when the destination file already exists' do
-    source_path = './tmp/test_move_src_exists.txt'
-    dest_path   = './tmp/test_move_dst_exists.txt'
+    source_path = asset_tmp_path('tmp/test_move_src_exists.txt')
+    dest_path   = asset_tmp_path('tmp/test_move_dst_exists.txt')
 
     File.secure_write(source_path, 'Source content')
     File.secure_write(dest_path, 'Destination content')
@@ -94,8 +94,8 @@ describe OllamaChat::Tools::MoveFile do
   end
 
   it 'fails when the source file does not exist' do
-    source_path = './tmp/non_existent_source.txt'
-    dest_path   = './tmp/test_move_fail_src.txt'
+    source_path = asset_tmp_path('tmp/non_existent_source.txt')
+    dest_path   = asset_tmp_path('tmp/test_move_fail_src.txt')
     File.delete(source_path) if File.exist?(source_path)
 
     tool_call = double(
@@ -145,8 +145,8 @@ describe OllamaChat::Tools::MoveFile do
   end
 
   it 'handles general exceptions gracefully' do
-    source_path = './tmp/test_exception_move.txt'
-    dest_path   = './tmp/test_exception_dest.txt'
+    source_path = asset_tmp_path('tmp/test_exception_move.txt')
+    dest_path   = asset_tmp_path('tmp/test_exception_dest.txt')
     File.secure_write(source_path, 'Some content')
 
     tool_call = double(
