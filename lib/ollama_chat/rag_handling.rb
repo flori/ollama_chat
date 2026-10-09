@@ -137,10 +137,10 @@ module OllamaChat::RAGHandling
     filename = Pathname.new(filename).expand_path
     should_overwrite?(filename) or return
 
-    feedback("Dumping #{selected.size} collection(s): #{selected.to_a.sort.join(', ')}")
+    feedback("Dumping #{selected.size} collection(s): #{selected.sort.join(', ')}")
 
     records = []
-    selected.to_a.sort.each do |col|
+    selected.sort.each do |col|
       switch_collection(col) do
         @documents.each_record do |r|
           records << {
@@ -155,7 +155,7 @@ module OllamaChat::RAGHandling
 
     OllamaChat::Utils::JSONJSONLIO.new(filename).write(collection: records)
     log(:info, 'Memory dumped',
-        data: { collections: selected.to_a.sort, records: records.size, file: filename.to_s })
+        data: { collections: selected.sort, records: records.size, file: filename.to_s })
     feedback(
       "Dumped #{records.size} record(s) across #{selected.size} collection(s) to #{filename.to_s.inspect}.",
       type: :success
@@ -164,8 +164,10 @@ module OllamaChat::RAGHandling
 
   # Restores `memory-<persona>` collections from a JSONL dump file.
   #
-  # Each line's `collection` field determines the target collection;
-  # records are added with their original tag and source so timestamps
+  # Presents an accumulating chooser of all collections found in the file:
+  # pick individual collections (they drop out of the list once selected),
+  # `[ALL]` to grab everything remaining, or `[DONE]` to commit the restore.
+  # Records are added with their original tag and source so timestamps
   # and file associations survive.
   #
   # @param filename [String, nil] the input path (must end in .json/.jsonl);
@@ -184,19 +186,56 @@ module OllamaChat::RAGHandling
     entries = OllamaChat::Utils::JSONJSONLIO.new(filename).read.to_a
     return feedback("No records found in #{filename.to_s.inspect}.", type: :warn) if entries.empty?
 
+    collections = entries.group_by { |e| e['collection'] }.reject { _1.nil? }
+    return feedback('No collection field found in entries.', type: :warn) if collections.empty?
+
+    selected = Set.new
+    choose_with_state do
+      loop do
+        remaining = collections.keys - selected.to_a
+        choices   = (remaining.empty? ? [] : ['[ALL]'] + remaining) + ['[DONE]']
+        choice    = choose_entry(choices, prompt: 'Which memory collections to restore? %s')
+        case choice
+        when nil, '[DONE]'
+          break
+        when '[ALL]'
+          selected.merge(remaining)
+          break
+        else
+          selected.add(choice)
+        end
+      end
+    end
+
+    return feedback('Cancelled, no collections selected.', type: :cancel) if selected.empty?
+
+    selected = selected.sort
+
+
+    feedback("Restoring #{selected.size} collection(s): #{selected.join(', ')}")
+
     total = 0
-    entries.group_by { |e| e['collection'] }.each do |col, group|
+    collections.slice(*selected).sort.each do |col, group|
       create_memory_collection(col)
       switch_collection(col) do
         group.each do |entry|
-          @documents.add([entry['text']], tags: Array(entry['tags']), batch_size: 1, source: entry['source'])
+          @documents.add(
+            [entry['text']],
+            tags: Array(entry['tags']),
+            batch_size: 1,
+            source: entry['source']
+          )
           total += 1
         end
       end
     end
 
-    log(:info, 'Memory restored', data: { file: filename.to_s, records: total })
-    feedback("Restored #{total} record(s) from #{filename.to_s.inspect}.", type: :success)
+    log(:info, 'Memory restored',
+        data: { file: filename.to_s, collections: selected, records: total })
+    feedback(
+      "Restored #{total} record(s) across #{selected.size} collection(s) from #{filename.to_s.inspect}.",
+      type: :success
+    )
   end
 
   private

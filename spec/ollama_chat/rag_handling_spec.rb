@@ -259,7 +259,7 @@ describe OllamaChat::RAGHandling do
 
     it 'clears a source on c' do
       rec = double('Record', source: 'a.rb', text: 'hello',
-                    tags: %w[ t1 ])
+                   tags: %w[ t1 ])
       expect(docs).to receive(:records).at_least(:once).
         and_return([ rec ])
       expect(chat).to receive(:choose_entry).and_return('a.rb  [t1]', '[EXIT]')
@@ -276,7 +276,7 @@ describe OllamaChat::RAGHandling do
 
     it 'views in pager on v' do
       rec = double('Record', source: 'a.rb', text: 'hello',
-                    tags: %w[ t1 ])
+                   tags: %w[ t1 ])
       expect(docs).to receive(:records).at_least(:once).
         and_return([ rec ])
       expect(chat).to receive(:choose_entry).and_return('a.rb  [t1]', '[EXIT]')
@@ -290,7 +290,7 @@ describe OllamaChat::RAGHandling do
 
     it 'goes back on other input' do
       rec = double('Record', source: 'a.rb', text: 'hello',
-                    tags: %w[ t1 ])
+                   tags: %w[ t1 ])
       expect(docs).to receive(:records).at_least(:once).
         and_return([ rec ])
       expect(chat).to receive(:choose_entry).
@@ -704,7 +704,7 @@ describe OllamaChat::RAGHandling do
     end
 
     it 'writes one JSONL line per record, tagged with its collection' do
-      target = Pathname.new('tmp/memory_dump_spec.jsonl')
+      target = asset_tmp_path('tmp/memory_dump_spec.jsonl')
       target.dirname.mkpath
       target.delete if target.file?
 
@@ -724,7 +724,7 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:log)
       allow(chat).to receive(:feedback)
 
-      chat.memory_dump('tmp/memory_dump_spec.jsonl')
+      chat.memory_dump(target.to_s)
 
       lines = target.read.lines
       expect(lines.size).to eq(1)
@@ -738,7 +738,7 @@ describe OllamaChat::RAGHandling do
 
   describe '#memory_restore' do
     let :target do
-      Pathname.new('tmp/memory_restore_spec.jsonl')
+      asset_tmp_path('tmp/memory_restore_spec.jsonl')
     end
 
     before do
@@ -755,6 +755,8 @@ describe OllamaChat::RAGHandling do
     end
 
     it 'restores each record into its collection with the original tag' do
+      expect(chat).to receive(:choose_with_state).and_yield
+      expect(chat).to receive(:choose_entry).and_return('[ALL]')
       expect(chat).to receive(:create_memory_collection).with('memory-a')
       expect(chat).to receive(:create_memory_collection).with('memory-b')
       expect(chat).to receive(:switch_collection).with('memory-a').and_yield
@@ -770,11 +772,46 @@ describe OllamaChat::RAGHandling do
         .with(['foo'], tags: [ '2026-01-03T00:00:00+02:00' ],
              batch_size: 1, source: nil)
 
+      allow(chat).to receive(:feedback)
       expect(chat).to receive(:log)
       expect(chat).to receive(:feedback)
         .with(a_string_including('Restored 3 record'), type: :success)
 
-      chat.memory_restore('tmp/memory_restore_spec.jsonl')
+      chat.memory_restore(target.to_s)
+    end
+
+    it 'cancels when the user selects nothing' do
+      expect(chat).to receive(:choose_with_state).and_yield
+      expect(chat).to receive(:choose_entry).and_return('[DONE]')
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Cancelled, no collections selected'),
+              type: :cancel)
+      expect(chat).not_to receive(:create_memory_collection)
+      chat.memory_restore(target.to_s)
+    end
+
+    it 'restores only the selected collection when picking individually' do
+      expect(chat).to receive(:choose_with_state).and_yield
+      expect(chat).to receive(:choose_entry)
+        .and_return('memory-a', '[DONE]')
+      expect(chat).to receive(:create_memory_collection).with('memory-a')
+      expect(chat).not_to receive(:create_memory_collection).with('memory-b')
+      expect(chat).to receive(:switch_collection).with('memory-a').and_yield
+      expect(chat).not_to receive(:switch_collection).with('memory-b')
+
+      expect(docs).to receive(:add)
+        .with(['hello'], tags: [ '2026-01-01T00:00:00+02:00' ],
+             batch_size: 1, source: nil)
+      expect(docs).to receive(:add)
+        .with(['world'], tags: [ '2026-01-02T00:00:00+02:00' ],
+             batch_size: 1, source: nil)
+
+      allow(chat).to receive(:feedback)
+      expect(chat).to receive(:log)
+      expect(chat).to receive(:feedback)
+        .with(a_string_including('Restored 2 record'), type: :success)
+
+      chat.memory_restore(target.to_s)
     end
 
     it 'warns when the file does not exist' do

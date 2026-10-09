@@ -102,6 +102,29 @@ module AssetHelpers
   def asset_json(name)
     JSON(JSON(File.read(asset(name))))
   end
+
+  # Generates a collision-free temporary file path under `./tmp/`.
+  #
+  # The path is constructed by inserting a 128-bit cryptographic token
+  # (via `Tins::Token`) between the basename and the extension of the
+  # given name. This guarantees uniqueness across parallel spec runs
+  # without requiring external `Tempfile` or `Dir.mktmpdir` scaffolding.
+  #
+  # @param name [String, nil] a relative or absolute path (e.g.
+  #   `'memory_dump_spec.jsonl'`). Defaults to `'./tmp/tmp_path'` when
+  #   nil or blank.
+  # @return [Pathname] a unique path, e.g.
+  #   `./tmp/memory_dump_spec-a3f1c9…dead.jsonl`
+  def asset_tmp_path(name = nil)
+    name.full? or name = './tmp/tmp_path'
+    pathname = Pathname.new(name)
+    basename = pathname.basename.sub_ext('')
+    extname  = pathname.extname.full?
+    secret   = Tins::Token.new(bits: 128)
+    result   = pathname.dirname.join( [ basename.to_s, secret ] * ?-)
+    extname and result = result.sub_ext(extname)
+    result
+  end
 end
 
 # A module that provides helper methods for application functionality.
