@@ -17,7 +17,7 @@ module OllamaChat::SessionManagement
     log(:info, "Messages stored in session", data: {
       session_id:    session.id,
       size:          es.bytes_formatted,
-      context_usage: ,
+      context_usage: context_usage_plain,
       messages:      session.count_messages
     })
     self

@@ -124,18 +124,15 @@ module OllamaChat::Information
     end
   end
 
-  # The context_usage_colored method computes a summary string of the current
-  # context window's token usage. It formats the compacted message
-  # estimate, the maximum context length, and a visual gauge indicating
-  # the percentage of the context that is currently filled.
+  # The context_usage_colored method returns a summary string of the current
+  # context window's token usage, with the used, maximum, and percentage
+  # values all ANSI-colored according to the compaction thresholds.
   #
-  # @return [ String ] the formatted string representing context usage
+  # Delegates the presentation (emoji + color) to {ContextUsage}.
+  #
+  # @return [ String ] the formatted, colored string representing context usage
   def context_usage_colored
-    '%s of %s (%s)' % [
-      messages.compacted_estimate_tokens.tokens_formatted,
-      format_tokens(current_context_length),
-      context_gauge(context_percentage),
-    ]
+    context_usage.colored
   end
 
   # Displays a detailed view of the current chat session state, including the
@@ -397,7 +394,7 @@ module OllamaChat::Information
       tools_support:        tools_support.on? ? 'enabled' : 'disabled',
       voice:                voice.on? ? 'enabled' : 'disabled',
       weekday:              now.strftime('%A'),
-      context_usage:        ,
+      context_usage:        context_usage_plain,
       conversation_length:  ,
     }
   end
@@ -455,66 +452,32 @@ module OllamaChat::Information
 
   # Computes the fraction of the context window currently in use.
   #
-  # Divides the estimated token count of the session's messages by the
-  # effective context length, clamped to the range 0.0–1.0.
+  # Delegates to {ContextUsage#filled}; clamped to 0.0–1.0.
   #
   # @return [Float] the ratio of used context (e.g. `0.73` for 73%)
   def context_filled
-    es = messages.compacted_estimate_tokens
-    (es.tokens.to_f / current_context_length).clamp(0..1).to_f
-  end
-
-  # Formats the current context fill ratio as a percentage string.
-  #
-  # @return [String] the formatted percentage (e.g. `"64.0%"`)
-  def context_percentage
-    format('%.1f%%', 100 * context_filled)
+    context_usage.filled
   end
 
   # Formats the current context usage as a human-readable string.
   #
   # Returns a string like `"167.7 KT of 262.1 KT (64.0%)"` combining
   # the estimated tokens in use, the effective context length, and
-  # the percentage (via +context_filled+).
+  # the percentage. Delegates to {ContextUsage#plain}.
   #
   # @return [String, nil] the formatted usage string, or +nil+ if
   #   the context length cannot be determined.
-  def context_usage
-    if cl = current_context_length
-      '%s of %s (%s)' % [
-        messages.compacted_estimate_tokens.tokens_formatted,
-        format_tokens(current_context_length),
-        context_percentage,
-      ]
-    end
+  def context_usage_plain
+    context_usage.plain
   end
 
-  # Wraps a percentage string in an ANSI color based on context usage
-  # relative to compaction thresholds.
-  #
-  # Green:  below `keep_recent` budget — plenty of room.
-  # Yellow: between `keep_recent` and `reserve` — getting tight.
-  # Red:    above `reserve` — compaction imminent.
-  #
-  # Falls back to bold if context length is unknown.
-  #
-  # @param percent_string [String] the formatted percentage to colorize
-  # @return [String] the ANSI-colored percentage string
-  def context_gauge(percent_string)
-    tokens = messages.compacted_estimate_tokens.tokens
-    ctx    = current_context_length
-    return bold { percent_string } unless ctx
+  private
 
-    keep_recent = compact_ratio_tokens(:keep_recent, ctx)
-    reserve     = compact_ratio_tokens(:reserve, ctx)
-    bold do
-      if tokens < keep_recent
-        '🟢 ' + green { percent_string }
-      elsif tokens <= reserve
-        '🟡 ' + yellow { percent_string }
-      else
-        '🔴 ' + red { percent_string }
-      end
-    end
+  # Lazily builds and caches the {ContextUsage} bound to this chat,
+  # which owns the ANSI/emoji presentation logic for context usage.
+  #
+  # @return [ContextUsage]
+  def context_usage
+    @context_usage ||= OllamaChat::ContextUsage.new(self)
   end
 end

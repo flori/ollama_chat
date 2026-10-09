@@ -236,7 +236,7 @@ describe OllamaChat::MessageList do
       allow(chat).to receive(:current_context_length).and_return 100
       allow(chat).to receive(:compact_ratio_tokens)
         .with(:keep_recent, 100).and_return 5
-      allow(chat).to receive(:context_usage)
+      allow(chat).to receive(:context_usage_colored)
         .and_return '10.0 T of 100 T (10.0%)'
       allow(chat).to receive(:context_filled).
         and_return 0.1

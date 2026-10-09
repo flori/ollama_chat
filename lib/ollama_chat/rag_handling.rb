@@ -211,7 +211,6 @@ module OllamaChat::RAGHandling
 
     selected = selected.sort
 
-
     feedback("Restoring #{selected.size} collection(s): #{selected.join(', ')}")
 
     total = 0
