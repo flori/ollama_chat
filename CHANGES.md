@@ -1,5 +1,48 @@
 # Changes
 
+## 2026-10-10 v0.0.131
+
+* Extracted ANSI, emoji, and formatting logic from `Information` into a new
+  `OllamaChat::ContextUsage` class, providing a `colored`, `plain`, `filled`,
+  and `percent` API.
+* Converted `context_usage_colored`, `context_filled`, and
+  `context_usage_plain` into one-line delegators on `Information`.
+* Removed `context_percentage` and `context_gauge` methods, absorbing their
+  logic into `ContextUsage` private helpers.
+* Updated `MessageList#compact!` to capture `context_usage_colored` for both
+  before and after states, ensuring the compaction report renders
+  threshold-colored values.
+* Changed the plain format to be percent-first: `27.9% · 73.1 KT of 262.1 KT`.
+* Updated `session_management.rb` log data to use `context_usage_plain`.
+* Added `spec/ollama_chat/context_usage_spec.rb` to pin green/yellow/red
+  thresholds, plain format, nil-context fallback, and fill ratio.
+* Added per-letter emojis to clear menu prompts in `rag_handling.rb` (🔍 view,
+  🧹 clear, 🔙 other) to improve scannability of single-keypress `confirm?`
+  letter menus.
+* Updated `asr.rb` to use `%w[]` for `Tempfile.new` prefix/suffix arguments and
+  replaced `File.size(wav.path)` with `wav.size`.
+* Updated `asr_spec.rb` to stub the `Tempfile#size` instance method instead of
+  the `File.size` class method.
+* Migrated spec temporary paths to the `asset_tmp_path` helper across 15 spec
+  files, replacing hardcoded `tmp/` paths, `Dir.tmpdir` + `$$` PID suffixes,
+  hand-rolled `Tins::Token.new(bits: 128)` strings, and `Time.now.to_i` epoch
+  hacks.
+* Converted `File.write(pathname, ...)` calls to `pathname.write(...)` in
+  `delete_file_spec`, `parsing_spec`, `resolve_tag_spec`, and
+  `prompt_handling_spec`.
+* Updated `prompt_handling_spec` to use `asset_pathname('prompt_file.txt')` for
+  the `Pathname#write` idiom.
+* Removed `.txt` suffix from `include` assertions in `move_file_spec` as
+  tokenized basenames no longer match the original extension.
+* Added a collection chooser to `memory_restore`, allowing users to select
+  which collections from a dump file to restore, with `[ALL]` / `[DONE]`
+  support.
+* Updated `memory_dump` to use `Set#sort` directly instead of `Set#to_a.sort`.
+* Added a new `asset_tmp_path` helper in `spec_helper.rb` that generates
+  collision-free temp paths via `Tins::Token` (128-bit).
+* Updated restore specs to include chooser stubs, cancel and selective-restore
+  cases, and switched temp files to `asset_tmp_path`.
+
 ## 2026-10-08 v0.0.130
 
 *   Replace `ask?` with `confirm?` in `rag_handling.rb` for the `[v]iew` /
