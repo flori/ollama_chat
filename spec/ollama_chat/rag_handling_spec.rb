@@ -90,17 +90,20 @@ describe OllamaChat::RAGHandling do
   end
 
   describe '#clear_whole_collection' do
-    it 'clears all documents and returns self when confirmed' do
-      expect(chat).to receive(:confirm?).and_return(true)
-      expect(docs).to receive(:collection).twice.and_return('default')
+    it 'clears all documents and returns self when name is typed' do
+      expect(docs).to receive(:collection).and_return('default').at_least(:once)
+      expect(chat).to receive(:switch_history) { |*, &blk| blk.call }
+      expect(chat).to receive(:ask?).and_return('default')
       expect(docs).to receive(:clear)
       expect(chat).to receive(:feedback)
         .with(a_string_including('Cleared collection'), type: :info)
       expect(chat.clear_whole_collection).to eq chat
     end
 
-    it 'returns nil and reports denied when declined' do
-      expect(chat).to receive(:confirm?).and_return(false)
+    it 'returns nil and reports denied when name does not match' do
+      expect(docs).to receive(:collection).and_return('default')
+      expect(chat).to receive(:switch_history) { |*, &blk| blk.call }
+      expect(chat).to receive(:ask?).and_return('other')
       expect(docs).not_to receive(:clear)
       expect(chat).to receive(:feedback).with('Denied.', type: :denied)
       expect(chat.clear_whole_collection).to be_nil

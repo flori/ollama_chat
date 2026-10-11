@@ -357,7 +357,7 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/collection change")).to eq :next
       expect(STDOUT).to receive(:puts).with(/default/)
       expect(chat.handle_input("/collection list")).to eq :next
-      expect(chat).to receive(:rename_collection).with(:default)
+      expect(chat).to receive(:rename_collection).with('default')
       expect(chat.handle_input("/collection rename")).to eq :next
     end
 
@@ -391,13 +391,13 @@ describe OllamaChat::Commands, protect_env: true do
     end
 
     it 'returns :next when "/collection update" has no changes' do
-      expect(chat).to receive(:update_collection).with(:default)
+      expect(chat).to receive(:update_collection).with('default')
         .and_return nil
       expect(chat.handle_input("/collection update")).to eq :next
     end
 
     it 'returns results when "/collection update" has content' do
-      expect(chat).to receive(:update_collection).with(:default)
+      expect(chat).to receive(:update_collection).with('default')
         .and_return 'updated 3'
       expect(chat.handle_input("/collection update")).to eq 'updated 3'
     end

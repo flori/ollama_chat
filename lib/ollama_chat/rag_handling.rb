@@ -63,9 +63,9 @@ module OllamaChat::RAGHandling
 
   # Returns the name of the currently active document collection.
   #
-  # @return [String, Symbol] the name of the current collection
+  # @return [String] the name of the current collection
   def collection
-    @documents.collection
+    @documents.collection.to_s
   end
 
   # Sets the documents collection to collection.
@@ -246,9 +246,15 @@ module OllamaChat::RAGHandling
   # @return [ nil, OllamaChat::Chat ] when the user declines the confirmation
   #   prompt, self otherwise.
   def clear_whole_collection
-    if confirm?(prompt: '🔔 Really delete the whole collection? Are you sure? (y/n) ', yes: /\Ay/i)
+    target = collection
+    prompt = "🔥 This will incinerate every record in #{target.inspect}. " \
+      "Type the name to confirm (C-c ⇒ cancel): "
+    typed = switch_history(:collection_name) do
+      ask?(prompt:, prefill: target).full?(:strip)
+    end
+    if typed == target
       @documents.clear
-      log(:info, "Collection cleared", data: { collection: })
+      log(:info, "Collection #{target.inspect} cleared", data: { collection: })
       feedback("Cleared collection #{bold{collection}}.", type: :info)
       self
     else
