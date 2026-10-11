@@ -73,7 +73,7 @@ module OllamaChat::Dialog
       min  = 0
       time = timeout
     end
-    exceptions = [ (IRB::Abort if defined? IRB), Interrupt ].compact
+    exceptions = [ (IRB::Abort if defined? IRB), Interrupt, IOError ].compact
     begin
       keypress = STDIN.raw(min:, time:, intr: true) do |io|
         io.getc

@@ -350,7 +350,8 @@ module OllamaChat::RAGHandling
         data: { collection:, tag:, source: })
     feedback(
       "Cleared tag #{tag} from collection #{bold{collection}}.",
-      type: :info
+      type:    :info,
+      timeout: 3,
     )
   end
 
@@ -411,7 +412,8 @@ module OllamaChat::RAGHandling
                 data: { collection:, source: })
             feedback(
               "Removed source #{source} from collection #{bold{collection}}.",
-              type: :info
+              type:    :info,
+              timeout: 3,
             )
           end
         end

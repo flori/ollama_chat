@@ -147,7 +147,7 @@ describe OllamaChat::RAGHandling do
         expect(docs).to receive(:clear).with(tags: [ 'mem' ])
         expect(chat).to receive(:log)
         expect(chat).to receive(:feedback)
-          .with(a_string_including('Cleared tag mem'), type: :info)
+          .with(a_string_including('Cleared tag mem'), type: :info, timeout: 3)
         expect(chat).to receive(:feedback).with('Exiting chooser.')
         chat.clear_collection_tags
         expect(buf.string).to include('hello world')
@@ -192,7 +192,7 @@ describe OllamaChat::RAGHandling do
         expect(docs).to receive(:source_remove).with('a.rb')
         expect(chat).to receive(:log)
         expect(chat).to receive(:feedback)
-          .with(a_string_including('Cleared tag t1'), type: :info)
+          .with(a_string_including('Cleared tag t1'), type: :info, timeout: 3)
         expect(chat).to receive(:feedback).with('Exiting chooser.')
         chat.clear_collection_tags
         expect(buf.string).to include('hello')
@@ -220,7 +220,7 @@ describe OllamaChat::RAGHandling do
         expect(docs).to receive(:source_remove).with('a.rb')
         expect(chat).to receive(:log)
         expect(chat).to receive(:feedback)
-          .with(a_string_including('Cleared tag t1'), type: :info)
+          .with(a_string_including('Cleared tag t1'), type: :info, timeout: 3)
         expect(chat).to receive(:feedback).with('Exiting chooser.')
         chat.clear_collection_tags
       end
@@ -269,7 +269,7 @@ describe OllamaChat::RAGHandling do
       expect(docs).to receive(:source_remove).with('a.rb')
       expect(chat).to receive(:log)
       expect(chat).to receive(:feedback)
-        .with(a_string_including('Removed source a.rb'), type: :info)
+        .with(a_string_including('Removed source a.rb'), type: :info, timeout: 3)
       expect(chat).to receive(:feedback).with('Exiting chooser.')
       chat.clear_collection_sources
     end

@@ -33,9 +33,12 @@ module OllamaChat::Feedback
   #   message ends with exactly one newline before writing.
   #   Set to false for mid-line or no-trailing-newline output.
   # @return [nil]
-  def feedback(msg, type: nil, output: STDOUT, newline: true)
+  def feedback(msg, type: nil, output: STDOUT, newline: true, timeout: nil)
     prefix = PREFIXES[type&.to_sym]&.+(' ')
     newline and msg = msg.sub(/(?<!\n)\z/, ?\n)
     output.print(prefix.to_s + msg)
+    timeout.nil? and return
+    chat.confirm?(prompt: '⏎  Press any key to continue (%s). ', timeout:)
+    nil
   end
 end
