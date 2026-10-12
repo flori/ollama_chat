@@ -208,8 +208,14 @@ describe OllamaChat::SessionManagement do
       expect(chat.session).to receive(:update).with(working_directory: '/curr')
       expect(chat).to receive(:init_history)
       expect(chat.session_apply).to eq(chat.session)
-      expect(chat.session.trigger).to be_present
       collection = 'memory-%s' % chat.session.default_persona_name
+      expect(chat.session.trigger).to include(
+        collection => a_hash_including(
+          'enabled'     => true,
+          'prompt_name' => 'memory_rerank',
+          'text_count'  => 3
+        )
+      )
       expect(chat.database_collection?(collection)).to be_truthy
     end
   end

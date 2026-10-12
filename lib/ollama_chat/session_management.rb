@@ -282,7 +282,9 @@ module OllamaChat::SessionManagement
     initial_persona_name.full? do |persona_name|
       collection        = create_memory_collection(persona_name)
       session.trigger.present? or
-        session.trigger = { collection => chat.config.trigger.to_h }
+        session.trigger = {
+          collection => chat.config.trigger.to_h.stringify_keys_recursive
+        }
     end
     session.update(working_directory: Dir.pwd)
     init_history
