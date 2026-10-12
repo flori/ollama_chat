@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-10-12 v0.0.132
+
+*   `collection` now returns `@documents.collection.to_s`, making the return
+    type strictly `[String]`
+*   `clear_whole_collection` replaces the y/n `confirm?` with an `ask?` prompt
+    that requires typing the full collection name before clearing
+*   Log message includes `target.inspect` for greppability
+*   `commands_spec.rb`: `:default` → `'default'` in `rename_collection` and
+    `update_collection` expectations
+*   `rag_handling_spec.rb`: both `clear_whole_collection` specs rewritten to
+    stub `ask?` + `switch_history` instead of the removed `confirm?`
+*   Updated the `tins` runtime dependency constraint from `~> 1.60`, `>=
+    1.60.1` to `~> 1.61` in `Rakefile` and `ollama_chat.gemspec`
+*   `feedback` gains a `timeout:` kwarg; when set, calls `chat.confirm?` with a
+    "press any key to continue (timeout in Xs)" prompt so the message doesn't
+    flash by
+*   `clear_tag_records` and `clear_collection_sources` in `rag_handling.rb`
+    pass `timeout: 3`
+*   `dialog.rb` adds `IOError` to the `STDIN.raw` exception rescue list
+*   `rag_handling_spec.rb` updated with `timeout: 3` in four `feedback`
+    expectations
+
 ## 2026-10-10 v0.0.131
 
 * Extracted ANSI, emoji, and formatting logic from `Information` into a new
