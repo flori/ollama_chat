@@ -46,9 +46,9 @@ describe OllamaChat::ContextUsage do
     expect(described_class.new(chat).plain).to eq '10.0% · 100.0 T of 1.0 KT'
   end
 
-  it 'returns nil for plain when the context length is unknown' do
+  it 'returns "n/a" for plain when the context length is unknown' do
     expect(chat).to receive(:current_context_length).and_return nil
-    expect(described_class.new(chat).plain).to be_nil
+    expect(described_class.new(chat).plain).to eq 'n/a'
   end
 
   it 'falls back to a bold n/a for colored when unknown' do

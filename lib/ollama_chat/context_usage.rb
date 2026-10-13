@@ -50,11 +50,11 @@ module OllamaChat
 
     # Plain (uncolored) usage string, e.g. `73.1 KT of 262.1 KT (27.9%)`.
     #
-    # @return [String, nil] the usage string, or nil when the context length
+    # @return [String] the usage string, or 'n/a' when the context length
     #   is unknown.
     def plain
       ctx = @chat.current_context_length
-      return nil unless ctx
+      return 'n/a' unless ctx
 
       es = estimate
       '%s · %s of %s' % [
