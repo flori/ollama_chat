@@ -595,7 +595,7 @@ module OllamaChat::ModelHandling
 
     if old_model != @model
       reconfigure_model_options(profile:, keep_options:)
-      if @model_metadata.can?('thinking')
+      if @model_metadata&.can?('thinking')
         unless think_mode_states.include?(session.think_mode)
           default_think_mode = @model_metadata&.thinking&.default
           if default_think_mode
