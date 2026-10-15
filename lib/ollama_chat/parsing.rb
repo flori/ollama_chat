@@ -325,7 +325,7 @@ module OllamaChat::Parsing
           add_image(images, source_io, source)
           if source_io&.content_type&.sub_type == 'png'
             source_io.rewind
-            if results = parse_png(source_io)
+            if results = parse_png(source_io).full?
               contents.concat results
             end
           end
