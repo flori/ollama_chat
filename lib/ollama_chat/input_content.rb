@@ -80,6 +80,8 @@ module OllamaChat::InputContent
   #
   # @param patterns [Array<String>, nil] Optional array of glob patterns to
   #   filter files
+  # @param manifest [Boolean, nil] Override manifest mode; nil uses the
+  #   session default (`/toggle context_manifest`)
   # @return [String, nil] JSON string of context data or nil if no context
   #   could be generated
   #
@@ -91,12 +93,13 @@ module OllamaChat::InputContent
   #
   # @example Load default context
   #   context_spook(nil)
-  def context_spook(patterns, all: false)
-    format = @context_format.selected
-    myself = self
+  def context_spook(patterns, all: false, manifest: nil)
+    manifest = manifest.nil? ? context_manifest.on? : manifest
+    format   = @context_format.selected
+    myself   = self
     if patterns
       count = 0
-      ctx = ContextSpook::generate_context(verbose: true, format:) do |context|
+      ctx = ContextSpook::generate_context(verbose: true, format:, manifest:) do |context|
         context do
           myself.file_set_each(patterns, all:) do |filename|
             filename.file? or next
@@ -113,7 +116,7 @@ module OllamaChat::InputContent
       end
     else
       if context_filename = choose_filename('.contexts/*.rb')
-        ContextSpook.generate_context(context_filename, verbose: true, format:).
+        ContextSpook.generate_context(context_filename, verbose: true, format:, manifest:).
           send("to_#{format.downcase}")
       end
     end

@@ -606,26 +606,48 @@ describe OllamaChat::Commands, protect_env: true do
 
     context 'context' do
       it 'returns "success" when input is "/input context (.+)"' do
+        expect(chat.session).to receive(:context_manifest_enabled).and_call_original
         expect(chat).to receive(:context_spook).
-          with([asset('example.rb')], all: true).and_return('success')
+          with([asset('example.rb')], all: true, manifest: false).and_return('success')
         expect(chat.handle_input("/input context #{asset('example.rb')}")).to eq 'success'
       end
 
       it 'returns "success" when input is "/input context -a -p (.+)"' do
+        expect(chat.session).to receive(:context_manifest_enabled).and_call_original
         expect(chat).to receive(:context_spook).
-          with([asset('*.rb')], all: 1).and_return 'success'
+          with([asset('*.rb')], all: 1, manifest: false).and_return 'success'
         expect(chat.handle_input("/input context -a -p #{asset('*.rb')}")).
           to eq 'success'
       end
 
       it 'returns :next when input is "/input context" with "success"' do
+        expect(chat.session).to receive(:context_manifest_enabled).and_call_original
         expect(chat).to receive(:context_spook).and_return 'success'
         expect(chat.handle_input("/input context")).to eq 'success'
       end
 
       it 'returns :next when input is "/input context" without choosing' do
+        expect(chat.session).to receive(:context_manifest_enabled).and_call_original
         expect(chat).to receive(:context_spook).and_return nil
         expect(chat.handle_input("/input context")).to eq :next
+      end
+
+      it 'forces manifest on with -M' do
+        expect(chat.session).not_to receive(:context_manifest_enabled)
+        expect(chat).to receive(:context_spook).
+          with([asset('example.rb')], all: true, manifest: 1).
+          and_return('success')
+        expect(chat.handle_input("/input context -M #{asset('example.rb')}")).
+          to eq 'success'
+      end
+
+      it 'forces manifest off with ~M' do
+        expect(chat.session).not_to receive(:context_manifest_enabled)
+        expect(chat).to receive(:context_spook).
+          with([asset('example.rb')], all: true, manifest: false).
+          and_return('success')
+        expect(chat.handle_input("/input context ~M #{asset('example.rb')}")).
+          to eq 'success'
       end
     end
   end

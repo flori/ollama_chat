@@ -335,6 +335,13 @@ module OllamaChat::Switches
   #   @return [OllamaChat::Switches::Switch] the memory trigger switch instance
   attr_reader :memory_trigger
 
+  # Controls whether context files are generated in manifest mode
+  # (metadata only, no file content).
+  #
+  # @!attribute [r] context_manifest
+  #   @return [OllamaChat::Switches::DatabaseSwitch] the context manifest switch
+  attr_reader :context_manifest
+
   # Initializes the various switches for configuring the application's behavior.
   #
   # This method creates and configures the database and local switch objects
@@ -456,6 +463,14 @@ module OllamaChat::Switches
         true  => "Memory trigger active.",
         false => "Memory trigger inactive.",
       },
+    )
+    @context_manifest = DatabaseSwitch.new(
+      chat:      self,
+      attribute: :context_manifest_enabled,
+      msg: {
+        true  => "Context manifest enabled.",
+        false => "Context manifest disabled.",
+      }
     )
   end
 end

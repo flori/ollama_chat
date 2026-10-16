@@ -28,6 +28,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
     validates_presence :created_at
 
     validates_presence :context_format
+    validates_presence :context_manifest_enabled
     validates_presence :current_voice
     validates_presence :document_policy
     validates_presence :embedding_enabled
@@ -146,6 +147,9 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @!attribute [v] context_format
   #   @return [String] The format used for project context generation (e.g., 'JSON', 'TOON').
   #
+  # @!attribute [v] context_manifest_enabled
+  #   @return [Boolean] Whether context files use manifest mode (metadata only, no content).
+  #
   # @!attribute [v] working_directory
   #   @return [String] The directory used as the working context for this session.
   #
@@ -193,29 +197,30 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
     current_model = chat.initial_model
     model_options = chat.get_stored_model_options(current_model)
     attributes = {
-      name:                  ,
-      current_model:         ,
-      current_collection:    chat.initial_collection,
-      default_persona_name:  chat.initial_persona_name,
-      current_system_prompt: chat.initial_system_prompt,
-      tools_enabled:         chat.config.tools.enabled,
-      tools_default_enabled: ,
-      think_mode:            chat.config.think.mode,
-      think_loud_enabled:    chat.config.think.loud,
-      embedding_enabled:     chat.config.embedding.enabled,
-      document_policy:       chat.config.document_policy,
-      runtime_info_enabled:  chat.config.runtime_info.enabled,
-      think_strip_enabled:   chat.config.think.strip,
-      markdown_enabled:      chat.config.markdown,
-      stream_enabled:        chat.config.stream,
-      location_enabled:      chat.config.location.enabled,
-      voice_enabled:         chat.config.voice.enabled,
-      model_options:         ,
-      current_voice:         chat.config.voice.default,
-      context_format:        chat.config.context.format,
-      working_directory:     Dir.pwd,
-      messages:              '',
-      trigger:               nil,
+      name:                     ,
+      current_model:            ,
+      current_collection:       chat.initial_collection,
+      default_persona_name:     chat.initial_persona_name,
+      current_system_prompt:    chat.initial_system_prompt,
+      tools_enabled:            chat.config.tools.enabled,
+      tools_default_enabled:    ,
+      think_mode:               chat.config.think.mode,
+      think_loud_enabled:       chat.config.think.loud,
+      embedding_enabled:        chat.config.embedding.enabled,
+      document_policy:          chat.config.document_policy,
+      runtime_info_enabled:     chat.config.runtime_info.enabled,
+      think_strip_enabled:      chat.config.think.strip,
+      markdown_enabled:         chat.config.markdown,
+      stream_enabled:           chat.config.stream,
+      location_enabled:         chat.config.location.enabled,
+      voice_enabled:            chat.config.voice.enabled,
+      model_options:            ,
+      current_voice:            chat.config.voice.default,
+      context_format:           chat.config.context.format,
+      context_manifest_enabled: chat.config.context.manifest,
+      working_directory:        Dir.pwd,
+      messages:                 '',
+      trigger:                  nil,
     }
     new(attributes)
   end

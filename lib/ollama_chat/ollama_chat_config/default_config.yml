@@ -507,6 +507,7 @@ think:
   strip: false
 context:
   format: JSON
+  manifest: false
 compaction:
   enabled: true
   reserve:

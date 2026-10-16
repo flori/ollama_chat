@@ -161,14 +161,14 @@ module OllamaChat::Commands
 
   command(
     name: :toggle,
-    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding|memory_trigger)(?:\s+(-[yn]))?)?$),
-    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding memory_trigger ] ],
+    regexp: %r(^/toggle(?:\s+(markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding|memory_trigger|context_manifest)(?:\s+(-[yn]))?)?$),
+    complete: [ 'toggle', %w[ markdown stream location runtime_info voice think_loud think_strip embedding memory_trigger context_manifest ] ],
     options: '[-y|-n]',
     help: <<~EOT
       🎛️ Toggle feature switches
-       (markdown, stream, location, runtime_info,
-       voice, think_loud, think_strip, embedding, memory_trigger)
-      Options: -y (on), -n (off)
+        (markdown, stream, location, runtime_info,
+        voice, think_loud, think_strip, embedding, memory_trigger,
+        context_manifest)
     EOT
   ) do |toggle_name, flag|
     if toggle_name == 'embedding'
@@ -191,7 +191,7 @@ module OllamaChat::Commands
       end
     else
       feedback(
-        "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding|memory_trigger"
+        "Available toggles: markdown|stream|location|runtime_info|voice|think_loud|think_strip|embedding|memory_trigger|context_manifest"
       )
     end
     :next
@@ -859,12 +859,13 @@ module OllamaChat::Commands
 
   command(
     name: :input,
-    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+-(?:[apreim]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*|l\s*[-\w]+))*)(?:\s+([^-].*))?$),
+    regexp: %r(^/input(?:\s+(path|context|embedding|summary)(?:\s*(?=\z))?)?((?:\s+(?:-(?:[apreimM]|c\s*#{OllamaChat::COLLECTION_NAME_REGEXP.source}|w\s*\d+|t\s*[-\w\.]+(?:,[-\w\.]+)*|l\s*[-\w]+)|~M))*)(?:\s+([^-].*))?$),
     optional: true,
     complete: [ 'input', %w[ path context embedding summary ] ],
     options: <<~EOT,
        [
           -w|-a|-p|-e|-m|-i|
+         -M|~M|
          -c <collection>|
          -t <tags>|
          -l <language>
@@ -879,8 +880,8 @@ module OllamaChat::Commands
            path → raw file read (no parsing)
            Options: -p (pattern), -w [words], -a (all),
                     -c [collection], -t [tags], -e (edit),
-                    -m (monochrome), -i (summary instruction),
-                    -l [language]
+                    -m (monochrome), -M/~M (manifest),
+                    -i (summary instruction), -l [language]
     EOT
   ) do |input_mode,opts,arg|
     disable_content_parsing
@@ -907,15 +908,17 @@ module OllamaChat::Commands
         next :next
       end
     when 'context'
-      opts = go_command('pa', opts)
+      manifest_passed = opts =~ /[-~]M/
+      opts            = go_command('paM', opts)
+      manifest = manifest_passed ? opts[?M] : session.context_manifest_enabled
       if opts[?p]
         all      = opts.fetch(?a, false)
         patterns = extract_patterns(arg).full? || [ '**/*' ]
-        next context_spook(patterns, all:) || :next
+        next context_spook(patterns, all:, manifest: ) || :next
       elsif arg
-        next context_spook(Array(arg.to_s), all: true) || :next
+        next context_spook(Array(arg.to_s), all: true, manifest:) || :next
       else
-        next context_spook(nil) || :next
+        next context_spook(nil, manifest:) || :next
       end
     when 'embedding'
       disable_content_parsing
