@@ -30,7 +30,7 @@ module OllamaChat::Utils::PathValidator
   #   * `:file` - Verifies that the path exists and is a file.
   #   * `:directory` - Verifies that the path exists and is a directory.
   #   * `true` - Verifies only that the path exists (resolves symlinks).
-  #   * `true` - Verifies only that the path does not exist (resolves symlinks).
+  #   * `false` - Verifies only that the path does not exist (resolves symlinks).
   #   * `nil` (default) - No existence or type check is performed.
   #
   # @return [Pathname] The canonicalised absolute path if validation passes.
