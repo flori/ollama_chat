@@ -51,4 +51,4 @@ module OllamaChat::Database
   end
 end
 require 'ollama_chat/database/duplicatable'
-require 'ollama_chat/database/session_locking'
+require 'ollama_chat/database/row_locking'

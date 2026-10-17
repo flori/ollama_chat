@@ -5,7 +5,7 @@
 # the JSON serialization of complex attributes such as `tools_default_enabled`
 # and `model_options`.
 class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
-  include OllamaChat::Database::SessionLocking
+  include OllamaChat::Database::RowLocking
   include OllamaChat::Database::Duplicatable
 
   plugin :timestamps, update_on_create: true

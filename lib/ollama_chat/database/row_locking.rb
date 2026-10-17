@@ -1,15 +1,15 @@
-# The SessionLocking module provides a mechanism for exclusive session access,
+# The RowLocking module provides a mechanism for exclusive row access,
 # similar to the swap-file locking used by Vim.
 #
 # It prevents multiple concurrent instances of the application from modifying
-# the same session, thereby avoiding race conditions and context collision.
+# the same database row, thereby avoiding race conditions and state collision.
 # The lock is based on the Process ID (PID) and is validated by checking if
 # the owning process is still active on the system.
 #
-# This module is intended to be mixed into models that persist session state,
-# such as OllamaChat::Database::Models::Session.
-module OllamaChat::Database::SessionLocking
-  # Checks if the session is currently locked by an active process.
+# This module is intended to be mixed into any Sequel model that has a
+# `locked_by_pid` column.
+module OllamaChat::Database::RowLocking
+  # Checks if the row is currently locked by an active process.
   #
   # @return [Integer, nil] the PID of the locking process if active, or nil if unlocked/stale.
   def locked?
@@ -23,17 +23,12 @@ module OllamaChat::Database::SessionLocking
     end
   end
 
-  # Attempts to acquire a lock on the session.
+  # Attempts to acquire a lock on the row.
   #
-  # @param chat [OllamaChat] the chat instance that receives feedback
   # @return [Boolean] true if the lock was successfully acquired, false if already locked.
-  def lock?(chat:)
-    if running_pid = locked?
-      chat.feedback("session #{id} locked by running process #{running_pid}", type: :warn)
-      false
-    else
-      lock
-    end
+  def lock?
+    return false if locked?
+    !!lock
   end
 
   # Sets the lock for the current process.
@@ -43,7 +38,7 @@ module OllamaChat::Database::SessionLocking
     update(locked_by_pid: $$)
   end
 
-  # Releases the lock on the session.
+  # Releases the lock on the row.
   #
   # @return [Boolean] true if the update was successful.
   def unlock
