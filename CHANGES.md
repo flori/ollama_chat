@@ -1,5 +1,55 @@
 # Changes
 
+## 2026-10-17 v0.0.133
+
+### Features
+
+*   **`context_manifest`**: Session-level manifest toggle for
+    `context_spook` output.
+    *   Added `manifest: false` to `context:` in `default_config.yml`.
+    *   Added `context_manifest_enabled` boolean column via migration `012`.
+    *   Added `context_manifest` `DatabaseSwitch` in `switches.rb`.
+    *   Seeded `context_manifest_enabled` from config in
+        `Session.with_defaults`.
+    *   Added `manifest:` kwarg to `context_spook`, resolved via
+        `context_manifest.on?`.
+    *   Added `-M`/`~M` flags to `/input` for tri-state manifest override.
+    *   Added `context_manifest` to `/toggle` regexp, completion, and help.
+    *   Displayed `context_manifest` state in `/info session`.
+
+### Dependencies
+
+*   Updated `ollama-ruby` dependency constraint from `~> 1.24` to `~> 1.25`
+    in `Rakefile` and `ollama_chat.gemspec`.
+*   Added local `ollama-ruby` gem source to `Gemfile` for development against
+    **1.25**.
+*   Bumped `context_spook` to **~> 1.7** in `Rakefile` and gemspec.
+
+### Fixes
+
+*   Replaced bare truthiness guard on `parse_png(source_io)` with `.full?` in
+    `parsing.rb` so `concat` is only called when content was actually
+    extracted, preventing spurious newlines.
+*   Replaced `@model_metadata.can?('thinking')` with
+    `@model_metadata&.can?('thinking')` in `use_model` within
+    `model_handling.rb` to prevent `NoMethodError` when metadata is `nil`.
+*   Updated `session_apply` to call `stringify_keys_recursive` on
+    `chat.config.trigger.to_h` to ensure string keys, matching access in
+    `trigger_inject` and `set_trigger_enabled`.
+*   Updated `plain` in `context_usage.rb` to return `'n/a'` instead of `nil`
+    when the context length is unavailable.
+*   Corrected YARD doc for the `check` option in
+    `lib/ollama_chat/utils/path_validator.rb` to list `false` instead of a
+    duplicate `true`, matching the `elsif check == false` branch.
+
+### Testing
+
+*   Updated `commands_spec.rb` stubs; added `-M`, `~M`, and no-flag tri-state
+    specs with session short-circuit assertions.
+*   Replaced weak `be_present` assertion in `session_management_spec.rb` with
+    a structural `include` check that pins string key types and expected
+    values.
+
 ## 2026-10-12 v0.0.132
 
 *   `collection` now returns `@documents.collection.to_s`, making the return
