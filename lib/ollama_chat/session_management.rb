@@ -751,13 +751,10 @@ module OllamaChat::SessionManagement
                    else
                      ' '
                    end
-        display     = <<~EOT.strip
-          #{session.name} 🆔#{session.id}#{locked}📨#{count} 🧩#{es.tokens_formatted} ⏳#{duration}
-        EOT
-        SearchUI::Wrapper.new(
-          session.name,
-          display:
-        )
+        suffix               = " 🆔#{session.id}#{locked}📨#{count} 🧩#{es.tokens_formatted} ⏳#{duration}"
+        display_session_name = truncate(session.name, length: (0.8 * (width - suffix.length)).floor.clamp(1..))
+        display              = "#{display_session_name}#{suffix}"
+        SearchUI::Wrapper.new(session.name, display:)
       }
       selector and sessions = sessions.select { _1 =~ selector }
       session_name =
