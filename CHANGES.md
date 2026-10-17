@@ -1,5 +1,9 @@
 # Changes
 
+## 2026-10-17 v0.0.134
+
+* Removed the local dependency on the `ollama-ruby` gem from the `Gemfile`.
+
 ## 2026-10-17 v0.0.133
 
 ### Features
