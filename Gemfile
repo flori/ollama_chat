@@ -3,5 +3,3 @@
 source 'https://rubygems.org'
 
 gemspec
-
-gem 'ollama-ruby', path: '../ollama-ruby'
