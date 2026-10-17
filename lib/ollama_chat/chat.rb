@@ -123,7 +123,7 @@ class OllamaChat::Chat
     @cache                = setup_cache
     @images               = []
     @kramdown_ansi_styles = configure_kramdown_ansi_styles
-    @tool_call_results    = Hash.new { |h, name| h[name] = [] }
+    @tool_call_processor  = OllamaChat::ToolCallProcessor.new(chat: self)
     setup_personae_directory
     @opts[?S] and init_server_socket
   rescue ComplexConfig::AttributeMissing, ComplexConfig::ConfigurationSyntaxError => e
@@ -341,6 +341,13 @@ class OllamaChat::Chat
     "#<#{self.class}: #{base_url.to_s}>"
   end
 
+  # Returns the tool call processor instance.
+  #
+  # @return [OllamaChat::ToolCallProcessor] the processor that handles
+  #   tool execution and result storage
+  attr_reader :tool_call_processor
+
+
   private
 
   # Wrapper for ollama.chat to provide consistent logging of all arguments.
@@ -462,7 +469,7 @@ class OllamaChat::Chat
       type         = :terminal_input
       input_prompt = bold { color(172) { message_type(@images) + " user" } } + bold { "> " }
       begin
-        tools_were_called = handle_tool_call_results? { |index, tool_name, content|
+        tools_were_called = tool_call_processor.drain { |index, tool_name, content|
           messages << OllamaChat::Message.new(
             role:        'user', # XXX this should be 'tool' but it doesn't currently seem to work in Ollama API
             sender_name: tool_name,

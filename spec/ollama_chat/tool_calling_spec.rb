@@ -171,30 +171,4 @@ describe OllamaChat::ToolCalling do
       chat.disable_tool
     end
   end
-
-  describe '#handle_tool_call_results?' do
-    it 'yields tool results to the provided block and then clears them' do
-      # Setup: inject tool results directly into the instance variable
-      chat.instance_variable_set(:@tool_call_results, {
-        'read_file' => ['Content of file A', 'Content of file B']
-      })
-
-      processed = []
-      chat.expose(:handle_tool_call_results?) do |index, tool, content|
-        processed << { idx: index, t: tool, c: content }
-      end
-
-      expect(processed).to eq([
-        { idx: 0, t: 'read_file', c: 'Content of file A' },
-        { idx: 1, t: 'read_file', c: 'Content of file B' }
-      ])
-      # Verify the buffer was cleared
-      expect(chat.instance_variable_get(:@tool_call_results)).to be_empty
-    end
-
-    it 'returns false if there are no results to process' do
-      chat.instance_variable_set(:@tool_call_results, {})
-      expect(chat.expose(:handle_tool_call_results?) { }).to be false
-    end
-  end
 end

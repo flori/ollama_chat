@@ -11,7 +11,8 @@ describe OllamaChat::FollowChat do
 
   let :chat do
     double('Chat', markdown: double(on?: false), think_loud?: false,
-           think?: false, debug: false, stream: double(on?: true))
+           think?: false, debug: false, stream: double(on?: true),
+           tool_call_processor: double(handle: nil))
   end
 
   let :follow_chat do

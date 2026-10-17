@@ -94,11 +94,6 @@ module OllamaChat::ToolCalling
     Array(config.tools&.functions&.attribute_names&.map(&:to_s)).sort
   end
 
-  # The tool_call_results reader returns the tools' results for the
-  # chat session if any.
-  #
-  # @return [ Hash ] a hash containing the registered tool results
-  attr_reader :tool_call_results
 
   # The list_tools method displays the sorted list of enabled tools.
   #
@@ -183,15 +178,4 @@ module OllamaChat::ToolCalling
     end
   end
 
-  private
-
-  def handle_tool_call_results?(&block)
-    @tool_call_results.each do |tool_name, results|
-      results.each_with_index { |content, index|
-        block.(index, tool_name, content)
-      }
-    end.present?
-  ensure
-    @tool_call_results.clear
-  end
 end
