@@ -74,7 +74,7 @@ module OllamaChat::Information
   def collection_stats(output: STDOUT)
     col          = database_collection?(collection)
     length       = (Tins::Terminal.cols - 10).clamp(0..)
-    wrapped_tags = Kramdown::ANSI::Width.
+    wrapped_tags =
       wrap(@documents.tags.to_a.join(', '), length:).
       gsub(/(?<!\A)^/, ' ' * 4)
     output.puts <<~EOT

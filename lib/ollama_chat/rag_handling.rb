@@ -336,7 +336,7 @@ module OllamaChat::RAGHandling
         output.puts kramdown_ansi_parse(<<~EOT)
           **#{record.source}**
           ```
-          #{Kramdown::ANSI::Width.wrap(record.text.sub(/\n+\z/, ''), percentage: 90)}
+          #{wrap(record.text.sub(/\n+\z/, ''), percentage: 90)}
           ```
           ---
         EOT
@@ -406,7 +406,7 @@ module OllamaChat::RAGHandling
                 output.puts kramdown_ansi_parse(<<~EOT)
                   **[#{record.tags.join(', ')}]**
                   ```
-                  #{Kramdown::ANSI::Width.wrap(record.text.sub(/\n+\z/, ''), percentage: 90)}
+                  #{wrap(record.text.sub(/\n+\z/, ''), percentage: 90)}
                   ```
                   ---
                 EOT

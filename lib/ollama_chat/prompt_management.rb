@@ -381,7 +381,7 @@ module OllamaChat::PromptManagement
       start   = '%s %s' % [ default, bold { p.name } ]
       start   = prefix_favourite(start, favs[p.name])
       content = p.to_s.inspect[1..-2]
-      content = Kramdown::ANSI::Width.truncate(
+      content = truncate(
         content, length: 0.9 * (Tins::Terminal.columns - start.size)
       )
       feedback '%s %s' % [ start, italic { content } ]

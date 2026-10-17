@@ -110,7 +110,7 @@ module OllamaChat::SessionManagement
       table.headings = %w[ ID NAME SIZE #TOK COUNT UPDATED ].map { |header| bold { header } }
       now = Time.now
       models::Session.order(Sequel.desc(:updated_at)).each do |s|
-        name        = Kramdown::ANSI::Width.truncate(s.name, length: 32)
+        name        = truncate(s.name, length: 32)
         name        = session.id == s.id ? bold { name } : name
         name        = if pid = s.locked?
                         if pid == $$
@@ -611,7 +611,7 @@ module OllamaChat::SessionManagement
         name = name.
           gsub(/(\A(\s|[^A-Za-z])+|(\s|[^A-Za-z])+\z)/m, '').
           gsub(/\s+/, ' ')
-        Kramdown::ANSI::Width.truncate(name, length:)
+        truncate(name, length:)
       end
     end
   end
