@@ -750,10 +750,10 @@ module OllamaChat::SessionManagement
         suffix               = " 🆔#{session.id}#{locked}📨#{count} 🧩#{es.tokens_formatted} ⏳#{duration}"
         display_session_name = truncate(session.name, length: (0.8 * (width - suffix.length)).floor.clamp(1..))
         display              = "#{display_session_name}#{suffix}"
-        SearchUI::Wrapper.new(session.name, display:)
+        SearchUI::Wrapper.new([ session.id, session.name ] * ?-, display:)
       }
       selector and sessions = sessions.select { _1 =~ selector }
-      session_name =
+      session_selected =
         if sessions.size == 1
           sessions.first.value
         else
@@ -773,8 +773,8 @@ module OllamaChat::SessionManagement
           end
           value
         end
-      if session_name
-        session_query.first(name: session_name)
+      if session_selected
+        session_query.first(id: session_selected.split(?-, 2).first)
       end
     end
   end
