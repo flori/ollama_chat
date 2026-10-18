@@ -35,7 +35,7 @@ describe OllamaChat::Information do
     expect(STDOUT).to receive(:puts).with(/Current chat model is/)
     expect(STDOUT).to receive(:puts).with(/Session:/)
     expect(STDOUT).to receive(:puts).with(/Current System Prompt/)
-    expect(STDOUT).to receive(:puts).with(/No persona selected/)
+    expect(STDOUT).to receive(:puts).with(/💃 Persona:/)
     expect(STDOUT).to receive(:puts).with(/Tools support enabled/)
     expect(STDOUT).to receive(:puts).with(/Runtime Information enabled/)
     expect(chat.info).to be_nil

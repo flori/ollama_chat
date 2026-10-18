@@ -200,7 +200,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
       name:                     ,
       current_model:            ,
       current_collection:       chat.initial_collection,
-      default_persona_name:     chat.initial_persona_name,
+      default_persona_name:     chat.config.persona&.default_name,
       current_system_prompt:    chat.initial_system_prompt,
       tools_enabled:            chat.config.tools.enabled,
       tools_default_enabled:    ,

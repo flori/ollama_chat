@@ -95,13 +95,31 @@ module OllamaChat::PersonaeManagement
   def set_default_persona_name(persona_name)
     if persona_name.present? && persona_name != :none
       @default_persona_name = Pathname.new(persona_name).basename.sub_ext('').to_path
-      @session.update(default_persona_name:)
     else
-      @session.update(default_persona_name: nil)
       @default_persona_name = nil
     end
+    @session.update(default_persona_name:)
+    sync_trigger
     messages.set_system_prompt(session&.current_system_prompt.full?)
     default_persona_name
+  end
+
+  # Synchronizes the session's trigger collection to match the current
+  # default persona.
+  #
+  # When a persona is set, the trigger is re-keyed (or seeded) to
+  # `memory-<persona>`, preserving any existing trigger configuration.
+  # When no persona is active, the trigger is set to nil.
+  def sync_trigger
+    unless @default_persona_name
+      session.update(trigger: nil) unless session.trigger.nil?
+      return
+    end
+    collection = create_memory_collection(@default_persona_name)
+    return if session.trigger&.keys&.first == collection
+    cfg = session.trigger&.values&.first or
+      cfg = chat.config.trigger.to_h.stringify_keys_recursive
+    session.update(trigger: { collection => cfg })
   end
 
   # Interactively selects a persona and sets it as the default for the session.

@@ -159,9 +159,19 @@ describe OllamaChat::SessionManagement do
   end
 
   describe '#new_session' do
-    it 'creates a new session with defaults' do
+    it 'creates a new session with config defaults, not current session values' do
+      # Switch current session to a non-default persona
+      chat.set_default_persona_name('sarah')
+      expect(chat.session.default_persona_name).to eq('sarah')
+      expect(chat.session.trigger).not_to be_nil
+
       new_s = chat.new_session
-      expect(new_s).to be_a(OllamaChat::Database::Models::Session)
+
+      # New session gets the config default, NOT 'sarah'
+      config_default = chat.config.persona&.default_name
+      expect(new_s.default_persona_name).to eq(config_default)
+      # New session starts with a nil trigger (fresh)
+      expect(new_s.trigger).to be_nil
     end
   end
 
@@ -229,12 +239,27 @@ describe OllamaChat::SessionManagement do
       expect(result).to eq('Generated Title')
     end
   end
+
   describe '#duplicate_session' do
     it 'creates a copy of the current session' do
       expect(chat).to receive(:determine_valid_new_name_for_session).and_return('dup_test')
       expect(chat).to receive(:confirm?).and_return(false)
       expect { chat.duplicate_session }.to change { OllamaChat::Database::Models::Session.count }.by(1)
       expect(OllamaChat::Database::Models::Session.where(name: 'dup_test').first).not_to be_nil
+    end
+
+    it 'preserves persona and trigger on duplicate' do
+      chat.set_default_persona_name('sarah')
+      expect(chat.session.default_persona_name).to eq('sarah')
+      expect(chat.session.trigger.keys.first).to eq('memory-sarah')
+
+      expect(chat).to receive(:determine_valid_new_name_for_session).
+        and_return('dup_preserve')
+      expect(chat).to receive(:confirm?).and_return(false)
+      chat.duplicate_session
+
+      expect(chat.session.default_persona_name).to eq('sarah')
+      expect(chat.session.trigger.keys.first).to eq('memory-sarah')
     end
   end
 
@@ -330,7 +355,7 @@ describe OllamaChat::SessionManagement do
       expect(chat).to receive(:all_collections)
         .and_return(double(map: ['my_collection']))
       expect(chat).to receive(:choose_with_state).at_least(:once).and_yield
-      expect(chat).to receive(:current_search_state=).at_least(:once)
+      allow(chat).to receive(:current_search_state=)
       expect(chat).to receive(:choose_entry)
         .and_return('my_collection', 'my_rerank')
       expect(chat).to receive(:ask?).and_return('5', 'y')

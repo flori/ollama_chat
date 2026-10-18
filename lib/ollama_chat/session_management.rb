@@ -205,6 +205,7 @@ module OllamaChat::SessionManagement
       raise OllamaChat::OllamaChatError,
         "Could not lock session #{session.id} #{session.errors.full?(:inspect)}"
     end
+    @default_persona_name = session.default_persona_name
     session_apply
     messages.clear
     session.current_model.full? {
@@ -263,6 +264,7 @@ module OllamaChat::SessionManagement
     session or abort "No session named #{bold{session_name.inspect}} found."
     if session.lock?
       messages.read_conversation_jsonl(session.messages.to_s)
+      @default_persona_name = session.default_persona_name || nil
       session_apply
     else
       feedback(
@@ -289,13 +291,7 @@ module OllamaChat::SessionManagement
   # @return [OllamaChat::Database::Models::Session] the applied session
   #   instance.
   def session_apply
-    initial_persona_name.full? do |persona_name|
-      collection        = create_memory_collection(persona_name)
-      session.trigger.present? or
-        session.trigger = {
-          collection => chat.config.trigger.to_h.stringify_keys_recursive
-        }
-    end
+    sync_trigger
     session.update(working_directory: Dir.pwd)
     init_history
     repair_group_uuids
