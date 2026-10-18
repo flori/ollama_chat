@@ -431,7 +431,7 @@ module OllamaChat::ModelHandling
     end
     model_metadata or return
     @model_metadatas[key] = model_metadata
-  rescue Ollama::Errors::NotFoundError
+  rescue Ollama::Errors::NotFoundError, Ollama::Errors::BadRequestError
     nil
   end
 
