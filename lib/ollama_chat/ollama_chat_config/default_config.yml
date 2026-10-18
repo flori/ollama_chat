@@ -174,7 +174,7 @@ prompts:
 
       Create a title with a length of **less than %{length}** characters for
       the conversation above. Output only the title and nothing else.
-  session:
+  report:
     coding_brief: |
       %{content}
 

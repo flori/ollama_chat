@@ -478,7 +478,7 @@ describe OllamaChat::SessionManagement do
     it 'uses named prompt when name is provided' do
       chat.messages << OllamaChat::Message.new(role: 'user', content: 'hello')
       expect(chat).to receive(:sender_name_displayed).and_return('User')
-      expect(chat).to receive(:prompt).with('coding_brief', context: 'session')
+      expect(chat).to receive(:prompt).with('coding_brief', context: 'report')
         .and_return(double(to_s: '%{content}'))
       expect(chat).to receive(:prompt).with(:report, context: 'system')
         .and_return(double(to_s: '%{content}'))

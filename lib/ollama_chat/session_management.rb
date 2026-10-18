@@ -448,7 +448,7 @@ module OllamaChat::SessionManagement
 
   # Generates a report document for the current session's conversation.
   #
-  # Uses a user-selected prompt template from the 'session' context
+  # Uses a user-selected prompt template from the 'report' context
   # (e.g. coding_brief, roleplay_story) to produce a single cohesive
   # document describing the session. Uses `compacted_messages` (summary +
   # recent tail) rather than `each_message` so the interpolated content
@@ -465,10 +465,10 @@ module OllamaChat::SessionManagement
     content.empty? and return
 
     template = if name
-                 prompt(name, context: 'session')
+                 prompt(name, context: 'report')
                else
                  choose_prompt(
-                   context: 'session',
+                   context: 'report',
                    prompt: 'Which report template? %s'
                  )
                end
