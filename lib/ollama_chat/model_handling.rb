@@ -416,8 +416,12 @@ module OllamaChat::ModelHandling
   # @return [ ModelMetadata, NilClass ] if the model is present,
   #   nil otherwise
   def model_present?(model, ollama:)
+    model.present? or return
+    @model_metadatas ||= {}
+    key                = [ model, ollama.__id__ ]
+    model_metadata     = @model_metadatas[key] and return model_metadata
     ollama.show(model:) do |md|
-      return ModelMetadata.new(
+      model_metadata = ModelMetadata.new(
         name:         model,
         system:       md.system,
         capabilities: md.capabilities,
@@ -425,6 +429,8 @@ module OllamaChat::ModelHandling
         thinking:     md.thinking,
       )
     end
+    model_metadata or return
+    @model_metadatas[key] = model_metadata
   rescue Ollama::Errors::NotFoundError
     nil
   end
@@ -641,22 +647,24 @@ module OllamaChat::ModelHandling
   # @param current_model [String] the fallback model if selection fails
   # @return [String] the selected model name
   def choose_model(cli_model, current_model)
+    if model_present?(cli_model, ollama:)
+      return cli_model
+    end
     selector = if cli_model =~ /\A\?+(.*)\z/
                  cli_model = ''
                  Regexp.new($1)
                end
     models = all_models
     selector and models = models.select { _1.value =~ selector }
-    model =
-      if models.size == 1
-        models.first.value
-      elsif cli_model == ''
-        choose_entry(
-          models,
-          prompt: "Which digital oracle shall we consult? %s"
-        )&.value || current_model
-      else
-        cli_model || current_model
-      end
+    if models.size == 1
+      models.first.value
+    elsif cli_model == ''
+      choose_entry(
+        models,
+        prompt: "Which digital oracle shall we consult? %s"
+      )&.value || current_model
+    else
+      cli_model || current_model
+    end
   end
 end
