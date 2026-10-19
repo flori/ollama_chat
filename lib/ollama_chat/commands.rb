@@ -285,15 +285,15 @@ module OllamaChat::Commands
 
   command(
     name: :last,
-    regexp:  %r(^/last((?:\s+(?:-[ptsv]))*)(?:\s+(\d*))?$),
-    options: '[-p|-t|-s|n=1]',
+    regexp:  %r(^/last((?:\s+(?:-[dtsv]))*)(?:\s+(\d*))?$),
+    options: '[-d|-t|-s|n=1]',
     help: <<~EOT
       🔍 Show or speak last message(s)
-         Options: -p (plain), -t (show thinking),
-                  -s (hide thinking) -v (voice output)
+          Options: -d (direct), -t (show thinking),
+                   -s (hide thinking) -v (voice output)
     EOT
   ) do |opts,number|
-    opts = go_command('ptsv', opts.to_s)
+    opts = go_command('dtsv', opts.to_s)
     n    = number.to_i.clamp(1..)
     if opts[?v]
       messages.speak_last(n)
@@ -306,7 +306,7 @@ module OllamaChat::Commands
         else
           self.think_loud.on?
         end
-      messages.show_last(n, think_loud:, pager: !opts[?p])
+      messages.show_last(n, think_loud:, pager: !opts[?d])
     end
     :next
   end

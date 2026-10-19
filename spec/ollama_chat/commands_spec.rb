@@ -153,9 +153,9 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/last 2")).to eq :next
     end
 
-    it 'returns :next when input is "/last -p 2"' do
+    it 'returns :next when input is "/last -d 2"' do
       expect(chat.messages).to receive(:show_last).with(2, think_loud: true, pager: false)
-      expect(chat.handle_input("/last -p 2")).to eq :next
+      expect(chat.handle_input("/last -d 2")).to eq :next
     end
 
     it 'speaks last message with -v' do
