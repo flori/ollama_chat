@@ -187,6 +187,14 @@ describe OllamaChat::Commands, protect_env: true do
       expect(chat.handle_input("/model change")).to eq :next
     end
 
+    it 'flushes model cache and selects model with -r' do
+      expect(chat.model_cache).to receive(:flush)
+      expect(chat).to receive(:choose_model).and_return 'mistral'
+      expect(chat).to receive(:choose_profile_for_model).with('mistral').and_return nil
+      expect(chat).to receive(:use_model).with('mistral', profile: 'default')
+      expect(chat.handle_input("/model change -r")).to eq :next
+    end
+
     it 'returns :next when input is "/model options" with cancel' do
       expect(chat).to receive(:choose_profile_for_model).with(nil, allow_new: true).and_return nil
       expect(chat.handle_input("/model options")).to eq :next

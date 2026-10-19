@@ -552,12 +552,12 @@ module OllamaChat::Commands
 
   command(
     name: :model,
-    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m|-p\s+[\S]+))*)$),
+    regexp: %r(^/model(?:\s+(change|options(?: copy| delete| export| import)?|options from session|options to session))?((?:\s+(?:-m|-r|-p\s+[\S]+))*)$),
     complete: [ 'model', %w[ change options options\ copy options\ delete options\ export options\ import options\ from\ session options\ to\ session ] ],
-    options: '[-m|-p pattern]',
+    options: '[-m|-r|-p pattern]',
     help: <<~EOT
       🤖 Manage AI models & profiles:
-         - change: Switch active model
+         - change: Switch active model (-r to refresh)
          - options: Edit saved profile config
          - options copy: Copy profile from another model
          - options delete: Delete a saved profile
@@ -565,11 +565,14 @@ module OllamaChat::Commands
          - options import: Selectively import profiles from JSON
          - options from session: Save live → Saved
          - options to session: Apply Saved → Live
-         -m interactively choose a model
-         -p PATTERN narrow file search for import
+           -m interactively choose a model
+           -r  refresh model list (flush cache)
+           -p PATTERN narrow file search for import
     EOT
   ) do |subcommand, opts|
     if subcommand == 'change'
+      opts = go_command('mr', opts)
+      @model_cache.flush if opts[?r]
       begin
         model   = choose_model('', @model)
         profile = choose_profile_for_model(model) || 'default'

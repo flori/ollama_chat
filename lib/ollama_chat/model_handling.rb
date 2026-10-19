@@ -418,7 +418,7 @@ module OllamaChat::ModelHandling
   # @return [ ModelMetadata, NilClass ] if the model is present,
   #   nil otherwise
   def model_present?(model, ollama:)
-    name = model.full? or return
+    name           = model.full? or return
     model_metadata = @model_cache.cached?(ollama, name) and return model_metadata
     ollama.show(model:) do |md|
       model_metadata = ModelMetadata.new(
@@ -473,16 +473,15 @@ module OllamaChat::ModelHandling
   # by creating a formatted string that includes the model name and its size
   # in a human-readable format with appropriate units.
   #
-  # @param model [ Object ] the model object that has name and size attributes
+  # @param model [ String ] the model name
+  # @param size  [ Integer ] the size of the model in bytes
   #
-  # @return [ Object ] a result object with an overridden to_s method
-  #                     that combines the model name and formatted size
-  def model_with_size(model, favourited: false)
-    formatted_size = Term::ANSIColor.bold {
-      format_bytes(model.size)
-    }
-    display = prefix_favourite("#{model.name} #{formatted_size}", favourited)
-    SearchUI::Wrapper.new(model.name, display:)
+  # @return [ SearchUI::Wrapper ] a result object with an overridden to_s
+  #   method that combines the model name and formatted size
+  def model_with_size(model, size, favourited: false)
+    formatted_size = Term::ANSIColor.bold { format_bytes(size) }
+    display        = prefix_favourite("#{model} #{formatted_size}", favourited)
+    SearchUI::Wrapper.new(model, display:)
   end
 
   # Ensures the specified model is available locally and synchronizes the
@@ -631,8 +630,13 @@ module OllamaChat::ModelHandling
   #   metadata
   def all_models
     favs = all_favourited('model')
-    ollama.tags.models.sort_by(&:name).
-      map { |m| model_with_size(m, favourited: favs[m.name]) }
+    @model_cache.models(ollama).sort.map { |name|
+      model_with_size(
+        name,
+        @model_cache.model_size(ollama, name),
+        favourited: favs[name]
+      )
+    }
   end
 
   # The choose_model method selects a model from the available list based on

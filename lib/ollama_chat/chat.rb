@@ -167,6 +167,11 @@ class OllamaChat::Chat
   # @return [OllamaChat::RedisCache, nil] the cache instance
   attr_reader :cache
 
+  # The model_cache method provides read-only access to the model cache.
+  #
+  # @return [ ModelCache ] the model cache instance
+  attr_reader :model_cache
+
   # Returns the voice handler class based on the configuration.
   #
   # This method resolves the voice handler class specified in the config.
@@ -347,7 +352,6 @@ class OllamaChat::Chat
   # @return [OllamaChat::ToolCallProcessor] the processor that handles
   #   tool execution and result storage
   attr_reader :tool_call_processor
-
 
   private
 
