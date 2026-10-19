@@ -116,6 +116,7 @@ class OllamaChat::Chat
     setup_switches
     setup_session
     setup_state_selectors(config)
+    @model_cache = ModelCache.new
     connect_ollama
     connect_embedding_ollama
     @documents = setup_documents

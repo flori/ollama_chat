@@ -1,3 +1,5 @@
+require 'ollama_chat/model_handling/model_cache'
+
 # A module that provides functionality for managing Ollama models, including
 # checking model availability, pulling models from remote servers, and handling
 # model presence verification.
@@ -416,13 +418,11 @@ module OllamaChat::ModelHandling
   # @return [ ModelMetadata, NilClass ] if the model is present,
   #   nil otherwise
   def model_present?(model, ollama:)
-    model.present? or return
-    @model_metadatas ||= {}
-    key                = [ model, ollama.__id__ ]
-    model_metadata     = @model_metadatas[key] and return model_metadata
+    name = model.full? or return
+    model_metadata = @model_cache.cached?(ollama, name) and return model_metadata
     ollama.show(model:) do |md|
       model_metadata = ModelMetadata.new(
-        name:         model,
+        name:         ,
         system:       md.system,
         capabilities: md.capabilities,
         families:     md.details.families,
@@ -430,7 +430,7 @@ module OllamaChat::ModelHandling
       )
     end
     model_metadata or return
-    @model_metadatas[key] = model_metadata
+    @model_cache.cache(ollama, name, model_metadata)
   rescue Ollama::Errors::NotFoundError, Ollama::Errors::BadRequestError
     nil
   end
