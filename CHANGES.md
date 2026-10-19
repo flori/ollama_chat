@@ -1,5 +1,77 @@
 # Changes
 
+## 2026-10-19 v0.0.135
+
+### Features
+
+- Introduced `OllamaChat::ModelHandling::ModelCache` to manage model metadata
+  and sizes with two-tier storage (names/sizes and full metadata), supporting
+  lazy registration and per-client isolation.
+- Added `-r` flag to the `/model change` command to flush the model cache
+  before re-listing models.
+- Added `OllamaChat::ToolCallProcessor` to encapsulate the tool call lifecycle,
+  including execution, result storage, and draining of results for the chat
+  loop.
+- Enabled searching sessions by ID in the session chooser by including the
+  session ID in the search value.
+
+### Fixes
+
+- Rescued `Ollama::Errors::BadRequestError` in `model_present?` to prevent
+  unhandled exceptions for model names rejected by the server with a 400
+  status.
+- Fixed persona leakage in new sessions by using `config.persona&.default_name`
+  instead of the current session's persona in `Session.with_defaults`.
+- Synchronized session triggers with the active persona via `sync_trigger` in
+  `PersonaeManagement`, ensuring triggers are rekeyed, cleared, or seeded
+  correctly on persona changes.
+
+### Improvements
+
+- Refactored `model_present?` to use the new `ModelCache` instead of an inline
+  hash, improving cache management and reducing repeated API calls.
+- Updated `choose_model` to skip the `all_models` API call if the requested
+  model is already confirmed present via `model_present?`.
+- Renamed the prompt context for report templates from `session` to `report` in
+  `default_config.yml` and `SessionManagement` to better reflect its purpose.
+- Renamed `OllamaChat::Database::SessionLocking` to
+  `OllamaChat::Database::RowLocking` to reflect its generic row-level locking
+  behavior, removing the `chat:` keyword argument from `lock?` and moving
+  feedback emission to the caller.
+- Replaced `Kramdown::ANSI::Width.truncate` and `Kramdown::ANSI::Width.wrap`
+  with bare `truncate` and `wrap` in multiple modules where ANSI sequences are
+  not present at measurement time.
+- Truncated session names in the `/sessions` list to fit terminal width,
+  preventing long names from wrapping or pushing metadata off-screen.
+- Decoupled `model_with_size` from the `Ollama::Tag` shape, now accepting model
+  name and size directly.
+
+### Build & CI
+
+- Updated `gem_hadar` development dependency to **2.20.1**.
+- Regenerated gem metadata to include new files (`tool_call_processor.rb`,
+  `model_cache.rb`, `row_locking.rb`) and updated file lists.
+
+### Testing
+
+- Added `spec/ollama_chat/model_handling/model_cache_spec.rb` with 18 examples
+  covering cache operations, lazy registration, per-instance isolation, and
+  flushing.
+- Added `spec/ollama_chat/personae_management_spec.rb` with 5 examples covering
+  `sync_trigger` state transitions.
+- Added `spec/ollama_chat/tool_call_processor_spec.rb` covering `drain`,
+  `clear!`, and result storage.
+- Updated `spec/ollama_chat/commands_spec.rb` to test the `-r` flag for `/model
+  change`.
+- Updated `spec/ollama_chat/session_management_spec.rb` to verify persona and
+  trigger behavior in new and duplicated sessions, and adjusted lock
+  expectations.
+- Updated `spec/ollama_chat/information_spec.rb` to reflect the correct persona
+  display after initialization.
+- Removed `#handle_tool_call_results?` tests from
+  `spec/ollama_chat/tool_calling_spec.rb` as the method was moved to
+  `ToolCallProcessor`.
+
 ## 2026-10-17 v0.0.134
 
 * Removed the local dependency on the `ollama-ruby` gem from the `Gemfile`.
