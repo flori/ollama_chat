@@ -10,6 +10,7 @@ describe OllamaChat::Tools::ExecuteShell do
   end
 
   before do
+    described_class.always_allowed.clear
     allow(OllamaChat).to receive(:test_mode?).and_return(false)
     allow(chat).to receive(:log)
     allow(OC).to receive(:EDITOR?).and_return('vim')
@@ -204,6 +205,73 @@ describe OllamaChat::Tools::ExecuteShell do
       json   = json_object(result)
 
       expect(json.error).to eq 'OllamaChat::ToolFunctionArgumentError'
+    end
+
+    it 'answers a to remember allow and proceed to execution' do
+      expect(chat).to receive(:edit_text).and_return('bundle install')
+      expect(chat).to receive(:confirm?).and_return('a')
+      expect(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      expect(Open3).to receive(:capture3)
+        .with('sh', '-c', 'bundle install')
+        .and_return(['ok', '', double('s', exitstatus: 0)])
+
+      result = tool.execute(tool_call('bundle install'), chat:)
+      expect(json_object(result).exit_code).to eq 0
+    end
+
+    it 'answers d to remember direct and print without pager' do
+      expect(chat).to receive(:edit_text).and_return('id')
+      expect(chat).to receive(:confirm?).and_return('d')
+      allow(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      allow(Open3).to receive(:capture3)
+        .and_return(['uid=1000', '', double('s', exitstatus: 0)])
+
+      tool.execute(tool_call('id'), chat:)
+
+      # second call: no editor, no confirm, no pager
+      expect(chat).not_to receive(:edit_text)
+      expect(chat).not_to receive(:confirm?)
+      expect(chat).not_to receive(:use_pager)
+      allow(STDOUT).to receive(:puts)
+      allow(Open3).to receive(:capture3)
+        .and_return(['uid=1000', '', double('s', exitstatus: 0)])
+
+      tool.execute(tool_call('id'), chat:)
+    end
+
+    it 'skips editor and confirm on second call after a but still pages' do
+      expect(chat).to receive(:edit_text).and_return('bundle install')
+      expect(chat).to receive(:confirm?).and_return('a')
+      allow(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      allow(Open3).to receive(:capture3)
+        .and_return(['ok', '', double('s', exitstatus: 0)])
+
+      tool.execute(tool_call('bundle install'), chat:)
+
+      expect(chat).not_to receive(:edit_text)
+      expect(chat).not_to receive(:confirm?)
+      expect(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      allow(Open3).to receive(:capture3)
+        .and_return(['ok', '', double('s', exitstatus: 0)])
+
+      tool.execute(tool_call('bundle install'), chat:)
+    end
+
+    it 'does not skip confirm for a different command after a' do
+      expect(chat).to receive(:edit_text).and_return('ls')
+      expect(chat).to receive(:confirm?).and_return('a')
+      allow(chat).to receive(:use_pager) { |&blk| blk.call(StringIO.new) }
+      allow(Open3).to receive(:capture3)
+        .and_return(['ok', '', double('s', exitstatus: 0)])
+
+      tool.execute(tool_call('ls'), chat:)
+
+      expect(chat).to receive(:edit_text).and_return('rm -rf /')
+      expect(chat).to receive(:confirm?).and_return('n')
+      expect(Open3).not_to receive(:capture3)
+
+      result = tool.execute(tool_call('rm -rf /'), chat:)
+      expect(json_object(result).error).not_to be_nil
     end
 
     it 'summary_template includes the command and exit code' do
