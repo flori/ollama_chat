@@ -89,6 +89,14 @@ module OC
     end
   end
 
+  FASTFETCH = set do
+    description 'Path to fastfetch executable for system information'
+
+    default do
+      `which 2>/dev/null fastfetch`.full?(:chomp)
+    end
+  end
+
   KRAMDOWN_ANSI_OLLAMA_CHAT_STYLES = set do
     description 'Styles to use for kramdown-ansi markdown'
 

@@ -341,6 +341,7 @@ module OllamaChat::Information
       current_directory:    Pathname.pwd.expand_path.to_path,
       languages:            config.languages * ', ',
       location:             location.on?.full? { location_description } || 'n/a',
+      machine:              machine_profile || 'n/a',
       user:                 ,
     }
   end
@@ -473,6 +474,63 @@ module OllamaChat::Information
   end
 
   private
+
+  # Builds and caches a compact, single-line description of the host
+  # machine, derived from a `fastfetch` run against the bundled profile
+  # (+OC::FASTFETCH+). The profile requests a focused set of modules
+  # (os, kernel, cpu, gpu, de, wm, terminal, memory, editor, packages,
+  # chassis, board, bios) so the result stays small enough to inject into
+  # the system prompt at zero per-turn cost.
+  #
+  # Gracefully degrades to `'n/a'` when +fastfetch+ is not installed or
+  # the config is missing, so a missing optional dependency never breaks
+  # session startup.
+  #
+  # @return [String] e.g.
+  #   `C64 1541 (c64) · 6502@1MHz m64 · MOS Technology 6502 ·
+  #    NVIDIA GeForce RTX 5090 (32GB) · VIC-II (no DE) · Home Computer ·
+  #    PET2001N-Board · MOS 3.0 UEFI 4000 · 64 KiB · vim 1.0 · 1 pkgs`
+  def machine_profile
+    return @machine_profile if defined?(@machine_profile)
+    @machine_profile = nil
+    unless fastfetch = OC::FASTFETCH?
+      log(:warn, 'Fastfetch executable not found, skipping machine profile!')
+      return
+    end
+    config = Shellwords.escape(File.join(__dir__, 'ollama_chat_config', 'fastfetch-profile.jsonc'))
+    out = `#{fastfetch} -c #{config} --format json 2>/dev/null`.full? or return
+    mods = JSON.parse(out, object_class: JSON::GenericObject)
+    @machine_profile =
+      mods.map do |m|
+        r = m.result or next
+        case m.type
+        when 'OS'
+          "%s %s (%s)" % [ r.name, r.versionID, r.idLike ]
+        when 'Kernel'
+          "%s %s" % [ r.release, r.architecture ]
+        when 'CPU'
+          r.cpu
+        when 'GPU'
+          (r.find { _1.type == 'Discrete' } || r.first)&.name
+        when 'WM'
+          suffix = mods.any? { _1.type == 'DE' && _1.result } ? '' : ' (no DE)'
+          "%s/%s%s" % [ r.processName, r.protocolName, suffix ]
+        when 'Memory'
+          format_bytes(r.total)
+        when 'Editor'
+          "%s %s" % [ r.exe, r.version ]
+        when 'Packages'
+          "%s pkgs" % r.all
+        when 'Chassis'
+          r.type
+        when 'Board'
+          r.name
+        when 'BIOS'
+          "%s %s" % [ r.type, r.version ]
+        end
+      end.compact * ' · '
+  rescue JSON::ParserError
+  end
 
   # Lazily builds and caches the {ContextUsage} bound to this chat,
   # which owns the ANSI/emoji presentation logic for context usage.
