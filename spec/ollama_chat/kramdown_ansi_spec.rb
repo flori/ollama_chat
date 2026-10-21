@@ -51,7 +51,7 @@ describe OllamaChat::KramdownANSI do
     end
 
     it 'removes table separator rows' do
-      input = "Name | Age\n------|-----\nFoo | 42"
+      input  = "| Name | Age |\n|------|-----|\n|Foo | 42|\n"
       result = chat.kramdown_markdown_remove(input)
       expect(result).not_to include('-')
     end
