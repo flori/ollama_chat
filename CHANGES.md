@@ -1,5 +1,54 @@
 # Changes
 
+## 2026-10-21 v0.0.136
+
+### Features
+
+- Added a `machine` key to the static runtime information, injecting a compact
+  host description into the system prompt via a new `machine_profile` method in
+  `information.rb`.
+- Introduced a new `OC::FASTFETCH` configuration option to resolve the
+  `fastfetch` executable path.
+- Added a new `fastfetch-profile.jsonc` configuration file to define the
+  modules used for the machine profile.
+- Added `always-allow` and `direct` modes to the `execute_shell` tool, allowing
+  users to remember command approvals for the session.
+- Extended the `execute_shell` confirmation prompt to include `a` (always allow
+  with pager) and `d` (always allow direct to `STDOUT`) options.
+
+### Fixes
+
+- Updated the `kramdown_ansi` table separator spec to use pipe-bounded syntax
+  (`| Name | Age |`) to align with `kramdown-ansi` **0.6** requirements,
+  preventing literal dashes from leaking into the output.
+- Renamed the `/last` command option from `-p` to `-d` for consistency with the
+  `execute_shell` direct mode flag.
+
+### Improvements
+
+- Refactored `execute_shell` output display to use a shared `write_output`
+  helper for both pager and direct output paths.
+- Updated the `execute_shell` tool description to document the new
+  `always-allow` and `direct` options.
+
+### Build & CI
+
+- Updated the `kramdown-ansi` dependency constraint from **0.5** to **0.6** in
+  `Rakefile` and `ollama_chat.gemspec`.
+- Added `lib/ollama_chat/ollama_chat_config/fastfetch-profile.jsonc` to the
+  gemspec files list.
+- Added `git config --global --add safe.directory /work` to the CI test script
+  in `.all_images.yml`.
+
+### Testing
+
+- Added four new specs for `execute_shell` covering `always-allow` and `direct`
+  mode behaviors, including repeat execution and command differentiation.
+- Updated `commands_spec.rb` to reflect the rename of the `/last` command
+  option from `-p` to `-d`.
+- Added a `before` block in `execute_shell_spec.rb` to clear the
+  `always_allowed` hash and prevent cross-spec contamination.
+
 ## 2026-10-19 v0.0.135
 
 ### Features
