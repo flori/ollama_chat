@@ -647,6 +647,16 @@ describe OllamaChat::RAGHandling do
       chat.delete_collection
     end
 
+    it 'refuses to delete the default collection' do
+      expect(chat).to receive(:choose_entry).
+        and_return('default', '[CANCEL]')
+      expect(chat).to receive(:feedback).
+        with(a_string_including('it is the default collection'), type: :warn)
+      expect(chat).not_to receive(:confirm?)
+
+      expect { chat.delete_collection }.not_to change { col_model.count }
+    end
+
     it 'deletes the collection when confirmed' do
       col_model.create(name: 'del', description: 'd', patterns: [])
       expect(chat).to receive(:choose_entry).and_return('del', '[CANCEL]')
@@ -671,6 +681,54 @@ describe OllamaChat::RAGHandling do
 
       expect { chat.delete_collection }
         .not_to change { col_model.count }
+    end
+
+    context 'when the deleted collection is the active one' do
+      let :session do
+        double('Session')
+      end
+
+      before do
+        chat.instance_variable_set(:@session, session)
+      end
+
+      it 'resets current_collection to default' do
+        col_model.create(name: 'active', description: 'd', patterns: [])
+        expect(chat).to receive(:choose_entry).
+          and_return('active', '[CANCEL]')
+        expect(chat).to receive(:confirm?).and_return(true)
+
+        # after_destroy → switch_collection + documents.clear
+        expect(docs).to receive(:collection).and_return('default')
+        expect(docs).to receive(:collection=).with('active')
+        expect(docs).to receive(:clear)
+        expect(docs).to receive(:collection=).with('default')
+
+        # ensure → deleted collection was current, so reset to default
+        expect(session).to receive(:current_collection).and_return('active')
+        expect(session).to receive(:update).with(current_collection: 'default')
+
+        expect { chat.delete_collection }
+          .to change { col_model.count }.by(-1)
+      end
+
+      it 'leaves current_collection alone for a non-active collection' do
+        col_model.create(name: 'side', description: 'd', patterns: [])
+        expect(chat).to receive(:choose_entry).
+          and_return('side', '[CANCEL]')
+        expect(chat).to receive(:confirm?).and_return(true)
+
+        expect(docs).to receive(:collection).and_return('default')
+        expect(docs).to receive(:collection=).with('side')
+        expect(docs).to receive(:clear)
+        expect(docs).to receive(:collection=).with('default')
+
+        expect(session).to receive(:current_collection).and_return('default')
+        expect(session).not_to receive(:update)
+
+        expect { chat.delete_collection }
+          .to change { col_model.count }.by(-1)
+      end
     end
   end
 

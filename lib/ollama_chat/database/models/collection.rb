@@ -51,7 +51,8 @@ class OllamaChat::Database::Models::Collection < Sequel::Model(OllamaChat::DB)
   #
   # @param chat [OllamaChat::Chat] the chat instance providing the configuration
   def self.sync(chat)
-    chat.documents.collections.each do |name|
+    all_collections = (%w[ default ] + chat.documents.collections).to_set
+    all_collections.each do |name|
       where(name: name.to_s).first and next
       create(
         name:        name.to_s,

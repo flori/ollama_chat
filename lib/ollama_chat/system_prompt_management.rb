@@ -42,11 +42,11 @@ module OllamaChat::SystemPromptManagement
   end
 
   # Re-interpolates the current system prompt with fresh dynamic values
-  # (persona content, collection descriptions, runtime info).
+  # (persona content, persona name, runtime info).
   #
   # Call this after any operation that mutates the sources baked into
-  # the system prompt, such as creating, editing, renaming, or deleting
-  # a collection, or after a persona file has been edited on disk.
+  # the system prompt, such as switching personas or toggling runtime
+  # info.
   #
   # Safe to call when no system prompt is set; returns immediately.
   def refresh_system_prompt
