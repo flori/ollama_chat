@@ -1,5 +1,44 @@
 # Changes
 
+## 2026-10-23 v0.0.137
+
+### Fixes
+
+- Fixed a double-scheme bug in `OC::URL` default generation by delegating to
+  `Ollama.base_url`, ensuring correct handling of `HOST` values that already
+  include `http://` or `https://`.
+- Prevented deletion of the `default` collection in `delete_collection`,
+  returning a warning feedback instead.
+- Reset `session.current_collection` to `'default'` when the active collection
+  is deleted.
+
+### Improvements
+
+- Ensured the `default` collection row always exists in the database by
+  unioning it with `chat.documents.collections` during `Collection.sync`.
+- Removed four vestigial `refresh_system_prompt` calls from
+  `create_collection`, `edit_collection`, `rename_collection`, and
+  `delete_collection`, as collection data no longer interpolates into the
+  system prompt.
+
+### Build & CI
+
+- Updated `ollama-ruby` dependency from **1.25** to **1.26**.
+- Updated `kramdown-ansi` dependency from **~> 0.6** to **~> 0.7**.
+- Updated `gem_hadar` development dependency from **2.20.1** to **2.21.0**.
+
+### Testing
+
+- Added specs for `delete_collection` to verify refusal to delete the `default`
+  collection, resetting `current_collection` when the active collection is
+  deleted, and leaving `current_collection` unchanged for non-active
+  collections.
+
+### Documentation
+
+- Updated YARD documentation for `refresh_system_prompt` to accurately reflect
+  the placeholders used (`persona`, `persona_name`, `runtime_info`).
+
 ## 2026-10-21 v0.0.136
 
 ### Features
