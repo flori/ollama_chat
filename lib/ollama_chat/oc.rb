@@ -114,7 +114,7 @@ module OC
 
     URL = set do
       description 'Ollama base URL to connect to'
-      default     { 'http://%s' % OC::OLLAMA::HOST }
+      default     { host = OC::OLLAMA::HOST? and Ollama.base_url(host).to_s }
       sensitive   true
       decode { URI.parse(_1) if _1.present? }
       check { value.scheme =~ /\Ahttps?\z/ }
