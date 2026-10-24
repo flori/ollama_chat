@@ -465,7 +465,7 @@ module OllamaChat::ModelHandling
       if model_metadata = model_present?(model, ollama:)
         return model_metadata
       end
-      raise OllamaChat::UnknownModelError, "unknown model named #{@model.inspect}"
+      raise OllamaChat::UnknownModelError, "unknown model named #{model.inspect}"
     end
   end
 
@@ -587,16 +587,23 @@ module OllamaChat::ModelHandling
     old_model   = @model
 
     if model.blank?
-      @model = choose_model('', @model)
+      new_model = choose_model('', old_model)
     else
-      @model = choose_model(model, config.model.name)
+      new_model = choose_model(model, config.model.name)
     end
 
-    if @model_metadata = model_present?(@model, ollama:)
-      session.update(current_model: @model)
-    else
-      session.update(current_model: nil)
+    unless model_metadata = model_present?(new_model, ollama:)
+      feedback("Model #{bold{new_model}} not found locally.", type: :warn)
+      unless confirm?(prompt: "Pull it from remote? (y/n) ", yes: /\Ay/i)
+        feedback("Cancelled.", type: :cancel)
+        session.update(current_model: nil)
+        return @model_metadata
+      end
+      model_metadata = pull_model_unless_present(new_model, ollama:)
     end
+
+    @model, @model_metadata = new_model, model_metadata
+    session.update(current_model: @model)
 
     if old_model != @model
       reconfigure_model_options(profile:, keep_options:)
