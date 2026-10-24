@@ -596,7 +596,8 @@ module OllamaChat::ModelHandling
       feedback("Model #{bold{new_model}} not found locally.", type: :warn)
       unless confirm?(prompt: "Pull it from remote? (y/n) ", yes: /\Ay/i)
         feedback("Cancelled.", type: :cancel)
-        session.update(current_model: nil)
+        old_model.full? && model_present?(old_model, ollama:) or
+              raise OllamaChat::UnknownModelError, "no usable model after cancel"
         return @model_metadata
       end
       model_metadata = pull_model_unless_present(new_model, ollama:)
