@@ -21,9 +21,9 @@ class OllamaChat::Tools::ExecuteGrep
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Pattern searcher – Runs a regex against all files at path, optionally
-          case‑insensitive, returning matches (up to max_results). Useful for
-          quick codebase queries or finding config values.
+          Pattern searcher – Runs a regex against all files' contents at path,
+          optionally case‑insensitive, returning matches (up to max_results).
+          Useful for quick codebase queries or finding config values.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
