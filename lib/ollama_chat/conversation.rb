@@ -86,7 +86,7 @@ module OllamaChat::Conversation
           selected.merge(remaining)
           break
         else
-          selected.add(choice)
+          selected << choice
         end
       end
     end

@@ -31,7 +31,7 @@ module OllamaChat::WebSearching
         log(:info, "Web search performed", data: {
           search_engine: engine, query:, results: results.size
         })
-        results.each { |url| links.add(url) }
+        results.each { |url| links << url }
       end
     else
       feedback("Search engine #{bold{engine}} not implemented!", type: :warn)

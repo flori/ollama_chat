@@ -822,7 +822,7 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:create_memory_collection).with('memory-b')
       expect(chat).to receive(:switch_collection).with('memory-a').and_yield
       expect(chat).to receive(:switch_collection).with('memory-b').and_yield
-
+      expect(docs).to receive(:each_record).at_least(:twice)
       expect(docs).to receive(:add)
         .with(['hello'], tags: [ '2026-01-01T00:00:00+02:00' ],
              batch_size: 1, source: nil)
@@ -858,8 +858,7 @@ describe OllamaChat::RAGHandling do
       expect(chat).to receive(:create_memory_collection).with('memory-a')
       expect(chat).not_to receive(:create_memory_collection).with('memory-b')
       expect(chat).to receive(:switch_collection).with('memory-a').and_yield
-      expect(chat).not_to receive(:switch_collection).with('memory-b')
-
+      expect(docs).to receive(:each_record)
       expect(docs).to receive(:add)
         .with(['hello'], tags: [ '2026-01-01T00:00:00+02:00' ],
              batch_size: 1, source: nil)
@@ -873,6 +872,66 @@ describe OllamaChat::RAGHandling do
         .with(a_string_including('Restored 2 record'), type: :success)
 
       chat.memory_restore(target.to_s)
+    end
+
+    context 'with existing records (dedup)' do
+      it 'skips entries whose tags already exist, adds the rest' do
+        tag = double('Tag')
+        allow(tag).to receive(:to_s).with(link: false).
+          and_return('2026-01-01T00:00:00+02:00')
+        rec = double('Record', tags: [ tag ])
+
+        expect(chat).to receive(:choose_with_state).and_yield
+        expect(chat).to receive(:choose_entry)
+          .and_return('memory-a', '[DONE]')
+        expect(chat).to receive(:create_memory_collection).with('memory-a')
+        expect(chat).to receive(:switch_collection).with('memory-a').and_yield
+        expect(docs).to receive(:each_record).and_yield(rec)
+
+        # 'hello' (tag 2026-01-01) is a duplicate -> skipped
+        # 'world' (tag 2026-01-02) is new -> added
+        expect(docs).not_to receive(:add)
+          .with(['hello'], tags: [ '2026-01-01T00:00:00+02:00' ],
+               batch_size: 1, source: nil)
+        expect(docs).to receive(:add)
+          .with(['world'], tags: [ '2026-01-02T00:00:00+02:00' ],
+               batch_size: 1, source: nil)
+
+        allow(chat).to receive(:feedback)
+        expect(chat).to receive(:log)
+        expect(chat).to receive(:feedback)
+          .with(/Restored 1 record.*1 duplicate\(s\) skipped/,
+                type: :success)
+
+        chat.memory_restore(target.to_s)
+      end
+
+      it 'skips all entries when every tag is a duplicate' do
+        tag1 = double('Tag1')
+        allow(tag1).to receive(:to_s).with(link: false).
+          and_return('2026-01-01T00:00:00+02:00')
+        tag2 = double('Tag2')
+        allow(tag2).to receive(:to_s).with(link: false).
+          and_return('2026-01-02T00:00:00+02:00')
+        rec = double('Record', tags: [ tag1, tag2 ])
+
+        expect(chat).to receive(:choose_with_state).and_yield
+        expect(chat).to receive(:choose_entry)
+          .and_return('memory-a', '[DONE]')
+        expect(chat).to receive(:create_memory_collection).with('memory-a')
+        expect(chat).to receive(:switch_collection).with('memory-a').and_yield
+        expect(docs).to receive(:each_record).and_yield(rec)
+
+        expect(docs).not_to receive(:add)
+
+        allow(chat).to receive(:feedback)
+        expect(chat).to receive(:log)
+        expect(chat).to receive(:feedback)
+          .with(/Restored 0 record.*2 duplicate\(s\) skipped/,
+                type: :success)
+
+        chat.memory_restore(target.to_s)
+      end
     end
 
     it 'warns when the file does not exist' do

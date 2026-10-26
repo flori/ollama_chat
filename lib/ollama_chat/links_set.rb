@@ -23,6 +23,7 @@ class OllamaChat::LinksSet
     @set.add(x)
     sync
   end
+  alias << add
 
   # Removes all links from the set and synchronizes it with the session.
   #

@@ -122,7 +122,7 @@ module OllamaChat::RAGHandling
           selected.merge(remaining)
           break
         else
-          selected.add(choice)
+          selected << choice
         end
       end
     end
@@ -202,7 +202,7 @@ module OllamaChat::RAGHandling
           selected.merge(remaining)
           break
         else
-          selected.add(choice)
+          selected << choice
         end
       end
     end
@@ -213,14 +213,25 @@ module OllamaChat::RAGHandling
 
     feedback("Restoring #{selected.size} collection(s): #{selected.join(', ')}")
 
-    total = 0
+    total   = 0
+    skipped = 0
     collections.slice(*selected).sort.each do |col, group|
       create_memory_collection(col)
       switch_collection(col) do
+        existing_tags = Set.new
+        @documents.each_record do |r|
+          r.tags.each { |t| existing_tags << t.to_s(link: false) }
+        end
+
         group.each do |entry|
+          tags = Array(entry['tags'])
+          if tags.any? { |t| existing_tags.include?(t) }
+            skipped += 1
+            next
+          end
           @documents.add(
             [entry['text']],
-            tags: Array(entry['tags']),
+            tags:,
             batch_size: 1,
             source: entry['source']
           )
@@ -230,9 +241,10 @@ module OllamaChat::RAGHandling
     end
 
     log(:info, 'Memory restored',
-        data: { file: filename.to_s, collections: selected, records: total })
+        data: { file: filename.to_s, collections: selected, records: total, skipped: })
     feedback(
-      "Restored #{total} record(s) across #{selected.size} collection(s) from #{filename.to_s.inspect}.",
+      "Restored #{total} record(s) across #{selected.size} collection(s) from #{filename.to_s.inspect}." +
+        (skipped.zero? ? '' : " (#{skipped} duplicate(s) skipped)."),
       type: :success
     )
   end
@@ -374,7 +386,7 @@ module OllamaChat::RAGHandling
         source_tags = Hash.new { |h, k| h[k] = Set.new }
         @documents.records.each do |record|
           source = record.source.full? or next
-          sources.add(source)
+          sources << source
           source_tags[source].merge(record.tags)
         end
         display_map = {}
@@ -599,12 +611,12 @@ module OllamaChat::RAGHandling
       end
 
       sources = {}
-      seen = {}
+      seen    = Set.new
       @documents.each_record do |record|
         source = @documents.normalize_source(record.source) or next
         if matched_sources.nil? || matched_sources.member?(source)
-          seen.key?(source) and next
-          seen[source] = true
+          seen.member?(source) and next
+          seen << source
           unless @documents.source_modified?(source)
             infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
             next
@@ -615,8 +627,8 @@ module OllamaChat::RAGHandling
       end
 
       if patterns = col.patterns.full?
-        new_sources = all_file_set(patterns).map(&:to_s).reject { seen.key?(_1) }.to_set
-        new_sources.each { seen[_1] = true }
+        new_sources = all_file_set(patterns).map(&:to_s).reject { seen.member?(_1) }.to_set
+        new_sources.each { seen << _1 }
         new_sources.each { sources[_1] = [] }
       end
 

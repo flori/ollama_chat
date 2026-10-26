@@ -22,7 +22,7 @@ describe OllamaChat::WebSearching do
       expect(chat).to receive(:search_web_with_duckduckgo)
         .with(/ruby/, 2).and_return(urls)
       expect(chat).to receive(:log).at_least(:once)
-      expect(chat.links).to receive(:add).twice
+      expect(chat.links).to receive(:<<).twice
       expect(chat.search_web('ruby', 2)).to eq(urls)
     end
 

@@ -61,7 +61,7 @@ module OllamaChat::HTTPHandling
   # @yield [IO] yields a temporary file handle for the caller to consume.
   # @return [Object] the result of the block or the fetcher.
   def get_url(url, headers: nil, cache: nil, remember: true, &block)
-    remember and links.add(url.to_s)
+    remember and links << url.to_s
     headers = config.request_headers?.to_h | headers
     OllamaChat::Utils::Fetcher.get(
       url,
