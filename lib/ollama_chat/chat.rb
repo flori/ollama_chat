@@ -344,7 +344,7 @@ class OllamaChat::Chat
   #
   # @return [String] the inspected string
   def inspect
-    "#<#{self.class}: #{base_url.to_s}>"
+    "#<#{self.class}: #{redact_password(base_url)}>"
   end
 
   # Returns the tool call processor instance.

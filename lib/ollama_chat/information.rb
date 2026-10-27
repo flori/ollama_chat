@@ -16,6 +16,7 @@
 #   chat.usage
 module OllamaChat::Information
   extend Tins::Concern
+  include OllamaChat::Utils::Redact
 
   included do
     include UserAgent
@@ -190,7 +191,7 @@ module OllamaChat::Information
   def info_rag(output: STDOUT)
     if embedding.on?
       if base_url = OC::OLLAMA::EMBEDDING_URL?
-        output.puts "🔌 Connected to embedding ollama server on: #{base_url.to_s.inspect}"
+        output.puts "🔌 Connected to embedding ollama server on: #{redact_password(base_url)}"
       end
       output.puts "🗄️ Current RAG model is #{bold{@embedding_model}}"
       if @embedding_model_options.present?
@@ -220,7 +221,7 @@ module OllamaChat::Information
   def print_welcome(output: STDOUT)
     feedback(<<~EOT, output:)
       💎 Running ollama_chat version: #{bold{OllamaChat::VERSION}}
-      🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{server_url}}
+      🔌 Connected to ollama server version: #{bold{server_version}} on: #{bold{redact_password(server_url)}}
     EOT
   end
 

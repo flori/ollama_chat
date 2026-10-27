@@ -142,7 +142,7 @@ module OllamaChat::Dialog
   #   distinguish the connection type, e.g. `"embedding "` for a dedicated
   #   embedding host (default: `""`)
   def connect_message(base_url:, prefix: '')
-    feedback green { "Connecting to #{prefix}ollama #{base_url.to_s.inspect}…" }, type: :info
+    feedback green { "Connecting to #{prefix}ollama #{redact_password(base_url).inspect}…" }, type: :info
   end
 
   # Displays a success-level feedback message confirming that a

@@ -95,7 +95,7 @@ class OllamaChat::Tools::GenerateImage
     chat.links << view_url.to_s
 
     message = "Image successfully generated! The user can view it here,"\
-      " give this URL to the user: #{view_url}"
+      " give this URL to the user: #{redact_password(view_url)}"
     {
       status:   'success',
       message:  ,

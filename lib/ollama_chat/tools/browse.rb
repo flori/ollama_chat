@@ -60,10 +60,10 @@ class OllamaChat::Tools::Browse
     result  = browse_url(url)
 
     message = if result.success?
-                 "Opened #{url.to_s.inspect} in browser."
-               else
-                 "Could not open #{url.to_s.inspect} in browser."
-               end
+                "Opened #{redact_password(url).inspect} in browser."
+              else
+                "Could not open #{redact_password(url).inspect} in browser."
+              end
 
     {
       success:    result.success?,

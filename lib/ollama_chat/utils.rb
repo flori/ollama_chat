@@ -9,6 +9,7 @@
 module OllamaChat::Utils
 end
 
+require 'ollama_chat/utils/redact'
 require 'ollama_chat/utils/analyze_directory'
 require 'ollama_chat/utils/audio_player'
 require 'ollama_chat/utils/backup'

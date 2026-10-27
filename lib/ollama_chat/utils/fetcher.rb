@@ -19,6 +19,7 @@ require 'ollama_chat/utils/cache_fetcher'
 #     # Process the fetched content
 #   end
 class OllamaChat::Utils::Fetcher
+  include OllamaChat::Utils::Redact
   # A module that extends IO objects with content type metadata and expiration
   # tracking.
   #
@@ -154,7 +155,7 @@ class OllamaChat::Utils::Fetcher
   def self.get(url, headers: {}, **options, &block)
     cache = options.delete(:cache) and
       cache = OllamaChat::Utils::CacheFetcher.new(cache)
-    cache and infobar.puts "Getting #{url.to_s.inspect} via cache…"
+    cache and infobar.puts "Getting #{OllamaChat::Utils::Redact.redact_password(url).inspect} via cache…"
     if result = cache&.get(url, &block)
       content_type = result&.content_type || 'unknown'
       infobar.puts "…hit, found #{content_type} content in cache."

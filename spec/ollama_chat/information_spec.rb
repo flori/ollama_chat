@@ -103,4 +103,27 @@ describe OllamaChat::Information do
       expect(chat.infobar_message).to be_a(Hash)
     end
   end
+
+  describe '#redact_password' do
+    it 'redacts the password from a URI with credentials' do
+      uri = URI.parse('http://flori:s3cret@host:11434')
+      expect(chat.redact_password(uri)).to eq('http://flori:***@host:11434')
+    end
+
+    it 'leaves the original URI untouched' do
+      uri = URI.parse('http://flori:s3cret@host:11434')
+      chat.redact_password(uri)
+      expect(uri.password).to eq('s3cret')
+    end
+
+    it 'parses a String argument' do
+      expect(chat.redact_password('http://flori:s3cret@host:11434')).
+        to eq('http://flori:***@host:11434')
+    end
+
+    it 'returns URLs without a password unchanged' do
+      expect(chat.redact_password(URI.parse('http://host:11434'))).
+        to eq('http://host:11434')
+    end
+  end
 end
