@@ -1,5 +1,64 @@
 # Changes
 
+## 2026-10-28 v0.0.138
+
+### Features
+
+- Added `OllamaChat::Utils::Redact` module with `redact_password` to mask
+  credentials in URLs for user-facing display.
+- `memory_restore` now deduplicates entries by checking existing tags before
+  adding records, reporting the number of skipped duplicates.
+- `OllamaChat::Utils::AnalyzeDirectory` now returns a `Hash` with `:height` and
+  `:entries` keys instead of a bare `Array`. Entry hashes no longer include
+  `:type` or `:name`; directories are identified by a trailing `/` in `:path`.
+
+### Fixes
+
+- `use_model` now raises `OllamaChat::UnknownModelError` if the previous model
+  is missing or blank after a cancelled pull, preventing stale metadata from
+  being returned.
+- Fixed `update_collection` to use `Set` for the `seen` variable, resolving a
+  latent `NoMethodError` when upstream yields a `Set`.
+- Corrected the error message in `pull_model_unless_present` to reference the
+  `model` parameter instead of the potentially stale `@model` instance
+  variable.
+
+### Improvements
+
+- Applied password redaction to all user-visible URL displays, including
+  `Chat#inspect`, `Dialog#connect_message`, `Information#info_rag`,
+  `Information#print_welcome`, `Tools::Browse#execute`,
+  `Tools::GenerateImage#execute`, and `Fetcher.get`.
+- Standardized `Set` insertion to use the `<<` idiom across `conversation.rb`,
+  `http_handling.rb`, `rag_handling.rb`, `generate_image.rb`, and
+  `web_searching.rb`.
+- Added `<<` alias to `LinksSet` to support the standard `Set` insertion idiom.
+- `AnalyzeDirectory` now omits the `:children` key from directory entries when
+  the array is empty, both during build and pruning.
+
+### Build & CI
+
+- Added `lib/ollama_chat/utils/redact.rb` to the gemspec file list.
+
+### Testing
+
+- Updated `analyze_directory_spec.rb`, `parsing_spec.rb`, and
+  `list_directory_spec.rb` to assert the new `AnalyzeDirectory` return
+  structure.
+- Added specs for `redact_password` covering URI/String inputs, passthrough for
+  URLs without passwords, and non-mutation of the original object.
+- Added specs for `memory_restore` deduplication logic, covering partial and
+  full skip scenarios.
+- Updated `web_searching_spec.rb` to expect `<<` instead of `add` for link
+  insertion.
+
+### Documentation
+
+- Updated `execute_grep` tool description to explicitly state that the regex
+  runs against file contents.
+- Updated YARD documentation for `AnalyzeDirectory` to reflect the new return
+  value structure.
+
 ## 2026-10-23 v0.0.137
 
 ### Fixes
