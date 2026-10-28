@@ -32,7 +32,10 @@ describe OllamaChat::Tools::ListDirectory do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.size).to eq 25
+    expect(json.height).to be_an(Integer)
+    expect(json.entries.size).to eq 25
+    expect(json.entries.first.path).to be_a(String)
+    expect(json.entries.first.name).to be_nil
     expect(described_class.summary_template(result:)).to eq \
       'was called.'
   end
@@ -56,7 +59,8 @@ describe OllamaChat::Tools::ListDirectory do
     # Should return valid JSON
     expect(result).to be_a(String)
     json = json_object(result)
-    expect(json.size).to be_an Integer
+    expect(json.height).to be_an(Integer)
+    expect(json.entries.size).to be_an(Integer)
   end
 
   it 'includes hidden files when include_hidden is true' do
@@ -80,7 +84,10 @@ describe OllamaChat::Tools::ListDirectory do
 
     result = described_class.new(chat).execute(tool_call)
     json   = json_object(result)
-    expect(json.map { _1['name'] }).to contain_exactly('.secret', 'visible.txt')
+    paths  = json.entries.map { |e| e.path }
+    expect(paths).to all(include(hidden_dir))
+    names  = json.entries.map { |e| e.path.split('/').last }
+    expect(names).to contain_exactly('.secret', 'visible.txt')
   ensure
     FileUtils.remove_entry(hidden_dir) if hidden_dir && File.directory?(hidden_dir)
   end

@@ -345,8 +345,8 @@ describe OllamaChat::Parsing do
     it 'generates a readable directory‑structure string for directories' do
       content, = chat.parse_content("look at #{asset}", [])
       json_data = content.lines[2..-1].join('')
-      json = JSON(json_data)
-      expect(json.map { _1['name'] }.sort).to eq(
+      json      = json_object(json_data)
+      expect(json.entries.map { |e| File.basename(e.path) }.sort).to eq(
         [
           "api_show.json", "api_tags.json", "api_version.json", "api_ps.json",
           "conversation.json", "conversation.jsonl", "deep", "duckduckgo.html",
@@ -365,8 +365,9 @@ describe OllamaChat::Parsing do
       (hidden_dir + 'visible.txt').write('v')
       content, = chat.parse_content("look at ./#{hidden_dir}", [])
       json_data = content.lines[2..-1].join('')
-      json = JSON(json_data)
-      expect(json.map { _1['name'] }).to contain_exactly('.secret', 'visible.txt')
+      json      = json_object(json_data)
+      expect(json.entries.map { |e| File.basename(e.path) })
+        .to contain_exactly('.secret', 'visible.txt')
     ensure
       FileUtils.remove_entry(hidden_dir) if hidden_dir && File.directory?(hidden_dir)
     end

@@ -21,32 +21,40 @@ describe OllamaChat::Utils::AnalyzeDirectory do
 
     after { FileUtils.remove_entry(@tmp_dir) }
 
-    it 'returns an array of hashes describing files and directories' do
+    it 'returns a hash with height and entries describing files and directories' do
       result = generate.call(@tmp_dir)
 
-      expect(result).to be_an(Array)
-      expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'b.rb', 'sub')
+      expect(result).to be_a(Hash)
+      expect(result[:height]).to eq 1
+      entries = result[:entries]
+      expect(entries).to be_an(Array)
+      expect(entries.map { |e| File.basename(e[:path]) })
+        .to contain_exactly('a.txt', 'b.rb', 'sub')
 
-      sub = result.find { |e| e[:name] == 'sub' }
+      sub = entries.find { |e| e[:path] == "#{@sub_dir}/" }
       expect(sub[:depth]).to eq 0
-      expect(sub[:type]).to eq('directory')
+      expect(sub[:path]).to end_with('/')
       expect(sub[:children]).to be_an(Array)
-      expect(sub[:children].map { |e| e[:name] }).to contain_exactly('c.md')
+      expect(sub[:children].map { |e| File.basename(e[:path]) })
+        .to contain_exactly('c.md')
       expect(sub[:children].map { |e| e[:depth] }).to eq [ 1 ]
     end
 
     it 'max_depth 1 prunes all children from directories' do
       result = generate.call(@tmp_dir, max_depth: 1)
+      entries = result[:entries]
 
-      expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'b.rb', 'sub')
-      sub = result.find { |e| e[:name] == 'sub' }
-      expect(sub[:children]).to be_empty
+      expect(entries.map { |e| File.basename(e[:path]) })
+        .to contain_exactly('a.txt', 'b.rb', 'sub')
+      sub = entries.find { |e| e[:path] == "#{@sub_dir}/" }
+      expect(sub[:children]).to be_nil
     end
 
     it 'filters by suffix' do
       result = generate.call(asset, suffix: 'rb')
+      entries = result[:entries]
 
-      names  = result.map { |e| e[:name] }
+      names  = entries.map { |e| File.basename(e[:path]) }
       expect(names).to include('example.rb')
       expect(names).not_to include('examplle.json', 'example.md')
     end
@@ -69,22 +77,26 @@ describe OllamaChat::Utils::AnalyzeDirectory do
 
       it 'max_depth 1 shows only immediate children' do
         result = generate.call(@tmp_dir, max_depth: 1)
+        entries = result[:entries]
 
-        expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'sub')
-        sub = result.find { |e| e[:name] == 'sub' }
-        expect(sub[:children]).to be_empty
+        expect(entries.map { |e| File.basename(e[:path]) })
+          .to contain_exactly('a.txt', 'sub')
+        sub = entries.find { |e| e[:path] == "#{@sub_dir}/" }
+        expect(sub[:children]).to be_nil
       end
 
       it 'max_depth 2 shows children and grandchildren' do
         result = generate.call(@tmp_dir, max_depth: 2)
+        entries = result[:entries]
 
-        expect(result.map { |e| e[:name] }).to contain_exactly('a.txt', 'sub')
-        sub  = result.find { |e| e[:name] == 'sub' }
-        deep = sub[:children].find { |e| e[:name] == 'deep' }
+        expect(entries.map { |e| File.basename(e[:path]) })
+          .to contain_exactly('a.txt', 'sub')
+        sub  = entries.find { |e| e[:path] == "#{@sub_dir}/" }
+        deep = sub[:children].find { |e| e[:path] == "#{@deep_dir}/" }
 
-        expect(sub[:children].map { |e| e[:name] })
+        expect(sub[:children].map { |e| File.basename(e[:path]) })
           .to contain_exactly('b.txt', 'deep')
-        expect(deep[:children]).to be_empty
+        expect(deep[:children]).to be_nil
       end
 
       it 'max_depth exceeding height returns the full tree' do
@@ -111,7 +123,7 @@ describe OllamaChat::Utils::AnalyzeDirectory do
 
     it 'does not include hidden files or symlinks' do
       result = generate.call(@tmp_dir)
-      names  = result.map { |e| e[:name] }
+      names  = result[:entries].map { |e| File.basename(e[:path]) }
 
       expect(names).not_to include('.hidden')
       expect(names).not_to include('link')
@@ -120,7 +132,7 @@ describe OllamaChat::Utils::AnalyzeDirectory do
 
     it 'includes hidden files when include_hidden is true' do
       result = generate.call(@tmp_dir, include_hidden: true)
-      names  = result.map { |e| e[:name] }
+      names  = result[:entries].map { |e| File.basename(e[:path]) }
 
       expect(names).to include('.hidden', 'visible.txt')
       expect(names).not_to include('link')
@@ -140,7 +152,7 @@ describe OllamaChat::Utils::AnalyzeDirectory do
 
     it 'skips directories listed in the exclude list' do
       result = generate.call(@tmp_dir, exclude: %w[ exclude_me ])
-      names  = result.map { |e| e[:name] }
+      names  = result[:entries].map { |e| File.basename(e[:path]) }
 
       expect(names).not_to include('exclude_me')
     end

@@ -44,13 +44,13 @@ module OllamaChat::Utils::AnalyzeDirectory
   #   directories are included in the tree. Defaults to `false`, which
   #   skips any entry whose base name starts with a dot.
   #
-  # @return [Array<Hash>] An array of entry hashes.  Each hash contains:
-  #   * `:type`   – "file" or "directory"
-  #   * `:name`   – Base name of the file/directory
-  #   * `:path`   – Absolute path
-  #   * `:depth`  – Depth relative to the root (root = 0)
-  #   * `:height` – The maximum depth found in the entire tree
-  #   * `:children` – Array of child entry hashes (only for directories)
+  # @return [Hash] A hash with two keys:
+  #   * `:height`  – The maximum depth found in the entire tree.
+  #   * `:entries` – Array of entry hashes. Each hash contains:
+  #     * `:path`     – Absolute path (directories end with `/`)
+  #     * `:depth`    – Depth relative to the root (root = 0)
+  #     * `:children` – Array of child entry hashes (directories only,
+  #                      omitted when empty)
   #
   # @raise [StandardError] Any exception raised during traversal is
   #   rescued and returned as a hash with `:error` and `:message`
@@ -72,15 +72,16 @@ module OllamaChat::Utils::AnalyzeDirectory
       height = e[:depth] if e[:depth] > height
     end
 
-    structure_each_entry(entries) { |e| e[:height] = height }
-
     if max_depth && max_depth <= height
       structure_each_entry(entries) do |e|
-        e[:children]&.reject! { |c| c[:depth] >= max_depth }
+        if children = e[:children].full?
+          children.reject! { |c| c[:depth] >= max_depth }
+          e.delete(:children) if children.empty?
+        end
       end
     end
 
-    entries
+    { height:, entries: }
   rescue => e
     { error: e.class, message: e.message }
   end
@@ -116,19 +117,18 @@ module OllamaChat::Utils::AnalyzeDirectory
       next if exclude.any? { |e| child.basename.fnmatch?(e.to_s, File::FNM_PATHNAME) }
 
       if child.directory?
+        children = recurse_generate_structure(
+          child, exclude:, suffix:, depth: depth + 1, include_hidden:
+        ).full?
         entries << {
-          type:     'directory',
-          name:     child.basename.to_s,
-          path:     child.expand_path.to_s,
-          children: recurse_generate_structure(child, exclude:, suffix:, depth: depth + 1, include_hidden:),
-          depth:
-        }
+          path:     child.expand_path.to_s << ?/,
+          depth:    ,
+          children: ,
+        }.compact
       elsif child.file?
         # Skip unless suffix matches
         next if extname.present? && child.extname != extname
         entries << {
-          type:  'file',
-          name:  child.basename.to_s,
           path:  child.expand_path.to_s,
           depth:
         }
