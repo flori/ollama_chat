@@ -116,6 +116,11 @@ class OllamaChat::Tools::GetURL
 
     source, message, content = url, nil, ''
     chat.fetch_source(source, check_exist: false) do |source_io|
+      if (status = source_io&.response_status) && status != 200
+        content = source_io.read
+        message = "Received HTTP status #{status} from #{source}."
+        next
+      end
       if source_io&.content_type&.to_s&.match?(OllamaChat::Parsing::HAS_AUDIO)
         text = chat.parse_audio(source_io, language:)
         source_io = OllamaChat::Utils::Fetcher::ResponseMetadata.as_text(text)

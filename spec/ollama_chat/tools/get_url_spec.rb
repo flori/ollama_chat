@@ -109,7 +109,7 @@ describe OllamaChat::Tools::GetURL do
 
   context 'with different document policies' do
     let(:url) { 'https://www.example.com/foo' }
-    let(:source_io) { double('SourceIO', content_type: double(media_type: 'text'), read: 'raw content') }
+    let(:source_io) { double('SourceIO', content_type: double(media_type: 'text'), read: 'raw content', response_status: nil) }
 
     before do
       expect(chat).to receive(:fetch_source).and_yield(source_io)
@@ -191,7 +191,7 @@ describe OllamaChat::Tools::GetURL do
     let(:url) { 'https://www.example.com/foo' }
 
     it 'handles image content types' do
-      source_io = double('SourceIO', content_type: double(media_type: 'image', sub_type: 'jpeg'))
+      source_io = double('SourceIO', content_type: double(media_type: 'image', sub_type: 'jpeg'), response_status: nil)
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:add_image).with(chat.images, source_io, URI.parse(url))
 
@@ -222,7 +222,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles audio content types via ASR transcription' do
-      source_io = double('SourceIO', content_type: double(media_type: 'audio', to_s: 'audio/mp3'))
+      source_io = double('SourceIO', content_type: double(media_type: 'audio', to_s: 'audio/mp3'), response_status: nil)
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:parse_audio).with(source_io, language: 'de').and_return('transcribed text')
 
@@ -235,7 +235,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles video content types via ASR transcription' do
-      source_io = double('SourceIO', content_type: double(media_type: 'video', to_s: 'video/mp4'))
+      source_io = double('SourceIO', content_type: double(media_type: 'video', to_s: 'video/mp4'), response_status: nil)
       expect(chat).to receive(:fetch_source).and_yield(source_io)
       expect(chat).to receive(:parse_audio).with(source_io, language: nil).and_return('video text')
 
@@ -248,7 +248,7 @@ describe OllamaChat::Tools::GetURL do
     end
 
     it 'handles unsupported media types' do
-      source_io = double('SourceIO', content_type: double(media_type: 'font'))
+      source_io = double('SourceIO', content_type: double(media_type: 'font'), response_status: nil)
       expect(chat).to receive(:fetch_source).and_yield(source_io)
 
       args = double(url:, document_policy: 'ignoring', words: nil, instruction: nil, language: nil)
@@ -257,6 +257,25 @@ describe OllamaChat::Tools::GetURL do
       result = described_class.new(chat).execute(tool_call)
       json = json_object(result)
       expect(json.message).to match(/Cannot fetch.*with content type/)
+    end
+
+    it 'short-circuits on non-200 HTTP status' do
+      source_io = double(
+        'FailedSourceIO',
+        response_status: 403,
+        read: 'Access Denied',
+      )
+      expect(chat).to receive(:fetch_source).and_yield(source_io)
+      expect(chat).not_to receive(:summarize_source)
+      expect(chat).not_to receive(:import_source)
+
+      args = double(url:, document_policy: 'summarizing', words: nil, instruction: nil, language: nil)
+      tool_call = double(function: double(arguments: args))
+
+      result = described_class.new(chat).execute(tool_call)
+      json = json_object(result)
+      expect(json.content).to eq('Access Denied')
+      expect(json.message).to match(/HTTP status 403/)
     end
   end
 end

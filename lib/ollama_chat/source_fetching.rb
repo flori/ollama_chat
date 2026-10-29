@@ -78,6 +78,8 @@ module OllamaChat::SourceFetching
     log(:error, msg, data: { source: source.to_s, error: e.class })
     confirm?(prompt: '⏎  Press any key to continue (%s). ', output: STDERR, timeout: 3)
     msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
+    msg.response_status = e.status if e.is_a?(OllamaChat::HTTPError)
+    msg.response_reason = e.message if e.is_a?(OllamaChat::HTTPError)
     block.(msg)
     msg
   end
