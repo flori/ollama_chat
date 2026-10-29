@@ -33,6 +33,7 @@ module OllamaChat::SourceFetching
   #
   # @yield [ tmp ]
   def fetch_source(source, check_exist: false, &block)
+    confirm_notification = false
     source = source.ask_and_send_or_self(:to_path).to_s
     case source
     when %r{\A!(.*)}
@@ -72,16 +73,28 @@ module OllamaChat::SourceFetching
     else
       raise "invalid source #{source.inspect}"
     end
+  rescue OllamaChat::HTTPError => e
+    msg = "Fetching source #{source.to_s.inspect}: #{e.class} #{e}"
+    feedback(msg, type: :warn)
+    log(:warn, msg, data: { source: source.to_s, status: e.status })
+    confirm_notification = true
+    msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
+    msg.response_status = e.status
+    msg.response_reason = e.message
+    block.(msg)
+    msg
   rescue => e
     msg = "Fetching source #{source.to_s.inspect}: #{e.class} #{e}"
     feedback("#{msg}\n#{e.backtrace * ?\n}", type: :warn)
     log(:error, msg, data: { source: source.to_s, error: e.class })
-    confirm?(prompt: '⏎  Press any key to continue (%s). ', output: STDERR, timeout: 3)
+    confirm_notification = true
     msg = OllamaChat::Utils::Fetcher::ResponseMetadata.failed(msg)
-    msg.response_status = e.status if e.is_a?(OllamaChat::HTTPError)
-    msg.response_reason = e.message if e.is_a?(OllamaChat::HTTPError)
     block.(msg)
     msg
+  ensure
+    if confirm_notification
+      confirm?(prompt: "\n⏎  Press any key to continue (%s). ", output: STDERR, timeout: 3)
+    end
   end
 
   # Adds an image to the images collection from the given source IO and source
