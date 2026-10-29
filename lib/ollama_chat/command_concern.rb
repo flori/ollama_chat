@@ -6,6 +6,8 @@ module OllamaChat::CommandConcern
   extend Tins::Concern
 
   class_methods do
+    include OllamaChat::KramdownANSI
+
     # @!attribute [rw] commands
     #   @return [Hash<Symbol, Command>] A hash mapping command names to
     #   `Command` instances.
@@ -76,8 +78,8 @@ module OllamaChat::CommandConcern
         all_separators: true,
         border:         :unicode_round,
       }
-      table.headings  = %w[ CMD SUBCMD OPTS HELP ]
       sorted_commands = self.commands.sort_by { [ _2.category, _2.name ] }.map(&:last)
+      rows            = []
       cat             = nil
       sorted_commands.each do |command|
         command.help or next
@@ -93,15 +95,16 @@ module OllamaChat::CommandConcern
         }
         if cat != command.category
           cat = command.category
-          table << [ { value: bold{cat}, colspan: 4 } ]
+          rows << [ { value: bold{cat}, colspan: 4 } ]
         end
-        table << [
-          "%s" % command.command_names.map { ?/ + _1 }.join(?\n),
+        rows << [
+          '%s' % command.command_names.map { ?/ + _1 }.join(?\n),
           '%s' % subcommands,
           command.options,
           command.help,
         ]
       end
+      wrap_table_rows(rows, 4, headings: %w[ CMD SUBCMD OPTS HELP ], percentage: 95).each { |row| table << row }
       table
     end
   end

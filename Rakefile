@@ -47,7 +47,7 @@ GemHadar do
   dependency             'redis',                 '~> 5.0'
   dependency             'mime-types',            '~> 3.0'
   dependency             'reverse_markdown',      '~> 3.0'
-  dependency             'kramdown-ansi',         '~> 0.7'
+  dependency             'kramdown-ansi',         '~> 0.9'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
   dependency             'tins',                  '~> 1.61'
   dependency             'search_ui',             '>= 0.2'

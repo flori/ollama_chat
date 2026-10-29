@@ -107,22 +107,23 @@ module OllamaChat::SessionManagement
         all_separators: true,
         border:         :unicode_round,
       }
-      table.headings = %w[ ID NAME SIZE #TOK COUNT UPDATED ].map { |header| bold { header } }
-      now = Time.now
+      headings = %w[ ID NAME SIZE #TOK COUNT UPDATED ].map { |h| bold { h } }
+      now      = Time.now
+      rows     = []
       models::Session.order(Sequel.desc(:updated_at)).each do |s|
-        name        = truncate(s.name, length: 32)
-        name        = session.id == s.id ? bold { name } : name
-        name        = if pid = s.locked?
-                        if pid == $$
-                          "#{name} 🔓"
-                        else
-                          "#{name} 🔐"
-                        end
-                      else
-                        name
-                      end
-        es = s.estimate_tokens
-        table << [
+        name   = s.name
+        name   = session.id == s.id ? bold { name } : name
+        name   = if pid = s.locked?
+                   if pid == $$
+                     "#{name} 🔓"
+                   else
+                     "#{name} 🔐"
+                   end
+                 else
+                   name
+                 end
+        es     = s.estimate_tokens
+        rows << [
           s.id.to_s,
           name,
           es.bytes_formatted,
@@ -131,6 +132,7 @@ module OllamaChat::SessionManagement
           s.age(now:),
         ]
       end
+      wrap_table_rows(rows, 6, headings:).each { |row| table << row }
       table.align_column 0, :right
       table.align_column 2, :left
       table.align_column 3, :right

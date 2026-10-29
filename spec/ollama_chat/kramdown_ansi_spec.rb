@@ -1,7 +1,13 @@
 describe OllamaChat::KramdownANSI do
-  let :chat do
-    double('Chat').extend(described_class)
+  let :argv do
+    chat_default_config
   end
+
+  let :chat do
+    OllamaChat::Chat.new(argv:).expose
+  end
+
+  connect_to_ollama_server
 
   describe '#configure_kramdown_ansi_styles', protect_env: true do
     it 'can be configured via env var' do
@@ -12,7 +18,6 @@ describe OllamaChat::KramdownANSI do
       expect(Kramdown::ANSI::Styles).to receive(:from_json).
         with('{"foo":"bar"}').
         and_return(double(ansi_styles: styles))
-
       expect(chat.configure_kramdown_ansi_styles).to eq(styles)
     end
 
@@ -98,6 +103,53 @@ describe OllamaChat::KramdownANSI do
       expect(chat).not_to receive(:kramdown_ansi_parse)
       result = chat.kramdown_markdown_remove(input, markdown: false)
       expect(result).to include('**bold**')
+    end
+  end
+
+  describe '#wrap_table_rows' do
+    it 'wraps long cells to fit within terminal budget' do
+      long_text = 'word ' * 50
+      rows      = [[ long_text, 'short' ]]
+      result    = chat.wrap_table_rows(rows, 2)
+      expect(result[0][0]).to include("\n")
+    end
+
+    it 'passes Hash cells (colspan) through untouched' do
+      rows   = [[ { value: 'category', colspan: 4 } ]]
+      result = chat.wrap_table_rows(rows, 4)
+      expect(result).to eq(rows)
+    end
+
+    it 'returns wrapped headings first when supplied' do
+      rows   = [[ 'a', 'b' ]]
+      result = chat.wrap_table_rows(rows, 2, headings: ['H1', 'H2'])
+      expect(result.first.map(&:strip)).to eq(['H1', 'H2'])
+      expect(result.size).to eq(2)
+    end
+
+    it 'handles nil cells by converting to empty string' do
+      result = chat.wrap_table_rows([[ nil, 'text' ]], 2)
+      expect(result[0][0]).to eq('')
+    end
+
+    it 'preserves short content without wrapping' do
+      rows   = [[ 'hi', 'there' ]]
+      result = chat.wrap_table_rows(rows, 2)
+      expect(result[0]).to eq(['hi', 'there'])
+    end
+  end
+
+  describe '#table_column_budgets' do
+    it 'returns equal budgets when total width is zero' do
+      result = chat.table_column_budgets([[ '', '' ]], 2)
+      expect(result[0]).to eq(result[1])
+    end
+
+    it 'allocates proportionally based on content width' do
+      narrow = 'a'
+      wide   = 'a' * 20
+      result = chat.table_column_budgets([[ narrow, wide ]], 2)
+      expect(result[1]).to be > result[0]
     end
   end
 end
