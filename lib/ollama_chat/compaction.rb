@@ -327,7 +327,7 @@ module OllamaChat::Compaction
       duration.minutes? ? '%M minutes and %u seconds' : '%u seconds'
     )
     speak(
-      'Compressed conversation context from %.f to %.f in %s.' % [
+      'Compressed conversation context from %.0f percent to %.0f percent in %s.' % [
         100 * result.context_filled_before,
         100 * result.context_filled_after,
         duration_string,
