@@ -1,5 +1,56 @@
 # Changes
 
+## 2026-10-30 v0.0.139
+
+### Features
+
+- Added terminal table wrapping for `/help` and `/session list` output. New
+  private methods `wrap_table_rows` and `table_column_budgets` in
+  `OllamaChat::KramdownANSI` compute per-column width budgets and wrap cell
+  content to fit within a configurable percentage of the terminal width.
+- Updated `help_message` and `list_sessions` to collect rows into arrays and
+  route them through `wrap_table_rows`, removing manual truncation and heading
+  assignment.
+
+### Fixes
+
+- Fixed a `TypeError` in `Collection.sync` when `chat.documents.collections`
+  yielded no collections (e.g., fresh database) by using `.to_a` instead of
+  relying on `Tins::NullClass#to_ary`.
+- Improved error handling in `fetch_source` for `OllamaChat::HTTPError` by
+  adding a dedicated rescue clause that logs a warning without a backtrace and
+  stamps `response_status` and `response_reason` onto the
+  `ResponseMetadata.failed` IO.
+- Added a non-2xx HTTP status guard in the `get_url` tool to short-circuit
+  processing before document policy dispatch, returning the raw body and a
+  status message instead of feeding error pages to the summarizer.
+
+### Improvements
+
+  - Updated the compaction voice report to format context fill percentages as
+    rounded integers with the unit "percent" for grammatical completeness
+    (e.g., "from 38 percent to 19 percent").
+  - Moved `configure_kramdown_ansi_styles` to a private method in
+    `OllamaChat::KramdownANSI`.
+  - Expanded YARD documentation for `OllamaChat::KramdownANSI` to describe
+    styling, parsing, and table wrapping concerns.
+
+### Build & CI
+
+  - Bumped `kramdown-ansi` dependency from `~> 0.7` to `~> 0.9` in `Rakefile`
+    and `ollama_chat.gemspec`.
+
+### Testing
+
+  - Updated `compaction_spec.rb` to expect rounded integer percentages in the
+    spoken compaction report.
+  - Updated `kramdown_ansi_spec.rb` to use a real `OllamaChat::Chat` instance
+    instead of a double and added examples for `wrap_table_rows` and
+    `table_column_budgets`.
+  - Updated `get_url_spec.rb` to stub `response_status: nil` on `SourceIO`
+    doubles and added a spec verifying that non-200 statuses skip summarization
+    and import.
+
 ## 2026-10-28 v0.0.138
 
 ### Features
