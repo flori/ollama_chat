@@ -61,33 +61,9 @@ class OllamaChat::ToolCallProcessor
         next
       end
       feedback(?\n, output:)
-      confirmed = :implicit
-      resolve   = nil
       function  = JSON.pretty_generate(tool_call.function)
       chat.log(:info, "Tool call received", data: { tool: name, function: })
-      if chat.tool_function(name).require_confirmation?
-        feedback(
-          ("I want to execute tool %s\n%s\n" % [ bold { name }, italic { function }, ]),
-          type: :alarm
-        )
-        prompt  = '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct? '
-        answer  = chat.confirm?(prompt:)&.to_s&.downcase
-        resolve = 'You **MUST** ask the user for instructions on how to proceed!!!'
-        case answer
-        when 'y'
-          confirmed = :explicit
-        when 'n'
-          confirmed = :denied
-        else
-          confirmed = :denied
-          instr     = chat.ask?(prompt: '📝 Instructions: ')&.strip
-          resolve   = instr.full? ||  resolve
-        end
-      else
-        feedback(
-          "Executing tool %s\n%s" % [ bold { name }, italic { function }, ]
-        )
-      end
+      confirmed, resolve = confirm_tool(name, function)
       start  = Time.now
       result = nil
       case confirmed
@@ -172,5 +148,50 @@ class OllamaChat::ToolCallProcessor
   # Clears all accumulated results without yielding them.
   def clear!
     @results.clear
+  end
+
+  private
+
+  # Prompts the user for confirmation on a tool call that requires it.
+  # Returns a `[confirmed, resolve]` tuple where `confirmed` is one of
+  # `:implicit`, `:explicit`, `:denied` and `resolve` is an optional
+  # instruction string for the LLM.
+  #
+  # @param name [String] the tool name
+  # @param function [String] pretty-printed JSON of the tool call
+  # @return [Array(Symbol, String?)]
+  def confirm_tool(name, function)
+    confirmed = :implicit
+    resolve   = nil
+
+    1.times do
+      if chat.tool_function(name).require_confirmation?
+        feedback(
+          ("I want to execute tool %s\n%s\n" % [ bold { name }, italic { function }, ]),
+          type: :alarm
+        )
+        prompt  = '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct? '
+        answer  = chat.confirm?(prompt:)&.to_s&.downcase
+        resolve = 'You **MUST** ask the user for instructions on how to proceed!!!'
+        case answer
+        when 'y'
+          confirmed = :explicit
+        when 'n'
+          confirmed = :denied
+        else
+          confirmed = :denied
+          instr     = chat.ask?(prompt: '📝 Instructions (C-c ⇨ cancel): ')
+          instr.nil? and redo
+          instr     = instr&.strip
+          resolve   = instr.full? || resolve
+        end
+      else
+        feedback(
+          "Executing tool %s\n%s" % [ bold { name }, italic { function }, ]
+        )
+      end
+    end
+
+    [confirmed, resolve]
   end
 end
