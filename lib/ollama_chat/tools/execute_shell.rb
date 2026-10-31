@@ -102,25 +102,29 @@ class OllamaChat::Tools::ExecuteShell
           y once · n cancel · i instruct me · a always (pager) · d always (direct)
 
         EOT
-        answer = chat.confirm?(
-          prompt: '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct / 🔁[a]lways / 📄[d]irect? '
-        )&.to_s&.downcase
+        1.times do
+          answer = chat.confirm?(
+            prompt: '❓ Allow ✅[y]es / ⛔️[n]o / 📝[i]nstruct / 🔁[a]lways / 📄[d]irect? '
+          )&.to_s&.downcase
 
-        case answer
-        when 'y'
-          # proceed to execution
-        when 'a'
-          self.class.always_allowed[command] = :always
-        when 'd'
-          self.class.always_allowed[command] = :direct
-        when 'n'
-          raise OllamaChat::ToolFunctionArgumentError,
-                "Shell command cancelled by user: #{command}"
-        else
-          instr   = chat.ask?(prompt: '📝 Instructions: ')&.strip
-          resolve = instr.full? || 'You **MUST** ask the user for instructions!'
-          raise OllamaChat::ToolFunctionArgumentError,
-                "User instruct: #{resolve} (command: #{command})"
+          case answer
+          when 'y'
+            # proceed to execution
+          when 'a'
+            self.class.always_allowed[command] = :always
+          when 'd'
+            self.class.always_allowed[command] = :direct
+          when 'n'
+            raise OllamaChat::ToolFunctionArgumentError,
+                  "Shell command cancelled by user: #{command}"
+          else
+            instr = chat.ask?(prompt: '📝 Instructions (C-c ⇨ cancel): ')
+            instr.nil? and redo
+            instr   = instr&.strip
+            resolve = instr.full? || 'You **MUST** ask the user for instructions!'
+            raise OllamaChat::ToolFunctionArgumentError,
+                  "User instruct: #{resolve} (command: #{command})"
+          end
         end
       end
     end
