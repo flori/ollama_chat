@@ -2,7 +2,9 @@
 # companion instance.
 #
 # Only activates when OC::OLLAMA::CHAT::INVIDIOUS::URL is set.
-# Non-YouTube URLs and unconfigured environments return nil.
+# Accepts standard YouTube URLs and watch URLs on the configured
+# Invidious instance. Unmatched URLs and unconfigured environments
+# return nil.
 #
 # @example Fetching video info for a YouTube watch URL
 #   text = OllamaChat::Invidious.fetch_video_info(
@@ -30,18 +32,18 @@ module OllamaChat
       #   3. GET the matched track's baseUrl → timedtext XML
       #   4. Extract <text> elements via Nokogiri → plain text
       #
-      # @param url [String] the YouTube source URL
+      # @param url [String] a YouTube or Invidious instance watch URL
       # @param chat [OllamaChat::Chat] the chat instance (for HTTP
       #   middleware)
       # @return [StringIO, nil] video info + transcript as a text IO,
-      #   or nil if not a YouTube URL, Invidious not configured, or
+      #   or nil if URL unmatched, Invidious not configured, or
       #   video details unavailable
       def fetch_video_info(url, chat:)
         invidious_url = OC::OLLAMA::CHAT::INVIDIOUS::URL? or return
-        video_id = url[YOUTUBE_URLS, 1] or return
+        base     = invidious_url.to_s
+        video_id = extract_video_id(url, base) or return
 
-        base = invidious_url.to_s
-        key  = OC::OLLAMA::CHAT::INVIDIOUS::COMPANION_KEY
+        key = OC::OLLAMA::CHAT::INVIDIOUS::COMPANION_KEY
 
         # Step 1: POST /companion/youtubei/v1/player
         player_response = nil
@@ -156,6 +158,25 @@ module OllamaChat
       # @return [String] e.g. "03:25:45"
       def format_duration(seconds)
         Tins::Duration.new(seconds).to_s
+      end
+
+      # Extracts the 11-character video ID from a YouTube or Invidious
+      # instance watch URL.
+      #
+      # @param url [String] the source URL
+      # @param base [String] the configured Invidious base URL
+      # @return [String, nil] the video ID
+      def extract_video_id(url, base)
+        url[YOUTUBE_URLS, 1] || url[invidious_pattern(base), 1]
+      end
+
+      # Builds a regex for watch/embed/shorts paths on the configured
+      # Invidious instance.
+      #
+      # @param base [String] the Invidious instance base URL
+      # @return [Regexp]
+      def invidious_pattern(base)
+        /\A#{Regexp.escape(base)}\/(?:watch\?v=|embed\/|shorts\/)([\w-]{11})/
       end
     end
   end

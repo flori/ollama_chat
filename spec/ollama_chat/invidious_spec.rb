@@ -232,6 +232,28 @@ describe OllamaChat::Invidious do
           )
           expect(result).not_to be_nil
         end
+       end
+
+      context 'with an Invidious instance watch URL' do
+        let :tracks do
+          [
+            track(label: 'English', language_code: 'en',
+                  base_url: 'https://www.youtube.com/api/timedtext' \
+                            '?v=MmpZ5Db9JXi&lang=en'),
+          ]
+        end
+
+        it 'extracts the video ID correctly' do
+          stub_player(tracks:)
+          expect(chat).to receive(:get_url)
+            .with(anything, remember: false)
+            .and_yield(StringIO.new(xml_content))
+
+          result = described_class.fetch_video_info(
+            'https://invidious.gate.ping.de/watch?v=MmpZ5Db9JXi', chat:
+          )
+          expect(result).not_to be_nil
+        end
       end
     end
   end
