@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-11-02 v0.0.140
+
+### Improvements
+
+- Accept Invidious instance URLs for video transcripts. `fetch_video_info` now
+  delegates ID extraction to `extract_video_id`, which supports standard
+  YouTube URLs and watch, embed, and shorts paths on the configured Invidious
+  instance via `invidious_pattern`.
+- Extract the confirmation gate logic in `ToolCallProcessor` into a private
+  `confirm_tool` method, returning a `[confirmed, resolve]` tuple to simplify
+  the `handle` method.
+- In `ExecuteShell`, pressing `C-c` at the `📝 Instructions:` prompt now
+  re-prompts the user for the y/n/i/a/d choice instead of submitting a blank
+  instruction.
+- Updated the instruction prompt in `ExecuteShell` to display a `(C-c ⇨
+  cancel)` escape hint.
+
+### Testing
+
+- Added a spec context verifying that an Invidious instance watch URL correctly
+  extracts the video ID and produces a transcript.
+
 ## 2026-10-30 v0.0.139
 
 ### Features
