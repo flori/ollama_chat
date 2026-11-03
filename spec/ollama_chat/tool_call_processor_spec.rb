@@ -48,4 +48,31 @@ describe OllamaChat::ToolCallProcessor do
       expect(processor.results).to be_empty
     end
   end
+
+  describe '#handle' do
+    let :tool_call do
+      double('tool_call', function: double('function', name: 'roll_dice'))
+    end
+
+    let :message do
+      double('message', ask_and_send: true, tool_calls: [tool_call])
+    end
+
+    let :response do
+      double('response', message:)
+    end
+
+    context 'when tools support is disabled' do
+      before do
+        allow(chat.tools_support).to receive(:off?).and_return(true)
+      end
+
+      it 'returns a tools_disabled result per tool call without executing' do
+        processor.handle(response)
+        data = JSON.parse(processor.results['roll_dice'].first)
+        expect(data['error']).to eq('tools_disabled')
+        expect(data['message']).to include('/tools on')
+      end
+    end
+  end
 end

@@ -33,6 +33,19 @@ class OllamaChat::ToolCallProcessor
   def handle(response)
     return unless response.message.ask_and_send(:tool_calls)
 
+    if chat.tools_support.off?
+      response.message.tool_calls.each do |tool_call|
+        name = tool_call.function.name
+        @results[name] << JSON(
+          error:  'tools_disabled',
+          message: 'Tool support is disabled. ' \
+                   'Ask the user to re-enable with `/tools on`.'
+        )
+        chat.log(:warn, 'Tool call ignored: tools disabled',
+                 data: { tool: name })
+      end
+      return
+    end
     tools_used = {}
 
     response.message.tool_calls.each do |tool_call|
