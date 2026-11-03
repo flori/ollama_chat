@@ -45,6 +45,9 @@ class OllamaChat::Tools::ExecuteShell
           then a mandatory y/n/i/a confirm prompt gates execution.
           Answering a remembers the command for the session
           (skips editor and confirm on repeat).
+          For multi-command scripts, separate commands with newlines
+          and proper intendation rather than `;` for readability
+          in the review editor.
           Last resort: use ONLY when no dedicated tool covers
           the task (e.g. `git commit`, `bundle install`, `make`).
           Prefer `execute_grep`, `list_directory`, `read_file`,
