@@ -582,10 +582,10 @@ tools:
       require_confirmation: true
     get_time:
       result_display_timeout: 3
-      default: true
+      default: false
     get_location:
       result_display_timeout: 3
-      default: true
+      default: false
     list_directory:
       default: true
       require_confirmation: false
