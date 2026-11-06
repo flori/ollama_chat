@@ -121,7 +121,7 @@ class OllamaChat::ToolCallProcessor
         warn:     ,
         size:     es.bytes_formatted,
         tokens:   es.tokens_formatted,
-        duration: Tins::Duration.new(Time.now - start).to_s,
+        duration: Tins::Duration.new(Time.now - start).to_human(style: :abbrev),
       }
     end
 

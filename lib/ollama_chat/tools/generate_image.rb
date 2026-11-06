@@ -101,7 +101,7 @@ class OllamaChat::Tools::GenerateImage
       message:  ,
       url:      view_url,
       prompt:   ,
-      duration: Tins::Duration.new(Time.now - started).to_s,
+      duration: Tins::Duration.new(Time.now - started).to_human(style: :abbrev),
     }.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name, prompt: })

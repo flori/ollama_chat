@@ -737,7 +737,7 @@ module OllamaChat::SessionManagement
     elsif selector
       now = Time.now
       sessions = session_query.order(Sequel.desc(:updated_at)).map { |session|
-        duration = session.age(now:)
+        duration = session.age(now:).to_human(style: :abbrev)
         es       = session.estimate_tokens
         count    = session.count_messages
         locked   = if pid = session.locked?

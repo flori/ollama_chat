@@ -245,14 +245,14 @@ class OllamaChat::FollowChat
     eval_duration        = response.eval_duration.to_f / 1e9
     prompt_eval_duration = response.prompt_eval_duration.to_f / 1e9
     {
-      eval_duration:        Tins::Duration.new(eval_duration).to_s,
+      eval_duration:        Tins::Duration.new(eval_duration).to_human(style: :abbrev),
       eval_count:           response.eval_count.to_i,
       eval_rate:            "%.2f t/s" % (response.eval_count.to_i / eval_duration),
-      prompt_eval_duration: Tins::Duration.new(prompt_eval_duration).to_s,
+      prompt_eval_duration: Tins::Duration.new(prompt_eval_duration).to_human(style: :abbrev),
       prompt_eval_count:    response.prompt_eval_count.to_i,
       prompt_eval_rate:     "%.2f t/s" % (response.prompt_eval_count.to_i / prompt_eval_duration),
-      total_duration:       Tins::Duration.new(response.total_duration / 1e9).to_s,
-      load_duration:        Tins::Duration.new(response.load_duration / 1e9).to_s,
+      total_duration:       Tins::Duration.new(response.total_duration / 1e9).to_human(style: :abbrev),
+      load_duration:        Tins::Duration.new(response.load_duration / 1e9).to_human(style: :abbrev),
     }
   end
 
