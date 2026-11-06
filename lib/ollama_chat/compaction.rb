@@ -322,10 +322,7 @@ module OllamaChat::Compaction
       Context:      #{result.context_before} → #{result.context_after}
       Stored total: #{result.stored_total}
     EOT
-    duration        = Tins::Duration.new(duration)
-    duration_string = duration.format(
-      duration.minutes? ? '%M minutes and %u seconds' : '%u seconds'
-    )
+    duration_string = Tins::Duration.new(duration).to_human
     speak(
       'Compressed conversation context from %.0f percent to %.0f percent in %s.' % [
         100 * result.context_filled_before,
