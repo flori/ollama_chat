@@ -1,5 +1,39 @@
 # Changes
 
+## 2026-11-06 v0.0.141
+
+### Improvements
+
+- Replaced `Tins::Duration#to_s` with `to_human(style: :abbrev)` in
+  `follow_chat.rb`, `session_management.rb`, `tool_call_processor.rb`, and
+  `generate_image.rb` to produce compact duration strings (e.g., `45s`,
+  `1m30s`) for terminal stats and JSON results.
+- Replaced hand-rolled duration formatting in `compaction.rb` with
+  `Tins::Duration#to_human` for compaction TTS reports.
+- Updated `execute_shell` tool description to instruct the LLM to separate
+  multi-command scripts with newlines and indentation rather than semicolons
+  for improved readability in the review editor.
+- Added an early-return guard in `ToolCallProcessor#handle` to skip tool
+  execution when `chat.tools_support.off?`, emitting a `tools_disabled` JSON
+  result per tool call to provide proper error feedback to the LLM.
+
+### Fixes
+
+- Set `default: false` for `get_time` and `get_location` tools in
+  `default_config.yml`, as these values are already injected into runtime info
+  each turn, making default enablement redundant.
+
+### Build & CI
+
+- Bumped `tins` dependency to **~> 1.62** in `Rakefile` and
+  `ollama_chat.gemspec`.
+
+### Testing
+
+- Added a spec example in `tool_call_processor_spec.rb` verifying that
+  `#handle` returns the expected `tools_disabled` error and message when tool
+  support is disabled.
+
 ## 2026-11-02 v0.0.140
 
 ### Improvements
