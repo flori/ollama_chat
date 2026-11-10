@@ -48,6 +48,95 @@ describe OllamaChat::Tools::ExecuteJIRATWG do
     end
   end
 
+  context 'when twg returns pretty-printed JSON' do
+    let(:command) { 'jira workitem get DEV-29042' }
+
+    before do
+      expect(OC::OLLAMA::CHAT::TOOLS::JIRA).to receive(:TWG?).and_return('true')
+      system('true') # reset $? to exit 0
+      expect(OllamaChat::Utils::Fetcher).to receive(:execute)
+        .with(%w[true jira workitem get DEV-29042])
+        .and_return(<<~EOT)
+          {
+            "key": "DEV-29042"
+          }
+        EOT
+    end
+
+    it 'reports (structured result) instead of a bare brace' do
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'execute_jira_twg',
+          arguments: double(command:)
+        )
+      )
+
+      result = described_class.new(chat).execute(tool_call)
+
+      json = json_object(result)
+      expect(json.message).to eq '(structured result)'
+    end
+  end
+
+  context 'when twg returns a JSON array on its own first line' do
+    let(:command) { 'jira workitem query --jql "project = DEV"' }
+
+    before do
+      expect(OC::OLLAMA::CHAT::TOOLS::JIRA).to receive(:TWG?).and_return('true')
+      system('true') # reset $? to exit 0
+      expect(OllamaChat::Utils::Fetcher).to receive(:execute)
+        .with(['true', 'jira', 'workitem', 'query', '--jql', 'project = DEV'])
+        .and_return(<<~EOT)
+          [
+            { "id": "DEV-1" }
+          ]
+        EOT
+    end
+
+    it 'reports (structured result) instead of a bare bracket' do
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'execute_jira_twg',
+          arguments: double(command:)
+        )
+      )
+
+      result = described_class.new(chat).execute(tool_call)
+
+      json = json_object(result)
+      expect(json.message).to eq '(structured result)'
+    end
+  end
+
+  context 'when twg returns plain-text output' do
+    let(:command) { 'user get' }
+
+    before do
+      expect(OC::OLLAMA::CHAT::TOOLS::JIRA).to receive(:TWG?).and_return('true')
+      system('true') # reset $? to exit 0
+      expect(OllamaChat::Utils::Fetcher).to receive(:execute)
+        .with(%w[true user get])
+        .and_return("flori: Florian Frank\nflori2: Someone Else\n")
+    end
+
+    it 'uses the first line as the message' do
+      tool_call = double(
+        'ToolCall',
+        function: double(
+          name: 'execute_jira_twg',
+          arguments: double(command:)
+        )
+      )
+
+      result = described_class.new(chat).execute(tool_call)
+
+      json = json_object(result)
+      expect(json.message).to eq 'flori: Florian Frank'
+    end
+  end
+
   context 'when command contains quoted arguments' do
     let(:command) { 'jira workitem query --jql "project = DEV AND status != Done"' }
 

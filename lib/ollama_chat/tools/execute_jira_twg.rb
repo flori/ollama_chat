@@ -69,10 +69,9 @@ class OllamaChat::Tools::ExecuteJIRATWG
         "twg #{command} exited with code #{status}:\n#{result}"
     end
     chat.log(:info, 'TWG executed', data: { tool: name, command: })
-    message = Kramdown::ANSI::Width.truncate(
-      result.lines.map(&:strip).reject(&:empty?).first || '(empty)',
-      percentage: 90
-    )
+    first   = result.lines.map(&:strip).reject(&:empty?).first
+    first   = '(structured result)' if first =~ /^[\[\{]$/
+    message = Kramdown::ANSI::Width.truncate(first || '(empty)', percentage: 90)
     { cmd:, result:, message: }.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name, command: })
