@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-11-12 v0.0.144
+
+### Features
+
+- Add a `c` (choose) option to the missing-model prompt in `use_model`,
+  allowing users to select a different model instead of only confirming a pull
+  or cancelling.
+
+### Improvements
+
+- Improve the stale context error message in `patch_file` to clarify that the
+  issue may be a modified file or an incorrect checksum, and instruct the user
+  to re-read the full file to obtain a fresh checksum.
+
 ## 2026-11-11 v0.0.143
 
 ### Fixes
