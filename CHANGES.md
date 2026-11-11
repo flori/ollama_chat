@@ -1,5 +1,22 @@
 # Changes
 
+## 2026-11-11 v0.0.143
+
+### Fixes
+
+- Scoped `AppState.acknowledge` to a single prompt context to prevent `/prompt
+  sync -c <context>` from clearing the drift warning (`⚠`) for unrelated
+  contexts (e.g., `report`, `compaction`).
+- `AppState.acknowledge` now accepts an optional `context:` keyword argument.
+  When provided, it surgically updates only the hashes for that specific
+  context, preserving the stored hashes for all other contexts.
+
+### Improvements
+
+- `prompt_sync` now passes its `context:` argument through to
+  `AppState.acknowledge`, ensuring that only the resolved context's nagging
+  state is cleared.
+
 ## 2026-11-11 v0.0.142
 
 ### Features
