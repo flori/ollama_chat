@@ -406,7 +406,7 @@ describe OllamaChat::PromptManagement do
         .and_return('reset_me' => 'original content')
 
       expect(chat.reset_prompt_to_default('reset_me')).to be true
-      expect(chat.prompt('reset_me').reload.metadata['content']).to eq('original content')
+      expect(chat.prompt('reset_me').reload.metadata['content']).to eq("original content\n")
     end
 
     it 'returns nil when no default found in config' do

@@ -472,7 +472,9 @@ module OllamaChat::PromptManagement
     db_prompts = each_prompt(context:, default: true).to_a
 
     drifted = db_prompts.select do |p|
-      shipped.key?(p.name) && shipped[p.name].to_s != p.to_s
+      shipped.key?(p.name) &&
+        ensure_trailing_newline(shipped[p.name].to_s) !=
+        ensure_trailing_newline(p.to_s)
     end
 
     orphans = db_prompts.select { |p| !shipped.key?(p.name) }

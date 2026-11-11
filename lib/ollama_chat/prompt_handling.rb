@@ -66,6 +66,7 @@ module OllamaChat::PromptHandling
   # @return [OllamaChat::Database::Models::Prompt] the created or updated
   #   prompt model instance
   def write_prompt(name, content, context: nil)
+    content = ensure_trailing_newline(content)
     context = (context || 'prompt').to_s
     obj = nil
     if found = models::Prompt.where(context:, name: name.to_s).first
@@ -95,5 +96,19 @@ module OllamaChat::PromptHandling
     content
   end
 
+  private
 
+  # Normalizes prompt content to the canonical trailing-newline form, i.e.
+  # as if the value were always written with a `|` block scalar in YAML
+  # (which always carries a final newline). Plain-scalar YAML prompts (no
+  # trailing newline) and block-scalar ones then compare equal, and diff
+  # tooling that preserves final newlines stays consistent.
+  #
+  # Non-destructive: content already ending in a newline is returned as-is.
+  #
+  # @param str [String, nil] the prompt content
+  # @return [String, nil] the content, guaranteed to end with a newline
+  def ensure_trailing_newline(str)
+    str&.sub(/\n?\z/, ?\n)
+  end
 end

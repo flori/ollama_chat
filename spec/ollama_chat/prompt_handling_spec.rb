@@ -114,7 +114,7 @@ describe OllamaChat::PromptHandling do
 
       obj = prompt_model.where(name: 'zz_store', context: 'prompt').first
       expect(obj).not_to be_nil
-      expect(obj.metadata['content']).to eq('content-here')
+      expect(obj.metadata['content']).to eq("content-here\n")
     end
 
     it 'respects a custom context' do
@@ -131,7 +131,7 @@ describe OllamaChat::PromptHandling do
 
       expect(obj.name).to eq('zz_write')
       expect(obj.metadata['default']).to be false
-      expect(obj.metadata['content']).to eq('initial')
+      expect(obj.metadata['content']).to eq("initial\n")
     end
 
     it 'updates content on an existing prompt' do
@@ -139,7 +139,7 @@ describe OllamaChat::PromptHandling do
       updated = chat.write_prompt('zz_upd', 'v2')
 
       expect(prompt_model.where(name: 'zz_upd').count).to eq(1)
-      expect(updated.metadata['content']).to eq('v2')
+      expect(updated.metadata['content']).to eq("v2\n")
     end
 
 
