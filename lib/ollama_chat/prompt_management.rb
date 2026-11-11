@@ -1,4 +1,5 @@
 require 'tmpdir'
+require 'digest'
 
 # Provides administrative and interactive management for
 # prompt templates stored in the database.
@@ -26,23 +27,42 @@ module OllamaChat::PromptManagement
   end
 
   # The choose_prompt_context method presents a menu of available prompt
-  # contexts for selection. It allows the user to choose between 'prompt',
-  # 'system', and 'suggest' contexts.
+  # contexts for selection. A context is suffixed with a status marker only
+  # when it differs from the shipped defaults:
+  #
+  #   ⚠   drifted and shipped config changed since last acknowledge
+  #   📌  drifted but shipped config unchanged (your variant)
+  #
+  #   (no marker)   in sync with shipped defaults
   #
   # @return [String, nil] the selected context name, or nil if the user
   #   cancels the selection.
   def choose_prompt_context
-    contexts = models::Prompt.group(:context).order(:context).pluck(:context)
-    contexts.unshift('[EXIT]')
+    contexts = models::Prompt
+                 .group(:context).order(:context).pluck(:context)
+
+    entries = contexts.map do |ctx|
+      drifted, orphans, _ = context_drift(ctx)
+      marker = if drifted.empty? && orphans.empty?
+                 ''
+                elsif context_shipped_changed?(ctx)
+                 " \u26A0"
+                else
+                  " \u{1F4CC}"
+                end
+      SearchUI::Wrapper.new(ctx, display: "#{ctx}#{marker}")
+    end
+
+    entries.unshift('[EXIT]')
     case chosen = choose_entry(
-      contexts,
+      entries,
       prompt: '📝 Which prompt context shall we work in? %s'
     )
     when '[EXIT]', nil
       feedback("Exiting chooser.")
       return
-    else
-      chosen
+    when SearchUI::Wrapper
+      chosen.value
     end
   end
 
@@ -377,8 +397,8 @@ module OllamaChat::PromptManagement
     context ||= 'prompt'
     favs = all_favourited(context)
     each_prompt(context:).sort_by(&:name).map do |p|
-      default = p.metadata['default'] ? '⛭' : '✎'
-      start   = '%s %s' % [ default, bold { p.name } ]
+      default = p.metadata['default'] ? '' : " \u{1F4DD}"
+      start   = [ bold { p.name }, default ] * ''
       start   = prefix_favourite(start, favs[p.name])
       content = p.to_s.inspect[1..-2]
       content = truncate(
@@ -468,16 +488,7 @@ module OllamaChat::PromptManagement
   # @return [self, nil] self on success, nil if no drift was found
   def prompt_sync(context: nil)
     context ||= 'prompt'
-    shipped    = config.prompts[context].to_h.stringify_keys_recursive
-    db_prompts = each_prompt(context:, default: true).to_a
-
-    drifted = db_prompts.select do |p|
-      shipped.key?(p.name) &&
-        ensure_trailing_newline(shipped[p.name].to_s) !=
-        ensure_trailing_newline(p.to_s)
-    end
-
-    orphans = db_prompts.select { |p| !shipped.key?(p.name) }
+    drifted, orphans, shipped = context_drift(context)
 
     if drifted.empty? && orphans.empty?
       feedback("All prompts in context #{bold{context}} are in sync. ✨", type: :success)
@@ -526,6 +537,50 @@ module OllamaChat::PromptManagement
   end
 
   private
+
+  # Computes drift (content differences) and orphans (DB prompts missing
+  # from shipped config) for a single context.
+  #
+  # @param context [String] the prompt context
+  # @return [Array] [drifted, orphans, shipped] where drifted/orphans are
+  #   arrays of Prompt models and shipped is the config hash
+  def context_drift(context)
+    shipped    = config.prompts[context]&.to_h&.stringify_keys_recursive || {}
+    db_prompts = each_prompt(context:, default: true).to_a
+
+    drifted = db_prompts.select do |p|
+      shipped.key?(p.name) &&
+        ensure_trailing_newline(shipped[p.name].to_s) !=
+        ensure_trailing_newline(p.to_s)
+    end
+    orphans = db_prompts.select { |p| !shipped.key?(p.name) }
+    [drifted, orphans, shipped]
+  end
+
+  # Returns true if the shipped config for a context differs from the
+  # last-acknowledged state (i.e. the app shipped new or changed prompts
+  # since the user last saw the boot notification or ran /prompt sync).
+  #
+  # @param context [String] the prompt context
+  # @return [Boolean] true if shipped content changed
+  def context_shipped_changed?(context)
+    stored = models::AppState
+               .get(:prompt_defaults_fingerprint)&.dig('hashes') || {}
+    shipped = config.prompts[context]&.to_h&.stringify_keys_recursive || {}
+    prefix  = "#{context}/"
+
+    current_keys = shipped.keys.map { |n| "#{prefix}#{n}" }
+    stored_keys  = stored.keys.select { |k| k.start_with?(prefix) }
+
+    return true if (current_keys - stored_keys).any?
+    return true if (stored_keys - current_keys).any?
+
+    shipped.any? do |name, content|
+      key = "#{prefix}#{name}"
+      stored.key?(key) &&
+        stored[key] != Digest::SHA256.hexdigest(content.to_s)
+    end
+  end
 
   # Helper to wrap a prompt name with its favourite status for the UI.
   #

@@ -53,7 +53,7 @@ describe OllamaChat::PromptManagement do
       prompt_model.create(context: 'prompt', name: 'p', metadata: { default: false, content: 'x' })
       prompt_model.create(context: 'system', name: 's', metadata: { default: false, content: 'y' })
 
-      expect(chat).to receive(:choose_entry).and_return('system')
+      expect(chat).to receive(:choose_entry).and_return(wrapper.('system'))
       expect(chat.choose_prompt_context).to eq('system')
     end
 
