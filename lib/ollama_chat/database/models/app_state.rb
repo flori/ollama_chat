@@ -101,9 +101,24 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
   # drift notification. Called after `/prompt sync` so the user is not
   # nagged again on the next launch.
   #
+  # When a specific `context` is given, only that context's hashes are
+  # refreshed; the remaining contexts keep their stored hashes so their
+  # ⚠ marker persists until they are individually synced.
+  #
   # @param chat [OllamaChat::Chat] the chat instance providing the config
-  def self.acknowledge(chat)
-    hashes      = compute_hashes(chat.config.prompts)
+  # @param context [String, nil] optionally scope the acknowledge to a
+  #   single prompt context
+  def self.acknowledge(chat, context: nil)
+    hashes = compute_hashes(chat.config.prompts)
+
+    if context
+      prefix   = "#{context}/"
+      stored   = get(:prompt_defaults_fingerprint)
+      existing = stored&.dig('hashes') || {}
+      hashes   = existing.reject { |k, _| k.start_with?(prefix) }
+                       .merge(hashes.select { |k, _| k.start_with?(prefix) })
+    end
+
     fingerprint = fingerprint_from(hashes)
     store_fingerprint(fingerprint, hashes)
   end

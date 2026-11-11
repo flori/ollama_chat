@@ -532,7 +532,7 @@ module OllamaChat::PromptManagement
       end
     end
 
-    models::AppState.acknowledge(self)
+    models::AppState.acknowledge(self, context:)
     self
   end
 
