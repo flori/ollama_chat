@@ -51,16 +51,19 @@ prompts:
       %{results}
     location: You are at %{location_name}, %{location_decimal_degrees}, preferring %{units}
     static_runtime_info: |
+      **Environment**:
       - Name of the chat user: %{user}
       - Languages the user prefers: %{languages}
       - Location: %{location}
-      - Current directory is "%{current_directory}"
       - Client is %{client}.
       - Machine: %{machine}
     dynamic_runtime_info: |
-      There is usually no reason to mention this information to the user unless
-      asked about it.
+      **State**:
 
+      There is usually no reason to mention this state information to the user
+      unless asked about it.
+
+      - Current directory is "%{current_directory}"
       - Current time is %{weekday}, %{time}
       - **Git**:
         - Current branch is %{git_current_branch}

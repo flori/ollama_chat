@@ -339,7 +339,6 @@ module OllamaChat::Information
   def static_runtime_information_values
     {
       client:               ,
-      current_directory:    Pathname.pwd.expand_path.to_path,
       languages:            config.languages * ', ',
       location:             location.on?.full? { location_description } || 'n/a',
       machine:              machine_profile || 'n/a',
@@ -385,6 +384,7 @@ module OllamaChat::Information
   def dynamic_runtime_information_values
     now = Time.now
     {
+      current_directory:    Pathname.pwd.expand_path.to_path,
       git_current_branch:   `git rev-parse --abbrev-ref HEAD 2>/dev/null`.chomp.full? || 'n/a',
       git_remote_origin:    `git remote get-url origin 2>/dev/null`.chomp.full? || 'n/a',
       git_sha:              `git rev-parse HEAD 2>/dev/null`.chomp.full? || 'n/a',
