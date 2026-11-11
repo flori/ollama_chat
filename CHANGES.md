@@ -1,5 +1,51 @@
 # Changes
 
+## 2026-11-11 v0.0.142
+
+### Features
+
+- Added status markers to the prompt context chooser (`choose_prompt_context`)
+  to indicate drift status: `⚠` when shipped config changed since last
+  acknowledge, `📌` when drifted but shipped config is unchanged, and no marker
+  when in sync.
+- Updated `list_prompts` to display a trailing `📝` marker for user variants,
+  while default prompts remain unmarked.
+
+### Fixes
+
+- Fixed `execute_jira_twg` to replace bare braces (`{` or `[`) in the first
+  line of pretty-printed JSON output with `(structured result)`, preventing
+  confusing single-character messages.
+- Resolved false positives in `prompt_sync` drift detection by normalizing
+  trailing newlines on both shipped and database-stored prompt content using
+  `ensure_trailing_newline`.
+
+### Improvements
+
+- Relocated `current_directory` from `static_runtime_information_values` to
+  `dynamic_runtime_information_values` in `information.rb` to maintain a
+  byte-stable system prompt prefix across repository switches, preserving LLM
+  engine prefix cache efficiency.
+- Extracted drift and orphan computation logic into a private `context_drift`
+  method and added `context_shipped_changed?` to share code paths between the
+  prompt chooser and `prompt_sync`.
+- Added `ensure_trailing_newline` to `prompt_handling.rb` to canonicalize
+  prompt content as if written with a YAML block scalar, ensuring consistent
+  newline termination for all DB-stored prompts.
+- Updated `default_config.yml` to add `**Environment**:` and `**State**:`
+  headings to the `static_runtime_info` and `dynamic_runtime_info` templates,
+  respectively.
+
+### Testing
+
+- Added specs for `execute_jira_twg` covering pretty-printed JSON, JSON arrays,
+  and plain-text output scenarios.
+- Updated `choose_prompt_context` spec to mock `choose_entry` returning a
+  `SearchUI::Wrapper`.
+- Updated spec assertions in `prompt_handling_spec.rb` and
+  `prompt_management_spec.rb` to expect canonical trailing newlines in prompt
+  content.
+
 ## 2026-11-06 v0.0.141
 
 ### Improvements
