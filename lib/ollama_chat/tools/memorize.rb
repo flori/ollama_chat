@@ -123,7 +123,7 @@ class OllamaChat::Tools::Memorize
       "New entry tagged ##{timestamp}." :
       "Memory stored in collection #{collection.inspect}."
 
-    result = { success: true, timestamp:, collection:, message: }
+    result = { success: true, timestamp:, collection:, message:, text: }
     if update
       result |= {
         replaced_timestamp: update,
