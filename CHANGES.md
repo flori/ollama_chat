@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-11-13 v0.0.145
+
+### Fix
+
+- Raised the minimum `ollama-ruby` dependency constraint from `~> 1.26` to `~>
+  1.26, >= 1.26.1` in `Rakefile` and `ollama_chat.gemspec` to ensure the JSONL
+  streaming buffer fix from **v1.26.1** is present.
+
 ## 2026-11-12 v0.0.144
 
 ### Features
