@@ -1151,6 +1151,13 @@ describe OllamaChat::Commands, protect_env: true do
     end
   end
 
+  describe '/restart' do
+    it 'returns :next when input is "/restart"' do
+      expect(chat).to receive(:reload_config)
+      expect(chat.handle_input("/restart")).to eq :next
+    end
+  end
+
   describe '/nixda' do
     it 'returns :next when input is "/nixda"' do
       expect(chat).to receive(:display_chat_help)

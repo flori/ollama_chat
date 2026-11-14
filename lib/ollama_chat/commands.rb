@@ -1064,6 +1064,17 @@ module OllamaChat::Commands
     quit_app
   end
 
+  command(
+    name: :restart,
+    regexp: %r(^/restart$),
+    help: <<~EOT
+      🔄 Restart application
+    EOT
+  ) do
+    reload_config
+    :next
+  end
+
   category :Information
 
   command(
