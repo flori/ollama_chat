@@ -448,23 +448,35 @@ module OllamaChat::PersonaeManagement
 
   # Interactive method to load multiple personae for use.
   #
-  # Allows sequential selection of multiple personae. Returns JSON results for
-  # each loaded persona.
+  # Presents a multi-select picker with `[ALL]`/`[NONE]` sentinels.
+  # Returns a compiled
+  # description string for all picked personae.
+  #
+  # @return [String, nil] A string containing all descriptions, or nil if
+  #   the selection was cancelled or no persona was chosen.
   def load_personae
-    chosen = Set[]
-    choose_with_state do
-      while persona = choose_persona(chosen:, prompt: 'Who else should join the conversation? %s')
-        persona == :none and next
-        chosen << persona
-      end
+    personae = available_personae_names
+    if personae.empty?
+      feedback("No personae defined.", type: :warn)
+      return
     end
 
-    if chosen.empty?
+    entries = %w[ [ALL] [NONE] ] + personae
+
+    picked = choose_multi(
+      entries,
+      prompt: 'Who should join? %s [Tab=toggle, Enter=apply, C-c=abort]',
+      all:    '[ALL]',
+      none:   '[NONE]',
+    ) or return
+    names = picked.map(&:value)
+
+    if names.empty?
       feedback("No persona loaded.", type: :info)
       return
     end
 
-    personae_result(chosen)
+    personae_result(names)
   end
 
   # Compiles the descriptions for one or more personae into a single string.
