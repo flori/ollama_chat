@@ -34,9 +34,10 @@ class OllamaChat::Tools::SearchKnowledge
       function: Tool::Function.new(
         name:,
         description: <<~EOT,
-          Search the local knowledge collections for text matching the
-          supplied query. The result is a JSON string containing
-          a prompt header and an array of {text, tags} objects.
+          Search the local knowledge collections for text matching the supplied
+          query formulated as a natural language question. The result is a JSON
+          string containing a prompt header and an array of {text, tags}
+          objects.
         EOT
         parameters: Tool::Function::Parameters.new(
           type: 'object',
@@ -44,7 +45,8 @@ class OllamaChat::Tools::SearchKnowledge
             query: Tool::Function::Parameters::Property.new(
               type: 'string',
               description: <<~EOT,
-                The query or text to search for in the knowledge collections.
+                The query or text to search for in the knowledge collections as
+                a fully formulated question in natural language.
               EOT
             ),
             tags: Tool::Function::Parameters::Property.new(
