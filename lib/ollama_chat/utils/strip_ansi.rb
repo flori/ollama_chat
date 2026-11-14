@@ -17,6 +17,6 @@ module OllamaChat::Utils::StripANSI
   # @param line [String] the string potentially containing ANSI escapes
   # @return [String] the string with all ANSI escape sequences removed
   def strip_ansi(line)
-    line.to_s.gsub(ANSI_RE, '')
+    line.to_s.encode('UTF-8', invalid: :replace, undef: :replace).gsub(ANSI_RE, '')
   end
 end
