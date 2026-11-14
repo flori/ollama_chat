@@ -870,19 +870,10 @@ describe OllamaChat::Commands, protect_env: true do
 
   describe '/tools' do
     it 'returns :next when input is "/tools"' do
-      expect(chat).to receive(:list_tools)
+      expect(chat).to receive(:choose_tools)
       expect(chat.handle_input("/tools")).to eq :next
     end
 
-    it 'returns :next when input is "/tools enable"' do
-      expect(chat).to receive(:enable_tool)
-      expect(chat.handle_input("/tools enable")).to eq :next
-    end
-
-    it 'returns :next when input is "/tools disable"' do
-      expect(chat).to receive(:disable_tool)
-      expect(chat.handle_input("/tools disable")).to eq :next
-    end
     it 'returns :next when input is "/tools on"' do
       expect(chat.tools_support).to receive(:set).with(true, show: true)
       expect(chat.handle_input("/tools on")).to eq :next
@@ -977,17 +968,10 @@ describe OllamaChat::Commands, protect_env: true do
   end
 
   describe '/favourite' do
-    it 'adds a favourite for each type' do
+    it 'opens the multi-select picker for each type' do
       %w[model prompt system persona suggest].each do |type|
-        expect(chat).to receive(:add_favourite).with(type)
-        expect(chat.handle_input("/favourite add #{type}")).to eq :next
-      end
-    end
-
-    it 'deletes a favourite for each type' do
-      %w[model prompt system persona suggest].each do |type|
-        expect(chat).to receive(:delete_favourite).with(type)
-        expect(chat.handle_input("/favourite delete #{type}")).to eq :next
+        expect(chat).to receive(:choose_favourite).with(type)
+        expect(chat.handle_input("/favourite #{type}")).to eq :next
       end
     end
   end

@@ -95,11 +95,9 @@ module OllamaChat::RAGHandling
   # Dumps one or more `memory-<persona>` collections to a JSONL file
   # for portable backup or migration.
   #
-  # Presents an accumulating chooser of all `memory-*` collections:
-  # pick individual collections (they drop out of the list once selected),
-  # `[ALL]` to grab everything remaining, or `[DONE]` to commit the write.
-  # Each line carries a `collection` field so one file can hold multiple
-  # personas.
+  # Presents a multi-select chooser of all `memory-*` collections
+  # with an `[ALL]` shortcut; Enter commits the write. Each line carries a
+  # `collection` field so one file can hold multiple personas.
   #
   # @param filename [String, nil] the output path (must end in .json/.jsonl);
   #   prompts interactively if nil
@@ -109,24 +107,13 @@ module OllamaChat::RAGHandling
       .pluck(:name)
     return feedback('No memory-* collections found.', type: :warn) unless collections
 
-    selected = Set.new
-    choose_with_state do
-      loop do
-        remaining = collections - selected.to_a
-        entries   = (remaining.empty? ? [] : ['[ALL]'] + remaining) + ['[DONE]']
-        choice    = choose_entry(entries, prompt: 'Which memory collections to dump? %s')
-        case choice
-        when nil, '[DONE]'
-          break
-        when '[ALL]'
-          selected.merge(remaining)
-          break
-        else
-          selected << choice
-        end
-      end
-    end
-
+    selected = choose_multi(
+      %w[ [ALL] [NONE] ] + collections,
+      all:    '[ALL]',
+      none:   '[NONE]',
+      prompt: 'Which memory collections to dump? %s ' \
+              '[Tab=toggle, Enter=apply, C-c=abort]'
+    ) or return feedback('Cancelled, no collections selected.', type: :cancel)
     return feedback('Cancelled, no collections selected.', type: :cancel) if selected.empty?
 
     filename.present? or filename = ask_for_filename?(action: 'to dump into')
@@ -137,7 +124,7 @@ module OllamaChat::RAGHandling
     filename = Pathname.new(filename).expand_path
     should_overwrite?(filename) or return
 
-    feedback("Dumping #{selected.size} collection(s): #{selected.sort.join(', ')}")
+    feedback("Dumping #{selected.size} collection(s): #{selected.sort.joined}")
 
     records = []
     selected.sort.each do |col|
@@ -164,9 +151,8 @@ module OllamaChat::RAGHandling
 
   # Restores `memory-<persona>` collections from a JSONL dump file.
   #
-  # Presents an accumulating chooser of all collections found in the file:
-  # pick individual collections (they drop out of the list once selected),
-  # `[ALL]` to grab everything remaining, or `[DONE]` to commit the restore.
+  # Presents a multi-select chooser of all collections found in the file
+  # with an `[ALL]` shortcut; Enter commits the restore.
   # Records are added with their original tag and source so timestamps
   # and file associations survive.
   #
@@ -189,29 +175,19 @@ module OllamaChat::RAGHandling
     collections = entries.group_by { |e| e['collection'] }.reject { _1.nil? }
     return feedback('No collection field found in entries.', type: :warn) if collections.empty?
 
-    selected = Set.new
-    choose_with_state do
-      loop do
-        remaining = collections.keys - selected.to_a
-        choices   = (remaining.empty? ? [] : ['[ALL]'] + remaining) + ['[DONE]']
-        choice    = choose_entry(choices, prompt: 'Which memory collections to restore? %s')
-        case choice
-        when nil, '[DONE]'
-          break
-        when '[ALL]'
-          selected.merge(remaining)
-          break
-        else
-          selected << choice
-        end
-      end
-    end
-
+    keys = collections.keys
+    selected = choose_multi(
+      %w[ [ALL] [NONE] ] + keys,
+      all:    '[ALL]',
+      none:   '[NONE]',
+      prompt: 'Which memory collections to restore? %s ' \
+              '[Tab=toggle, Enter=apply, C-c=abort]'
+    ) or return feedback('Cancelled, no collections selected.', type: :cancel)
     return feedback('Cancelled, no collections selected.', type: :cancel) if selected.empty?
 
     selected = selected.sort
 
-    feedback("Restoring #{selected.size} collection(s): #{selected.join(', ')}")
+    feedback("Restoring #{selected.size} collection(s): #{selected.joined}")
 
     total   = 0
     skipped = 0
@@ -395,7 +371,7 @@ module OllamaChat::RAGHandling
         display_map = {}
         sources.each do |s|
           tags = source_tags[s].map(&:to_s)
-          line = tags.any? ? "#{s}  [#{tags.join(', ')}]" : s
+          line = tags.any? ? "#{s}  [#{tags.joined}]" : s
           display_map[line] = s
         end
         display = display_map.keys
@@ -419,7 +395,7 @@ module OllamaChat::RAGHandling
               output.puts
               records.each do |record|
                 output.puts kramdown_ansi_parse(<<~EOT)
-                  **[#{record.tags.join(', ')}]**
+                  **[#{record.tags.joined}]**
                   ```
                   #{wrap(record.text.sub(/\n+\z/, ''), percentage: 90)}
                   ```

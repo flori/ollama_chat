@@ -112,26 +112,29 @@ module OllamaChat::Dialog
 
   private
 
-  # The choose_file_set method aggregates all files matching the given patterns
-  # by repeatedly invoking choose_filename and collecting their expanded paths
-  # into a Set.
+  # The choose_multiple_filenames method presents a multi-select picker of
+  # all files matching the given glob patterns. The user toggles files with
+  # Tab and confirms with Enter.
   #
   # @param patterns [ Array<String> ] optional glob patterns to match; defaults
   #   to '**/*'.
   #
   # @return [ Set<Pathname> ] a set of expanded Pathname objects for each
-  #   selected file.
+  #   selected file (empty set on abort).
   #
-  def choose_file_set(patterns)
+  def choose_multiple_filenames(patterns)
     patterns ||= '**/*'
-    patterns = Array(patterns).map { Pathname.new(_1).expand_path }
-    files = Set[]
-    choose_with_state do
-      while filename = choose_filename(patterns, chosen: files)
-        files << filename.expand_path
-      end
-    end
-    files
+    patterns   = Array(patterns).map { Pathname.new(_1).expand_path }
+    files      = patterns.flat_map { Pathname.glob(_1) }
+    files      = files.select { _1.file? }.uniq
+    result     = choose_multi(
+      %w[ [ALL] [NONE] ] + files,
+      all:    '[ALL]',
+      none:   '[NONE]',
+      prompt: 'Select files to import: %s ' \
+              '[Tab=toggle, Enter=apply, C-c=abort]'
+    )
+    (result || []).to_set
   end
 
   # Displays an info-level feedback message indicating that a connection

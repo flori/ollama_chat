@@ -66,41 +66,22 @@ module OllamaChat::Conversation
 
   # Selectively cleans parts of the current conversation.
   #
-  # Presents an accumulating chooser of cleanable targets:
+  # Presents a multi-select chooser of cleanable targets:
   # tool content, images, thinking, messages, history, links.
-  # The user picks one or more (or [ALL]), confirms, and the
+  # The user toggles one or more items and confirms; the
   # selected items are cleared.
   def conversation_clean
     options = %w[ tools images thinking messages history links ]
-
-    selected = Set.new
-    choose_with_state do
-      loop do
-        remaining = options - selected.to_a
-        entries   = (remaining.empty? ? [] : ['[ALL]'] + remaining) + ['[DONE]']
-        choice    = choose_entry(entries, prompt: 'What to clean from conversation? %s')
-        case choice
-        when nil, '[DONE]'
-          break
-        when '[ALL]'
-          selected.merge(remaining)
-          break
-        else
-          selected << choice
-        end
-      end
-    end
-
+    selected = choose_multi(
+      %w[ [ALL] [NONE] ] + options,
+      all:    '[ALL]',
+      none:   '[NONE]',
+      prompt: 'What to clean from conversation? %s ' \
+              '[Tab=toggle, Enter=apply, C-c=abort]'
+    ) or return feedback('Cancelled, nothing selected.', type: :cancel)
     return feedback('Cancelled, nothing selected.', type: :cancel) if selected.empty?
 
     what = selected.map { |s| bold{s} }.to_a
-
-    unless confirm?(
-      prompt: "🔔 Clean #{what * ', '} from conversation? (y/n) ",
-      yes: /\Ay/i
-    )
-      return feedback('Denied.', type: :denied)
-    end
 
     field_options = %w[ tools images thinking ].select { selected.include?(_1) }
     messages.clear if selected.include?('messages')

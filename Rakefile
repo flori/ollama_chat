@@ -50,7 +50,7 @@ GemHadar do
   dependency             'kramdown-ansi',         '~> 0.9'
   dependency             'complex_config',        '~> 0.22', '>= 0.22.2'
   dependency             'tins',                  '~> 1.62'
-  dependency             'search_ui',             '>= 0.2'
+  dependency             'search_ui',             '>= 0.4'
   dependency             'amatch',                '~> 0.4'
   dependency             'pdf-reader',            '~> 2.0'
   dependency             'bigdecimal',            '~> 3.1'

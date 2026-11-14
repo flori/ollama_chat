@@ -94,88 +94,48 @@ module OllamaChat::ToolCalling
     Array(config.tools&.functions&.attribute_names&.map(&:to_s)).sort
   end
 
-
-  # The list_tools method displays the sorted list of enabled tools.
+  # The choose_tools method opens an interactive multi-select picker showing
+  # all configured tools with their current enabled/disabled state and
+  # confirmation requirement. The user toggles tools with Tab and
+  # applies changes with Enter.
   #
-  # This method outputs to standard output the alphabetically sorted list of
-  # tool names that are currently enabled in the chat session.
-  def list_tools
-    use_pager do |output|
-      output.puts "Registered tools:"
-      configured_tools.each do |tool|
-        enabled = tool_enabled?(tool) ? '✅' : '⛔'
-        require_confirmation = tool_function(tool).require_confirmation? ? '❔' : '⭕'
-
-        output.printf(
-          "%s %s %s\n",
-          enabled, require_confirmation, (enabled ? bold { tool } : tool)
-        )
-      end
-      output.puts ?┉ * Tins::Terminal.columns
-      tools_support.show(output:)
+  # @return [nil]
+  def choose_tools
+    unless tools_support.on?
+      return feedback(
+        'Tools are globally disabled. Use /tools on first.', type: :warn
+      )
     end
-  end
+    entries = configured_tools.map do |tool|
+      marker = tool_function(tool).require_confirmation? ? '❔' : '⭕'
+      SearchUI::Wrapper.new(tool, display: "#{marker} #{tool}")
+    end
+    picked = entries.select { |e| enabled_tools.include?(e.value) }
+    result = choose_multi(
+      entries,
+      prompt: 'Choose tools: %s [Tab=toggle, Enter=apply, C-c=abort]',
+      picked:,
+      picked_icon:   '✅',
+      unpicked_icon: '⛔'
+    ) or return feedback('Aborted.')
 
-  # The enable_tool method allows the user to select and enable a tool from a
-  # list of available tools.
-  #
-  # This method presents a menu of tools that can be enabled, excluding those
-  # that are already enabled. It uses the chooser to display the available
-  # tools and handles the user's selection by updating the session's default
-  # tools configuration in the database.
-  def enable_tool
-    choose_with_state do
-      loop do
-        select_tools = configured_tools - enabled_tools
-        select_tools = [ '[EXIT]' ] + select_tools
-        chosen = choose_entry(
-          select_tools,
-          prompt: 'Which capabilities should be granted to the model? %s'
+    result     = result.map(&:value)
+    to_enable  = result - enabled_tools
+    to_disable = enabled_tools - result
+
+    to_enable.each  { |t| session.tools_default_enabled[t] = true }
+    to_disable.each { |t| session.tools_default_enabled[t] = false }
+
+    unless (to_enable + to_disable).empty?
+      unless session.save
+        feedback('Could not save session.', type: :warn)
+        confirm?(prompt: "\n\u23CE  Press any key to continue (%s). ", timeout: 3)
+      else
+        feedback(
+          "Enabled: %s | Disabled: %s" %
+            [ to_enable.join(', ').inspect, to_disable.join(', ').inspect ]
         )
-        case chosen
-        when '[EXIT]', nil
-          feedback("Exiting chooser.")
-          return
-        when *select_tools
-          session.tools_default_enabled[chosen] = true
-          unless session.save
-            feedback("Could not enable tool %s" % bold { chosen }, type: :warn)
-            confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
-          end
-        end
       end
     end
   end
-
-  # The disable_tool method allows the user to select and disable a tool from a
-  # list of enabled tools.
-  #
-  # This method presents a menu of currently enabled tools to the user,
-  # allowing them to choose which tool to disable. It uses the chooser to
-  # display the available tools and handles the user's selection by updating
-  # the session's default tools configuration in the database.
-  def disable_tool
-    choose_with_state do
-      loop do
-        select_tools = enabled_tools
-        select_tools = [ '[EXIT]' ] + select_tools
-        chosen = choose_entry(
-          select_tools,
-          prompt: 'Which capabilities should be granted to the model? %s'
-        )
-        case chosen
-        when '[EXIT]', nil
-          feedback("Exiting chooser.")
-          return
-        when *select_tools
-          session.tools_default_enabled[chosen] = false
-          unless session.save
-            feedback("Could not disable tool %s" % bold { chosen }, type: :warn)
-            confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
-          end
-        end
-      end
-    end
-  end
-
 end

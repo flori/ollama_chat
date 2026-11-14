@@ -750,15 +750,14 @@ describe OllamaChat::RAGHandling do
         .and_return(double('DS', where: double('DS2', pluck: nil)))
       expect(chat).to receive(:feedback)
         .with(a_string_including('No memory-* collections found'), type: :warn)
-      expect(chat).not_to receive(:choose_with_state)
+      expect(chat).not_to receive(:choose_multi)
       chat.memory_dump('x.jsonl')
     end
 
     it 'cancels when the user selects nothing' do
       expect(chat).to receive(:all_collections)
         .and_return(double('DS', where: double('DS2', pluck: %w[ memory-a ])))
-      expect(chat).to receive(:choose_with_state).and_yield
-      expect(chat).to receive(:choose_entry).and_return('[DONE]')
+      expect(chat).to receive(:choose_multi).and_return([])
       expect(chat).to receive(:feedback)
         .with(a_string_including('Cancelled, no collections selected'), type: :cancel)
       chat.memory_dump('x.jsonl')
@@ -771,8 +770,7 @@ describe OllamaChat::RAGHandling do
 
       expect(chat).to receive(:all_collections)
         .and_return(double('DS', where: double('DS2', pluck: %w[ memory-a ])))
-      expect(chat).to receive(:choose_with_state).and_yield
-      expect(chat).to receive(:choose_entry).and_return('[ALL]')
+      expect(chat).to receive(:choose_multi).and_return(%w[ memory-a ])
 
       tag = double('Tag')
       allow(tag).to receive(:to_s).and_return('2026-01-01T00:00:00+02:00')
@@ -816,8 +814,8 @@ describe OllamaChat::RAGHandling do
     end
 
     it 'restores each record into its collection with the original tag' do
-      expect(chat).to receive(:choose_with_state).and_yield
-      expect(chat).to receive(:choose_entry).and_return('[ALL]')
+      expect(chat).to receive(:choose_multi)
+        .and_return(%w[ memory-a memory-b ])
       expect(chat).to receive(:create_memory_collection).with('memory-a')
       expect(chat).to receive(:create_memory_collection).with('memory-b')
       expect(chat).to receive(:switch_collection).with('memory-a').and_yield
@@ -842,8 +840,7 @@ describe OllamaChat::RAGHandling do
     end
 
     it 'cancels when the user selects nothing' do
-      expect(chat).to receive(:choose_with_state).and_yield
-      expect(chat).to receive(:choose_entry).and_return('[DONE]')
+      expect(chat).to receive(:choose_multi).and_return([])
       expect(chat).to receive(:feedback)
         .with(a_string_including('Cancelled, no collections selected'),
               type: :cancel)
@@ -852,9 +849,8 @@ describe OllamaChat::RAGHandling do
     end
 
     it 'restores only the selected collection when picking individually' do
-      expect(chat).to receive(:choose_with_state).and_yield
-      expect(chat).to receive(:choose_entry)
-        .and_return('memory-a', '[DONE]')
+      expect(chat).to receive(:choose_multi)
+        .and_return([ 'memory-a' ])
       expect(chat).to receive(:create_memory_collection).with('memory-a')
       expect(chat).not_to receive(:create_memory_collection).with('memory-b')
       expect(chat).to receive(:switch_collection).with('memory-a').and_yield
@@ -881,9 +877,8 @@ describe OllamaChat::RAGHandling do
           and_return('2026-01-01T00:00:00+02:00')
         rec = double('Record', tags: [ tag ])
 
-        expect(chat).to receive(:choose_with_state).and_yield
-        expect(chat).to receive(:choose_entry)
-          .and_return('memory-a', '[DONE]')
+        expect(chat).to receive(:choose_multi)
+          .and_return([ 'memory-a' ])
         expect(chat).to receive(:create_memory_collection).with('memory-a')
         expect(chat).to receive(:switch_collection).with('memory-a').and_yield
         expect(docs).to receive(:each_record).and_yield(rec)
@@ -915,9 +910,8 @@ describe OllamaChat::RAGHandling do
           and_return('2026-01-02T00:00:00+02:00')
         rec = double('Record', tags: [ tag1, tag2 ])
 
-        expect(chat).to receive(:choose_with_state).and_yield
-        expect(chat).to receive(:choose_entry)
-          .and_return('memory-a', '[DONE]')
+        expect(chat).to receive(:choose_multi)
+          .and_return([ 'memory-a' ])
         expect(chat).to receive(:create_memory_collection).with('memory-a')
         expect(chat).to receive(:switch_collection).with('memory-a').and_yield
         expect(docs).to receive(:each_record).and_yield(rec)

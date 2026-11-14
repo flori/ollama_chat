@@ -93,19 +93,14 @@ module OllamaChat::Commands
 
   command(
     name: :favourite,
-    regexp: %r(^/favourite(?:\s+(add|delete))?(?:\s+(model|prompt|system|persona|suggest))$),
-    complete: [ 'favourite', %w[ add delete ].product(%w[ model prompt system persona suggest ]) ],
+    regexp: %r(^/favourite\s+(model|prompt|system|persona|suggest)$),
+    complete: [ 'favourite', %w[ model prompt system persona suggest ] ],
     help: <<~EOT
-      \u2B50 Manage favorites (add/delete models,
+      \u2B50 Manage favorites (toggle models,
          prompts, personae)
     EOT
-  ) do |subcommand, type|
-    case subcommand
-    when 'add'
-      add_favourite(type)
-    when 'delete'
-      delete_favourite(type)
-    end
+  ) do |type|
+    choose_favourite(type)
     :next
   end
 
@@ -199,27 +194,22 @@ module OllamaChat::Commands
 
   command(
     name: :tools,
-    regexp: %r(^/tools(?:\s+(on|off|enable|disable))?),
-    complete: [ 'tools', %w[ on off enable disable ] ],
+    regexp: %r(^/tools(?:\s+(on|off))?),
+    complete: [ 'tools', %w[ on off ] ],
     optional: true,
     help: <<~EOT
       🛠 Manage tools:
-         - (no subcommand): List available tools
+          - (no subcommand): Interactively choose tools
          - on/off: Activate/Deactivate globally
-         - enable/disable: Interactively toggle specific
     EOT
   ) do |subcommand|
     case subcommand
-    when nil
-      list_tools
-    when 'enable'
-      enable_tool
-    when 'disable'
-      disable_tool
     when 'on'
       tools_support.set(true, show: true)
     when 'off'
       tools_support.set(false, show: true)
+    else
+      choose_tools
     end
     :next
   end

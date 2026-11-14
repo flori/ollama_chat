@@ -18,7 +18,7 @@ module OllamaChat::InputContent
   # @yield [file] yields each file to the supplied block
   # @return [Array<File>] the array of files that were processed
   def file_set_each(patterns, all: false, &block)
-    files = all ? all_file_set(patterns) : choose_file_set(patterns)
+    files = all ? all_file_set(patterns) : choose_multiple_filenames(patterns)
     block and files.each(&block)
     files
   end
@@ -35,7 +35,7 @@ module OllamaChat::InputContent
   #
   # @return [String] a concatenated string of file contents with filenames as headers
   def input(patterns)
-    files = choose_file_set(patterns)
+    files = choose_multiple_filenames(patterns)
     files.each_with_object('') do |filename, result|
       result << ("%s:\n\n%s\n\n" % [ filename, filename.read ])
     end.full?

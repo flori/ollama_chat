@@ -26,7 +26,7 @@ describe OllamaChat::PromptManagement do
       chat::models::Favourite.create(context: 'prompt', name: 'zz_my_prompt')
 
       entry = chat.all_prompts.find { |p| p.value == 'zz_my_prompt' }
-      expect(entry.to_s).to include("\u2764")
+      expect(entry.to_s).to include("\u2B50")
     end
 
     it 'filters by default: true' do
@@ -419,13 +419,13 @@ describe OllamaChat::PromptManagement do
     it 'wraps name with favourite heart when favourited' do
       result = chat.prompt_with_favourite('my_prompt', true)
       expect(result.value).to eq('my_prompt')
-      expect(result.to_s).to include("\u2764")
+      expect(result.to_s).to include("\u2B50")
     end
 
     it 'wraps name without heart when not favourited' do
       result = chat.prompt_with_favourite('my_prompt', false)
       expect(result.value).to eq('my_prompt')
-      expect(result.to_s).not_to include("\u2764")
+      expect(result.to_s).not_to include("\u2B50")
     end
   end
 

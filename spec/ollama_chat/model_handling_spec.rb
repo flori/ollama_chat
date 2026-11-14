@@ -134,7 +134,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'mistral', profiles: [
           { profile: 'default', options: { temperature: 0.7 } } ]},
       ])
-      expect(chat).to receive(:choose_entry).and_return 'mistral'
+      expect(chat).to receive(:choose_multi).and_return ['mistral']
       expect(chat.import_model_options(filename)).to eq true
       expect(chat.get_stored_model_options('mistral', profile: 'default'))
         .to eq(temperature: 0.7)
@@ -149,7 +149,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'mistral', profiles: [
           { profile: 'default', options: { temperature: 0.7 } } ]},
       ])
-      expect(chat).to receive(:choose_entry).and_return '[ALL]'
+      expect(chat).to receive(:choose_multi).and_return %w[ llama3.1 mistral ]
       expect(chat.import_model_options(filename)).to eq true
       expect(chat.get_stored_model_options('llama3.1', profile: 'default'))
         .to eq(num_predict: 100)
@@ -201,7 +201,7 @@ describe OllamaChat::ModelHandling do
         { model_name: 'a', profiles: [{ profile: 'd', options: {} }] },
         { model_name: 'b', profiles: [{ profile: 'd', options: {} }] },
       ])
-      expect(chat).to receive(:choose_entry).and_return '[EXIT]'
+      expect(chat).to receive(:choose_multi).and_return nil
       expect(chat.import_model_options(filename)).to be nil
     end
   end

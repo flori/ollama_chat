@@ -11,7 +11,7 @@ module OllamaChat::FavouritesManagement
   # @param favourited [Boolean] whether the item is a favourite
   # @return [String] the decorated string
   def prefix_favourite(string, favourited)
-    fav = favourited ? "\u2764" : '🩶'
+    fav = favourited ? '⭐' : '⚫'
     "%s %s" % [ fav, string ]
   end
 
@@ -29,61 +29,45 @@ module OllamaChat::FavouritesManagement
     end.to_a
   end
 
-  # The add_favourite method adds a favourite item of a specified type. It
-  # iterates through available favourites and allows the user to select
-  # from items that haven't been favourited yet.
+  # The choose_favourite method opens an interactive multi-select picker
+  # showing all available items of the given type with their current
+  # favourite state (⭐ / ⚫). The user toggles items with Tab and
+  # applies changes with Enter.
   #
   # @param type [ String ] the context type for the favourite
   #
-  # @note This method uses a chooser to present options and handles user input
-  #       for adding new favourites to the database.
-  def add_favourite(type)
-    all_things = favourite_all_things(type)
-    choose_with_state do
-      loop do
-        selected = models::Favourite.where(context: type).map(&:name)
-        to_select = all_things - selected
-        if to_select.empty?
-          feedback("All items are already favourited.", type: :info)
-          return
-        end
-        to_select.unshift('[EXIT]')
-        case chosen = choose_entry(to_select, prompt: 'Select an item to mark as favourite: %s')
-        when '[EXIT]', nil
-          feedback("Cancelled.", type: :cancel)
-          return
-        when SearchUI::Wrapper
-          models::Favourite.create(context: type, name: chosen.value)
-          log(:info, "Favourite added", data: { context: type, name: chosen.value })
-        end
-      end
-    end
-  end
+  # @note This method uses a multi-select chooser to present options and
+  #       handles user input for adding/removing favourites in one pass.
+  def choose_favourite(type)
+    all_things = favourite_all_things(type).map(&:value)
+    current    = all_favourited(type)
+    picked     = all_things.select { current.include?(_1) }
 
-  # The delete_favourite method removes favourite items from the database.
-  # It iterates through current favourites and allows the user to select
-  # items for removal in a loop, maintaining search state between selections.
-  #
-  # @param type [ String ] the context type of the favourite to delete
-  #
-  # @note This method uses a chooser to present options and handles user input
-  #       for removing favourites from the database.
-  def delete_favourite(type)
-    all_things = favourite_all_things(type)
-    choose_with_state do
-      loop do
-        to_select = models::Favourite.where(context: type).map(&:name)
-        to_select = all_things.select { to_select.member?(_1.value) }
-        to_select = [ '[EXIT]' ] + to_select
-        case chosen = choose_entry(to_select, prompt: 'Select a favourite to remove: %s')
-        when '[EXIT]', nil
-          feedback("Cancelled.", type: :cancel)
-          return
-        when SearchUI::Wrapper
-          models::Favourite.where(context: type, name: chosen.value).destroy
-          log(:info, "Favourite removed", data: { context: type, name: chosen.value })
-        end
-      end
+    result = choose_multi(
+      all_things,
+      prompt:        "Choose favourites (#{type}): %s "\
+                     "[Tab=toggle, Enter=apply, C-c=abort]",
+      picked:        picked,
+      picked_icon:   '⭐',
+      unpicked_icon: '⚫'
+    ) or return feedback('Aborted.', type: :cancel)
+
+    to_add    = result - current.keys
+    to_remove = current.keys - result
+
+    to_add.each do |name|
+      models::Favourite.create(context: type, name:)
+      log(:info, 'Favourite added', data: { context: type, name: })
+    end
+    to_remove.each do |name|
+      models::Favourite.where(context: type, name:).destroy
+      log(:info, 'Favourite removed', data: { context: type, name: })
+    end
+
+    unless (to_add + to_remove).empty?
+      feedback(
+        "Added: %s | Removed: %s" % [ to_add.joined, to_remove.joined ]
+      )
     end
   end
 

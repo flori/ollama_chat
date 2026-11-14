@@ -12,12 +12,12 @@ describe OllamaChat::FavouritesManagement do
   wrapper = ->(name) { SearchUI::Wrapper.new(name) }
 
   describe '#prefix_favourite' do
-    it 'prefixes with a red heart when favourited' do
-      expect(chat.prefix_favourite('llama3.1', true)).to eq "\u2764 llama3.1"
+    it 'prefixes with a star when favourited' do
+      expect(chat.prefix_favourite('llama3.1', true)).to eq '⭐ llama3.1'
     end
 
-    it 'prefixes with a grey heart when not favourited' do
-      expect(chat.prefix_favourite('llama3.1', false)).to eq "🩶 llama3.1"
+    it 'prefixes with a black circle when not favourited' do
+      expect(chat.prefix_favourite('llama3.1', false)).to eq '⚫ llama3.1'
     end
   end
 
@@ -41,79 +41,38 @@ describe OllamaChat::FavouritesManagement do
     end
   end
 
-  describe '#add_favourite' do
-    it 'adds a new favourite and then exits' do
+  describe '#choose_favourite' do
+    it 'adds and removes favourites in one pass' do
+      fav_model.create(context: 'model', name: 'mistral')
+
       things = [ wrapper.('llama3.1'), wrapper.('mistral') ]
       expect(chat).to receive(:favourite_all_things).and_return(things)
-      expect(chat).to receive(:choose_entry).and_return(things[0], '[EXIT]')
+      expect(chat).to receive(:choose_multi).
+        and_return([ 'llama3.1', 'mistral' ])
 
-      expect { chat.add_favourite('model') }.to change { fav_model.count }.from(0).to(1)
-
-      fav = fav_model.first
-      expect(fav.context).to eq 'model'
-      expect(fav.name).to eq 'llama3.1'
+      expect { chat.choose_favourite('model') }.
+        to change { fav_model.count }.from(1).to(2)
     end
 
-    it 'reports when all items are already favourited' do
+    it 'aborts without changes when the user presses C-c' do
       fav_model.create(context: 'model', name: 'llama3.1')
 
       things = [ wrapper.('llama3.1') ]
       expect(chat).to receive(:favourite_all_things).and_return(things)
+      expect(chat).to receive(:choose_multi).and_return(nil)
 
-      expect(chat).to receive(:feedback).with('All items are already favourited.', type: :info)
-      chat.add_favourite('model')
+      expect { chat.choose_favourite('model') }.not_to change { fav_model.count }
     end
 
-    it 'exits without adding when user selects [EXIT]' do
-      things = [ wrapper.('llama3.1') ]
-      expect(chat).to receive(:favourite_all_things).and_return(things)
-      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-
-      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
-      expect { chat.add_favourite('model') }.not_to change { fav_model.count }
-    end
-
-    it 'exits without adding when user cancels (nil)' do
-      things = [ wrapper.('llama3.1') ]
-      expect(chat).to receive(:favourite_all_things).and_return(things)
-      expect(chat).to receive(:choose_entry).and_return(nil)
-
-      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
-      expect { chat.add_favourite('model') }.not_to change { fav_model.count }
-    end
-  end
-
-  describe '#delete_favourite' do
-    it 'removes a favourite and then exits' do
+    it 'does not feedback when nothing changed' do
       fav_model.create(context: 'model', name: 'llama3.1')
 
       things = [ wrapper.('llama3.1') ]
       expect(chat).to receive(:favourite_all_things).and_return(things)
-      expect(chat).to receive(:choose_entry).and_return(things[0], '[EXIT]')
+      expect(chat).to receive(:choose_multi).and_return([ 'llama3.1' ])
+      expect(chat).not_to receive(:feedback)
 
-      expect { chat.delete_favourite('model') }.to change { fav_model.count }.from(1).to(0)
-    end
-
-    it 'exits without deleting when user selects [EXIT]' do
-      fav_model.create(context: 'model', name: 'llama3.1')
-
-      things = [ wrapper.('llama3.1') ]
-      expect(chat).to receive(:favourite_all_things).and_return(things)
-      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
-
-      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
-      expect { chat.delete_favourite('model') }.not_to change { fav_model.count }
-    end
-
-    it 'exits without deleting when user cancels (nil)' do
-      fav_model.create(context: 'model', name: 'llama3.1')
-
-      things = [ wrapper.('llama3.1') ]
-      expect(chat).to receive(:favourite_all_things).and_return(things)
-      expect(chat).to receive(:choose_entry).and_return(nil)
-
-      expect(chat).to receive(:feedback).with('Cancelled.', type: :cancel)
-      expect { chat.delete_favourite('model') }.not_to change { fav_model.count }
+      chat.choose_favourite('model')
     end
   end
 

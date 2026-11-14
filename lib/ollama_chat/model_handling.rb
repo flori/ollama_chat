@@ -343,17 +343,15 @@ module OllamaChat::ModelHandling
 
     # Let user pick models if more than one
     if data.size > 1
-      options = (['[ALL]'] + data.map { |d| d['model_name'] } + ['[EXIT]'])
-      chosen  = choose_entry(options, prompt: 'Which model(s) to import? %s')
-      case chosen
-      when '[EXIT]', nil
-        feedback("Cancelled.", type: :cancel)
-        return
-      when '[ALL]'
-        selected = data
-      else
-        selected = data.select { |d| d['model_name'] == chosen }
-      end
+      names  = data.map { |d| d['model_name'] }
+      chosen = choose_multi(
+        %w[ [ALL] [NONE] ] + names,
+        all:    '[ALL]',
+        none:   '[NONE]',
+        prompt: 'Which model(s) to import? %s [Tab=toggle, Enter=apply, C-c=abort]'
+      ) or return feedback('Cancelled.', type: :cancel)
+      return feedback('Cancelled.', type: :cancel) if chosen.empty?
+      selected = data.select { |d| chosen.include?(d['model_name']) }
     else
       selected = data
     end

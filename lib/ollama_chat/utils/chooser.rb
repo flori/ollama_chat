@@ -55,7 +55,7 @@ module OllamaChat::Utils::Chooser
           ]
         }.select { |_, s| s < 0 }.sort_by(&:last).map(&:first)
         matches.empty? and matches = entries
-        matches.first(Tins::Terminal.lines - 1)
+        matches
       },
       query: -> _answer, matches, selector {
         matches.each_with_index.map { |m, i|
@@ -65,6 +65,71 @@ module OllamaChat::Utils::Chooser
       found: -> _answer, matches, selector {
         matches[selector]
       },
+      output: STDOUT
+    )
+    entry                     = search.start
+    self.current_search_state = search.state if dynamic_defined?(:current_search_state)
+    if entry
+      entry
+    else
+      print clear_screen, move_home
+      nil
+    end
+  end
+
+  # The choose_multi method presents a list of entries for multi-selection.
+  #
+  # Users toggle items with Tab and confirm with Enter, which returns
+  # the full set of picked items as an Array. Ctrl-C aborts and returns nil.
+  #
+  # @param entries [Array] the list of entries to present to the user
+  # @param prompt [String] the prompt message (default: 'Search? %s')
+  # @param picked [ Array, nil ] items to pre-select (default: nil)
+  # @param all [String, nil] sentinel entry that selects all items (default: nil)
+  # @param none [String, nil] sentinel entry that clears all items (default: nil)
+  # @param picked_icon [String] icon for selected items (default: '⚪')
+  # @param unpicked_icon [String] icon for unselected items (default: '⚫')
+  # @return [Array, nil] the picked items (excluding sentinels), or nil if aborted
+  #
+  # @example
+  #   picked = choose_multi(
+  #     entries,
+  #     prompt: 'Toggle: %s [Tab=toggle, Enter=apply, C-c=abort]',
+  #     picked: current_selection,
+  #     all: '[ALL]'
+  #   )
+  def choose_multi(entries, prompt: 'Search? %s', picked: nil,
+                    all: nil, none: nil,
+                    picked_icon: '⚪', unpicked_icon: '⚫')
+    state = current_search_state if dynamic_defined?(:current_search_state)
+    search = Search.new(
+      state:  ,
+      prompt: ,
+      multi:  true,
+      picked: ,
+      all:    ,
+      none:   ,
+      match:  -> answer {
+        matcher = Amatch::PairDistance.new(answer.downcase)
+        matches = entries.map { |n|
+          [
+            n,
+            -matcher.similar(
+              n.ask_and_send_or_self(:value).to_s.downcase, /\b/
+            )
+          ]
+        }.select { |_, s| s < 0 }.sort_by(&:last).map(&:first)
+        matches.empty? and matches = entries
+        matches
+      },
+      query:  -> _answer, matches, selector, picked {
+        matches.each_with_index.map { |m, i|
+          mark   = picked[m] ? picked_icon : unpicked_icon
+          cursor = i == selector ? " #{blue { ?⮕ }}" : '  '
+          "#{cursor} #{mark} #{m}"
+        } * ?\n
+      },
+      found:  -> _answer, matches, selector { matches[selector] },
       output: STDOUT
     )
     entry                     = search.start

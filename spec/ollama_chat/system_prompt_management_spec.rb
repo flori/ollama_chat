@@ -28,7 +28,7 @@ describe OllamaChat::SystemPromptManagement do
       chat::models::Favourite.create(context: 'system', name: 'zz_fav_sys')
 
       entry = chat.all_system_prompts.find { |p| p.value == 'zz_fav_sys' }
-      expect(entry.to_s).to include("\u2764")
+      expect(entry.to_s).to include("\u2B50")
     end
 
     it 'does not include prompts from other contexts' do
@@ -186,13 +186,13 @@ describe OllamaChat::SystemPromptManagement do
     it 'wraps name with favourite heart when favourited' do
       result = chat.system_prompt_with_favourite('zz_my_sys', true)
       expect(result.value).to eq('zz_my_sys')
-      expect(result.to_s).to include("\u2764")
+      expect(result.to_s).to include("\u2B50")
     end
 
     it 'wraps name without heart when not favourited' do
       result = chat.system_prompt_with_favourite('zz_my_sys', false)
       expect(result.value).to eq('zz_my_sys')
-      expect(result.to_s).not_to include("\u2764")
+      expect(result.to_s).not_to include("\u2B50")
     end
   end
 end

@@ -106,23 +106,16 @@ describe OllamaChat::Conversation do
 
   describe '#conversation_clean' do
     it 'cancels when nothing is selected' do
-      expect(chat).to receive(:choose_entry).and_return('[DONE]')
+      expect(chat).to receive(:choose_multi).and_return([])
       expect(chat).to receive(:feedback)
         .with('Cancelled, nothing selected.', type: :cancel)
       chat.conversation_clean
     end
 
-    it 'denies when user says no at the confirm gate' do
-      expect(chat).to receive(:choose_entry).and_return('tools', '[DONE]')
-      expect(chat).to receive(:confirm?).and_return(false)
-      expect(chat).to receive(:feedback).with('Denied.', type: :denied)
-      chat.conversation_clean
-    end
 
     it 'cleans field-only options (tools, images, thinking)' do
-      expect(chat).to receive(:choose_entry)
-        .and_return('tools', 'images', 'thinking', '[DONE]')
-      expect(chat).to receive(:confirm?).and_return(true)
+      expect(chat).to receive(:choose_multi)
+        .and_return([ 'tools', 'images', 'thinking' ])
       expect(chat.messages).to receive(:clean_messages!)
         .with(what: %i[ tools images thinking ])
       expect(chat.messages).not_to receive(:clear)
@@ -135,9 +128,8 @@ describe OllamaChat::Conversation do
     end
 
     it 'clears messages and cleans fields when both are selected' do
-      expect(chat).to receive(:choose_entry)
-        .and_return('messages', 'tools', '[DONE]')
-      expect(chat).to receive(:confirm?).and_return(true)
+      expect(chat).to receive(:choose_multi)
+        .and_return([ 'messages', 'tools' ])
       expect(chat.messages).to receive(:clear)
       expect(chat.messages).to receive(:clean_messages!).with(what: %i[ tools ])
       expect(chat).not_to receive(:clear_history)
@@ -149,8 +141,7 @@ describe OllamaChat::Conversation do
     end
 
     it 'clears links when selected' do
-      expect(chat).to receive(:choose_entry).and_return('links', '[DONE]')
-      expect(chat).to receive(:confirm?).and_return(true)
+      expect(chat).to receive(:choose_multi).and_return([ 'links' ])
       expect(chat.links).to receive(:clear)
       expect(chat.messages).not_to receive(:clean_messages!)
       expect(chat.messages).not_to receive(:clear)
@@ -162,8 +153,7 @@ describe OllamaChat::Conversation do
     end
 
     it 'clears history when selected' do
-      expect(chat).to receive(:choose_entry).and_return('history', '[DONE]')
-      expect(chat).to receive(:confirm?).and_return(true)
+      expect(chat).to receive(:choose_multi).and_return([ 'history' ])
       expect(chat).to receive(:clear_history)
       expect(chat.messages).not_to receive(:clean_messages!)
       expect(chat.messages).not_to receive(:clear)

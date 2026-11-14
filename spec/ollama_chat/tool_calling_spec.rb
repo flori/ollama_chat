@@ -95,80 +95,41 @@ describe OllamaChat::ToolCalling do
     end
   end
 
-  describe '#list_tools' do
-    it 'prints a formatted list of tools with their status' do
-      chat.session.tools_default_enabled = {
-        'read_file' => true, 'write_file' => false
+  describe '#choose_tools' do
+    wrapper = ->(name) { SearchUI::Wrapper.new(name) }
+
+    it 'updates the session when tools are toggled' do
+      to_enable = chat.configured_tools.find {
+        !chat.session.tools_default_enabled[_1]
       }
+      to_disable = chat.configured_tools.find {
+        chat.session.tools_default_enabled[_1]
+      }
+      expect(to_enable).to be_present
+      expect(to_disable).to be_present
 
-      output_io = StringIO.new
-      expect(chat).to receive(:use_pager).and_yield(output_io)
-      expect(chat).to receive(:tools_support).
-        and_return(double(show: true))
+      new_picked = chat.enabled_tools + [ to_enable ] - [ to_disable ]
+      expect(chat).to receive(:choose_multi).
+        and_return(new_picked.map(&wrapper))
 
-      chat.list_tools
+      chat.choose_tools
 
-      # We expect to see ✅ for read_file and ⛔ for write_file
-      expect(output_io.string).to match(/✅ .*read_file.*⛔ .*write_file/m)
-    end
-  end
-
-  describe '#enable_tool' do
-    it 'updates the session when a tool is selected from the menu' do
-      target_tool = chat.configured_tools.find { |t| !chat.session.tools_default_enabled[t] }
-      expect(target_tool).to be_present
-
-      # Mock choose_entry to return the target tool
-      expect(chat).to receive(:choose_entry).and_return(target_tool, '[EXIT]')
-
-      expect { chat.enable_tool }.to change {
-        chat.session.tools_default_enabled[target_tool]
-      }.from(false).to(true)
+      expect(chat.session.tools_default_enabled[to_enable]).to be true
+      expect(chat.session.tools_default_enabled[to_disable]).to be false
     end
 
-    it 'warns the user if saving the session fails' do
-      target_tool = chat.configured_tools.find { |t| !chat.session.tools_default_enabled[t] }
-      expect(target_tool).to be_present
-
-      expect(chat).to receive(:choose_entry).and_return(target_tool, '[EXIT]')
-      expect(chat.session).to receive(:save).and_return(false)
-      expect(chat).to receive(:feedback).with(a_string_including('Could not enable tool'), type: :warn)
-      expect(chat).to receive(:confirm?).and_return(true)
-      expect(chat).to receive(:feedback).with('Exiting chooser.')
-      chat.enable_tool
-    end
-
-    it 'exits without and changes when [EXIT] is chosen' do
-      expect(chat).to receive(:choose_entry).and_return('[EXIT]')
+    it 'aborts without changes when the user presses C-c' do
+      expect(chat).to receive(:choose_multi).and_return(nil)
       initial_state = chat.session.tools_default_enabled.dup
-      chat.enable_tool
+      chat.choose_tools
       expect(chat.session.tools_default_enabled).to eq(initial_state)
     end
-  end
 
-  describe '#disable_tool' do
-    it 'updates the session when a tool is deselected' do
-      target_tool = chat.configured_tools.first
-      chat.session.tools_default_enabled[target_tool] = true
-
-      expect(chat).to receive(:choose_entry).and_return(target_tool, '[EXIT]')
-
-      expect { chat.disable_tool }.to change {
-        chat.session.tools_default_enabled[target_tool]
-      }.from(true).to(false)
-    end
-
-    it 'warns the user if saving the session fails' do
-      target_tool = chat.configured_tools.find { |t| chat.session.tools_default_enabled[t] }
-      expect(target_tool).to be_present
-
-      chat.session.tools_default_enabled[target_tool] = true
-      expect(chat).to receive(:choose_entry).and_return(target_tool, '[EXIT]')
-      expect(chat.session).to receive(:save).and_return(false)
-      expect(chat).to receive(:feedback).with(a_string_including('Could not disable tool'), type: :warn)
-      expect(chat).to receive(:confirm?).and_return(true)
-      expect(chat).to receive(:feedback).with('Exiting chooser.')
-      chat.disable_tool
+    it 'does not save if nothing changed' do
+      expect(chat).to receive(:choose_multi).
+        and_return(chat.enabled_tools.map(&wrapper))
+      expect(chat.session).not_to receive(:save)
+      chat.choose_tools
     end
   end
 end
