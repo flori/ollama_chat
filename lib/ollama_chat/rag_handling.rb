@@ -261,8 +261,11 @@ module OllamaChat::RAGHandling
     target = collection
     prompt = "🔥 This will incinerate every record in #{target.inspect}. " \
       "Type the name to confirm (C-c ⇒ cancel): "
-    typed = switch_history(:collection_name) do
-      ask?(prompt:, prefill: target).full?(:strip)
+    typed = switch_history(:empty_history) do
+      Reline::HISTORY.clear
+      ask?(prompt:).full?(:strip)
+    ensure
+      Reline::HISTORY.clear
     end
     if typed == target
       @documents.clear
