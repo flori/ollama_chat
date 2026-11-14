@@ -596,10 +596,7 @@ module OllamaChat::RAGHandling
         if matched_sources.nil? || matched_sources.member?(source)
           seen.member?(source) and next
           seen << source
-          unless @documents.source_modified?(source)
-            infobar.puts "Source #{source.to_s.inspect} is unmodified. => Skipping."
-            next
-          end
+          @documents.source_modified?(source) or next
           sources[source] = record.tags_set
         end
         @documents.source_remove(source)

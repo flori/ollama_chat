@@ -303,12 +303,17 @@ module OllamaChat::SourceFetching
   #   to the tags array to apply to that source
   # @return [Array<String>] results from each successful embed call
   def bulk_embed_sources(sources_tags)
+    sources_tags.empty? and return []
+    infobar.show = false
     prompt = prompt(:embed)
-    return sources_tags.map { |s, tags| embed(s, prompt:, tags:) }.compact if
-      sources_tags.size <= 1 or config.embedding.concurrency <= 1
+    if sources_tags.size <= 1 or config.embedding.concurrency <= 1
+      feedback("Collection #{bold{collection}}: Embedding #{sources_tags.size} sources…", type: :info)
+      return sources_tags.map { |s, tags| embed(s, prompt:, tags:) }.compact
+    end
 
     results = []
     mutex   = Mutex.new
+    feedback("Collection #{bold{collection}}: Embedding #{sources_tags.size} sources in parallel…", type: :info)
     Tins::Limited.new(config.embedding.concurrency, name: 'embed').process do |l|
       sources_tags.each do |s, tags|
         l.execute do
@@ -319,6 +324,8 @@ module OllamaChat::SourceFetching
       l.stop
     end
     results
+  ensure
+    infobar.show = true
   end
 
   private

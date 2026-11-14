@@ -645,9 +645,9 @@ module OllamaChat::Commands
     when 'update all'
       results = ''
       all_collections.pluck(:name).each do |collection|
-        feedback("📝 Updating collection #{collection.inspect}…")
+        feedback("Starting to update collection #{bold{collection}}", type: :info)
         results << update_collection(collection) << ?\n
-        feedback("Done.", type: :success)
+        feedback("Collection #{bold{collection}} was updated.", type: :success)
       end
       results.full? and next results
     when 'update'
