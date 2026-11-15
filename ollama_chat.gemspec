@@ -51,7 +51,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency(%q<csv>.freeze, ["~> 3.0".freeze])
   s.add_runtime_dependency(%q<const_conf>.freeze, ["~> 0.9".freeze])
   s.add_runtime_dependency(%q<context_spook>.freeze, ["~> 1.7".freeze])
-  s.add_runtime_dependency(%q<infobar>.freeze, [">= 0.13.1".freeze])
+  s.add_runtime_dependency(%q<infobar>.freeze, [">= 0.14.0".freeze])
   s.add_runtime_dependency(%q<rubyzip>.freeze, ["~> 3.0".freeze])
   s.add_runtime_dependency(%q<sequel>.freeze, ["~> 5.0".freeze])
   s.add_runtime_dependency(%q<file-tail>.freeze, ["~> 1.4".freeze])
