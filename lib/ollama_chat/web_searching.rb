@@ -109,30 +109,22 @@ module OllamaChat::WebSearching
   def manage_links(command)
     case command
     when 'clear'
-      choose_with_state do
-        loop do
-          links_options = links.to_a.unshift('[ALL]').unshift('[EXIT]')
-          link = choose_entry(
-            links_options,
-            prompt: 'Which links of knowledge shall we sever? %s'
-          )
-          case link
-          when nil, '[EXIT]'
-            feedback("Exiting chooser.")
-            break
-          when '[ALL]'
-            if confirm?(prompt: '🔔 Are you sure? (y/n) ', yes: /\Ay/i)
-              links.clear
-              feedback("Cleared all links in list.", type: :info)
-              break
-            else
-              feedback('Denied.', type: :denied)
-              confirm?(prompt: "\n⏎  Press any key to continue (%s). ", timeout: 3)
-            end
-          when /./
-            links.delete(link)
-          end
-        end
+      links_list = links.to_a
+      return feedback("List is empty.", type: :info) if links_list.empty?
+
+      picked = choose_multi(
+        %w[[ALL] [NONE]] + links_list,
+        all:    '[ALL]',
+        none:   '[NONE]',
+        prompt: 'Which links shall we sever? %s [Tab=toggle, Enter=apply, C-c=abort]',
+      ) or return
+      return if picked.empty?
+
+      if confirm?(prompt: "🔔 Sever #{picked.size} link(s)? (y/n) ", yes: /\Ay/i)
+        picked.each { links.delete(_1) }
+        feedback("Cleared #{picked.size} link(s).", type: :info)
+      else
+        feedback('Denied.', type: :denied)
       end
     when nil
       if links.empty?
