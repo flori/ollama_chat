@@ -430,6 +430,7 @@ describe OllamaChat::RAGHandling do
       it 're-embeds modified sources' do
         expect(chat).to receive(:switch_collection).with('tc').and_yield
         expect(chat).to receive(:database_collection?).and_return(col)
+        expect(docs).to receive(:collection).and_return('tc')
         expect(docs).to receive(:each_record).and_yield(rec)
         expect(docs).to receive(:normalize_source).
           with('a.rb').and_return('a.rb')
@@ -461,6 +462,7 @@ describe OllamaChat::RAGHandling do
         expect(chat).to receive(:switch_collection).with('tc').and_yield
         expect(chat).to receive(:database_collection?).
           and_return(col_model[name: 'tc'])
+        expect(docs).to receive(:collection).and_return('tc')
         expect(docs).to receive(:each_record)
         expect(chat).to receive(:all_file_set).twice.and_return(Set[ file ])
         expect(chat).to receive(:embed).
