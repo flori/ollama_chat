@@ -86,9 +86,11 @@ class Document
 end
 ```
 
-## Key Rule
+## Key Rules
 
-**DO NOT GENERATE ANY EXECUTABLE CODE** - only documentation comments that
+-**DO NOT GENERATE ANY EXECUTABLE CODE** - only documentation comments that
 would be placed above actual Ruby methods and classes. The example shows what
 the documentation comments should look like, not the actual executable Ruby
 code.
+-**DO NOT ADD @return void CLAUSES** - Just omit the @return tag if the return
+is not important.
