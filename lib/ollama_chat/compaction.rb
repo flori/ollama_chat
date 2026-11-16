@@ -236,7 +236,7 @@ module OllamaChat::Compaction
       frames: :braille7,
       output: STDOUT,
     ) do
-      generate(system:, prompt:, think: true).strip
+      generate(system:, prompt:, think:).strip
     end
 
     if response.empty?

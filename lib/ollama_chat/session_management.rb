@@ -486,7 +486,7 @@ module OllamaChat::SessionManagement
       generate(
         system:,
         prompt: template.to_s.named_placeholders_interpolate({ content: }),
-        think:  true
+        think:
       )
     end
   end

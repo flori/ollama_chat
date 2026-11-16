@@ -649,13 +649,11 @@ module OllamaChat::PersonaeManagement
       frames: :braille7,
       output: STDOUT,
     ) do
-      generate(
-        prompt:  prompt(:persona_architect).to_s.
-                    named_placeholders_interpolate(
-                      { character:,
-                        persona_template: prompt(:persona).to_s }
-                    )
-      ).gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
+      prompt = prompt(:persona_architect).to_s.named_placeholders_interpolate(
+        { character:, persona_template: prompt(:persona).to_s }
+      )
+      generate(prompt:,  think:).
+        gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
     end
   end
 

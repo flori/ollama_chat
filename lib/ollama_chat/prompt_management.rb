@@ -382,7 +382,7 @@ module OllamaChat::PromptManagement
       frames: :braille7,
       output: STDOUT,
     ) do
-      generate(prompt: full_prompt)
+      generate(prompt: full_prompt, think:)
     end
 
     # Pass the AI's suggestions through the editor for final refinement
