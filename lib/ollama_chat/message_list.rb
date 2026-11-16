@@ -458,6 +458,7 @@ class OllamaChat::MessageList
         output.puts message_text_for(message, think_loud:)
         +infobar
       end
+      infobar.clear
     end
     self
   end
@@ -494,6 +495,7 @@ class OllamaChat::MessageList
         output.puts message_text_for(message, think_loud:)
         +infobar
       end
+      infobar.clear
     ensure
       if last_message_user_message
         message_content = Kramdown::ANSI::Width.truncate(
