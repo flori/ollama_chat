@@ -230,7 +230,7 @@ module OllamaChat::Compaction
     es = OllamaChat::TokenEstimator.estimate(prompt)
     log(:info, "Compaction: sending prompt " \
       "#{es.tokens_formatted} (#{es.bytes_formatted}) to #{@model}")
-
+    think = config.compaction.think == 'auto' ? self.think : false
     response = Infobar.busy(
       label: 'Compacting context…',
       frames: :braille7,

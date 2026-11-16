@@ -296,9 +296,9 @@ class OllamaChat::Chat
     )&.message&.content.to_s
 
     if content.empty?
-      log(:warn, "LLM generation returned empty content", data: { prompt: })
+      log(:warn, "LLM generation returned empty content", data: { prompt:, think: })
     else
-      log(:info, "LLM generation successful", data: { prompt:, content: })
+      log(:info, "LLM generation successful", data: { prompt:, content:, think: })
     end
 
     content

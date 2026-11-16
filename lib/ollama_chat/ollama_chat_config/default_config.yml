@@ -514,6 +514,7 @@ context:
   manifest: false
 compaction:
   enabled: true
+  think: 'auto' # 'never'
   reserve:
     ratio: 0.60
     min_tokens: 4096
