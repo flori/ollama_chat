@@ -465,9 +465,11 @@ module OllamaChat::PersonaeManagement
 
     picked = choose_multi(
       entries,
-      prompt: 'Who should join? %s [Tab=toggle, Enter=apply, C-c=abort]',
-      all:    '[ALL]',
-      none:   '[NONE]',
+      prompt:        'Who should join? %s [Tab=toggle, Enter=apply, C-c=abort]',
+      all:           '[ALL]',
+      none:          '[NONE]',
+      picked_icon:   '☑ ',
+      unpicked_icon: '🔳'
     ) or return
     names = picked.map(&:value)
 
