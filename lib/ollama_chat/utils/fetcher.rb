@@ -170,6 +170,8 @@ class OllamaChat::Utils::Fetcher
         result
       end
     end
+  ensure
+    infobar.finish
   end
 
   # The normalize_url method processes a URL by converting it to a string,
@@ -335,6 +337,8 @@ class OllamaChat::Utils::Fetcher
   rescue RetryWithoutStreaming
     @streaming = false
     retry
+  ensure
+    infobar.finish
   end
 
   private
