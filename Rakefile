@@ -57,7 +57,7 @@ GemHadar do
   dependency             'csv',                   '~> 3.0'
   dependency             'const_conf',            '~> 0.9'
   dependency             'context_spook',         '~> 1.7'
-  dependency             'infobar',               '>= 0.14.0'
+  dependency             'infobar',               '>= 0.16.0'
   dependency             'rubyzip',               '~> 3.0'
   dependency             'sequel',                '~> 5.0'
   dependency             'file-tail',             '~> 1.4'
