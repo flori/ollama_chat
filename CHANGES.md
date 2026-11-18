@@ -1,5 +1,23 @@
 # Changes
 
+## 2026-11-18 v0.0.147
+
+### Improvements
+
+- Added `require 'json/generic_object'` in `lib/ollama_chat.rb` to ensure
+  `JSON::GenericObject` is loaded before API response parsing, serving as a
+  forward-compatibility bridge for the extraction of `JSON::GenericObject` in
+  `json` **3.0**.
+
+### Build & CI
+
+- Bumped `ollama-ruby` dependency from `~> 1.26, >= 1.26.4` to `~> 1.27`.
+- Added `json ~> 2.0` runtime dependency to pin the standard library gem to
+  **2.x**.
+- Added `json-generic_object >= 0.2.0` runtime dependency to provide
+  `JSON::GenericObject` once `json` **3.0** drops it.
+- Bumped `gem_hadar` development dependency to `>= 2.24.1`.
+
 ## 2026-11-18 v0.0.146
 
 ### Features
