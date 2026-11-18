@@ -18,7 +18,7 @@
 
 - Fixed `NoMethodError` in `ollama-ruby` `Progress` when the server transmits
   `success` before a progress bar exists (cached-model path) by bumping
-  dependency to **1.26.4**.
+  dependency to **~> 1.27**.
 - Resolved ghost-bar clobbering in `ollama_update` pull output by bumping
   `ollama-ruby` to **1.26.3** and `infobar` to **0.16.0**.
 - Ensured `infobar.finish` is called on all exit paths in `fetcher.rb`
@@ -56,12 +56,15 @@
 
 ### Build & CI
 
-- Bumped `ollama-ruby` dependency to **1.26.4**.
+- Bumped `ollama-ruby` dependency to **~> 1.27**.
+- Added `json ~> 2.0` and `json-generic_object >= 0.2.0` runtime dependencies;
+  `require 'json/generic_object'` in `lib/ollama_chat.rb` as a forward-compat
+  bridge for the json 3.0 extraction of `JSON::GenericObject`.
 - Bumped `documentrix` dependency to **0.8.1** to pick up `ensure
   infobar.finish` fix.
 - Bumped `infobar` dependency to **0.16.0**.
 - Bumped `search_ui` dependency to **0.4**.
-- Bumped `gem_hadar` development dependency to **2.22.1**.
+- Bumped `gem_hadar` development dependency to **2.24.1**.
 - Removed vim modeline configuration from `Gemfile`.
 
 ### Testing
