@@ -1,5 +1,81 @@
 # Changes
 
+## 2026-11-18 v0.0.146
+
+### Features
+
+- Added `/restart` command to reload configuration and continue the session.
+- Added `compaction.think` configuration option to control thinking mode during
+  context compaction; defaults to `'auto'` (delegates to `ThinkControl#think`),
+  with `'never'` forcing `false`.
+- Introduced `choose_multi` utility for interactive multi-selection with
+  `[ALL]`/`[NONE]` sentinels, replacing legacy sentinel-loop pickers across the
+  codebase.
+- Added `text` field to the `memorize` tool result to echo stored content back
+  to the LLM.
+
+### Fixes
+
+- Fixed `NoMethodError` in `ollama-ruby` `Progress` when the server transmits
+  `success` before a progress bar exists (cached-model path) by bumping
+  dependency to **1.26.4**.
+- Resolved ghost-bar clobbering in `ollama_update` pull output by bumping
+  `ollama-ruby` to **1.26.3** and `infobar` to **0.16.0**.
+- Ensured `infobar.finish` is called on all exit paths in `fetcher.rb`
+  (`fetch_url` and `fetch_streaming`) to release saved cursor positions and
+  render final frames.
+- Cleared `infobar` after message list and last output in `message_list.rb` to
+  prevent ghost-bar artifacts before subsequent `output.puts` calls.
+- Handled invalid UTF-8 bytes in `strip_ansi` by encoding input with `invalid:
+  :replace` and `undef: :replace`.
+- Prevented stale history entries from surfacing during collection incineration
+  confirmation by clearing `Reline::HISTORY` and removing prefill.
+
+### Improvements
+
+- Migrated all interactive multi-select pickers (tools, favourites, personae,
+  links, conversations, files, models, memory collections) to use
+  `choose_multi` for consistent UX and reduced code complexity.
+- Replaced `⚪`/`⚫` circle icons with `☑`/`🔳` box glyphs in `load_personae`
+  to visually distinguish pick state from favourited markers.
+- Updated favourite icons from `❤`/`🩶` to `⭐`/`⚫` for better visual
+  consistency.
+- Silenced `infobar` during parallel embedding in `bulk_embed_sources` and
+  added user-visible feedback lines for sequential and parallel embed paths.
+- Improved `/update all` feedback wording with bold collection names and
+  explicit type values.
+- Delegated editorial thinking to `ThinkControl` in `compaction.rb`,
+  `session_management.rb`, `personae_management.rb`, and `prompt_management.rb`
+  to respect global `think_mode` settings.
+- Added `think:` value to log data in `chat.rb` `generate` for better
+  observability at info level.
+- Updated `SearchKnowledge` tool descriptions to guide the model toward using
+  natural language queries.
+- Simplified `source_modified?` guard in `rag_handling.rb` by removing
+  redundant `infobar.puts`.
+
+### Build & CI
+
+- Bumped `ollama-ruby` dependency to **1.26.4**.
+- Bumped `documentrix` dependency to **0.8.1** to pick up `ensure
+  infobar.finish` fix.
+- Bumped `infobar` dependency to **0.16.0**.
+- Bumped `search_ui` dependency to **0.4**.
+- Bumped `gem_hadar` development dependency to **2.22.1**.
+- Removed vim modeline configuration from `Gemfile`.
+
+### Testing
+
+- Updated specs to stub `docs.collection` in `update_collection` tests.
+- Converted mock returns in specs from sentinel strings to arrays to match new
+  `choose_multi` API.
+- Added spec for `/restart` command.
+- Updated favourite icon assertions in specs to reflect new `⭐`/`⚫` glyphs.
+
+### Documentation
+
+- Updated YARD documentation context to omit `@return void` clauses.
+
 ## 2026-11-13 v0.0.145
 
 ### Fix
