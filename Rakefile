@@ -38,8 +38,10 @@ GemHadar do
     'static.yml' => {}
   )
 
+  dependency             'json',                  '~> 2.0'
+  dependency             'json-generic_object',   '>= 0.2.0'
   dependency             'excon',                 '~> 1.0'
-  dependency             'ollama-ruby',           '~> 1.26', '>= 1.26.4'
+  dependency             'ollama-ruby',           '~> 1.27'
   dependency             'documentrix',           '>= 0.8.1'
   dependency             'unix_socks',            '>= 0.4'
   dependency             'rss',                   '~> 0.3'

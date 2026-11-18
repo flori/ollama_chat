@@ -101,6 +101,7 @@ module OllamaChat
 end
 
 require 'ollama'
+require 'json/generic_object'
 require 'documentrix'
 require 'unix_socks'
 require 'infobar'
