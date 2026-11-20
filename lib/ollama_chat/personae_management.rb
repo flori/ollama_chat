@@ -219,7 +219,7 @@ module OllamaChat::PersonaeManagement
 
     content = case chosen_source
               when '[CLIPBOARD]'
-                perform_paste_from_clipboard(edit: false)
+                paste_from_clipboard(edit: false) or return
               when '[FILES]'
                 patterns = switch_history(:patterns) do
                   ask?(
