@@ -1,5 +1,38 @@
 # Changes
 
+## 2026-11-21 v0.0.148
+
+### Features
+
+- Display byte and token estimates in file choosers
+  (`choose_multiple_filenames` and `choose_filename`) by wrapping `Pathname`
+  entries in `SearchUI::Wrapper` with a compact size annotation (e.g.,
+  `lib/foo.rb (12.4 KB · ~3.5 KT)`).
+
+### Fixes
+
+- Use the graceful `paste_from_clipboard` wrapper instead of
+  `perform_paste_from_clipboard` in `/persona import` and `/prompt edit`
+  command handlers to prevent unhandled exceptions when the clipboard is empty
+  or the paste command is missing.
+
+### Improvements
+
+- Broaden the `json` gem dependency constraint to `>= 2.0, < 4` for future
+  compatibility.
+- Modernize dependency declarations in the gemspec using string interpolation
+  syntax.
+
+### Build & CI
+
+- Upgrade `rubygems_version` dependency to **4.1.0**.
+- Increase `gem_hadar` dev dependency minimum to **2.26.1**.
+
+### Testing
+
+- Relax the `choose_filename` spec to capture presented entries and assert on
+  their `.value`, decoupling the test from display formatting.
+
 ## 2026-11-18 v0.0.147
 
 ### Improvements
