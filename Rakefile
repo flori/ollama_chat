@@ -38,7 +38,7 @@ GemHadar do
     'static.yml' => {}
   )
 
-  dependency             'json',                  '~> 2.0'
+  dependency             'json',                  '>= 2.0', '< 4'
   dependency             'json-generic_object',   '>= 0.2.0'
   dependency             'excon',                 '~> 1.0'
   dependency             'ollama-ruby',           '~> 1.27'
