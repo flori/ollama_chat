@@ -173,6 +173,15 @@ A source isn't just a filename; it can be any of the following:
     executed as a shell command, and its **STDOUT** is imported as the content.
     *   *Example*: `/input !ls -la` imports the current directory listing.
     *   *Example*: `/input !git branch` tells the AI which branch you are on.
+*   **Audio / Video**: Audio and video files (`.mp3`, `.wav`, `.mp4`, …) are
+    automatically converted to 16 kHz mono PCM via `ffmpeg` and transcribed
+    by the ASR server (audio.cpp) before import. Use `-l <lang>` to set the
+    transcription language.
+*   **YouTube URLs**: `youtube.com/watch`, `youtu.be`, and
+    `youtube.com/shorts` links are resolved via a configured Invidious
+    instance to the video's caption transcript (selected by configured
+    language priority), so the text arrives directly without a local ASR
+    round-trip.
 
 #### 2. Subcommands
 
@@ -529,7 +538,7 @@ context, manipulate files, and retrieve external information.
 | **Web/External** | `search_web`, `get_url`, `browse`, `get_rfc`, `get_cve`, `get_endoflife`, `get_ghr`, `get_jira_issue`, `execute_jira_twg` | Access the internet, fetch specific URLs, and look up technical standards; run Jira CLI queries via `twg`. |
 | **System/Util** | `get_time`, `get_location`, `get_current_weather`, `generate_password`, `compute_bmi`, `roll_dice` | General utility functions for time, location, and simple calculations. |
 | **Editor/Clip** | `copy_to_clipboard`, `paste_from_clipboard`, `paste_into_editor`, `open_file_in_editor` | Bridge the gap between the chat and the system clipboard or editor. |
-| **Knowledge** | `search_knowledge`, `lookup_group` | Semantic search for specific snippets, or retrieving prior message groups by UUID. |
+| **Knowledge** | `search_knowledge`, `lookup_group`, `memorize`, `forget` | Semantic search for specific snippets, retrieving prior message groups by UUID, and per-persona persistent memory. |
 | **Multimodal** | `generate_image` | Generate images via a local ComfyUI server. |
 
 ***Note on Knowledge Tools**: Use `search_knowledge` for low-token
