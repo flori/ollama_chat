@@ -98,6 +98,33 @@ module OllamaChat::PromptManagement
     end
   end
 
+  # Chooses a prompt template from the given context for immediate input.
+  #
+  # When +edit+ is false, the chosen prompt's content is stored as the
+  # prefill for the next readline via {#prefill_prompt=}. When +edit+ is
+  # true, the content is opened in the editor and the (possibly modified)
+  # string is returned.
+  #
+  # @param context [String] the prompt context to choose from
+  # @param edit [Boolean] open in editor and return content instead of
+  #   setting prefill
+  #
+  # @return [String, nil] the edited content when +edit+ is true and the
+  #   user accepts; nil otherwise
+  def select_prompt_for_input(context:, edit: false)
+    content = choose_prompt(
+      prompt:  'Which template shall guide the next response? %s',
+      context: ,
+      count:   true
+    ).full?(&:to_s) or return nil
+    if edit
+      edit_text(content)
+    else
+      self.prefill_prompt = content
+      nil
+    end
+  end
+
   # Displays detailed information about a selected prompt template.
   #
   # @return [self] the current context

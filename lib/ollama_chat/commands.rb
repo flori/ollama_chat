@@ -484,20 +484,24 @@ module OllamaChat::Commands
     when 'sync'
       prompt_sync(context:)
     when nil, '-e'
-      if prompt = choose_prompt(
-          prompt:  'Which template shall guide the next response? %s',
-          context: ,
-          count:   true
-        ).full?(&:to_s)
-        if subcommand
-          prompt = edit_text(prompt)
-          next prompt
-        else
-          self.prefill_prompt = prompt
-        end
-      end
+      content = select_prompt_for_input(
+        context:, edit: subcommand == '-e'
+      )
+      content and next content
     end
     :next
+  end
+
+  command(
+    name: :enter,
+    regexp: %r(^$),
+    complete: []
+  ) do
+    if content = select_prompt_for_input(context: 'prompt')
+      content
+    else
+      :next
+    end
   end
 
   command(
