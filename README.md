@@ -318,6 +318,70 @@ prompt templates. The report is displayed in the pager first, then
 optionally saved to a file. Particularly useful for daily standup summaries
 — run it at the end of the day and save the output for your team sync.
 
+#### 7. Collections & Auto-Retrieval
+
+**ollama_chat** manages RAG knowledge through documentrix-backed
+collections. Each collection is a named set of embedded documents
+searchable via the `search_knowledge` tool or interactively.
+
+*   **`/collection`**: View stats for the active collection.
+*   **`/collection new`**: Interactively create a collection with a
+    name, description, and optional glob patterns for auto-embedding.
+*   **`/collection edit`**: Update the description or patterns of an
+    existing collection.
+*   **`/collection list`**: Browse all collections.
+*   **`/collection change`**: Switch the active collection.
+*   **`/collection rename`**: Rename a collection.
+*   **`/collection delete`**: Permanently remove a collection and its
+    embedded documents.
+*   **`/collection update`**: Re-embed sources whose files have
+    changed on disk. `/collection update all` does this for every
+    collection.
+*   **`/collection clear`**: Remove all records from the active
+    collection. `clear tags` and `clear sources` offer finer-grained
+    cleanup.
+*   **`/collection query`**: Search the active collection with an
+    optional LLM rerank (`-r`) and edit mode (`-e`).
+
+**Auto-Retrieval (Triggers)**: On every user message, the input is
+embedded and matched against the active persona's memory collection.
+Relevant snippets are reranked by the LLM and injected as context
+before the model responds. Configure the collection and rerank prompt
+per-session with `/session trigger edit`. Toggle the feature with
+`/toggle memory_trigger`.
+
+#### 8. Persona Memory
+
+Beyond the persona's static `.md` profile, **ollama_chat** supports
+persistent per-persona memory that survives across sessions.
+
+*   **`memorize` / `forget`** tools: The assistant can store or erase
+    individual memory entries in the persona's `memory-<name>`
+    collection. Each entry is timestamped and searchable.
+*   **`/memory dump [file.jsonl]`**: Export the active persona's
+    memory collection to a `.jsonl` file for backup or transfer.
+*   **`/memory restore [file.jsonl]`**: Import a previously dumped
+    `.jsonl` file, appending entries to the target collection.
+
+Use `dump` + `restore` to move persona memory between machines.
+
+#### 9. Think Mode
+
+Hybrid Ollama models (e.g. `qwen3`, `gpt-oss`) support a "thinking"
+phase where the model reasons before responding. Use `/think` to cycle
+through the levels the active model advertises (typically `off`,
+`low`, `high`, `max`). The available levels are fetched from the
+model's `/api/show` metadata at selection time; non-hybrid models
+hide the command entirely.
+
+*   **`/toggle think_loud`**: Show or hide the `<think>…</think>`
+    block in the streamed response.
+*   **`/toggle think_strip`**: Strip the thinking block from the
+    message list after the response completes.
+*   **`compaction.think`** config: Controls whether `/conversation
+    compact` passes the think level to the summarization call
+    (default: `'auto'` — inherits the session's current setting).
+
 ### Using a Persona
 
 You can import a persona profile from a Markdown file and load it into the
@@ -545,6 +609,29 @@ context, manipulate files, and retrieve external information.
 semantic discovery. For comprehensive project context, use the
 `/input context` command instead of loading files into the tool
 call context window.*
+
+## Command Reference
+
+Commands not covered in the Power User sections above:
+
+| Command | Purpose |
+| :--- | :--- |
+| `/session list` | Browse saved sessions (search by name or ID) |
+| `/session new` / `change` / `previous` | Create, switch, or return to the previous session |
+| `/session rename` / `delete` / `duplicate` | Manage existing sessions |
+| `/session model options change` | Apply a model options profile to the session |
+| `/session trigger edit` | Configure the auto-retrieval collection and rerank prompt |
+| `/toggle <name>` | Toggle a feature switch (markdown, stream, voice, think_loud, think_strip, embedding, memory_trigger, context_manifest, location, runtime_info) |
+| `/tools` | Interactively enable or disable tool functions |
+| `/tools on` / `off` | Globally activate or deactivate all tools |
+| `/favourite <type>` | Toggle favourites for models, prompts, system prompts, personae, or suggestions |
+| `/config diff` | Open a vimdiff between your `config.yml` and the shipped defaults |
+| `/config env` | Display `OC` const_conf settings as a styled tree |
+| `/context_format` | Switch context output between JSON and TOON |
+| `/restart` | Restart the application in-place |
+| `/reconnect` | Reconnect to the Ollama server |
+| `/voice` | Change the TTS voice output settings |
+| `/document_policy` | Select the document scanning policy |
 
 ## External Dependencies
 
