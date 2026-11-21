@@ -127,14 +127,20 @@ module OllamaChat::Dialog
     patterns   = Array(patterns).map { Pathname.new(_1).expand_path }
     files      = patterns.flat_map { Pathname.glob(_1) }
     files      = files.select { _1.file? }.uniq
+    entries    = files.map do |f|
+      f_display = f.to_path.sub(/^#{File.expand_path('~')}/, ?~)
+      es = OllamaChat::TokenEstimator.estimate(f.size)
+      SearchUI::Wrapper.new(f, display:
+        "#{f_display} (#{es.bytes_formatted} · ~#{es.tokens_formatted})")
+    end
     result     = choose_multi(
-      %w[ [ALL] [NONE] ] + files,
+      %w[ [ALL] [NONE] ] + entries,
       all:    '[ALL]',
       none:   '[NONE]',
       prompt: 'Select files to import: %s ' \
               '[Tab=toggle, Enter=apply, C-c=abort]'
     )
-    (result || []).to_set
+    (result || []).map { _1.respond_to?(:value) ? _1.value : _1 }.to_set
   end
 
   # Displays an info-level feedback message indicating that a connection

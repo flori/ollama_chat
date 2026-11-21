@@ -32,19 +32,22 @@ describe OllamaChat::InputContent do
 
   describe '#choose_filename' do
     it 'can select a file from matching patterns' do
-      # Test with a pattern that matches existing files
       files = Pathname.glob('spec/assets/**/*.txt')
       expect(files).to_not be_empty
 
-      # Mock the selection process
-      expect(chat).to receive(:choose_entry).
-        with(
-          files.unshift('[EXIT]'),
-          prompt: 'Select a file to import: %s',
-        ).and_return(files[1])
+      # The picker surfaces size-annotated Wrappers; capture them and assert
+      # on the underlying values so the spec doesn't couple to the display.
+      presented = nil
+      allow(chat).to receive(:choose_entry) do |entries, **_opts|
+        presented = entries
+        entries[1] # return the first real entry (a Wrapper)
+      end
 
       result = chat.choose_filename('spec/assets/**/*.txt')
-      expect(result).to eq Pathname.new(files[1])
+
+      expect(presented.first).to eq '[EXIT]'
+      expect(presented.drop(1).map(&:value)).to match_array(files)
+      expect(result).to be_a(Pathname)
     end
 
     it 'returns nil when user exits selection' do

@@ -54,13 +54,19 @@ module OllamaChat::InputContent
     patterns = Array(patterns)
     files = patterns.flat_map { Pathname.glob(_1) }
     files = files.reject { chosen&.member?(_1.expand_path) }.select { _1.file? }
-    files.unshift('[EXIT]')
-    case chosen_file = choose_entry(files, prompt: 'Select a file to import: %s')
+    wrapped = files.map do |file|
+      f_display = file.to_path.sub(/^#{File.expand_path('~')}/, ?~)
+      es = OllamaChat::TokenEstimator.estimate(file.size)
+      SearchUI::Wrapper.new(file, display: "#{f_display} " \
+                                          "(#{es.bytes_formatted} · ~#{es.tokens_formatted})")
+    end
+    wrapped.unshift('[EXIT]')
+    case chosen = choose_entry(wrapped, prompt: 'Select a file to import: %s')
     when '[EXIT]', nil
       feedback("Exiting chooser.")
       return
     else
-      Pathname.new(chosen_file)
+      Pathname.new(chosen.value.to_path)
     end
   end
 
