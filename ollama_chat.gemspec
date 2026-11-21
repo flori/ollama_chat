@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
-# stub: ollama_chat 0.0.147 ruby lib
+# stub: ollama_chat 0.0.148 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "ollama_chat".freeze
-  s.version = "0.0.147".freeze
+  s.version = "0.0.148".freeze
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
@@ -18,44 +18,44 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--title".freeze, "OllamaChat - A command-line interface (CLI) for interacting with an Ollama AI model.".freeze, "--main".freeze, "README.md".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 3.2".freeze)
-  s.rubygems_version = "4.0.24".freeze
+  s.rubygems_version = "4.1.0".freeze
   s.summary = "A command-line interface (CLI) for interacting with an Ollama AI model.".freeze
   s.test_files = ["spec/assets/example.rb".freeze, "spec/ollama_chat/asr_spec.rb".freeze, "spec/ollama_chat/chat_spec.rb".freeze, "spec/ollama_chat/clipboard_spec.rb".freeze, "spec/ollama_chat/collection_search_spec.rb".freeze, "spec/ollama_chat/command_concern_spec.rb".freeze, "spec/ollama_chat/commands_spec.rb".freeze, "spec/ollama_chat/compaction_spec.rb".freeze, "spec/ollama_chat/config_handling_spec.rb".freeze, "spec/ollama_chat/context_usage_spec.rb".freeze, "spec/ollama_chat/conversation_spec.rb".freeze, "spec/ollama_chat/database/models/favourite_spec.rb".freeze, "spec/ollama_chat/favourites_management_spec.rb".freeze, "spec/ollama_chat/file_editing_spec.rb".freeze, "spec/ollama_chat/follow_chat_spec.rb".freeze, "spec/ollama_chat/history_spec.rb".freeze, "spec/ollama_chat/http_handling_spec.rb".freeze, "spec/ollama_chat/information_spec.rb".freeze, "spec/ollama_chat/input_content_spec.rb".freeze, "spec/ollama_chat/invidious_spec.rb".freeze, "spec/ollama_chat/kramdown_ansi_spec.rb".freeze, "spec/ollama_chat/message_editing_spec.rb".freeze, "spec/ollama_chat/message_list_spec.rb".freeze, "spec/ollama_chat/message_output_spec.rb".freeze, "spec/ollama_chat/message_spec.rb".freeze, "spec/ollama_chat/model_handling/model_cache_spec.rb".freeze, "spec/ollama_chat/model_handling_spec.rb".freeze, "spec/ollama_chat/parsing_spec.rb".freeze, "spec/ollama_chat/personae_management_spec.rb".freeze, "spec/ollama_chat/prompt_handling_spec.rb".freeze, "spec/ollama_chat/prompt_management_spec.rb".freeze, "spec/ollama_chat/rag_handling_spec.rb".freeze, "spec/ollama_chat/redis_cache_spec.rb".freeze, "spec/ollama_chat/server_socket_spec.rb".freeze, "spec/ollama_chat/session_management_spec.rb".freeze, "spec/ollama_chat/source_fetching_spec.rb".freeze, "spec/ollama_chat/speaker_spec.rb".freeze, "spec/ollama_chat/state_selectors_spec.rb".freeze, "spec/ollama_chat/switches_spec.rb".freeze, "spec/ollama_chat/system_prompt_management_spec.rb".freeze, "spec/ollama_chat/think_control_spec.rb".freeze, "spec/ollama_chat/token_estimator_spec.rb".freeze, "spec/ollama_chat/tool_call_processor_spec.rb".freeze, "spec/ollama_chat/tool_calling_spec.rb".freeze, "spec/ollama_chat/tools/browse_spec.rb".freeze, "spec/ollama_chat/tools/compute_bmi_spec.rb".freeze, "spec/ollama_chat/tools/concern_spec.rb".freeze, "spec/ollama_chat/tools/copy_to_clipboard_spec.rb".freeze, "spec/ollama_chat/tools/delete_file_spec.rb".freeze, "spec/ollama_chat/tools/execute_grep_spec.rb".freeze, "spec/ollama_chat/tools/execute_jira_twg_spec.rb".freeze, "spec/ollama_chat/tools/execute_ri_spec.rb".freeze, "spec/ollama_chat/tools/execute_shell_spec.rb".freeze, "spec/ollama_chat/tools/forget_spec.rb".freeze, "spec/ollama_chat/tools/generate_image_spec.rb".freeze, "spec/ollama_chat/tools/generate_password_spec.rb".freeze, "spec/ollama_chat/tools/get_current_weather_spec.rb".freeze, "spec/ollama_chat/tools/get_cve_spec.rb".freeze, "spec/ollama_chat/tools/get_endoflife_spec.rb".freeze, "spec/ollama_chat/tools/get_ghr_spec.rb".freeze, "spec/ollama_chat/tools/get_jira_issue_spec.rb".freeze, "spec/ollama_chat/tools/get_location_spec.rb".freeze, "spec/ollama_chat/tools/get_rfc_spec.rb".freeze, "spec/ollama_chat/tools/get_time_spec.rb".freeze, "spec/ollama_chat/tools/get_url_spec.rb".freeze, "spec/ollama_chat/tools/list_directory_spec.rb".freeze, "spec/ollama_chat/tools/lookup_gem_path_spec.rb".freeze, "spec/ollama_chat/tools/lookup_group_spec.rb".freeze, "spec/ollama_chat/tools/memorize_spec.rb".freeze, "spec/ollama_chat/tools/move_file_spec.rb".freeze, "spec/ollama_chat/tools/open_file_in_editor_spec.rb".freeze, "spec/ollama_chat/tools/paste_from_clipboard_spec.rb".freeze, "spec/ollama_chat/tools/paste_into_editor_spec.rb".freeze, "spec/ollama_chat/tools/patch_file_spec.rb".freeze, "spec/ollama_chat/tools/read_file_spec.rb".freeze, "spec/ollama_chat/tools/resolve_tag_spec.rb".freeze, "spec/ollama_chat/tools/roll_dice_spec.rb".freeze, "spec/ollama_chat/tools/run_tests_spec.rb".freeze, "spec/ollama_chat/tools/search_knowledge_spec.rb".freeze, "spec/ollama_chat/tools/search_web_spec.rb".freeze, "spec/ollama_chat/tools/write_file_spec.rb".freeze, "spec/ollama_chat/tts_spec.rb".freeze, "spec/ollama_chat/utils/analyze_directory_spec.rb".freeze, "spec/ollama_chat/utils/audio_player_spec.rb".freeze, "spec/ollama_chat/utils/cache_fetcher_spec.rb".freeze, "spec/ollama_chat/utils/excon_logger_spec.rb".freeze, "spec/ollama_chat/utils/fetcher_spec.rb".freeze, "spec/ollama_chat/utils/log_rotation_spec.rb".freeze, "spec/ollama_chat/utils/log_viewer_spec.rb".freeze, "spec/ollama_chat/utils/ordered_queue_spec.rb".freeze, "spec/ollama_chat/utils/path_completer_spec.rb".freeze, "spec/ollama_chat/utils/png_metadata_extractor_spec.rb".freeze, "spec/ollama_chat/vim_spec.rb".freeze, "spec/ollama_chat/web_searching_spec.rb".freeze, "spec/spec_helper.rb".freeze]
 
   s.specification_version = 4
 
-  s.add_development_dependency(%q<gem_hadar>.freeze, [">= 2.24.1".freeze])
-  s.add_development_dependency(%q<all_images>.freeze, ["~> 0.12".freeze])
-  s.add_development_dependency(%q<rspec>.freeze, ["~> 3.2".freeze])
-  s.add_development_dependency(%q<kramdown>.freeze, ["~> 2.0".freeze])
-  s.add_development_dependency(%q<webmock>.freeze, [">= 0".freeze])
-  s.add_development_dependency(%q<debug>.freeze, [">= 0".freeze])
-  s.add_development_dependency(%q<simplecov>.freeze, [">= 0".freeze])
-  s.add_development_dependency(%q<utils>.freeze, [">= 0".freeze])
-  s.add_runtime_dependency(%q<json>.freeze, ["~> 2.0".freeze])
-  s.add_runtime_dependency(%q<json-generic_object>.freeze, [">= 0.2.0".freeze])
-  s.add_runtime_dependency(%q<excon>.freeze, ["~> 1.0".freeze])
-  s.add_runtime_dependency(%q<ollama-ruby>.freeze, ["~> 1.27".freeze])
-  s.add_runtime_dependency(%q<documentrix>.freeze, [">= 0.8.1".freeze])
-  s.add_runtime_dependency(%q<unix_socks>.freeze, [">= 0.4".freeze])
-  s.add_runtime_dependency(%q<rss>.freeze, ["~> 0.3".freeze])
-  s.add_runtime_dependency(%q<term-ansicolor>.freeze, ["~> 1.11".freeze])
-  s.add_runtime_dependency(%q<redis>.freeze, ["~> 5.0".freeze])
-  s.add_runtime_dependency(%q<mime-types>.freeze, ["~> 3.0".freeze])
-  s.add_runtime_dependency(%q<reverse_markdown>.freeze, ["~> 3.0".freeze])
-  s.add_runtime_dependency(%q<kramdown-ansi>.freeze, ["~> 0.9".freeze])
-  s.add_runtime_dependency(%q<complex_config>.freeze, ["~> 0.22".freeze, ">= 0.22.2".freeze])
-  s.add_runtime_dependency(%q<tins>.freeze, ["~> 1.62".freeze])
-  s.add_runtime_dependency(%q<search_ui>.freeze, [">= 0.4".freeze])
-  s.add_runtime_dependency(%q<amatch>.freeze, ["~> 0.4".freeze])
-  s.add_runtime_dependency(%q<pdf-reader>.freeze, ["~> 2.0".freeze])
-  s.add_runtime_dependency(%q<bigdecimal>.freeze, ["~> 3.1".freeze])
-  s.add_runtime_dependency(%q<csv>.freeze, ["~> 3.0".freeze])
-  s.add_runtime_dependency(%q<const_conf>.freeze, ["~> 0.9".freeze])
-  s.add_runtime_dependency(%q<context_spook>.freeze, ["~> 1.7".freeze])
-  s.add_runtime_dependency(%q<infobar>.freeze, [">= 0.16.0".freeze])
-  s.add_runtime_dependency(%q<rubyzip>.freeze, ["~> 3.0".freeze])
-  s.add_runtime_dependency(%q<sequel>.freeze, ["~> 5.0".freeze])
-  s.add_runtime_dependency(%q<file-tail>.freeze, ["~> 1.4".freeze])
-  s.add_runtime_dependency(%q<nokogiri>.freeze, ["~> 1.0".freeze])
+  s.add_development_dependency("gem_hadar".freeze, [">= 2.26.1".freeze])
+  s.add_development_dependency("all_images".freeze, ["~> 0.12".freeze])
+  s.add_development_dependency("rspec".freeze, ["~> 3.2".freeze])
+  s.add_development_dependency("kramdown".freeze, ["~> 2.0".freeze])
+  s.add_development_dependency("webmock".freeze, [">= 0".freeze])
+  s.add_development_dependency("debug".freeze, [">= 0".freeze])
+  s.add_development_dependency("simplecov".freeze, [">= 0".freeze])
+  s.add_development_dependency("utils".freeze, [">= 0".freeze])
+  s.add_runtime_dependency("json".freeze, [">= 2.0".freeze, "< 4".freeze])
+  s.add_runtime_dependency("json-generic_object".freeze, [">= 0.2.0".freeze])
+  s.add_runtime_dependency("excon".freeze, ["~> 1.0".freeze])
+  s.add_runtime_dependency("ollama-ruby".freeze, ["~> 1.27".freeze])
+  s.add_runtime_dependency("documentrix".freeze, [">= 0.8.1".freeze])
+  s.add_runtime_dependency("unix_socks".freeze, [">= 0.4".freeze])
+  s.add_runtime_dependency("rss".freeze, ["~> 0.3".freeze])
+  s.add_runtime_dependency("term-ansicolor".freeze, ["~> 1.11".freeze])
+  s.add_runtime_dependency("redis".freeze, ["~> 5.0".freeze])
+  s.add_runtime_dependency("mime-types".freeze, ["~> 3.0".freeze])
+  s.add_runtime_dependency("reverse_markdown".freeze, ["~> 3.0".freeze])
+  s.add_runtime_dependency("kramdown-ansi".freeze, ["~> 0.9".freeze])
+  s.add_runtime_dependency("complex_config".freeze, ["~> 0.22".freeze, ">= 0.22.2".freeze])
+  s.add_runtime_dependency("tins".freeze, ["~> 1.62".freeze])
+  s.add_runtime_dependency("search_ui".freeze, [">= 0.4".freeze])
+  s.add_runtime_dependency("amatch".freeze, ["~> 0.4".freeze])
+  s.add_runtime_dependency("pdf-reader".freeze, ["~> 2.0".freeze])
+  s.add_runtime_dependency("bigdecimal".freeze, ["~> 3.1".freeze])
+  s.add_runtime_dependency("csv".freeze, ["~> 3.0".freeze])
+  s.add_runtime_dependency("const_conf".freeze, ["~> 0.9".freeze])
+  s.add_runtime_dependency("context_spook".freeze, ["~> 1.7".freeze])
+  s.add_runtime_dependency("infobar".freeze, [">= 0.16.0".freeze])
+  s.add_runtime_dependency("rubyzip".freeze, ["~> 3.0".freeze])
+  s.add_runtime_dependency("sequel".freeze, ["~> 5.0".freeze])
+  s.add_runtime_dependency("file-tail".freeze, ["~> 1.4".freeze])
+  s.add_runtime_dependency("nokogiri".freeze, ["~> 1.0".freeze])
 end
