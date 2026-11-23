@@ -1,5 +1,59 @@
 # Changes
 
+## 2026-11-23 v0.0.149
+
+### Improvements
+
+- Replaced metaprogrammed JSON column handling with
+  `OllamaChat::Database::GenericObject` and the `JSONColumns#json_column`
+  concern to prevent `JSON::GeneratorError` under `json` 3.x by enforcing
+  symbol-keyed access.
+- Migrated `Session` (`trigger`, `model_options`, `tools_default_enabled`),
+  `Prompt` (`metadata`), `Favourite` (`metadata`), `ModelOptions` (`options`),
+  and `Collection` (`patterns`) to the new `:json_go` serialization format.
+- Updated trigger access patterns to use `each_pair` throughout
+  `collection_search`, `session`, `information`, and `personae_management`.
+- Coerced symbol-keyed collection names to `String` in `edit_session_trigger`
+  to prevent leakage into the `SearchUI` chooser prefill.
+- Refactored `model_handling` to use `to_h` instead of
+  `ask_and_send(:symbolize_keys_recursive)` for model options comparison and
+  display.
+- Updated `favourite` model specs to expect `GenericObject` return types for
+  metadata.
+- Updated `personae_management` and `session_management` specs to use `each_pair` for trigger assertions.
+
+### Build & CI
+
+- Bumped `gem_hadar` development dependency to **>= 2.27.1**.
+- Bumped `valkey` Docker image from **9.0.1** to **9.1.4** to address security
+  vulnerabilities (GHSA-f4q9-j22m-xqq9, CVE-2026-130822) and bug fixes.
+- Updated GitHub Actions in `static.yml`: `actions/checkout` to **v7**,
+  `actions/configure-pages` to **v6**, `actions/upload-pages-artifact` to
+  **v5**, `actions/deploy-pages` to **v5**, and `ruby-version` to **4.0**.
+
+### Testing
+
+- Added specs for `GenericObject` covering JSON load shapes, `each_pair` key
+  types, and round-trip serialization.
+- Added specs for `JSONColumns` reader, writer, and persistence round-trip.
+- Updated `favourite` model specs to verify `GenericObject` deserialization and
+  merge behavior.
+- Updated `personae_management` and `session_management` specs to align with
+  `GenericObject` trigger access patterns.
+
+### Documentation
+
+- Updated `README.md` to document `memorize` and `forget` tools, Audio/Video
+  and YouTube source types for `/input`, and new Power User sections for
+  Collections, Persona Memory, and Think Mode.
+- Added a Command Reference table to `README.md` covering 17 lesser-documented
+  commands.
+- Added YARD documentation for `GenericObject`, `JSONColumns`, and various
+  constants and methods.
+- Fixed YARD `@param` warnings for `excon_logger` and `collection`.
+- Restructured `CHANGES.md` for consistent formatting and corrected dependency
+  version references.
+
 ## 2026-11-21 v0.0.148
 
 ### Features
