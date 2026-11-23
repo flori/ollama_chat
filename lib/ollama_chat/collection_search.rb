@@ -108,7 +108,7 @@ module OllamaChat::CollectionSearch
   #   collection or prompt is missing, or no snippets survived reranking
   def trigger_inject(content, group_uuid:)
     embedding.on? or return
-    trigger = session.trigger&.first or return
+    trigger = session.trigger&.each_pair&.first or return
     collection, config = trigger
     unless config['enabled']
       log(:info, 'Trigger for collection %s disabled.' % collection)

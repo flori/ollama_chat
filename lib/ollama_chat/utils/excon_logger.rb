@@ -21,8 +21,8 @@ class OllamaChat::Utils::ExconLogger
   # Dynamically defines all standard logger severity methods to route
   # through the chat's logging system.
   #
-  # @param message [String] the log message
-  # @return [NilClass, TrueClass]
+  # The generated methods accept an optional message (or a block yielding
+  # one), mirroring the standard Ruby Logger severity signatures.
   LOG_METHODS.each do |method|
     define_method(method) do |message = nil, &block|
       msg = block&.(message) || message

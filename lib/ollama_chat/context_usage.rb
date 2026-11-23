@@ -16,6 +16,9 @@ module OllamaChat
     include Term::ANSIColor
     include OllamaChat::Utils::ValueFormatter
 
+    # Mapping of threshold colors to their traffic-light emoji.
+    #
+    # @return [Hash{Symbol => String}] green/yellow/red to 🟢/🟡/🔴
     EMOJI = { green: '🟢', yellow: '🟡', red: '🔴' }.freeze
 
     # @param chat [OllamaChat::Chat] the chat instance to read state from

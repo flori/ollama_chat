@@ -5,9 +5,10 @@
 # for automatic file discovery and synchronization.
 class OllamaChat::Database::Models::Collection < Sequel::Model(OllamaChat::DB)
   include OllamaChat::Database::Duplicatable
+  include OllamaChat::Database::JSONColumns
 
   plugin :timestamps, update_on_create: true
-  plugin :serialization, :json, :patterns
+  json_column :patterns
   plugin :validation_helpers
 
   # Validates the collection.
@@ -20,12 +21,12 @@ class OllamaChat::Database::Models::Collection < Sequel::Model(OllamaChat::DB)
     validates_presence :description
   end
 
-  # Sets the chat instance associated with this collection.
+  # The chat instance associated with this collection, allowing it to
+  # interact with the chat's document store during lifecycle events, such as
+  # cleanup upon destruction.
   #
-  # This allows the collection to interact with the chat's document
-  # store during lifecycle events, such as cleanup upon destruction.
-  #
-  # @param chat [OllamaChat::Chat] the chat instance
+  # @!attribute [w] chat
+  #   @return [OllamaChat::Chat] the chat instance
   attr_writer :chat
 
   # Hook to clean up the corresponding Documentrix collection when

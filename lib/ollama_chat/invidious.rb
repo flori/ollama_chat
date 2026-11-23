@@ -1,17 +1,21 @@
-# Fetches YouTube video metadata and transcripts through an Invidious
-# companion instance.
-#
-# Only activates when OC::OLLAMA::CHAT::INVIDIOUS::URL is set.
-# Accepts standard YouTube URLs and watch URLs on the configured
-# Invidious instance. Unmatched URLs and unconfigured environments
-# return nil.
-#
-# @example Fetching video info for a YouTube watch URL
-#   text = OllamaChat::Invidious.fetch_video_info(
-#     'https://www.youtube.com/watch?v=Fypm8CDHwc8', chat:
-#   )
 module OllamaChat
+  # Fetches YouTube video metadata and transcripts through an Invidious
+  # companion instance.
+  #
+  # Only activates when OC::OLLAMA::CHAT::INVIDIOUS::URL is set.
+  # Accepts standard YouTube URLs and watch URLs on the configured
+  # Invidious instance. Unmatched URLs and unconfigured environments
+  # return nil.
+  #
+  # @example Fetching video info for a YouTube watch URL
+  #   text = OllamaChat::Invidious.fetch_video_info(
+  #     'https://www.youtube.com/watch?v=Fypm8CDHwc8', chat:
+  #   )
   class Invidious
+    # Matches standard YouTube watch/embed/shorts URLs and youtu.be links,
+    # capturing the 11-character video ID in group 1.
+    #
+    # @return [Regexp] the YouTube URL pattern
     YOUTUBE_URLS = %r{
       \A
       (?:https?://)?

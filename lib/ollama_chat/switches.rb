@@ -99,6 +99,8 @@ module OllamaChat::Switches
   #   switch.off?    # Returns false
   #   switch.on?     # Returns true
   class Switch
+    # Sentinel used to distinguish a bare read from an explicit write in
+    # the state closures produced by {#adhoc_closure}.
     UNSET = Object.new.freeze
 
     # Initializes a new Switch instance.
@@ -148,8 +150,10 @@ module OllamaChat::Switches
     end
     private :adhoc_closure
 
-    # @!attribute [r] value
-    #   @return [Boolean] the current state of the switch
+    # Reads the current boolean state of the switch by invoking the
+    # internal state closure with no argument.
+    #
+    # @return [Boolean] the current state of the switch
     def value
       @value.()
     end

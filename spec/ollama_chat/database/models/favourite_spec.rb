@@ -18,7 +18,7 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
   end
 
   describe 'metadata serialization and deserialization' do
-    it 'serializes a Hash to JSON string in before_save and deserializes it back in after_load' do
+    it 'serializes a Hash and deserializes it back as a GenericObject' do
       metadata_payload = { 'theme' => 'dark', 'priority' => 1 }
 
       # The create call triggers before_save
@@ -29,11 +29,12 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
       # We reload to trigger after_load
       reloaded_fav = OllamaChat::Database::Models::Favourite.first(id: fav.id)
 
-      expect(reloaded_fav.metadata).to eq(metadata_payload)
-      expect(reloaded_fav.metadata).to be_a(Hash)
+      expect(reloaded_fav.metadata).to be_a(OllamaChat::Database::GenericObject)
+      expect(reloaded_fav.metadata['theme']).to eq('dark')
+      expect(reloaded_fav.metadata['priority']).to eq(1)
     end
 
-    it 'handles invalid JSON strings by throwing an exceptio' do
+    it 'raises a ParserError for invalid JSON stored in the column' do
       # We bypass the model to inject invalid JSON directly into the DB
       OllamaChat::DB.run(
         "INSERT INTO favourites (context, name, metadata, created_at, updated_at) " \
@@ -45,15 +46,15 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
       }.to raise_error(JSON::ParserError)
     end
 
-    it 'does nothing in after_load if metadata is already a Hash' do
-      # This tests the 'if metadata.is_a?(String)' condition
+    it 'returns a GenericObject for hash metadata without a fresh reload' do
       fav = OllamaChat::Database::Models::Favourite.create(
         context:, name:, metadata: { 'already' => 'hash' }
       )
 
       # Accessing metadata directly without a fresh reload from DB
-      # (to ensure we aren't just testing the reload, but the logic itself)
-      expect(fav.metadata).to be_a(Hash)
+      # (to ensure we aren't just testing the reload, but the writer path)
+      expect(fav.metadata).to be_a(OllamaChat::Database::GenericObject)
+      expect(fav.metadata['already']).to eq('hash')
     end
   end
 
@@ -64,14 +65,12 @@ describe 'OllamaChat::Database::Models::Favourite', type: :model do
       )
     end
 
-    it 'merges new data into the existing metadata hash' do
+    it 'merges new data into the existing metadata' do
       fav.update(metadata: fav.metadata | { 'new_key' => 'new_value' })
       fav.reload
 
-      expect(fav.metadata).to eq({
-        'existing' => 'data',
-        'new_key' => 'new_value'
-      })
+      expect(fav.metadata['existing']).to eq('data')
+      expect(fav.metadata['new_key']).to eq('new_value')
     end
   end
 

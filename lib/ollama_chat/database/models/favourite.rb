@@ -3,14 +3,15 @@
 #
 # This model provides a mechanism to persist preferred items, such as favourite
 # models, by storing their name and an associated JSON-serialized metadata
-# hash. It utilizes Sequel plugins for managing timestamps and handling JSON
-# serialization for the `metadata` attribute.
+# hash. It utilizes Sequel plugins for managing timestamps and the `json_go`
+# serialization for the `metadata` attribute (nil stays nil, hashes read
+# back as GenericObject).
 class OllamaChat::Database::Models::Favourite < Sequel::Model(OllamaChat::DB)
+  include OllamaChat::Database::JSONColumns
 
   plugin :timestamps, update_on_create: true
-  plugin :serialization, :json, :metadata
+  json_column :metadata
   plugin :validation_helpers
-
   # Validates the favourite entry.
   #
   # Ensures that both the `context` and `name` are present.
@@ -31,7 +32,8 @@ class OllamaChat::Database::Models::Favourite < Sequel::Model(OllamaChat::DB)
   #   @return [String] The name of the favourite item.
   #
   # @!attribute [v] metadata
-  #   @return [Hash, nil] A JSON-serialized hash containing additional metadata.
+  #   @return [GenericObject, Array, nil] The metadata; hashes read back as a
+  #     {OllamaChat::Database::GenericObject}, nil stays nil.
   #
   # @!attribute [v] created_at
   #   @return [Time, nil] The timestamp when the favourite was created.

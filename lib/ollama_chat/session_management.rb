@@ -538,7 +538,7 @@ module OllamaChat::SessionManagement
       # point. Fine for the single-trigger case; with multiple
       # configured, it's just an arbitrary default the user can
       # override in the chooser.
-      if selected = existing.first&.first&.dup
+      if selected = existing.first&.first&.to_s&.dup
         self.current_search_state = SearchUI::Search::State.new(selected, 0)
       end
       collection = choose_entry(collections, prompt: 'Collection? %s')

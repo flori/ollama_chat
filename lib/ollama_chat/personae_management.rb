@@ -116,9 +116,9 @@ module OllamaChat::PersonaeManagement
       return
     end
     collection = create_memory_collection(@default_persona_name)
-    return if session.trigger&.keys&.first == collection
-    cfg = session.trigger&.values&.first or
-      cfg = chat.config.trigger.to_h.stringify_keys_recursive
+    key, cfg = session.trigger&.each_pair&.first
+    return if key&.to_s == collection
+    cfg ||= chat.config.trigger.to_h.stringify_keys_recursive
     session.update(trigger: { collection => cfg })
   end
 

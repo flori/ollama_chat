@@ -200,7 +200,7 @@ module OllamaChat::Information
       output.puts "Text splitter is #{bold{config.embedding.splitter.name}}."
       collection_stats(output:)
       if session.trigger.full?
-        session.trigger.each do |col, cfg|
+        session.trigger.each_pair do |col, cfg|
           state = cfg['enabled'] ? '✅' : '⛔'
           output.puts "\u26A1 Trigger: #{state} #{bold{col}}"
           output.puts "     Prompt: #{bold{cfg['prompt_name']}}"

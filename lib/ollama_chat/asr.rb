@@ -1,17 +1,17 @@
 require 'securerandom'
 
-# Standalone ASR (Speech-to-Text) transcription client for audio.cpp.
-#
-# Transcribes audio or video sources by uploading them as multipart
-# form-data to the audio.cpp `/v1/audio/transcriptions` endpoint.
-# Video sources are first converted to 16 kHz mono WAV via ffmpeg.
-#
-# @example Transcribing a WAV source
-#   text = OllamaChat::ASR.transcribe(source_io, chat:)
-#
-# @example Transcribing an MP4 video (ffmpeg extraction)
-#   text = OllamaChat::ASR.transcribe(source_io, chat:)
 module OllamaChat
+  # Standalone ASR (Speech-to-Text) transcription client for audio.cpp.
+  #
+  # Transcribes audio or video sources by uploading them as multipart
+  # form-data to the audio.cpp `/v1/audio/transcriptions` endpoint.
+  # Video sources are first converted to 16 kHz mono WAV via ffmpeg.
+  #
+  # @example Transcribing a WAV source
+  #   text = OllamaChat::ASR.transcribe(source_io, chat:)
+  #
+  # @example Transcribing an MP4 video (ffmpeg extraction)
+  #   text = OllamaChat::ASR.transcribe(source_io, chat:)
   class ASR
     class << self
       # Transcribes audio/video content via the audio.cpp ASR endpoint.

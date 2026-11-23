@@ -7,12 +7,13 @@
 class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   include OllamaChat::Database::RowLocking
   include OllamaChat::Database::Duplicatable
+  include OllamaChat::Database::JSONColumns
 
   plugin :timestamps, update_on_create: true
   plugin :touch
-  plugin :serialization, :json, :tools_default_enabled
-  plugin :serialization, :json, :model_options
-  plugin :serialization, :json, :trigger
+  json_column :tools_default_enabled
+  json_column :model_options
+  json_column :trigger
   plugin :validation_helpers
 
   # Validates the session instance.
@@ -71,7 +72,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   # @return [Boolean, nil] true when the trigger is active, false when
   #   explicitly disabled, nil when no trigger is configured
   def trigger_enabled?
-    trigger&.values&.first&.[]('enabled')
+    trigger&.each_pair&.first&.last&.[]('enabled')
   end
 
   # Sets the `enabled` flag of the first configured trigger entry and
@@ -81,7 +82,7 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   #
   # @param value [Boolean] the new enabled state
   def set_trigger_enabled(value)
-    if hash = trigger&.values&.first
+    if hash = trigger&.each_pair&.first&.last
       hash['enabled'] = value
       save
     end
@@ -109,7 +110,8 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   #   @return [Boolean] Indicates whether tool calling is enabled.
   #
   # @!attribute [v] tools_default_enabled
-  #   @return [String, nil] A JSON-serialized string containing default settings for tools.
+  #   @return [GenericObject, nil] A {OllamaChat::Database::GenericObject}
+  #     mapping tool names to their default enabled state.
   #
   # @!attribute [v] think_mode
   #   @return [String] The current thinking mode (must be one of `Chat#think_mode_states`).
@@ -157,11 +159,12 @@ class OllamaChat::Database::Models::Session < Sequel::Model(OllamaChat::DB)
   #   @return [Integer, nil] The process ID that currently holds a lock on this session.
   #
   # @!attribute [v] model_options
-  #   @return [String, nil] A JSON-serialized string containing model-specific options.
+  #   @return [GenericObject, nil] A {OllamaChat::Database::GenericObject}
+  #     containing model-specific options.
   #
   # @!attribute [v] trigger
-  #   @return [Hash, nil] Maps collection names to search/rerank
-  #     overrides, e.g.
+  #   @return [GenericObject, nil] A {OllamaChat::Database::GenericObject}
+  #     mapping collection names to search/rerank overrides, e.g.
   #     `{ 'memory-miyu' => { 'prompt_name' => 'memory_rerank',
   #       'text_count' => 5 } }`.
   #     Recognized keys: `prompt_name`, `text_count`, `text_size`,

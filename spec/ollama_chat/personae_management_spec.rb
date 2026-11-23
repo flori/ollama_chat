@@ -13,11 +13,11 @@ describe OllamaChat::PersonaeManagement do
     it 'rekeys trigger when persona changes' do
       # After init, trigger points to the config default persona
       default_collection = "memory-#{chat.session.default_persona_name}"
-      expect(chat.session.trigger.keys.first).to eq(default_collection)
+      expect(chat.session.trigger&.each_pair&.first&.first&.to_s).to eq(default_collection)
 
       chat.set_default_persona_name('sarah')
 
-      expect(chat.session.trigger.keys.first).to eq('memory-sarah')
+      expect(chat.session.trigger&.each_pair&.first&.first&.to_s).to eq('memory-sarah')
       expect(chat.default_persona_name).to eq('sarah')
     end
 
@@ -34,12 +34,9 @@ describe OllamaChat::PersonaeManagement do
 
       chat.set_default_persona_name('sarah')
 
-      expect(chat.session.trigger).to include(
-        'memory-sarah' => a_hash_including(
-          'enabled'     => true,
-          'prompt_name' => 'memory_rerank'
-        )
-      )
+      cfg = chat.session.trigger&.each_pair&.first&.last
+      expect(cfg['enabled']).to be true
+      expect(cfg['prompt_name']).to eq('memory_rerank')
     end
 
     it 'preserves existing trigger config on rekey' do
@@ -53,13 +50,10 @@ describe OllamaChat::PersonaeManagement do
 
       chat.set_default_persona_name('sarah')
 
-      expect(chat.session.trigger).to eq({
-        'memory-sarah' => {
-          'enabled'     => false,
-          'prompt_name' => 'memory_rerank',
-          'text_count'  => 5
-        }
-      })
+      cfg = chat.session.trigger&.each_pair&.first&.last
+      expect(cfg['enabled']).to eq(false)
+      expect(cfg['prompt_name']).to eq('memory_rerank')
+      expect(cfg['text_count']).to eq(5)
     end
 
     it 'is idempotent when called with the same persona' do
@@ -69,7 +63,7 @@ describe OllamaChat::PersonaeManagement do
       chat.set_default_persona_name('sarah')
 
       expect(chat.session.trigger).to eq(trigger_before)
-      expect(chat.session.trigger.keys.first).to eq('memory-sarah')
+      expect(chat.session.trigger&.each_pair&.first&.first&.to_s).to eq('memory-sarah')
     end
   end
 end

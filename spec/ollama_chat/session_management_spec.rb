@@ -216,16 +216,15 @@ describe OllamaChat::SessionManagement do
     it 'updates working directory and initializes history' do
       expect(Dir).to receive(:pwd).and_return('/curr')
       expect(chat.session).to receive(:update).with(working_directory: '/curr')
+      # Catch-all for the other update calls session_apply makes (trigger, etc.)
+      allow(chat.session).to receive(:update)
       expect(chat).to receive(:init_history)
       expect(chat.session_apply).to eq(chat.session)
       collection = 'memory-%s' % chat.session.default_persona_name
-      expect(chat.session.trigger).to include(
-        collection => a_hash_including(
-          'enabled'     => true,
-          'prompt_name' => 'memory_rerank',
-          'text_count'  => 3
-        )
-      )
+      cfg = chat.session.trigger[collection]
+      expect(cfg['enabled']).to be true
+      expect(cfg['prompt_name']).to eq('memory_rerank')
+      expect(cfg['text_count']).to eq(3)
       expect(chat.database_collection?(collection)).to be_truthy
     end
   end
@@ -251,7 +250,7 @@ describe OllamaChat::SessionManagement do
     it 'preserves persona and trigger on duplicate' do
       chat.set_default_persona_name('sarah')
       expect(chat.session.default_persona_name).to eq('sarah')
-      expect(chat.session.trigger.keys.first).to eq('memory-sarah')
+      expect(chat.session.trigger&.each_pair&.first&.first).to eq(:"memory-sarah")
 
       expect(chat).to receive(:determine_valid_new_name_for_session).
         and_return('dup_preserve')
@@ -259,7 +258,7 @@ describe OllamaChat::SessionManagement do
       chat.duplicate_session
 
       expect(chat.session.default_persona_name).to eq('sarah')
-      expect(chat.session.trigger.keys.first).to eq('memory-sarah')
+      expect(chat.session.trigger&.each_pair&.first&.first).to eq(:"memory-sarah")
     end
   end
 

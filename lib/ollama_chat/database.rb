@@ -50,5 +50,17 @@ module OllamaChat::Database
     end
   end
 end
+require 'sequel/plugins/serialization'
 require 'ollama_chat/database/duplicatable'
+require 'ollama_chat/database/generic_object'
+require 'ollama_chat/database/json_columns'
 require 'ollama_chat/database/row_locking'
+
+# Register the :json_go serialization format: deserializes into a
+# {OllamaChat::Database::GenericObject}, serializes via its to_hash.
+# Must run before any model declares `plugin :serialization, :json_go`.
+Sequel::Plugins::Serialization.register_format(
+  :json_go,
+  OllamaChat::Database::GenericObject.method(:dump),
+  OllamaChat::Database::GenericObject.method(:load)
+)

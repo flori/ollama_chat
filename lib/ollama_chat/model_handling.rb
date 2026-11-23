@@ -531,7 +531,7 @@ module OllamaChat::ModelHandling
         order(:profile).all
 
       matching = all_profiles.any? do |mo|
-        mo.options.ask_and_send(:symbolize_keys_recursive) == session_model_options
+        mo.options.to_h == session_model_options
       end
 
       unless matching
@@ -540,7 +540,7 @@ module OllamaChat::ModelHandling
             <<~EOT
 
               📄 #{italic{mo.profile}}:
-              #{JSON.pretty_generate(mo.options.ask_and_send(:symbolize_keys_recursive))}
+              #{JSON.pretty_generate(mo.options.to_h)}
             EOT
           end.join
           feedback <<~EOT, output:, type: :warn

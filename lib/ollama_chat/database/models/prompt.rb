@@ -5,9 +5,10 @@
 # and a name, with the actual content residing in a serialized JSON metadata column.
 class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   include OllamaChat::Database::Duplicatable
+  include OllamaChat::Database::JSONColumns
 
   plugin :timestamps, update_on_create: true
-  plugin :serialization, :json, :metadata
+  json_column :metadata, default: {}
   plugin :validation_helpers
 
   # Validates the prompt template.
@@ -30,8 +31,9 @@ class OllamaChat::Database::Models::Prompt < Sequel::Model(OllamaChat::DB)
   #   @return [String] The name of the prompt.
   #
   # @!attribute [v] metadata
-  #   @return [Hash, nil] A JSON-serialized hash containing prompt metadata,
-  #     including the actual content.
+  #   @return [GenericObject] A {OllamaChat::Database::GenericObject}
+  #     wrapping the prompt metadata (content, default flag, etc.). Never
+  #     nil — an empty object is returned for a blank column.
   #
   # @!attribute [v] created_at
   #   @return [Time, nil] The timestamp when the prompt was created.
