@@ -164,7 +164,7 @@ class OllamaChat::Tools::SearchKnowledge
       end
 
     {
-      prompt: chat.prompt('snippets_retrieval').to_s,
+      prompt: chat.prompt('snippets_retrieval', context: 'internal').to_s,
       collection: {
         name:        chat.collection,
         description: chat.database_collection?(chat.collection)&.description&.to_s,

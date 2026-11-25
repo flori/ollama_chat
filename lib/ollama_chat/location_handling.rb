@@ -18,7 +18,7 @@ module OllamaChat::LocationHandling
   #
   # @return [String] a formatted location description string
   def location_description
-    prompt(:location).to_s % location_data
+    prompt(:location, context: 'internal').to_s % location_data
   end
 
   # The location_description? method returns the location description string if

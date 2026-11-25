@@ -408,7 +408,7 @@ module OllamaChat::SessionManagement
       sender_name        = sender_name_displayed(message, template: false)
       context            = contents * "\n\n"
       summary            = generate(
-        prompt:  prompt(:session_summarize).to_s.
+        prompt:  prompt(:session_summarize, context: 'internal').to_s.
                    named_placeholders_interpolate(
                      { sender_name:, unit:, message_content:, context: }
                    )
@@ -599,7 +599,7 @@ module OllamaChat::SessionManagement
       sender_name = sender_name_displayed(message)
       c << "%s: %s\n\n" % [ sender_name, message.content ]
     end
-    prompt = prompt(:session_title).to_s.named_placeholders_interpolate({ length:, content: })
+    prompt = prompt(:session_title, context: 'internal').to_s.named_placeholders_interpolate({ length:, content: })
     Infobar.busy(
       label: 'Naming session…',
       frames: :braille7,

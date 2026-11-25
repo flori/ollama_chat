@@ -400,7 +400,7 @@ module OllamaChat::PromptManagement
 
     # Build the context by gathering all current conversation messages
     history     = prepare_conversation_history
-    template    = prompt('context_template_suggest', context: 'prompt').to_s
+    template    = prompt('context_template_suggest', context: 'internal').to_s
     full_prompt = template.named_placeholders_interpolate({ history:, instruction: })
 
     # Execute a silent chat oneshot call (doesn't add to history)

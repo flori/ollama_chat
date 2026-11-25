@@ -75,6 +75,25 @@ class OllamaChat::Database::Models::AppState < Sequel::Model(OllamaChat::DB)
       removed = old.keys - hashes.keys
       changed = hashes.select { |k, v| old[k] && old[k] != v }.keys
 
+      # Auto-acknowledge contexts that only gained prompts (no
+      # modifications or removals) — the app shipped them, no
+      # human decision required.
+      added_ctx   = added.map     { |k| k.split('/')[0] }.uniq
+      changed_ctx = (changed + removed).map { |k| k.split('/')[0] }.uniq
+      (added_ctx - changed_ctx).each do |ctx|
+        acknowledge(chat, context: ctx)
+      end
+
+      # Re-derive the diff after auto-ack so the nag only shows
+      # contexts that still need attention.
+      stored  = get(:prompt_defaults_fingerprint)
+      old     = stored['hashes']
+      added   = hashes.keys - old.keys
+      removed = old.keys - hashes.keys
+      changed = hashes.select { |k, v| old[k] && old[k] != v }.keys
+
+      return true if added.empty? && removed.empty? && changed.empty?
+
       chat.feedback("Shipped prompts changed since last boot:", type: :warn)
       changed.each { |k| chat.feedback "  ~ #{k} (modified)" }
       added.each   { |k| chat.feedback "  + #{k} (new)" }

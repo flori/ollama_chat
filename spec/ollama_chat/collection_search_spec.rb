@@ -103,7 +103,7 @@ describe OllamaChat::CollectionSearch do
         .and_return(double('Collection', description: 'Memory for miyu'))
       expect(chat).to receive(:prompt).with('memory_rerank', context: 'rerank')
         .and_return('template')
-      expect(chat).to receive(:prompt).with('snippets_trigger')
+      expect(chat).to receive(:prompt).with('snippets_trigger', context: 'internal')
         .and_return('injected because trigger fired')
       expect(chat).to receive(:switch_collection).with('memory-miyu').and_yield
       expect(chat).to receive(:find_document_records)

@@ -173,7 +173,7 @@ module OllamaChat::SourceFetching
     instruction    = instruction.full? { ", focusing specifically on: #{_1}" }
     source_content = parse_source(source_io)
     source_content.present? or return
-    prompt(:summarize).to_s.named_placeholders_interpolate(
+    prompt(:summarize, context: 'internal').to_s.named_placeholders_interpolate(
       { source_content:, words:, instruction: }
     )
   end
@@ -285,7 +285,7 @@ module OllamaChat::SourceFetching
   #
   # @return [String, nil] The formatted embedding result or summary message, or
   #   nil if the operation fails
-  def embed(source, tags: [], prompt: prompt(:embed))
+  def embed(source, tags: [], prompt: prompt(:embed, context: 'internal'))
     prompt = prompt.to_s
     embedding.on? or return
     fetch_source(source) do |source_io|
@@ -305,7 +305,7 @@ module OllamaChat::SourceFetching
   def bulk_embed_sources(sources_tags)
     sources_tags.empty? and return []
     infobar.show = false
-    prompt = prompt(:embed)
+    prompt = prompt(:embed, context: 'internal')
     if sources_tags.size <= 1 or config.embedding.concurrency <= 1
       feedback("Collection #{bold{collection}}: Embedding #{sources_tags.size} sources…", type: :info)
       return sources_tags.map { |s, tags| embed(s, prompt:, tags:) }.compact

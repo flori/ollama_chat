@@ -353,7 +353,7 @@ module OllamaChat::Information
   #
   # @return [String] a formatted static runtime information string.
   def static_runtime_information
-    prompt(:static_runtime_info).to_s.named_placeholders_interpolate(
+    prompt(:static_runtime_info, context: 'internal').to_s.named_placeholders_interpolate(
       static_runtime_information_values
     )
   end
@@ -410,7 +410,7 @@ module OllamaChat::Information
   #
   # @return [String] the formatted dynamic runtime information string.
   def dynamic_runtime_information
-    prompt(:dynamic_runtime_info).to_s.named_placeholders_interpolate(
+    prompt(:dynamic_runtime_info, context: 'internal').to_s.named_placeholders_interpolate(
       dynamic_runtime_information_values
     )
   end

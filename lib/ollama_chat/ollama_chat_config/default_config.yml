@@ -25,6 +25,43 @@ infobar:
       :message: ✓
 prompts:
   prompt:
+    nudge: Continue.
+    yep: Yes, proceed.
+    nope: No, skip it.
+    decide: Use your best judgment and proceed — don't ask, just do it.
+  internal:
+    persona: |
+      # Persona
+
+      ## Character Profile
+
+      - **Name**: [Their name]
+      - **Occupation**: [Their job/career]
+      - **Gender**: [Their gender]
+
+      ## Personality and Behavior
+
+      - **Core Values**: [Their values]
+      - **Personality Traits**: [Key personality characteristics]
+      - **Emotional Style**: [How they express emotions]
+      - **Behavioral Patterns**: [Typical behaviors and habits]
+
+      ## Core Guidelines
+
+      - **Role definition**: [What is your primary role/identity?]
+      - **Tone**: [Describe your speaking style - formal, casual, technical, etc.]
+      - **Perspective**: [3rd person narrative, 1st person dialogue]
+      - **Language**: [Natural language and any constraints]
+      - **Guideline 1**: [e.g., "Maintain consistency with character"]
+      - **Guideline 2**: [e.g., "Use appropriate communication style"]
+      - **Guideline 3**: [e.g., "Stay in character"]
+      - **Guideline 4**: [e.g., "Never mention being an AI"]
+
+      ## Communication Style
+
+      - **Format**: [Markdown, plain text, code blocks, etc.]
+      - **Vocabulary**: [Technical terms, slang, formal language]
+      - **Structure**: [How you organize your responses]
     embed: The source %{source} has been added to or updated in collection "%{collection}".
     snippets_retrieval: |
      Consider these snippets retrieved from the collection identified in the
@@ -121,38 +158,6 @@ prompts:
       ```
       %{character}
       ```
-    persona: |
-      # Persona
-
-      ## Character Profile
-
-      - **Name**: [Their name]
-      - **Occupation**: [Their job/career]
-      - **Gender**: [Their gender]
-
-      ## Personality and Behavior
-
-      - **Core Values**: [Their values]
-      - **Personality Traits**: [Key personality characteristics]
-      - **Emotional Style**: [How they express emotions]
-      - **Behavioral Patterns**: [Typical behaviors and habits]
-
-      ## Core Guidelines
-
-      - **Role definition**: [What is your primary role/identity?]
-      - **Tone**: [Describe your speaking style - formal, casual, technical, etc.]
-      - **Perspective**: [3rd person narrative, 1st person dialogue]
-      - **Language**: [Natural language and any constraints]
-      - **Guideline 1**: [e.g., "Maintain consistency with character"]
-      - **Guideline 2**: [e.g., "Use appropriate communication style"]
-      - **Guideline 3**: [e.g., "Stay in character"]
-      - **Guideline 4**: [e.g., "Never mention being an AI"]
-
-      ## Communication Style
-
-      - **Format**: [Markdown, plain text, code blocks, etc.]
-      - **Vocabulary**: [Technical terms, slang, formal language]
-      - **Structure**: [How you organize your responses]
     context_template_suggest: |
       Conversation History:
       %{history}

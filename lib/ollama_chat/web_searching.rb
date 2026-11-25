@@ -72,13 +72,13 @@ module OllamaChat::WebSearching
   def web(count, query)
     urls = search_web(query, count.to_i) or return :next
     if document_policy.selected == 'embedding' && embedding.on?
-      prompt = prompt(:web_embed).to_s
+      prompt = prompt(:web_embed, context: 'internal').to_s
       urls.each do |url|
         fetch_source(url) { |url_io| embed_source(url_io, url) }
       end
       prompt.named_placeholders_interpolate({query:})
     elsif document_policy.selected == 'summarizing'
-      prompt = prompt(:web_summarize).to_s
+      prompt = prompt(:web_summarize, context: 'internal').to_s
       results = urls.each_with_object('') do |url, content|
         summarize(url).full? do |c|
           content << c.ask_and_send_or_self(:read)
@@ -86,7 +86,7 @@ module OllamaChat::WebSearching
       end
       prompt.named_placeholders_interpolate({query:, results:})
     else
-      prompt = prompt(:web_import).to_s
+      prompt = prompt(:web_import, context: 'internal').to_s
       results = urls.each_with_object('') do |url, content|
         import(url).full? do |c|
           content << c.ask_and_send_or_self(:read)

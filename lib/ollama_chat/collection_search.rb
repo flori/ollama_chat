@@ -156,7 +156,7 @@ module OllamaChat::CollectionSearch
       }
     }
     message_content = {
-      prompt: prompt('snippets_trigger').to_s,
+      prompt: prompt('snippets_trigger', context: 'internal').to_s,
       collection: {
         name:        collection,
         description: col.description&.to_s,

@@ -52,7 +52,7 @@ describe OllamaChat::WebSearching do
       end
 
       it 'embeds each source and interpolates the web_embed prompt' do
-        expect(chat).to receive(:prompt).with(:web_embed).
+        expect(chat).to receive(:prompt).with(:web_embed, context: 'internal').
           and_return(double('prompt', to_s: 'Search for: %{query}'))
         expect(chat).to receive(:search_web).and_return(urls)
          expect(chat).to receive(:fetch_source).twice do |_url, &block|
@@ -71,7 +71,7 @@ describe OllamaChat::WebSearching do
       end
 
       it 'summarizes each URL and interpolates the prompt' do
-        expect(chat).to receive(:prompt).with(:web_summarize).
+        expect(chat).to receive(:prompt).with(:web_summarize, context: 'internal').
           and_return(double('prompt', to_s: 'Q: %{query} R: %{results}'))
         expect(chat).to receive(:search_web).and_return(urls)
         expect(chat).to receive(:summarize).twice
@@ -88,7 +88,7 @@ describe OllamaChat::WebSearching do
       end
 
       it 'imports each URL and interpolates the prompt' do
-        expect(chat).to receive(:prompt).with(:web_import).
+        expect(chat).to receive(:prompt).with(:web_import, context: 'internal').
           and_return(double('prompt', to_s: 'Q: %{query} R: %{results}'))
         expect(chat).to receive(:search_web).and_return(urls)
         expect(chat).to receive(:import).twice

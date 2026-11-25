@@ -223,7 +223,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return(records)
     expect(chat).to receive(:database_collection?).and_return(double('Col', description: nil))
-    expect(chat).to receive(:prompt).with('snippets_retrieval').and_return("Consider these snippets")
+    expect(chat).to receive(:prompt).with('snippets_retrieval', context: 'internal').and_return("Consider these snippets")
 
     expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('1')
@@ -262,7 +262,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     tool = described_class.new(chat)
     expect(chat).to receive(:find_document_records).and_return(records)
     expect(chat).to receive(:database_collection?).and_return(double('Col', description: nil))
-    expect(chat).to receive(:prompt).with('snippets_retrieval').and_return("Consider these snippets")
+    expect(chat).to receive(:prompt).with('snippets_retrieval', context: 'internal').and_return("Consider these snippets")
 
     expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
     expect(chat).to receive(:generate).with(prompt: anything).and_return('0')

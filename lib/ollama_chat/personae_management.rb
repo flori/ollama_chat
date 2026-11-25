@@ -233,7 +233,7 @@ module OllamaChat::PersonaeManagement
               end
 
     pathname = personae_directory + "#{name}.md"
-    final_content = content.full? || prompt(:persona).to_s
+    final_content = content.full? || prompt(:persona, context: 'internal').to_s
     pathname.write final_content
 
     edit_file(pathname)
@@ -651,8 +651,8 @@ module OllamaChat::PersonaeManagement
       frames: :braille7,
       output: STDOUT,
     ) do
-      prompt = prompt(:persona_architect).to_s.named_placeholders_interpolate(
-        { character:, persona_template: prompt(:persona).to_s }
+      prompt = prompt(:persona_architect, context: 'internal').to_s.named_placeholders_interpolate(
+        { character:, persona_template: prompt(:persona, context: 'internal').to_s }
       )
       generate(prompt:,  think:).
         gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
