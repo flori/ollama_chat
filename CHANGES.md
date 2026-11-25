@@ -1,5 +1,47 @@
 # Changes
 
+## 2026-11-25 v0.0.150
+
+### Features
+
+- Added a hidden `:enter` command that opens the prompt template chooser when
+  pressing Enter on an empty input line. The selected template is prefilled
+  into the readline buffer for review.
+- Introduced a new `internal` context for prompt templates to separate
+  application-interpolated prompts (e.g., `embed`, `summarize`, `persona`) from
+  human-facing `prompt` templates.
+- Added four new default nudge prompts (`nudge`, `yep`, `nope`, `decide`) under
+  the `prompt` context to provide useful defaults in the Enter-chooser.
+
+### Improvements
+
+- Extracted shared logic for choosing and prefiling or editing prompt templates
+  into `PromptManagement#select_prompt_for_input`.
+- Updated the `execute_grep` tool's default command template to include `-nH
+  -I` flags and exclude `.git` and `vendor` directories, improving output
+  formatting and reducing noise from binary files and version control
+  directories.
+- Implemented auto-acknowledgment in `AppState.seed` for contexts that only
+  gained new prompts, preventing unnecessary boot notifications for app-shipped
+  additions.
+- Added database migration `013` to relocate existing default prompt rows from
+  the `prompt` context to the `internal` context.
+
+### Fixes
+
+- Updated 17 call sites to explicitly pass `context: 'internal'` when
+  retrieving application-internal prompt templates.
+
+### Build & CI
+
+- Bumped the `gem_hadar` development dependency constraint to `>= 2.27.2`.
+
+### Testing
+- Updated spec mocks in `collection_search_spec.rb`,
+  `search_knowledge_spec.rb`, `web_searching_spec.rb`, and
+  `execute_grep_spec.rb` to reflect the new `context: 'internal'` keyword
+  argument and updated grep command strings.
+
 ## 2026-11-23 v0.0.149
 
 ### Improvements
