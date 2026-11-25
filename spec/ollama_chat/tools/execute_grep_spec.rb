@@ -35,7 +35,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 100 -r Hello\\ World #{Dir.pwd}/spec/assets"
+      "grep  -m 100 -rnH -I --exclude-dir=.git --exclude-dir=vendor Hello\\ World #{Dir.pwd}/spec/assets"
     ).and_return 'Hello World!'
 
     result = described_class.new(chat).execute(tool_call)
@@ -71,7 +71,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 5 -r class #{Dir.pwd}/spec/assets"
+      "grep  -m 5 -rnH -I --exclude-dir=.git --exclude-dir=vendor class #{Dir.pwd}/spec/assets"
     ).and_return 'blub class blob'
 
     result = described_class.new(chat).execute(tool_call)
@@ -106,7 +106,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep -i -m 5 -r class #{Dir.pwd}/spec/assets"
+      "grep -i -m 5 -rnH -I --exclude-dir=.git --exclude-dir=vendor class #{Dir.pwd}/spec/assets"
     ).and_return 'blub class blob'
 
     result = described_class.new(chat).execute(tool_call)
@@ -143,7 +143,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 100 -r nonexistent_pattern #{Dir.pwd}/spec/assets"
+      "grep  -m 100 -rnH -I --exclude-dir=.git --exclude-dir=vendor nonexistent_pattern #{Dir.pwd}/spec/assets"
     ).and_return ''
 
     result = described_class.new(chat).execute(tool_call)
@@ -178,7 +178,7 @@ describe OllamaChat::Tools::ExecuteGrep do
     )
 
     expect(OllamaChat::Utils::Fetcher).to receive(:execute).with(
-      "grep  -m 100 -r test /nonexistent/path/that/does/not/exist"
+      "grep  -m 100 -rnH -I --exclude-dir=.git --exclude-dir=vendor test /nonexistent/path/that/does/not/exist"
     ).and_return 'grep: /nonexistent/path/that/does/not/exist'
 
     result = described_class.new(chat).execute(tool_call)
