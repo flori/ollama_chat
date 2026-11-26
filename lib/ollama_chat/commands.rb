@@ -494,7 +494,7 @@ module OllamaChat::Commands
 
   command(
     name: :enter,
-    regexp: %r(^$),
+    regexp: %r(\A\Z$),
     complete: []
   ) do
     if content = select_prompt_for_input(context: 'prompt')
