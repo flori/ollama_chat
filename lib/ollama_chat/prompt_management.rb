@@ -365,7 +365,7 @@ module OllamaChat::PromptManagement
   #
   # @return [String] The flattened conversation history.
   def prepare_conversation_history
-    messages.each_message.inject('') do |result, message|
+    messages.compacted_messages.inject('') do |result, message|
       message_content = message.content.full? or next result
       sender_name     = sender_name_displayed(message, template: false)
       result << "%s: %s" % [ sender_name, message_content ]

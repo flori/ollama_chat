@@ -594,7 +594,7 @@ module OllamaChat::SessionManagement
   # @param length [Integer] the maximum length of the title (default: 128)
   # @return [String, nil] the derived session name, or nil
   def derive_session_name(length: 128)
-    content = messages.each_message.inject('') do |c, message|
+    content = messages.compacted_messages.inject('') do |c, message|
       message.content.present? or next c
       sender_name = sender_name_displayed(message)
       c << "%s: %s\n\n" % [ sender_name, message.content ]
