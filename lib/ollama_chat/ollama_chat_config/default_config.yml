@@ -178,6 +178,22 @@ prompts:
       Response content was
 
       %{message_content}
+    session_summarize_prologue: |
+      You are given a compaction narrative from a long conversation.
+      Reformat it as a concise prologue that a summarization model
+      can use as context.
+
+      Rules:
+      - Preserve all concrete details: file paths, names, values,
+        decisions made, and their rationale.
+      - Preserve the chronological structure.
+      - Drop verbose prose, filler, and redundant restatements.
+      - Use ## section headers for natural groupings.
+      - Target: under 40 lines.
+      - Do NOT add information not present in the source.
+      - Do NOT summarize the summary — restructure, don't lose.
+
+      %{narrative}
     session_title: |
       %{content}
 

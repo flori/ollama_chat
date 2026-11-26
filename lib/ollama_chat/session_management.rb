@@ -390,9 +390,33 @@ module OllamaChat::SessionManagement
   # @param block [Proc] a block to handle each summary fragment
   # @return [String, nil] the session summary or nil if empty
   def summarize_session(sentence: false, &block)
-    unit                  = sentence ? 'sentence' : 'paragraph'
-    contents              = []
-    messages_to_summarize = messages.each_message
+    unit     = sentence ? 'sentence' : 'paragraph'
+    contents = []
+
+    if summary_msg = messages.find_summary
+      narrative = extract_narrative(summary_msg.content)
+      if narrative.full?
+        formatted = Infobar.busy(
+          label:  'Formatting prologue…',
+          frames: :braille7,
+          output: STDOUT,
+        ) do
+          generate(
+            prompt: prompt(:session_summarize_prologue,
+                           context: 'internal').to_s.
+                      named_placeholders_interpolate({ narrative: }),
+            think:
+          )
+        end
+        prologue_text = formatted.full? ? formatted : narrative
+        prologue = "## Earlier conversation (compacted)\n\n#{prologue_text}"
+        block&.(prologue)
+        contents << prologue
+      end
+    end
+
+    messages_to_summarize = messages.compacted_messages.
+      select { |m| (m.role == 'user' || m.role == 'assistant') && m.tool_name.blank? }
     messages_to_summarize = messages_to_summarize.with_infobar(
       label:   'Summarizing message',
       total:   messages_to_summarize.count,
@@ -431,6 +455,7 @@ module OllamaChat::SessionManagement
     summary = summarize_session(sentence:) do |content|
       infobar.puts kramdown_ansi_parse(content) << ?\n
     end
+    infobar.finish
     if summary.full?
       use_pager do |output|
         output.puts kramdown_ansi_parse(summary)

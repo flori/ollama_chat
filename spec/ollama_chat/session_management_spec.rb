@@ -424,6 +424,30 @@ describe OllamaChat::SessionManagement do
       chat.summarize_session { |c| results << c }
       expect(results).to include(a_string_including('Summary content'))
     end
+
+    it 'includes a condensed prologue when a compaction summary exists' do
+      chat.messages << OllamaChat::Message.new(
+        role:      'tool',
+        tool_name: 'summary',
+        content:   "Old narrative here.\ntool_calls:\nsome json"
+      )
+      chat.messages << OllamaChat::Message.new(role: 'user', content: 'summarize me')
+
+      expect(chat).to receive(:prompt).at_least(:once).and_return(double(to_s: 'prompt'))
+      # First call: prologue, second: per-message summary
+      expect(chat).to receive(:generate).twice
+        .and_return('Condensed prologue', 'Message summary')
+      expect(chat).to receive(:sender_name_displayed).at_least(:once)
+        .and_return('User')
+      expect(chat).to receive(:infobar_message).and_return('')
+
+      results = []
+      chat.summarize_session { |c| results << c }
+
+      expect(results.first).to include('Condensed prologue')
+      expect(results.last).to include('User')
+      expect(results.last).to include('Message summary')
+    end
   end
 
   describe '#summarize_conversation' do
