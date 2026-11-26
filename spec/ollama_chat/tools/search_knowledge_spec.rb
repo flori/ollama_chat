@@ -226,7 +226,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(chat).to receive(:prompt).with('snippets_retrieval', context: 'internal').and_return("Consider these snippets")
 
     expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
-    expect(chat).to receive(:generate).with(prompt: anything).and_return('1')
+    expect(chat).to receive(:generate).with(prompt: anything, truncate: :trailing).and_return('1')
 
     result = tool.execute(tool_call)
     json = json_object(result)
@@ -265,7 +265,7 @@ describe OllamaChat::Tools::SearchKnowledge do
     expect(chat).to receive(:prompt).with('snippets_retrieval', context: 'internal').and_return("Consider these snippets")
 
     expect(chat).to receive(:prompt).with('default', context: 'rerank').and_return("template %{query} %{candidates}")
-    expect(chat).to receive(:generate).with(prompt: anything).and_return('0')
+    expect(chat).to receive(:generate).with(prompt: anything, truncate: :trailing).and_return('0')
 
     result = tool.execute(tool_call)
     json = json_object(result)

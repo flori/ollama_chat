@@ -654,7 +654,7 @@ module OllamaChat::PersonaeManagement
       prompt = prompt(:persona_architect, context: 'internal').to_s.named_placeholders_interpolate(
         { character:, persona_template: prompt(:persona, context: 'internal').to_s }
       )
-      generate(prompt:,  think:).
+      generate(prompt:,  think:, truncate: :trailing).
         gsub(/{{user}}/i, '%{user}').gsub(/{{char}}/i, persona_name)
     end
   end

@@ -78,7 +78,7 @@ module OllamaChat::CollectionSearch
       .named_placeholders_interpolate({ query:, candidates: })
 
     begin
-      if response = generate(prompt: rerank_prompt).full?
+      if response = generate(prompt: rerank_prompt, truncate: :trailing).full?
         indices = response.scan(/\d+/).map(&:to_i)
           .select { |i| (0...records.size).include?(i) }
         records = records.values_at(*indices) if indices.any?

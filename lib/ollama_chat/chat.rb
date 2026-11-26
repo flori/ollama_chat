@@ -73,6 +73,7 @@ class OllamaChat::Chat
   include OllamaChat::SystemPromptManagement
   include OllamaChat::PromptManagement
   include OllamaChat::Compaction
+  include OllamaChat::Generation
   include OllamaChat::Utils::Chooser
   include OllamaChat::Utils::ValueFormatter
   include OllamaChat::Utils::UTF8Converter
@@ -258,50 +259,6 @@ class OllamaChat::Chat
   # @return [String] the system prompt for the initial message
   def initial_system_prompt
     @messages.system_name
-  end
-
-  # Sends a structured chat request to the Ollama model and returns the
-  # response content.
-  #
-  # This method creates a minimal conversation consisting of a system message
-  # and a user message, executing it as a one-shot chat interaction.
-  #
-  # @param system [String] the system prompt to guide the model's behavior
-  #   (defaults to current raw_system_prompt)
-  # @param prompt [String] the user prompt to send to the model
-  # @param stream [Boolean] whether to stream the response (default: false)
-  # @param think [Boolean] enable thinking mode for hybrid-thinking models
-  #   (default: false)
-  #
-  # @return [String] the content of the resulting response message
-  def generate(system: raw_system_prompt, prompt:, stream: false, think: false)
-    messages = [
-      OllamaChat::Message.new(
-        role:        'system',
-        content:     system,
-      ),
-
-      OllamaChat::Message.new(
-        role: 'user',
-        content: prompt
-      ),
-    ]
-
-    content = call_ollama_chat(
-      model:    @model,
-      messages: ,
-      options:  model_options,
-      stream:   ,
-      think:
-    )&.message&.content.to_s
-
-    if content.empty?
-      log(:warn, "LLM generation returned empty content", data: { prompt:, think: })
-    else
-      log(:info, "LLM generation successful", data: { prompt:, content:, think: })
-    end
-
-    content
   end
 
   # Synthesizes and plays a short voice notification using the session's
