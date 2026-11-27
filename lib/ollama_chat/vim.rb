@@ -18,6 +18,27 @@ class OllamaChat::Vim
     #   @return [String, nil] stdout output, only when explicitly requested
   end
 
+  # Snapshot of the current server/buffer state, queried in a single
+  # round-trip.
+  class State < Data.define(:modifiable, :line, :col)
+    # @!attribute modifiable
+    #   @return [Integer] 1 if the buffer accepts changes, 0 otherwise
+    # @!attribute line
+    #   @return [Integer] current cursor line (1-indexed)
+    # @!attribute col
+    #   @return [Integer] current cursor column (1-indexed)
+
+    # @return [Boolean] true if the buffer accepts changes
+    def modifiable?
+      modifiable > 0
+    end
+
+    # @return [Boolean] true if a cursor is present (col > 0)
+    def cursor_present?
+      col > 0
+    end
+  end
+
   # Initializes a new Vim server connection
   #
   # Creates a new OllamaChat::Vim instance for interacting with a specific Vim
@@ -79,8 +100,14 @@ class OllamaChat::Vim
   #
   # @param text [String] The text to be inserted into the Vim buffer
   # @return [Result] the command result
+  # @raise [OllamaChat::VimError] if the server is not running or the
+  #   current buffer is not modifiable
   def insert(text)
-    spaces = (col.stdout.to_i - 1).clamp(0..)
+    info = current_state or raise OllamaChat::VimError,
+      "Vim server #{server_name.inspect} is not running"
+    info.modifiable? or raise OllamaChat::VimError,
+      'Current buffer is not modifiable'
+    spaces = (info.col - 1).clamp(0..)
     text   = text.gsub(/^/, ' ' * spaces)
     Tempfile.open do |tmp|
       tmp.write(text)
@@ -89,20 +116,27 @@ class OllamaChat::Vim
     end
   end
 
-  # Queries the Vim server for the current cursor column position.
+  # Returns the current cursor column position in Vim.
   #
-  # @return [Result] the command result; `stdout` contains the column
-  #   number as a string (empty or "0" when the server is unreachable)
-  def col
-    run_vim('--remote-expr', "col('.')", stdout: true)
+  # @return [Integer, nil] the column number (1-indexed), or nil when the
+  #   server is unreachable
+  def column
+    current_state&.col
+  end
+
+  # Returns the current cursor line position in Vim.
+  #
+  # @return [Integer, nil] the line number (1-indexed), or nil when the
+  #   server is unreachable
+  def line
+    current_state&.line
   end
 
   # Checks if a Vim server is currently running and accessible.
   #
   # @return [Boolean] true if the Vim server is running and accessible
   def server_running?
-    result = col
-    result.status.success? && result.stdout.to_i > 0
+    current_state&.cursor_present? || false
   end
 
   # Opens a file in Vim at a specified line and optionally marks a range.
@@ -130,13 +164,28 @@ class OllamaChat::Vim
 
   private
 
+  # Queries the Vim server for buffer state in a single round-trip.
+  #
+  # Evaluates ` [&modifiable, line('.'), col('.')]` via `--remote-expr`,
+  # returning all three values in one call. When the server is
+  # unreachable, stdout is empty (exit 0) and no digits are found.
+  #
+  # @return [State, nil] the buffer state, or nil when the server is
+  #   unreachable
+  def current_state
+    digits = run_vim(
+      '--remote-expr',
+      "[&modifiable, line('.'), col('.')]", stdout: true
+    ).stdout.scan(/\d+/).map(&:to_i)
+    digits.length == 3 ?
+      State.new(modifiable: digits[0], line: digits[1], col: digits[2]) : nil
+  end
+
   # Executes a vim client command via Open3.capture3, returning a Result.
   #
   # @param args [Array<String>] arguments appended after clientserver/
   #   servername
-  # @param stdout [Boolean] capture stdout (only needed by #col)
-  # @return [Result] the command result with status, stderr, and optional
-  #   stdout
+  # @param stdout [Boolean] capture stdout
   def run_vim(*args, stdout: false)
     out, err, status = Open3.capture3(
       'vim', '--clientserver', clientserver,

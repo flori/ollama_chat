@@ -1024,6 +1024,10 @@ module OllamaChat::Commands
       feedback("No message found to insert into Vim.", type: :warn)
     end
     :next
+  rescue OllamaChat::VimError => e
+    feedback(e.message, type: :warn)
+    log(:warn, e)
+    next :next
   end
 
   command(
