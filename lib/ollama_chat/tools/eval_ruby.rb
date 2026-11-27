@@ -94,18 +94,23 @@ class OllamaChat::Tools::EvalRuby
         else
           "eval_ruby failed (#{version}): #{truncate(stderr.to_s.strip, length: 80).inspect}"
         end
-      {
-        error:       'ExecutionError',
-        message:     ,
-        version:     ,
-        stdout:      ,
-        exit_status: status.exitstatus,
-      }.to_json
+      raise OllamaChat::RubyEvalError,
+        message,
+        version:, stdout: result, exit_status: status.exitstatus
     end
+  rescue OllamaChat::RubyEvalError => e
+    chat.log(:error, e, data: { tool: name, version: e.version })
+    {
+      error:       e.class,
+      message:     e.message,
+      version:     e.version,
+      stdout:      e.stdout,
+      exit_status: e.exit_status,
+    }.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name, version: })
     {
-      error: e.class,
+      error:   e.class,
       message: "Failed to evaluate Ruby code: #{e.message}"
     }.to_json
   end

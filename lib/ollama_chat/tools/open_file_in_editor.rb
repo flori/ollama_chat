@@ -74,17 +74,9 @@ class OllamaChat::Tools::OpenFileInEditor
     end
 
     result = chat.vim.open_file(file_path, start_line, end_line)
-    if result.nil?
-      return {
-        error:   'VimNotRunning',
-        message: 'Vim server is not running'
-      }.to_json
-    end
     unless result.status.success?
-      return {
-        error:   'VimError',
-        message: "Vim failed: #{result.stderr.strip}"
-      }.to_json
+      raise OllamaChat::VimError,
+        "Vim failed (#{result.stderr.strip})"
     end
     message =
       if end_line

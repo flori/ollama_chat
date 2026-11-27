@@ -145,16 +145,14 @@ describe OllamaChat::Vim do
   end
 
   describe '#open_file' do
-    it 'returns nil and emits feedback when server is down' do
+    it 'raises VimError when server is down' do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', "col('.')"
       ).and_return(["", "vim: E5108\n", fail_status])
 
-      expect(vim).to receive(:feedback)
-        .with(/Failed! Vim has to be running/, type: :warn)
-
-      expect(vim.open_file('/tmp/test.rb')).to be_nil
+      expect { vim.open_file('/tmp/test.rb') }
+        .to raise_error(OllamaChat::VimError, /is not running/)
     end
 
     it 'returns a successful Result in center mode' do

@@ -72,6 +72,41 @@ module OllamaChat
   class CompactionError < OllamaChatError
   end
 
+  # Raised when a Vim server operation fails, either because the server
+  # is not running or a remote command returned a non-zero exit status.
+  #
+  # Inherits from {OllamaChatQuitError} so that the tool-call rescue
+  # handlers can distinguish it from generic chat errors while still
+  # propagating through the same exit path.
+  class VimError < OllamaChatQuitError
+  end
+
+  # Raised when a sandboxed Ruby evaluation (via `eval_ruby`) fails.
+  #
+  # Carries the interpreter `#version`, the command's `#stdout`,
+  # and the process `#exit_status` for structured diagnostics in the
+  # tool-call rescue handler.
+  class RubyEvalError < OllamaChatError
+    # @!attribute [r] stdout
+    #   @return [String, nil] the command's stdout output
+    # @!attribute [r] version
+    #   @return [String, nil] the Ruby version used for evaluation
+    # @!attribute [r] exit_status
+    #   @return [Integer, nil] the process exit status
+    attr_reader :stdout, :version, :exit_status
+
+    # @param message [String] the error description
+    # @param stdout [String, nil] the command's stdout output
+    # @param version [String, nil] the Ruby version used
+    # @param exit_status [Integer, nil] the process exit status
+    def initialize(message, stdout: nil, version: nil, exit_status: nil)
+      super(message)
+      @stdout      = stdout
+      @version     = version
+      @exit_status = exit_status
+    end
+  end
+
   # Regular expression defining the allowed characters for collection names.
   #
   # Matches alphanumeric characters, underscores, hyphens, and dots.

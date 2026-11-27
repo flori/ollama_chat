@@ -8,8 +8,6 @@ require 'open3'
 #   vim = OllamaChat::Vim.new("MY_SERVER")
 #   vim.insert("Hello, Vim!")
 class OllamaChat::Vim
-  include OllamaChat::Feedback
-
   # Result of a vim client command execution.
   class Result < Data.define(:status, :stderr, :stdout)
     # @!attribute status
@@ -114,16 +112,12 @@ class OllamaChat::Vim
   # @param end_line [Integer, nil] the line number to end at, if marking a
   #   range
   #
-  # @return [Result, nil] the last command result, or nil if the server
-  #   is not running (feedback is emitted in that case)
+  # @return [Result] the last command result
+  # @raise [OllamaChat::VimError] if the Vim server is not running
   def open_file(file_path, start_line = nil, end_line = nil)
     start_line ||= 1
-    unless server_running?
-      feedback(<<~EOT, type: :warn)
-        Failed! Vim has to be running with server name "#@server_name"!
-      EOT
-      return
-    end
+    server_running? or raise OllamaChat::VimError,
+      "Vim server #{@server_name.inspect} is not running"
     result = run_vim('--remote', "+#{start_line}", file_path)
     return result unless result.status.success?
     if end_line
