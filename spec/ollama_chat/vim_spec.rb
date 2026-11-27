@@ -5,7 +5,11 @@ describe OllamaChat::Vim do
   let(:ok_status) { instance_double(Process::Status, success?: true) }
   let(:fail_status) { instance_double(Process::Status, success?: false) }
 
-  let(:state_expr) { "[&modifiable, line('.'), col('.')]" }
+  let(:state_expr) { "json_encode([&modifiable, line('.'), col('.'), expand('%:p')])" }
+
+  def state_json(modifiable:, line:, col:, file_path: '/tmp/test.rb')
+    [modifiable, line, col, file_path].to_json + "\n"
+  end
 
   describe '#initialize' do
     it 'can be initialized with a server name' do
@@ -50,24 +54,32 @@ describe OllamaChat::Vim do
   describe 'State' do
     describe '#modifiable?' do
       it 'returns true when modifiable is 1' do
-        info = described_class::State.new(modifiable: 1, line: 3, col: 5)
+        info = described_class::State.new(
+          modifiable: 1, line: 3, col: 5, file_path: '/tmp/test.rb'
+        )
         expect(info.modifiable?).to be true
       end
 
       it 'returns false when modifiable is 0' do
-        info = described_class::State.new(modifiable: 0, line: 3, col: 5)
+        info = described_class::State.new(
+          modifiable: 0, line: 3, col: 5, file_path: '/tmp/test.rb'
+        )
         expect(info.modifiable?).to be false
       end
     end
 
     describe '#cursor_present?' do
       it 'returns true when col > 0' do
-        info = described_class::State.new(modifiable: 1, line: 3, col: 1)
+        info = described_class::State.new(
+          modifiable: 1, line: 3, col: 1, file_path: '/tmp/test.rb'
+        )
         expect(info.cursor_present?).to be true
       end
 
       it 'returns false when col is 0' do
-        info = described_class::State.new(modifiable: 1, line: 0, col: 0)
+        info = described_class::State.new(
+          modifiable: 1, line: 0, col: 0, file_path: '/tmp/test.rb'
+        )
         expect(info.cursor_present?).to be false
       end
     end
@@ -78,13 +90,14 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 3, 5]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 3, col: 5), "", ok_status])
 
       info = vim.current_state
       expect(info).to be_a(described_class::State)
       expect(info.modifiable).to eq 1
       expect(info.line).to eq 3
       expect(info.col).to eq 5
+      expect(info.file_path).to eq '/tmp/test.rb'
     end
 
     it 'returns nil when server is down' do
@@ -95,6 +108,30 @@ describe OllamaChat::Vim do
 
       expect(vim.current_state).to be_nil
     end
+
+    it 'serves repeated public accessors from a single cached state' do
+      expect(Open3).to receive(:capture3).once.with(
+        'vim', '--clientserver', 'socket',
+        '--servername', server_name, '--remote-expr', state_expr
+      ).and_return([state_json(modifiable: 1, line: 3, col: 5), "", ok_status])
+
+      expect(vim.line).to eq 3
+      expect(vim.column).to eq 5
+      expect(vim.file_path).to eq '/tmp/test.rb'
+    end
+  end
+
+  describe '#flush_state' do
+    it 'invalidates the memoized state so the next query hits Vim' do
+      expect(Open3).to receive(:capture3).twice.with(
+        'vim', '--clientserver', 'socket',
+        '--servername', server_name, '--remote-expr', state_expr
+      ).and_return([state_json(modifiable: 1, line: 3, col: 5), "", ok_status])
+
+      vim.current_state
+      vim.flush_state
+      expect(vim.current_state).to be_a(described_class::State)
+    end
   end
 
   describe '#server_running?' do
@@ -102,7 +139,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 7, 10]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 7, col: 10), "", ok_status])
 
       expect(vim.server_running?).to be true
     end
@@ -120,7 +157,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 0, 0]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 0, col: 0), "", ok_status])
 
       expect(vim.server_running?).to be false
     end
@@ -131,7 +168,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 3, 5]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 3, col: 5), "", ok_status])
 
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
@@ -152,7 +189,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 1, 1]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 1, col: 1), "", ok_status])
 
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
@@ -173,7 +210,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[0, 3, 5]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 0, line: 3, col: 5), "", ok_status])
 
       expect { vim.insert('hello') }
         .to raise_error(OllamaChat::VimError, /not modifiable/)
@@ -205,7 +242,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 1, 1]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 1, col: 1), "", ok_status])
 
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
@@ -226,7 +263,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 1, 1]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 1, col: 1), "", ok_status])
 
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
@@ -242,7 +279,7 @@ describe OllamaChat::Vim do
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',
         '--servername', server_name, '--remote-expr', state_expr
-      ).and_return(["[1, 1, 1]\n", "", ok_status])
+      ).and_return([state_json(modifiable: 1, line: 1, col: 1), "", ok_status])
 
       expect(Open3).to receive(:capture3).with(
         'vim', '--clientserver', 'socket',

@@ -30,6 +30,10 @@ describe OllamaChat::Tools::PasteIntoEditor do
     end
 
     it 'calls perform_insert with the supplied text' do
+      vim_double = instance_double(
+        OllamaChat::Vim, line: 42, column: 7, file_path: '/tmp/test.rb'
+      )
+      expect(chat).to receive(:vim).and_return(vim_double)
       expect(chat).to receive(:perform_insert)
             .with(text: custom_text, content: true)
 
@@ -39,10 +43,11 @@ describe OllamaChat::Tools::PasteIntoEditor do
       expect(json.error).to be_nil
       expect(json.success).to eq(true)
       expect(json.message).to eq(
-        'The provided text has been successfully pasted into the editor.'
+        'The provided text has been successfully pasted into the editor at line 42, column 7.'
       )
+      expect(json.file).to eq('/tmp/test.rb')
       expect(described_class.summary_template(result:)).to eq \
-        'The provided text has been successfully pasted into the editor.'
+        'The provided text has been successfully pasted into the editor at line 42, column 7.'
     end
   end
 

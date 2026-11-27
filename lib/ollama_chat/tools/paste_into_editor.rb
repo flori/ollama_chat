@@ -43,11 +43,16 @@ class OllamaChat::Tools::PasteIntoEditor
 
     chat.perform_insert(text:, content: true)
 
-    message = "The provided text has been successfully pasted into the editor."
+    vim = chat.vim
+    message = "The provided text has been successfully pasted into the " \
+              "editor at line #{vim.line}, column #{vim.column}."
 
     {
       success:  true,
-      message: ,
+      message:  ,
+      file:     vim.file_path,
+      line:     vim.line,
+      column:   vim.column,
     }.to_json
   rescue => e
     chat.log(:error, e, data: { tool: name })

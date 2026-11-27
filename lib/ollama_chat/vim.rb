@@ -20,13 +20,16 @@ class OllamaChat::Vim
 
   # Snapshot of the current server/buffer state, queried in a single
   # round-trip.
-  class State < Data.define(:modifiable, :line, :col)
+  class State < Data.define(:modifiable, :line, :col, :file_path)
     # @!attribute modifiable
     #   @return [Integer] 1 if the buffer accepts changes, 0 otherwise
     # @!attribute line
     #   @return [Integer] current cursor line (1-indexed)
     # @!attribute col
     #   @return [Integer] current cursor column (1-indexed)
+    # @!attribute file_path
+    #   @return [String] full path of the current buffer (empty for
+    #     non-file buffers)
 
     # @return [Boolean] true if the buffer accepts changes
     def modifiable?
@@ -56,8 +59,9 @@ class OllamaChat::Vim
   #   server name
   def initialize(server_name = nil, clientserver: nil)
     server_name.full? or server_name = self.class.default_server_name
-    @server_name  = server_name
-    @clientserver = clientserver || 'socket'
+    @server_name   = server_name
+    @clientserver  = clientserver || 'socket'
+    @current_state = nil
   end
 
   # The server_name attribute reader returns the name of the Vim server to
@@ -132,6 +136,14 @@ class OllamaChat::Vim
     current_state&.line
   end
 
+  # Returns the current buffer's file path as an absolute path.
+  #
+  # @return [String, nil] the full path, empty string for non-file
+  #   buffers, or nil when the server is unreachable
+  def file_path
+    current_state&.file_path
+  end
+
   # Checks if a Vim server is currently running and accessible.
   #
   # @return [Boolean] true if the Vim server is running and accessible
@@ -149,10 +161,11 @@ class OllamaChat::Vim
   # @return [Result] the last command result
   # @raise [OllamaChat::VimError] if the Vim server is not running
   def open_file(file_path, start_line = nil, end_line = nil)
+    file_pathname = Pathname.new(file_path)
     start_line ||= 1
     server_running? or raise OllamaChat::VimError,
       "Vim server #{@server_name.inspect} is not running"
-    result = run_vim('--remote', "+#{start_line}", file_path)
+    result = run_vim('--remote', "+#{start_line}", file_pathname.to_path)
     return result unless result.status.success?
     if end_line
       mark_range = "<ESC>:normal #{start_line}GV#{end_line}G<CR>"
@@ -162,23 +175,43 @@ class OllamaChat::Vim
     end
   end
 
+  # Discards the cached buffer state, forcing the next read to query
+  # the Vim server.
+  #
+  # Call this after any operation that mutates the buffer or cursor
+  # position (e.g. `insert`, `open_file`) so subsequent reads of
+  # `line`, `column`, `file_path`, or `server_running?` reflect the
+  # new state.
+  def flush_state
+    @current_state = nil
+  end
+
   private
 
   # Queries the Vim server for buffer state in a single round-trip.
   #
-  # Evaluates ` [&modifiable, line('.'), col('.')]` via `--remote-expr`,
-  # returning all three values in one call. When the server is
-  # unreachable, stdout is empty (exit 0) and no digits are found.
+  # Evaluates `json_encode([&modifiable, line('.'), col('.'),
+  # expand('%:p')])` via `--remote-expr`, returning all values as a JSON
+  # array in one call. When the server is unreachable, stdout is empty
+  # (exit 0) and no JSON is found.
+  #
+  # The result is cached on the instance; subsequent calls return the
+  # cached value without spawning a new process. Use {#flush_state} to
+  # invalidate the cache after a buffer mutation.
   #
   # @return [State, nil] the buffer state, or nil when the server is
   #   unreachable
   def current_state
-    digits = run_vim(
+    @current_state and return @current_state
+    result = run_vim(
       '--remote-expr',
-      "[&modifiable, line('.'), col('.')]", stdout: true
-    ).stdout.scan(/\d+/).map(&:to_i)
-    digits.length == 3 ?
-      State.new(modifiable: digits[0], line: digits[1], col: digits[2]) : nil
+      "json_encode([&modifiable, line('.'), col('.'), expand('%:p')])",
+      stdout: true
+    )
+    json = result.stdout.strip
+    return nil unless result.status.success? && json.present?
+    modifiable, line, col, file_path = JSON.parse(json)
+    @current_state = State.new(modifiable:, line:, col:, file_path:)
   end
 
   # Executes a vim client command via Open3.capture3, returning a Result.
