@@ -374,18 +374,10 @@ class OllamaChat::Chat
     !!@parse_content
   end
 
-  # Returns the prefill prompt string if one exists and is not empty, or nil
-  # otherwise.
-  #
-  # @return [String, NilClass] the prefill prompt string, or nil if not set or empty
-  def prefill_prompt
-    @prefill_prompt.full?
-  end
-
-  # @!attribute [w] prefill_prompt=
-  #   Sets the content to be prefilled into the next user input prompt.
-  #   @return [String, NilClass] the prompt
-  attr_writer :prefill_prompt
+  # @!attribute [rw] prefill_prompt
+  #   The content to prefill into the next user input prompt.
+  #   @return [String, nil] the prefilled text
+  attr_accessor :prefill_prompt
 
   # Signals a graceful shutdown of the application.
   #
@@ -443,16 +435,17 @@ class OllamaChat::Chat
         }
         tools_were_called and type = :tool_input
         unless tools_were_called
-          content = enable_command_completion do
-            if prefill_prompt
-              Reline.pre_input_hook = -> {
-                Reline.insert_text prefill_prompt.gsub(/\n*\z/, '')
+          begin
+            content = enable_command_completion do
+              if prefill_prompt.present?
+                text = prefill_prompt.gsub(/\n*\z/, '')
                 self.prefill_prompt = nil
-              }
-            else
-              Reline.pre_input_hook = nil
+                Reline.pre_input_hook = -> { Reline.insert_text text }
+              end
+              Reline.readline(input_prompt, true)&.chomp
             end
-            Reline.readline(input_prompt, true)&.chomp
+          ensure
+            Reline.pre_input_hook = nil
           end
         end
       rescue Interrupt
