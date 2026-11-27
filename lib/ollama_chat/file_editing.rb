@@ -90,13 +90,17 @@ module OllamaChat::FileEditing
   def perform_insert(text: nil, content: false)
     text ||= last_message_content(content:)
     if text
-      unless vim.insert(text)
-        raise OllamaChat::OllamaChatError, "Inserting text into editor failed!"
+      result = vim.insert(text)
+      unless result.status.success?
+        stderr = result.stderr.strip
+        msg    = stderr.empty? ? 'no stderr output' : stderr
+        raise OllamaChat::OllamaChatError,
+          "Inserting text into editor failed: #{msg}"
       end
       true
     else
       raise OllamaChat::OllamaChatError,
-        "No text available to copy to the system clipboard."
+        'No text available to copy to the system clipboard.'
     end
   end
 

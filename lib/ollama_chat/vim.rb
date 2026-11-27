@@ -1,4 +1,5 @@
 require 'tempfile'
+require 'open3'
 
 # A class that provides functionality for inserting text into Vim buffers via
 # remote communication.
@@ -8,6 +9,16 @@ require 'tempfile'
 #   vim.insert("Hello, Vim!")
 class OllamaChat::Vim
   include OllamaChat::Feedback
+
+  # Result of a vim client command execution.
+  class Result < Data.define(:status, :stderr, :stdout)
+    # @!attribute status
+    #   @return [Process::Status] the exit status of the command
+    # @!attribute stderr
+    #   @return [String] stderr output from the command
+    # @!attribute stdout
+    #   @return [String, nil] stdout output, only when explicitly requested
+  end
 
   # Initializes a new Vim server connection
   #
@@ -62,113 +73,81 @@ class OllamaChat::Vim
     name.upcase
   end
 
-  # Inserts text at the current cursor position in Vim
+  # Inserts text at the current cursor position in Vim.
   #
-  # This method writes the provided text to a temporary file and uses Vim's
+  # Writes the provided text to a temporary file and uses Vim's
   # remote-send functionality to insert it at the current cursor position.
   # The text is automatically indented to match the current column position.
   #
   # @param text [String] The text to be inserted into the Vim buffer
-  # @return [OllamaChat::Vim, nil] Returns self if successful or nil.
+  # @return [Result] the command result
   def insert(text)
-    spaces = (col - 1).clamp(0..)
+    spaces = (col.stdout.to_i - 1).clamp(0..)
     text   = text.gsub(/^/, ' ' * spaces)
     Tempfile.open do |tmp|
       tmp.write(text)
       tmp.flush
-      result = system %{
-        vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send "<ESC>:r #{tmp.path}<CR>"
-      }
-      report_error(result) and return
+      run_vim('--remote-send', "<ESC>:r #{tmp.path}<CR>")
     end
-    self
   end
 
-  # Returns the current column position of the cursor in the Vim server
+  # Queries the Vim server for the current cursor column position.
   #
-  # This method queries the specified Vim server for the current cursor position
-  # using Vim's remote expression feature. It executes a Vim command that returns
-  # the result of `col('.')`, which represents the current column number (1-indexed)
-  # of the cursor position.
+  # @return [Result] the command result; `stdout` contains the column
+  #   number as a string (empty or "0" when the server is unreachable)
   def col
-    `vim --clientserver "#@clientserver" --servername "#@server_name" --remote-expr "col('.')"`.chomp.to_i
+    run_vim('--remote-expr', "col('.')", stdout: true)
   end
 
-  # The server_running? method checks if a Vim server is currently running and
-  # accessible.
+  # Checks if a Vim server is currently running and accessible.
   #
-  # This method determines whether a Vim server with the configured server name
-  # is active by attempting to retrieve the current cursor column position. If
-  # the column position is greater than zero, it indicates that Vim is running
-  # and the server is accessible.
-  #
-  # @return [true, false] true if the Vim server is running and accessible, false otherwise
+  # @return [Boolean] true if the Vim server is running and accessible
   def server_running?
-    col > 0
+    result = col
+    result.status.success? && result.stdout.to_i > 0
   end
 
-  # The open_file method opens a file in Vim at a specified line and optionally
-  # marks a range.
+  # Opens a file in Vim at a specified line and optionally marks a range.
   #
-  # This method sends a command to a running Vim server to open a file at a
-  # given line number. If an end line is provided, it also marks the range
-  # between start and end lines. The method ensures the Vim server is running
-  # before attempting to send commands.
+  # @param file_path [String] the path to the file to be opened in Vim
+  # @param start_line [Integer] the line number to start at (defaults to 1)
+  # @param end_line [Integer, nil] the line number to end at, if marking a
+  #   range
   #
-  # @param file_path [ String ] the path to the file to be opened in Vim
-  # @param start_line [ Integer ] the line number to start at (defaults to 1)
-  # @param end_line [ Integer, nil ] the line number to end at, if marking a range
-  #
-  # @return [ OllamaChat::Vim, nil ] returns self if successful, nil if failed
-  # @return [ nil ] returns nil if the Vim server is not running
-  # @return [ nil ] returns nil if the system command fails
+  # @return [Result, nil] the last command result, or nil if the server
+  #   is not running (feedback is emitted in that case)
   def open_file(file_path, start_line = nil, end_line = nil)
     start_line ||= 1
     unless server_running?
       feedback(<<~EOT, type: :warn)
-          Failed! Vim has to be running with server name "#@server_name"!
+        Failed! Vim has to be running with server name "#@server_name"!
       EOT
       return
     end
-    cmd = %{
-      vim --clientserver "#@clientserver" --servername "#@server_name" --remote +#{start_line} "#{file_path}"
-    }
-    result = system(cmd)
-    report_error(result) and return
+    result = run_vim('--remote', "+#{start_line}", file_path)
+    return result unless result.status.success?
     if end_line
       mark_range = "<ESC>:normal #{start_line}GV#{end_line}G<CR>"
-      cmd = %{
-        vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send #{mark_range.inspect}
-      }
-      result = system(cmd)
-      report_error(result) and return
+      run_vim('--remote-send', mark_range)
     else
-      center = "<ESC>zz"
-      cmd = %{
-        vim --clientserver "#@clientserver" --servername "#@server_name" --remote-send #{center.inspect}
-      }
-      result = system(cmd)
-      report_error(result) and return
+      run_vim('--remote-send', '<ESC>zz')
     end
-    self
   end
 
-  # The report_error method handles error reporting for Vim server operations.
+  private
+
+  # Executes a vim client command via Open3.capture3, returning a Result.
   #
-  # This method checks if a system command result indicates failure and outputs
-  # an appropriate error message to standard error when the command fails.
-  #
-  # @param result [true, false] the result of a system command execution
-  #
-  # @return [true, false] returns true if the command failed, false otherwise
-  # @return [true, false] returns false if the command succeeded
-  def report_error(result)
-    unless result
-      feedback(<<~EOT, type: :warn)
-          Failed! vim is required in path and running with server name "#@server_name".
-      EOT
-      true
-    end
-    false
+  # @param args [Array<String>] arguments appended after clientserver/
+  #   servername
+  # @param stdout [Boolean] capture stdout (only needed by #col)
+  # @return [Result] the command result with status, stderr, and optional
+  #   stdout
+  def run_vim(*args, stdout: false)
+    out, err, status = Open3.capture3(
+      'vim', '--clientserver', clientserver,
+      '--servername', server_name, *args
+    )
+    Result.new(status:, stderr: err, stdout: stdout ? out : nil)
   end
 end

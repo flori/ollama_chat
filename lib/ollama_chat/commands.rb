@@ -1012,7 +1012,14 @@ module OllamaChat::Commands
     EOT
   ) do |servername|
     if message = messages.last
-      vim(servername).insert message.content
+      client = vim(servername)
+      result = client.insert message.content
+      unless result.status.success?
+        feedback(<<~EOT, type: :warn)
+          Failed to insert into Vim server "#{client.server_name}":
+          #{result.stderr.strip}
+        EOT
+      end
     else
       feedback("No message found to insert into Vim.", type: :warn)
     end

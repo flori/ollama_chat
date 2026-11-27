@@ -1113,8 +1113,9 @@ describe OllamaChat::Commands, protect_env: true do
       chat.messages << OllamaChat::Message.new(
         role: 'user', content: 'vim content'
       )
+      ok_result = double('Result', status: double('Status', success?: true))
       expect(chat).to receive(:vim).with(nil)
-        .and_return(double('vim', insert: true))
+        .and_return(double('vim', insert: ok_result))
       expect(chat.handle_input('/vim')).to eq :next
     end
 
@@ -1122,8 +1123,9 @@ describe OllamaChat::Commands, protect_env: true do
       chat.messages << OllamaChat::Message.new(
         role: 'user', content: 'vim content'
       )
+      ok_result = double('Result', status: double('Status', success?: true))
       expect(chat).to receive(:vim).with('MY_SERVER')
-        .and_return(double('vim', insert: true))
+        .and_return(double('vim', insert: ok_result))
       expect(chat.handle_input('/vim MY_SERVER')).to eq :next
     end
   end

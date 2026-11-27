@@ -25,7 +25,8 @@ describe OllamaChat::Tools::OpenFileInEditor do
         )
       )
     )
-    expect(chat).to receive(:vim).and_return(double('Vim', open_file: true))
+    ok_result = double('Result', status: double('Status', success?: true))
+    expect(chat).to receive(:vim).and_return(double('Vim', open_file: ok_result))
 
     result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
@@ -48,7 +49,8 @@ describe OllamaChat::Tools::OpenFileInEditor do
         )
       )
     )
-    expect(chat).to receive(:vim).and_return(double('Vim', open_file: true))
+    ok_result = double('Result', status: double('Status', success?: true))
+    expect(chat).to receive(:vim).and_return(double('Vim', open_file: ok_result))
 
     result = described_class.new(chat).execute(tool_call)
     json = json_object(result)
