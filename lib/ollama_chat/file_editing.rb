@@ -81,8 +81,8 @@ module OllamaChat::FileEditing
   # @param [true, false]     content  – Treat input as content‑mode (`true`) or
   #   plain text (`false`).
   #
-  # @return [true, false] true if insertion succeeded; otherwise raises
-  #   OllamaChat::OllamaChatError.
+  # @return [OllamaChat::Vim] the Vim instance used for the insertion,
+  #   with its state cached at the pre-insert cursor position.
   #
   # @raise [OllamaChat::OllamaChatError]
   #   * Raised when no text is available and insertion cannot proceed.
@@ -90,14 +90,15 @@ module OllamaChat::FileEditing
   def perform_insert(text: nil, content: false)
     text ||= last_message_content(content:)
     if text
-      result = vim.insert(text)
+      my_vim = vim
+      result = my_vim.insert(text)
       unless result.status.success?
         stderr = result.stderr.strip
         msg    = stderr.empty? ? 'no stderr output' : stderr
         raise OllamaChat::OllamaChatError,
           "Inserting text into editor failed: #{msg}"
       end
-      true
+      my_vim
     else
       raise OllamaChat::OllamaChatError,
         'No text available to copy to the system clipboard.'

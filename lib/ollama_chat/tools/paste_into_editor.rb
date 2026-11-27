@@ -41,9 +41,8 @@ class OllamaChat::Tools::PasteIntoEditor
   def execute(tool_call, **opts)
     text = tool_call.function.arguments.text
 
-    chat.perform_insert(text:, content: true)
+    vim = chat.perform_insert(text:, content: true)
 
-    vim = chat.vim
     message = "The provided text has been successfully pasted into the " \
               "editor at line #{vim.line}, column #{vim.column}."
 
