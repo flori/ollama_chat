@@ -1,5 +1,76 @@
 # Changes
 
+## 2026-11-28 v0.0.151
+
+### Features
+
+- Added `OllamaChat::Vim#file_path` accessor to retrieve the full path of the
+  current Vim buffer.
+- Added `OllamaChat::Vim#flush_state` to invalidate the cached buffer state,
+  forcing a new query to the Vim server after mutations.
+- Added `OllamaChat::Vim::State` value object to encapsulate buffer state
+  (`modifiable`, `line`, `col`, `file_path`) queried in a single round-trip.
+- Added `OllamaChat::RubyEvalError` exception class with `stdout`, `version`,
+  and `exit_status` attributes for structured diagnostics in `eval_ruby` tool
+  failures.
+- Added `OllamaChat::VimError` exception class for Vim server failures.
+- Added `OllamaChat::Generation` module with a `generate` method that includes
+  a `guard_context_length` mechanism to prevent prompts from exceeding the
+  model's context window.
+- Added `truncate:` keyword argument to `generate` to specify whether to
+  truncate from the `:leading` or `:trailing` edge of the prompt.
+- `paste_into_editor` tool now returns `file`, `line`, and `column` in the
+  success JSON response.
+
+### Fixes
+
+- Fixed a crash caused by a stale `Reline.pre_input_hook` by capturing prefill
+  text in a local variable and resetting the hook in an `ensure` block.
+- Fixed `summarize_session` to use `compacted_messages` instead of
+  `each_message`, preventing O(n²) prompt growth in long sessions and
+  incorporating a condensed prologue from compaction summaries.
+- Fixed `prepare_conversation_history` and `derive_session_name` to use
+  `compacted_messages` to bound prompt size by the compaction process.
+- Hardened the `:enter` command regular expression to use absolute anchors
+  (`\A\Z$`) to unambiguously match empty input.
+
+### Improvements
+
+- Refactored `OllamaChat::Vim` to use `Open3.capture3` with argument arrays
+  instead of `system` and backticks, eliminating shell-string quoting issues.
+- `OllamaChat::Vim` now acts as a pure transport layer, removing the
+  `report_error` method and `OllamaChat::Feedback` inclusion.
+- `OllamaChat::Vim#col` replaced by `#column` and `#current_state`;
+  `#insert` and `#open_file` now raise `OllamaChat::VimError` on
+  failure instead of returning `nil`.
+- `perform_insert` in `file_editing.rb` now returns the `OllamaChat::Vim`
+  instance instead of `true`, allowing callers to access cached state without
+  additional socket round-trips.
+- `open_file_in_editor` tool now raises `OllamaChat::VimError` for failure
+  cases, which are caught by the existing rescue handler.
+- `eval_ruby` tool now raises `OllamaChat::RubyEvalError` on failure,
+  preserving diagnostic details in the response.
+- `Vim#current_state` is now memoized on the instance to reduce Vim server
+  queries.
+- `Vim#open_file` now coerces input to `Pathname` for safe string conversion.
+
+### Build & CI
+
+- Updated `rubygems_version` in `ollama_chat.gemspec` to **4.1.1**.
+
+### Testing
+
+- Added `spec/ollama_chat/generation_spec.rb` with tests for `generate` and
+  `guard_context_length`.
+- Updated `spec/ollama_chat/vim_spec.rb` to mock `Open3.capture3` and test the
+  new `State` object, `flush_state`, and error paths.
+- Updated `spec/ollama_chat/tools/paste_into_editor_spec.rb` to verify the new
+  JSON response fields.
+- Updated `spec/ollama_chat/session_management_spec.rb` to test the
+  compaction-aware summarization logic.
+- Updated `spec/ollama_chat/tools/search_knowledge_spec.rb` to expect the new
+  `truncate:` keyword argument.
+
 ## 2026-11-25 v0.0.150
 
 ### Features
